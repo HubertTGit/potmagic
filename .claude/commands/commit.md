@@ -9,4 +9,4 @@ If the argument "PROCEED" is provided, run:
 git add -A && git commit -m "<one-line message>"
 ```
 
-If "PROCEED" is not provided, do NOT commit. Only show the proposed commit message and tell the user to run `/commit PROCEED` to apply it.
+If "STOP" is provided, do NOT commit. Only show the proposed commit message.
