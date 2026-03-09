@@ -22,7 +22,6 @@ See [SPEC.md](./SPEC.md) for full product specification.
 | Styling | Tailwind CSS v4 + Sass |
 | Auth | better-auth (email/password) |
 | Real-time | LiveKit |
-| Backend | Hono |
 | Database | SQLite |
 | Build | Vite 7 |
 

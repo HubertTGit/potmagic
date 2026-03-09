@@ -1,18 +1,49 @@
-import { createRootRoute, Link, Outlet } from '@tanstack/react-router';
-import { useTheme } from '../hooks/useTheme';
-import {
-  SunIcon,
-  MoonIcon,
-  FilmIcon,
-  LockClosedIcon,
-} from '@heroicons/react/24/outline';
+import { createRootRoute, HeadContent, Link, Outlet, Scripts } from '@tanstack/react-router'
+import { useTheme } from '../hooks/useTheme'
+import { SunIcon, MoonIcon, FilmIcon, LockClosedIcon } from '@heroicons/react/24/outline'
+import type { ReactNode } from 'react'
+import appCss from '../index.css?url'
 
 export const Route = createRootRoute({
+  head: () => ({
+    meta: [
+      { charSet: 'utf-8' },
+      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+      { title: 'honeypotmagic' },
+    ],
+    links: [
+      { rel: 'stylesheet', href: appCss },
+      { rel: 'icon', type: 'image/svg+xml', href: '/vite.svg' },
+    ],
+    scripts: [
+      {
+        children: `document.documentElement.setAttribute('data-theme',
+          localStorage.theme === 'dark' ||
+          (!('theme' in localStorage) && matchMedia('(prefers-color-scheme: dark)').matches)
+            ? 'dark' : 'light');`,
+      },
+    ],
+  }),
+  shellComponent: RootDocument,
   component: RootLayout,
-});
+})
+
+function RootDocument({ children }: { children: ReactNode }) {
+  return (
+    <html lang="en">
+      <head>
+        <HeadContent />
+      </head>
+      <body>
+        {children}
+        <Scripts />
+      </body>
+    </html>
+  )
+}
 
 function RootLayout() {
-  const { theme, toggle } = useTheme();
+  const { theme, toggle } = useTheme()
 
   return (
     <div className="min-h-screen flex flex-col bg-base-100 text-base-content">
@@ -26,7 +57,6 @@ function RootLayout() {
               aria-label="Stage"
             >
               <span>Stage</span>
-
               <FilmIcon className="size-5" />
             </Link>
             <Link
@@ -44,14 +74,10 @@ function RootLayout() {
           className="p-1.5 rounded text-base-content/60 hover:text-base-content bg-base-300 hover:bg-neutral transition-colors"
           aria-label="Toggle theme"
         >
-          {theme === 'dark' ? (
-            <SunIcon className="size-5" />
-          ) : (
-            <MoonIcon className="size-5" />
-          )}
+          {theme === 'dark' ? <SunIcon className="size-5" /> : <MoonIcon className="size-5" />}
         </button>
       </header>
       <Outlet />
     </div>
-  );
+  )
 }

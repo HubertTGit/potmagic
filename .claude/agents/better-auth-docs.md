@@ -382,8 +382,9 @@ Common plugins: `twoFactor`, `username`, `magicLink`, `passkey`, `organization`,
 
 > See @SPEC.md for full product specification, data models, and API endpoints.
 
-- Server config: `src/lib/auth.ts` — mounted at `/api/auth/*` via Hono
+- Server config: `src/lib/auth.ts` — mounted at `/api/auth/*`
 - Client config: `src/lib/auth-client.ts`
 - Users have a custom `role` field (`actor` | `director`)
 - Route guards use TanStack Router `beforeLoad`
+- Routing and SSR: **TanStack Start** (`@tanstack/react-start`) — file-based routing with server-side rendering; auth session is fetched server-side in route loaders and passed as context
 - Database: PostgreSQL via Drizzle ORM adapter

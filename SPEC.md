@@ -126,7 +126,7 @@ Constraints:
 
 ## Backend Architecture
 
-A Hono server runs alongside (or proxied through) the Vite dev server.
+The backend server runs alongside (or proxied through) the Vite dev server.
 
 ### Endpoints
 
@@ -177,7 +177,6 @@ A Hono server runs alongside (or proxied through) the Vite dev server.
 | Styling | Tailwind CSS v4 + DaisyUI v5 + clsx/tailwind-merge |
 | Authentication | better-auth (email/password) |
 | Real-time session | LiveKit |
-| Backend server | Hono |
 | Database | PostgreSQL via Drizzle ORM |
 | Build tool | Vite 7 |
 
