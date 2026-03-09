@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { cn } from '../lib/cn';
 import { authClient } from '../lib/auth-client';
 import PasswordInput from '@/components/password-input.component';
@@ -15,7 +15,15 @@ function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [toastEmail, setToastEmail] = useState<string | null>(null);
+  const [resetSent, setResetSent] = useState(false);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -73,8 +81,10 @@ function LoginPage() {
       setError(error.message ?? 'Failed to send reset email');
       return;
     }
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToastEmail(email);
-    setTimeout(() => setToastEmail(null), 5000);
+    toastTimerRef.current = setTimeout(() => setToastEmail(null), 5000);
+    setResetSent(true);
   };
 
   return (
@@ -177,7 +187,7 @@ function LoginPage() {
                 <p className="text-center text-xs text-base-content/40">
                   <button
                     type="button"
-                    onClick={() => { setView('forgot'); setError(null); }}
+                    onClick={() => { setView('forgot'); setError(null); setResetSent(false); }}
                     className="text-gold/60 hover:text-gold cursor-pointer font-inherit text-xs transition-colors"
                   >
                     Forgot password?
@@ -262,19 +272,19 @@ function LoginPage() {
 
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || resetSent}
                   className={cn(
                     'btn btn-block mt-1 font-display text-base tracking-[0.08em] btn-gold',
-                    loading && 'opacity-60 cursor-not-allowed',
+                    (loading || resetSent) && 'opacity-60 cursor-not-allowed',
                   )}
                 >
-                  {loading ? 'Sending…' : 'Send reset link'}
+                  {loading ? 'Sending…' : resetSent ? 'Link sent ✓' : 'Send reset link'}
                 </button>
 
                 <p className="text-center text-xs text-base-content/40 mt-1">
                   <button
                     type="button"
-                    onClick={() => { setView('login'); setError(null); }}
+                    onClick={() => { setView('login'); setError(null); setResetSent(false); }}
                     className="text-gold cursor-pointer font-inherit text-xs"
                   >
                     ← Back to sign in
