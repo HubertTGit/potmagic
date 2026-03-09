@@ -151,7 +151,9 @@ A Hono server runs alongside (or proxied through) the Vite dev server.
 - **TanStack Router** — file-based routing with `beforeLoad` auth guards
 - **Konva / react-konva** — interactive canvas for character manipulation
 - **@livekit/components-react** — LiveKit room/participant UI components
-- **Tailwind CSS v4** — styling with dark/light mode support
+- **Tailwind CSS v4** + **DaisyUI v5** — styling with semantic tokens and dark/light mode support
+- **clsx + tailwind-merge** — conditional class composition via `cn()` (`src/lib/cn.ts`)
+- **Drizzle ORM** — type-safe SQLite schema and queries
 
 ### Character Interaction (existing)
 - **Drag** — move character around canvas
@@ -172,7 +174,7 @@ A Hono server runs alongside (or proxied through) the Vite dev server.
 | Frontend framework | React 19 + TypeScript |
 | Routing | TanStack Router |
 | Canvas | Konva + react-konva |
-| Styling | Tailwind CSS v4 + Sass |
+| Styling | Tailwind CSS v4 + DaisyUI v5 + clsx/tailwind-merge |
 | Authentication | better-auth (email/password) |
 | Real-time session | LiveKit |
 | Backend server | Hono |

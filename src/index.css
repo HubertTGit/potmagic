@@ -4,6 +4,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+
   --color-base-100:           var(--base-100);
   --color-base-200:           var(--base-200);
   --color-base-300:           var(--base-300);
@@ -29,6 +31,35 @@
   --radius-selector: 0.5rem;
   --radius-field:    0.25rem;
   --radius-box:      0.5rem;
+}
+
+/* Login page utilities */
+@utility login-bg {
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 45%, oklch(78% 0.16 75 / 0.12) 0%, oklch(78% 0.16 75 / 0.04) 40%, transparent 70%),
+    oklch(9% 0.02 265);
+}
+
+@utility login-card {
+  background: oklch(13% 0.028 262 / 0.95);
+  box-shadow:
+    0 0 60px oklch(78% 0.16 75 / 0.08),
+    0 25px 50px oklch(0% 0 0 / 0.5),
+    inset 0 1px 0 oklch(78% 0.16 75 / 0.15);
+}
+
+@utility gold-glow {
+  text-shadow: 0 0 40px oklch(78% 0.16 75 / 0.4);
+}
+
+@utility btn-gold {
+  background: oklch(78% 0.16 75);
+  color: oklch(12% 0.04 75);
+  box-shadow: 0 4px 20px oklch(78% 0.16 75 / 0.3);
+  &:hover {
+    background: oklch(83% 0.16 75);
+    box-shadow: 0 4px 28px oklch(78% 0.16 75 / 0.5);
+  }
 }
 
 /* Light theme */

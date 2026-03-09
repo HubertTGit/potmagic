@@ -23,10 +23,13 @@ pnpm preview      # Preview production build
 - **Tailwind CSS v4** + Sass — styling
 - **TanStack Router** — file-based routing with `beforeLoad` auth guards
 - **TanStack Query** — data fetching/caching
-- **better-auth** — email/password authentication, SQLite adapter
+- **better-auth** — email/password authentication, Drizzle adapter (SQLite)
+- **Drizzle ORM** — type-safe SQLite schema and queries
+- **DaisyUI v5** — Tailwind CSS component plugin (`@plugin "daisyui"` in index.css)
+- **clsx + tailwind-merge** — conditional class composition via `cn()` helper (`src/lib/cn.ts`)
 - **LiveKit** (`livekit-client`, `@livekit/components-react`) — real-time multi-user sessions
 - **Hono** — backend server (API + auth endpoints)
-- **SQLite** — database (users, characters, stories, cast)
+- **SQLite** — database via Drizzle ORM (users, characters, stories, cast)
 
 ## User Roles
 
@@ -87,6 +90,13 @@ Key API endpoints (see `SPEC.md` for full list):
 
 - `useWindowSize` — responsive canvas dimensions
 - `useTheme` — light/dark toggle, persists to `localStorage`
+
+## Styling Rules
+
+- **No inline styles** — never use the `style` prop in React components; use Tailwind classes only
+- **Conditional classes** — always use `cn()` from `src/lib/cn.ts` (wraps `clsx` + `tailwind-merge`) for conditional or merged class names
+- **Custom utilities** — complex multi-property styles (gradients, shadows, fonts) go in `src/index.css` as `@utility` blocks, not inline
+- **Design tokens** — use semantic CSS variables (`--gold`, `--base-100`, etc.) defined in `src/index.css`; extend via `@theme` to make them available as Tailwind classes
 
 ## Key Patterns
 
