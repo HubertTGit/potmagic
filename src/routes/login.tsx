@@ -1,25 +1,25 @@
-import { createFileRoute, useRouter } from '@tanstack/react-router'
-import { useState } from 'react'
-import { cn } from '../lib/cn'
-import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
-import { authClient } from '../lib/auth-client'
+import { createFileRoute, useRouter } from '@tanstack/react-router';
+import { useState } from 'react';
+import { cn } from '../lib/cn';
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { authClient } from '../lib/auth-client';
 
 export const Route = createFileRoute('/login')({
   component: LoginPage,
-})
+});
 
-type Tab = 'login' | 'register'
+type Tab = 'login' | 'register';
 
 function PasswordInput({
   name,
   autoComplete,
   placeholder,
 }: {
-  name: string
-  autoComplete: string
-  placeholder: string
+  name: string;
+  autoComplete: string;
+  placeholder: string;
 }) {
-  const [show, setShow] = useState(false)
+  const [show, setShow] = useState(false);
   return (
     <div className="relative">
       <input
@@ -36,58 +36,62 @@ function PasswordInput({
         className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content/70 transition-colors"
         aria-label={show ? 'Hide password' : 'Show password'}
       >
-        {show ? <EyeSlashIcon className="size-4" /> : <EyeIcon className="size-4" />}
+        {show ? (
+          <EyeSlashIcon className="size-4" />
+        ) : (
+          <EyeIcon className="size-4" />
+        )}
       </button>
     </div>
-  )
+  );
 }
 
 function LoginPage() {
-  const [activeTab, setActiveTab] = useState<Tab>('login')
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-  const router = useRouter()
+  const [activeTab, setActiveTab] = useState<Tab>('login');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setError(null)
-    setLoading(true)
-    const form = new FormData(e.currentTarget)
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    const form = new FormData(e.currentTarget);
     const { error } = await authClient.signIn.email({
       email: form.get('email') as string,
       password: form.get('password') as string,
-    })
-    setLoading(false)
+    });
+    setLoading(false);
     if (error) {
-      setError(error.message ?? 'Sign in failed')
-      return
+      setError(error.message ?? 'Sign in failed');
+      return;
     }
-    await router.navigate({ to: '/' })
-  }
+    await router.navigate({ to: '/' });
+  };
 
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setError(null)
-    const form = new FormData(e.currentTarget)
-    const password = form.get('password') as string
-    const confirm = form.get('confirmPassword') as string
+    e.preventDefault();
+    setError(null);
+    const form = new FormData(e.currentTarget);
+    const password = form.get('password') as string;
+    const confirm = form.get('confirmPassword') as string;
     if (password !== confirm) {
-      setError('Passwords do not match')
-      return
+      setError('Passwords do not match');
+      return;
     }
-    setLoading(true)
+    setLoading(true);
     const { error } = await authClient.signUp.email({
       email: form.get('email') as string,
       password,
       name: (form.get('email') as string).split('@')[0],
-    })
-    setLoading(false)
+    });
+    setLoading(false);
     if (error) {
-      setError(error.message ?? 'Registration failed')
-      return
+      setError(error.message ?? 'Registration failed');
+      return;
     }
-    await router.navigate({ to: '/' })
-  }
+    await router.navigate({ to: '/' });
+  };
 
   return (
     <div className="flex-1 flex items-center justify-center login-bg">
@@ -105,18 +109,23 @@ function LoginPage() {
           </div>
 
           {/* Tab switcher */}
-          <div role="tablist" className="tabs tabs-border mx-8 mb-6 border-gold/15">
+          <div
+            role="tablist"
+            className="tabs tabs-border mx-8 mb-6 border-gold/15"
+          >
             {(['login', 'register'] as Tab[]).map((tab) => (
               <button
                 key={tab}
                 role="tab"
                 onClick={() => {
-                  setActiveTab(tab)
-                  setError(null)
+                  setActiveTab(tab);
+                  setError(null);
                 }}
                 className={cn(
                   'tab font-display text-base tracking-[0.05em]',
-                  activeTab === tab ? 'tab-active text-gold' : 'text-base-content/30',
+                  activeTab === tab
+                    ? 'tab-active text-gold'
+                    : 'text-base-content/30',
                 )}
               >
                 {tab === 'login' ? 'Sign In' : 'Register'}
@@ -126,12 +135,16 @@ function LoginPage() {
 
           {/* Forms */}
           <div className="px-8 pb-8">
-            {error && <p className="text-error text-xs mb-4 text-center">{error}</p>}
+            {error && (
+              <p className="text-error text-xs mb-4 text-center">{error}</p>
+            )}
 
             {activeTab === 'login' ? (
               <form onSubmit={handleLogin} className="flex flex-col gap-4">
                 <fieldset className="fieldset gap-1">
-                  <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">Email</legend>
+                  <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
+                    Email
+                  </legend>
                   <input
                     name="email"
                     type="email"
@@ -143,8 +156,14 @@ function LoginPage() {
                 </fieldset>
 
                 <fieldset className="fieldset gap-1">
-                  <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">Password</legend>
-                  <PasswordInput name="password" autoComplete="current-password" placeholder="••••••••" />
+                  <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
+                    Password
+                  </legend>
+                  <PasswordInput
+                    name="password"
+                    autoComplete="current-password"
+                    placeholder="••••••••"
+                  />
                 </fieldset>
 
                 <button
@@ -172,7 +191,9 @@ function LoginPage() {
             ) : (
               <form onSubmit={handleRegister} className="flex flex-col gap-4">
                 <fieldset className="fieldset gap-1">
-                  <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">Email</legend>
+                  <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
+                    Email
+                  </legend>
                   <input
                     name="email"
                     type="email"
@@ -184,13 +205,25 @@ function LoginPage() {
                 </fieldset>
 
                 <fieldset className="fieldset gap-1">
-                  <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">Password</legend>
-                  <PasswordInput name="password" autoComplete="new-password" placeholder="••••••••" />
+                  <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
+                    Password
+                  </legend>
+                  <PasswordInput
+                    name="password"
+                    autoComplete="new-password"
+                    placeholder="••••••••"
+                  />
                 </fieldset>
 
                 <fieldset className="fieldset gap-1">
-                  <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">Confirm Password</legend>
-                  <PasswordInput name="confirmPassword" autoComplete="new-password" placeholder="••••••••" />
+                  <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
+                    Confirm Password
+                  </legend>
+                  <PasswordInput
+                    name="confirmPassword"
+                    autoComplete="new-password"
+                    placeholder="••••••••"
+                  />
                 </fieldset>
 
                 <button
@@ -220,5 +253,5 @@ function LoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
