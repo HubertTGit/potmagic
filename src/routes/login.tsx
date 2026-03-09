@@ -3,48 +3,13 @@ import { useState } from 'react';
 import { cn } from '../lib/cn';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { authClient } from '../lib/auth-client';
+import PasswordInput from '@/components/password-input.component';
 
 export const Route = createFileRoute('/login')({
   component: LoginPage,
 });
 
 type Tab = 'login' | 'register';
-
-function PasswordInput({
-  name,
-  autoComplete,
-  placeholder,
-}: {
-  name: string;
-  autoComplete: string;
-  placeholder: string;
-}) {
-  const [show, setShow] = useState(false);
-  return (
-    <div className="relative">
-      <input
-        name={name}
-        type={show ? 'text' : 'password'}
-        autoComplete={autoComplete}
-        placeholder={placeholder}
-        required
-        className="input w-full bg-base-200 border-base-300 text-sm focus:border-gold/60 focus:ring-2 focus:ring-gold/10 pr-10"
-      />
-      <button
-        type="button"
-        onClick={() => setShow((v) => !v)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content/70 transition-colors"
-        aria-label={show ? 'Hide password' : 'Show password'}
-      >
-        {show ? (
-          <EyeSlashIcon className="size-4" />
-        ) : (
-          <EyeIcon className="size-4" />
-        )}
-      </button>
-    </div>
-  );
-}
 
 function LoginPage() {
   const [activeTab, setActiveTab] = useState<Tab>('login');
