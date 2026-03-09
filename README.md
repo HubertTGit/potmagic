@@ -1,16 +1,58 @@
-# React + Vite
+# HoneypotMagic
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An online collaborative theater platform for storytelling. Groups perform interactive stories together using animated canvas characters, with a public live broadcast stream for audiences.
 
-Currently, two official plugins are available:
+See [SPEC.md](./SPEC.md) for full product specification.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## React Compiler
+- **Interactive canvas stage** — drag, rotate, and mirror characters using Konva
+- **Real-time collaboration** — actors perform together via LiveKit multi-user sessions
+- **Public broadcast** — audiences watch a live stream at a unique URL, no login required
+- **Role-based access** — Directors manage stories and cast; Actors perform; Viewers watch
+- **Dark/light mode** — persisted theme preference
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech Stack
 
-## Expanding the ESLint configuration
+| Concern | Technology |
+| --- | --- |
+| Frontend | React 19 + TypeScript |
+| Routing | TanStack Router |
+| Canvas | Konva + react-konva |
+| Styling | Tailwind CSS v4 + Sass |
+| Auth | better-auth (email/password) |
+| Real-time | LiveKit |
+| Backend | Hono |
+| Database | SQLite |
+| Build | Vite 7 |
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Getting Started
+
+```bash
+pnpm install
+pnpm dev
+```
+
+## Commands
+
+```bash
+pnpm dev        # Start development server
+pnpm build      # TypeScript check + production build
+pnpm lint       # Run ESLint
+pnpm preview    # Preview production build
+```
+
+## Project Status
+
+| Area | Status |
+| --- | --- |
+| Konva canvas (drag, rotate, mirror) | Done |
+| TanStack Router + routes | Done |
+| better-auth config (email/password) | Done |
+| LiveKit dependencies | Installed |
+| Hono backend server | Not started |
+| SQLite database + schema | Not started |
+| Authentication UI | Not started |
+| LiveKit integration | Not started |
+| Director dashboard | Not started |
+| Public broadcast page | Not started |
