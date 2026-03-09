@@ -1,7 +1,6 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
 import { cn } from '../lib/cn';
-import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { authClient } from '../lib/auth-client';
 import PasswordInput from '@/components/password-input.component';
 
@@ -9,12 +8,13 @@ export const Route = createFileRoute('/login')({
   component: LoginPage,
 });
 
-type Tab = 'login' | 'register';
+type View = 'login' | 'register' | 'forgot';
 
 function LoginPage() {
-  const [activeTab, setActiveTab] = useState<Tab>('login');
+  const [view, setView] = useState<View>('login');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [toastEmail, setToastEmail] = useState<string | null>(null);
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -58,6 +58,25 @@ function LoginPage() {
     await router.navigate({ to: '/' });
   };
 
+  const handleForgotPassword = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    const form = new FormData(e.currentTarget);
+    const email = form.get('email') as string;
+    const { error } = await authClient.requestPasswordReset({
+      email,
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+    if (error) {
+      setError(error.message ?? 'Failed to send reset email');
+      return;
+    }
+    setToastEmail(email);
+    setTimeout(() => setToastEmail(null), 5000);
+  };
+
   return (
     <div className="flex-1 flex items-center justify-center login-bg">
       <div className="relative w-full max-w-sm mx-4">
@@ -74,29 +93,31 @@ function LoginPage() {
           </div>
 
           {/* Tab switcher */}
-          <div
-            role="tablist"
-            className="tabs tabs-border mx-8 mb-6 border-gold/15"
-          >
-            {(['login', 'register'] as Tab[]).map((tab) => (
-              <button
-                key={tab}
-                role="tab"
-                onClick={() => {
-                  setActiveTab(tab);
-                  setError(null);
-                }}
-                className={cn(
-                  'tab font-display text-base tracking-[0.05em]',
-                  activeTab === tab
-                    ? 'tab-active text-gold'
-                    : 'text-base-content/30',
-                )}
-              >
-                {tab === 'login' ? 'Sign In' : 'Register'}
-              </button>
-            ))}
-          </div>
+          {view !== 'forgot' && (
+            <div
+              role="tablist"
+              className="tabs tabs-border mx-8 mb-6 border-gold/15"
+            >
+              {(['login', 'register'] as View[]).map((tab) => (
+                <button
+                  key={tab}
+                  role="tab"
+                  onClick={() => {
+                    setView(tab);
+                    setError(null);
+                  }}
+                  className={cn(
+                    'tab font-display text-base tracking-[0.05em]',
+                    view === tab
+                      ? 'tab-active text-gold'
+                      : 'text-base-content/30',
+                  )}
+                >
+                  {tab === 'login' ? 'Sign In' : 'Register'}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Forms */}
           <div className="px-8 pb-8">
@@ -104,7 +125,7 @@ function LoginPage() {
               <p className="text-error text-xs mb-4 text-center">{error}</p>
             )}
 
-            {activeTab === 'login' ? (
+            {view === 'login' ? (
               <form onSubmit={handleLogin} className="flex flex-col gap-4">
                 <fieldset className="fieldset gap-1">
                   <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
@@ -146,14 +167,24 @@ function LoginPage() {
                   No seat yet?{' '}
                   <button
                     type="button"
-                    onClick={() => setActiveTab('register')}
+                    onClick={() => setView('register')}
                     className="text-gold cursor-pointer font-inherit text-xs"
                   >
                     Register →
                   </button>
                 </p>
+
+                <p className="text-center text-xs text-base-content/40">
+                  <button
+                    type="button"
+                    onClick={() => { setView('forgot'); setError(null); }}
+                    className="text-gold/60 hover:text-gold cursor-pointer font-inherit text-xs transition-colors"
+                  >
+                    Forgot password?
+                  </button>
+                </p>
               </form>
-            ) : (
+            ) : view === 'register' ? (
               <form onSubmit={handleRegister} className="flex flex-col gap-4">
                 <fieldset className="fieldset gap-1">
                   <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
@@ -206,10 +237,47 @@ function LoginPage() {
                   Already have a seat?{' '}
                   <button
                     type="button"
-                    onClick={() => setActiveTab('login')}
+                    onClick={() => setView('login')}
                     className="text-gold cursor-pointer font-inherit text-xs"
                   >
                     Sign in →
+                  </button>
+                </p>
+              </form>
+            ) : (
+              <form onSubmit={handleForgotPassword} className="flex flex-col gap-4">
+                <fieldset className="fieldset gap-1">
+                  <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
+                    Email
+                  </legend>
+                  <input
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="you@example.com"
+                    required
+                    className="input w-full bg-base-200 border-base-300 text-sm focus:border-gold/60 focus:ring-2 focus:ring-gold/10"
+                  />
+                </fieldset>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={cn(
+                    'btn btn-block mt-1 font-display text-base tracking-[0.08em] btn-gold',
+                    loading && 'opacity-60 cursor-not-allowed',
+                  )}
+                >
+                  {loading ? 'Sending…' : 'Send reset link'}
+                </button>
+
+                <p className="text-center text-xs text-base-content/40 mt-1">
+                  <button
+                    type="button"
+                    onClick={() => { setView('login'); setError(null); }}
+                    className="text-gold cursor-pointer font-inherit text-xs"
+                  >
+                    ← Back to sign in
                   </button>
                 </p>
               </form>
@@ -217,6 +285,14 @@ function LoginPage() {
           </div>
         </div>
       </div>
+
+      {toastEmail && (
+        <div className="toast toast-end toast-bottom z-50">
+          <div className="alert alert-success text-sm">
+            <span>Reset link sent to <strong>{toastEmail}</strong></span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
