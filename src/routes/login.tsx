@@ -1,27 +1,27 @@
-import { createRoute } from '@tanstack/react-router'
-import { Route as rootRoute } from './__root'
-import { useState } from 'react'
-import { cn } from '../lib/cn'
+import { createRoute } from '@tanstack/react-router';
+import { Route as rootRoute } from './__root';
+import { useState } from 'react';
+import { cn } from '../lib/cn';
 
 export const Route = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
   component: LoginPage,
-})
+});
 
-type Tab = 'login' | 'register'
+type Tab = 'login' | 'register';
 
 const inputClass =
-  'w-full px-3 py-2.5 rounded-field text-sm bg-base-200 border border-base-300 text-base-content outline-none focus:border-gold/60 focus:ring-2 focus:ring-gold/10 transition-all'
+  'w-full px-3 py-2.5 rounded-field text-sm bg-base-200 border border-base-300 text-base-content outline-none focus:border-gold/60 focus:ring-2 focus:ring-gold/10 transition-all';
 
-const labelClass = 'text-xs tracking-[0.1em] uppercase text-base-content/40'
+const labelClass = 'text-xs tracking-[0.1em] uppercase text-base-content/40';
 
 function LoginPage() {
-  const [activeTab, setActiveTab] = useState<Tab>('login')
+  const [activeTab, setActiveTab] = useState<Tab>('login');
 
   const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault()
-  }
+    e.preventDefault();
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center login-bg">
@@ -31,7 +31,7 @@ function LoginPage() {
           {/* Brand header */}
           <div className="px-8 pt-10 pb-6 text-center">
             <h1 className="font-display italic font-semibold text-5xl leading-none mb-2 text-gold gold-glow tracking-[-0.01em]">
-              honeypotmagic
+              potmagic
             </h1>
             <p className="font-display text-sm tracking-[0.25em] uppercase text-base-content/40">
               Enter the stage
@@ -154,5 +154,5 @@ function LoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
