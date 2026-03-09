@@ -1,6 +1,6 @@
 import { Stage, Layer } from 'react-konva'
 import { useWindowSize } from '../hooks/useWindowSize'
-import { DraggableImage } from './draggable-image.component'
+import { DraggableCharacter } from './draggable-character.component'
 
 interface StageComponentProps {
   images: string[]
@@ -13,7 +13,7 @@ export function StageComponent({ images }: StageComponentProps) {
     <Stage width={width} height={height}>
       <Layer>
         {images.map((src, i) => (
-          <DraggableImage
+          <DraggableCharacter
             key={src}
             src={src}
             initialX={100 + i * 200}
