@@ -4,6 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
+always use pnpm never use npm
+
 ```bash
 pnpm dev          # Start development server
 pnpm build        # TypeScript check + production build
