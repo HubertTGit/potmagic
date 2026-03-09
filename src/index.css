@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap');
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -22,6 +23,7 @@
   --color-warning-content:    var(--warning-content);
   --color-error:              var(--error);
   --color-error-content:      var(--error-content);
+  --color-gold:               var(--gold);
 
   --radius-selector: 0.5rem;
   --radius-field:    0.25rem;
@@ -50,6 +52,7 @@
   --warning-content:   oklch(100% 0 0);
   --error:             oklch(60% 0.202 349.761);
   --error-content:     oklch(100% 0 0);
+  --gold:              oklch(78% 0.16 75);
 }
 
 /* Dark theme */
@@ -74,4 +77,5 @@
   --warning-content:   oklch(26% 0.079 36.259);
   --error:             oklch(71% 0.202 349.761);
   --error-content:     oklch(28% 0.109 3.907);
+  --gold:              oklch(78% 0.16 75);
 }

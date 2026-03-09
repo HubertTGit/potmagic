@@ -45,9 +45,11 @@ Route guards are enforced via TanStack Router `beforeLoad` hooks. Unauthenticate
 
 ---
 
-## Data Models (SQLite)
+## Data Models (SQLite + Drizzle ORM)
 
-### users _(managed by better-auth)_
+All tables are defined as Drizzle schemas. The `users` table is managed by better-auth via the Drizzle adapter; custom tables (`characters`, `stories`, `cast`) use Drizzle directly.
+
+### users _(managed by better-auth via Drizzle adapter)_
 | Field | Type | Notes |
 |---|---|---|
 | id | TEXT (UUID) | Primary key |
@@ -92,7 +94,7 @@ Constraints:
 
 ## Authentication
 
-- Provider: **better-auth** with SQLite adapter
+- Provider: **better-auth** with Drizzle adapter (SQLite)
 - Method: **Email + password only** (no OAuth)
 - Custom field: `role` (`actor` | `director`) added to the users table
 - Sessions managed by better-auth (cookie-based)
@@ -174,7 +176,7 @@ A Hono server runs alongside (or proxied through) the Vite dev server.
 | Authentication | better-auth (email/password) |
 | Real-time session | LiveKit |
 | Backend server | Hono |
-| Database | SQLite (via better-auth adapter + raw SQL) |
+| Database | SQLite via Drizzle ORM |
 | Build tool | Vite 7 |
 
 ---
