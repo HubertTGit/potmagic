@@ -42,7 +42,7 @@ function LoginPage() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center login-bg">
+    <div className="flex-1 flex items-center justify-center login-bg">
       <div className="relative w-full max-w-sm mx-4">
         {/* Card */}
         <div className="login-card rounded-box overflow-hidden border border-gold/25">
