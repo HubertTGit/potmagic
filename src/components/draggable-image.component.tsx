@@ -6,24 +6,32 @@ interface DraggableImageProps {
   src: string
   initialX?: number
   initialY?: number
-  onSelect?: (node: Konva.Image, clickLocal: { x: number; y: number }) => void
 }
 
 function getAngle(t1: Touch, t2: Touch) {
   return Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX) * (180 / Math.PI)
 }
 
-export function DraggableImage({ src, initialX = 100, initialY = 100, onSelect }: DraggableImageProps) {
+export function DraggableImage({ src, initialX = 100, initialY = 100 }: DraggableImageProps) {
   const imageRef = useRef<Konva.Image>(null)
   const [image, setImage] = useState<HTMLImageElement | undefined>(undefined)
   const lastAngle = useRef(0)
-  const lastClickLocal = useRef({ x: 0, y: 0 })
 
   useEffect(() => {
     const img = new window.Image()
     img.src = src
-    img.onload = () => setImage(img)
+    img.onload = () => {
+      setImage(img)
+    }
   }, [src])
+
+  useEffect(() => {
+    const node = imageRef.current
+    if (!node || !image) return
+    node.offsetX(image.width / 2)
+    node.offsetY(image.height / 2)
+    node.getLayer()?.batchDraw()
+  }, [image])
 
   const handleTouchStart = (e: Konva.KonvaEventObject<TouchEvent>) => {
     const touches = e.evt.touches
@@ -50,17 +58,11 @@ export function DraggableImage({ src, initialX = 100, initialY = 100, onSelect }
     imageRef.current?.draggable(true)
   }
 
-  const handleClick = () => {
+  const handleDblClick = () => {
     const node = imageRef.current
     if (!node) return
-    const stage = node.getStage()
-    if (!stage) return
-    const pointerPos = stage.getPointerPosition()
-    if (!pointerPos) return
-    const transform = node.getAbsoluteTransform().copy().invert()
-    const localPos = transform.point(pointerPos)
-    lastClickLocal.current = localPos
-    onSelect?.(node, localPos)
+    node.scaleX(node.scaleX() * -1)
+    node.getLayer()?.batchDraw()
   }
 
   return (
@@ -73,7 +75,8 @@ export function DraggableImage({ src, initialX = 100, initialY = 100, onSelect }
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      onClick={handleClick}
+      onDblClick={handleDblClick}
+      onDblTap={handleDblClick}
     />
   )
 }
