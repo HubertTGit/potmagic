@@ -1,8 +1,9 @@
 import { createRootRoute, HeadContent, Link, Outlet, Scripts } from '@tanstack/react-router'
 import { useTheme } from '../hooks/useTheme'
-import { SunIcon, MoonIcon, FilmIcon, LockClosedIcon } from '@heroicons/react/24/outline'
+import { SunIcon, MoonIcon, FilmIcon, LockClosedIcon, ArrowRightEndOnRectangleIcon } from '@heroicons/react/24/outline'
 import type { ReactNode } from 'react'
 import appCss from '../index.css?url'
+import { authClient } from '../lib/auth-client'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -44,6 +45,7 @@ function RootDocument({ children }: { children: ReactNode }) {
 
 function RootLayout() {
   const { theme, toggle } = useTheme()
+  const { data: session } = authClient.useSession()
 
   return (
     <div className="min-h-screen flex flex-col bg-base-100 text-base-content">
@@ -59,14 +61,25 @@ function RootLayout() {
               <span>Stage</span>
               <FilmIcon className="size-5" />
             </Link>
-            <Link
-              to="/login"
-              className="hover:text-base-content transition-colors [&.active]:text-base-content flex gap-2 items-center"
-              aria-label="Login"
-            >
-              <span>Login</span>
-              <LockClosedIcon className="size-5" />
-            </Link>
+            {session ? (
+              <button
+                onClick={() => authClient.signOut()}
+                className="hover:text-base-content transition-colors flex gap-2 items-center"
+                aria-label="Logout"
+              >
+                <span>Logout</span>
+                <ArrowRightEndOnRectangleIcon className="size-5" />
+              </button>
+            ) : (
+              <Link
+                to="/login"
+                className="hover:text-base-content transition-colors [&.active]:text-base-content flex gap-2 items-center"
+                aria-label="Login"
+              >
+                <span>Login</span>
+                <LockClosedIcon className="size-5" />
+              </Link>
+            )}
           </nav>
         </div>
         <button

@@ -15,6 +15,7 @@ export function useTheme() {
   const toggle = () => {
     const next = theme === 'dark' ? 'light' : 'dark'
     localStorage.setItem('theme', next)
+    document.documentElement.setAttribute('data-theme', next)
     setTheme(next)
   }
   return { theme, toggle }
