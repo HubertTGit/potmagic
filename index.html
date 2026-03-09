@@ -6,9 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>honeypotmagic</title>
     <script>
-      document.documentElement.classList.toggle('dark',
+      document.documentElement.setAttribute('data-theme',
         localStorage.theme === 'dark' ||
         (!('theme' in localStorage) && matchMedia('(prefers-color-scheme: dark)').matches)
+          ? 'dark' : 'light'
       );
     </script>
   </head>
