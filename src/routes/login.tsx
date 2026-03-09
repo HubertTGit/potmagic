@@ -1,12 +1,9 @@
-import { createRoute } from '@tanstack/react-router';
-import { Route as rootRoute } from './__root';
+import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import { cn } from '../lib/cn';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
-export const Route = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/login',
+export const Route = createFileRoute('/login')({
   component: LoginPage,
 });
 
