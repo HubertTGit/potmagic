@@ -11,33 +11,86 @@ pnpm lint         # Run ESLint
 pnpm preview      # Preview production build
 ```
 
-## Architecture
+## Overview
 
-**honeypotmagic** is a React + Konva canvas app for interactively manipulating character images (drag, rotate, mirror).
+**honeypotmagic** is an online collaborative theater platform for storytelling. Groups perform interactive stories together using animated Konva canvas characters, with a public LiveKit broadcast stream for audiences. See `SPEC.md` for full product specification.
 
-### Tech Stack
+## Tech Stack
+
 - **React 19** + **TypeScript 5** — UI
 - **Konva / react-konva** — 2D canvas rendering and interaction
 - **Vite 7** — build tool
 - **Tailwind CSS v4** + Sass — styling
+- **TanStack Router** — file-based routing with `beforeLoad` auth guards
+- **TanStack Query** — data fetching/caching
+- **better-auth** — email/password authentication, SQLite adapter
+- **LiveKit** (`livekit-client`, `@livekit/components-react`) — real-time multi-user sessions
+- **Hono** — backend server (API + auth endpoints)
+- **SQLite** — database (users, characters, stories, cast)
 
-### Component Structure
+## User Roles
 
-- `App.tsx` — root; loads bear/crocodile assets, passes them to `StageComponent`
-- `components/stage.component.tsx` — Konva `Stage` + `Layer`; uses `useWindowSize` to fill the viewport; renders one `DraggableCharacter` per image
-- `components/draggable-character.component.tsx` — the core interactive element:
-  - Konva `Image` with drag enabled
-  - Two-finger touch → rotate + pan simultaneously
-  - Double-click / double-tap → horizontal mirror (negative `scaleX`)
-  - `mousedown` / `touchstart` → move node to top (z-index)
-  - Uses refs + `layer.batchDraw()` for performance
+- **Director** — creates stories, assigns characters to actors, starts/ends LiveKit sessions
+- **Actor** — authenticated user with one assigned character per story; manipulates character on canvas
+- **Viewer** — unauthenticated; watch-only via public broadcast URL
 
-### Hooks
-- `useWindowSize` — window dimensions, updates on resize (responsive canvas)
-- `useTheme` — light/dark toggle, persists to `localStorage`, defaults to system preference
+## Routes
 
-### Key Patterns
-- Konva nodes are manipulated imperatively via refs (not React state) for performance
-- Multi-touch angles/midpoints are computed manually from `TouchEvent` coordinates
-- `scaleX` sign flip is used for mirroring (preserves absolute scale magnitude)
-- Characters are initially positioned at `x: 100 + index * 200, y: 100`
+| Route | Auth | Description |
+|---|---|---|
+| `/login` | Public | Email/password login |
+| `/` | Actor, Director | Dashboard — list of stories |
+| `/stage/:storyId` | Assigned actors + Director | Theater stage — canvas + live session |
+| `/director` | Director only | Manage stories, assign characters, control session |
+| `/broadcast/:roomId` | Public | Watch-only LiveKit stream |
+
+## Data Models (SQLite)
+
+- **users** — id, email, password, role (`actor` | `director`) — managed by better-auth
+- **characters** — id, name, image_url
+- **stories** — id, title, description, director_id, status (`draft`|`active`|`ended`), livekit_room_name, broadcast_id
+- **cast** — story_id + user_id + character_id (one user = one character per story)
+
+## Authentication
+
+- `src/lib/auth-client.ts` — better-auth client
+- `src/lib/auth.ts` — better-auth server config, mounted at `/api/auth/*`
+- Custom `role` field on users; route guards via TanStack Router `beforeLoad`
+
+## Backend (Hono)
+
+Key API endpoints (see `SPEC.md` for full list):
+
+- `ALL /api/auth/*` — better-auth handler
+- `GET/POST /api/stories` — list/create stories
+- `POST/DELETE /api/stories/:id/cast` — assign/remove actors
+- `POST /api/livekit/token` — publisher token (authenticated)
+- `GET /api/livekit/broadcast-token/:roomId` — subscribe-only token (public)
+
+## LiveKit
+
+- Director starts session → backend creates LiveKit room
+- Actors receive publisher tokens; viewers receive subscribe-only tokens
+- Character state (position, rotation, scale) synced via LiveKit data messages to all participants
+
+## Component Structure
+
+- `components/stage.component.tsx` — Konva `Stage` + `Layer`; uses `useWindowSize`; renders `DraggableCharacter` per assigned character
+- `components/draggable-character.component.tsx` — interactive Konva `Image`:
+  - Drag to move
+  - Two-finger touch → rotate + pan
+  - Double-click/tap → horizontal mirror (`scaleX` flip)
+  - `mousedown`/`touchstart` → bring to top (z-index)
+  - Publishes state changes via LiveKit data messages
+
+## Hooks
+
+- `useWindowSize` — responsive canvas dimensions
+- `useTheme` — light/dark toggle, persists to `localStorage`
+
+## Key Patterns
+
+- Konva nodes manipulated imperatively via refs (not React state) for performance
+- Multi-touch angles/midpoints computed manually from `TouchEvent` coordinates
+- `scaleX` sign flip for mirroring (preserves absolute scale magnitude)
+- Characters initially positioned at `x: 100 + index * 200, y: 100`
