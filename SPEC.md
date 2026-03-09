@@ -45,7 +45,7 @@ Route guards are enforced via TanStack Router `beforeLoad` hooks. Unauthenticate
 
 ---
 
-## Data Models (SQLite + Drizzle ORM)
+## Data Models (PostgreSQL + Drizzle ORM)
 
 All tables are defined as Drizzle schemas. The `users` table is managed by better-auth via the Drizzle adapter; custom tables (`characters`, `stories`, `cast`) use Drizzle directly.
 
@@ -94,7 +94,7 @@ Constraints:
 
 ## Authentication
 
-- Provider: **better-auth** with Drizzle adapter (SQLite)
+- Provider: **better-auth** with Drizzle adapter (PostgreSQL)
 - Method: **Email + password only** (no OAuth)
 - Custom field: `role` (`actor` | `director`) added to the users table
 - Sessions managed by better-auth (cookie-based)
@@ -153,7 +153,7 @@ A Hono server runs alongside (or proxied through) the Vite dev server.
 - **@livekit/components-react** — LiveKit room/participant UI components
 - **Tailwind CSS v4** + **DaisyUI v5** — styling with semantic tokens and dark/light mode support
 - **clsx + tailwind-merge** — conditional class composition via `cn()` (`src/lib/cn.ts`)
-- **Drizzle ORM** — type-safe SQLite schema and queries
+- **Drizzle ORM** — type-safe PostgreSQL schema and queries
 
 ### Character Interaction (existing)
 - **Drag** — move character around canvas
@@ -178,7 +178,7 @@ A Hono server runs alongside (or proxied through) the Vite dev server.
 | Authentication | better-auth (email/password) |
 | Real-time session | LiveKit |
 | Backend server | Hono |
-| Database | SQLite via Drizzle ORM |
+| Database | PostgreSQL via Drizzle ORM |
 | Build tool | Vite 7 |
 
 ---

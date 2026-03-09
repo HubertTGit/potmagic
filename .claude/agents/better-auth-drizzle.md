@@ -21,7 +21,7 @@ import { db } from "./database.ts";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
-    provider: "sqlite", // or "pg" or "mysql"
+    provider: "pg", // or "mysql" or "sqlite"
   }),
 });
 ```
@@ -68,7 +68,7 @@ import { schema } from "./schema";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
-    provider: "sqlite",
+    provider: "pg",
     schema: {
       ...schema,
       user: schema.users, // map Better Auth's "user" → your "users" table
@@ -81,7 +81,7 @@ Alternatively, use `modelName` in the auth config:
 
 ```ts
 export const auth = betterAuth({
-  database: drizzleAdapter(db, { provider: "sqlite", schema }),
+  database: drizzleAdapter(db, { provider: "pg", schema }),
   user: {
     modelName: "users",
   },
@@ -93,7 +93,7 @@ To automatically map all tables to their plural form:
 ```ts
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
-    provider: "sqlite",
+    provider: "pg",
     usePlural: true,
   }),
 });
@@ -106,7 +106,7 @@ export const auth = betterAuth({
 Rename a column in the Drizzle schema without changing the property name — Better Auth continues to use the property name, your DB uses the column name:
 
 ```ts
-export const user = sqliteTable("user", {
+export const user = pgTable("user", {
   email: text("email_address").notNull().unique(), // DB column = email_address
 });
 ```
@@ -115,7 +115,7 @@ Or map it in the auth config `fields`:
 
 ```ts
 export const auth = betterAuth({
-  database: drizzleAdapter(db, { provider: "sqlite", schema }),
+  database: drizzleAdapter(db, { provider: "pg", schema }),
   user: {
     fields: {
       email: "email_address",
@@ -130,7 +130,7 @@ export const auth = betterAuth({
 
 > See @SPEC.md for full data models, API endpoints, and project architecture.
 
-- Drizzle is configured in `src/lib/auth.ts` with a SQLite database
-- Provider: `"sqlite"`
+- Drizzle is configured in `src/lib/auth.ts` with a PostgreSQL database
+- Provider: `"pg"`
 - Schema tables: `users`, `characters`, `stories`, `cast`
 - Run `pnpm drizzle-kit generate && pnpm drizzle-kit migrate` after schema changes

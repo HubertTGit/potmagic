@@ -386,4 +386,4 @@ Common plugins: `twoFactor`, `username`, `magicLink`, `passkey`, `organization`,
 - Client config: `src/lib/auth-client.ts`
 - Users have a custom `role` field (`actor` | `director`)
 - Route guards use TanStack Router `beforeLoad`
-- Database: SQLite via Drizzle ORM adapter
+- Database: PostgreSQL via Drizzle ORM adapter
