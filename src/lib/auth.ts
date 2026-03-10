@@ -2,8 +2,8 @@ import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { tanstackStartCookies } from 'better-auth/tanstack-start'
 import { Resend } from 'resend'
-import { db } from '../db'
-import * as schema from '../db/schema'
+import { db } from '@/db'
+import * as schema from '@/db/schema'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 

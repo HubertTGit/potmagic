@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { toast } from '../lib/toast'
+import { toast } from '@/lib/toast'
 
 export function Toaster() {
   const [toasts, setToasts] = useState<{ id: number; message: string; type: string }[]>([])

@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useRef } from 'react'
-import { MOCK_STORIES, type MockStory, type StoryStatus } from '../../lib/mock-data'
-import { StatusBadge } from '../../components/status-badge.component'
-import { cn } from '../../lib/cn'
+import { MOCK_STORIES, type MockStory, type StoryStatus } from '@/lib/mock-data'
+import { StatusBadge } from '@/components/status-badge.component'
+import { cn } from '@/lib/cn'
 import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline'
 
 export const Route = createFileRoute('/_app/director')({

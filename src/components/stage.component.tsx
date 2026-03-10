@@ -1,6 +1,6 @@
 import { Stage, Layer } from 'react-konva'
-import { useWindowSize } from '../hooks/useWindowSize'
-import { DraggableCharacter } from './draggable-character.component'
+import { useWindowSize } from '@/hooks/useWindowSize'
+import { DraggableCharacter } from '@/components/draggable-character.component'
 
 interface StageComponentProps {
   images: string[]

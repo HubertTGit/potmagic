@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router';
-import { Sidebar } from '../components/sidebar.component';
+import { Sidebar } from '@/components/sidebar.component';
 import { requireAuth } from '@/lib/auth-guard';
 
 export const Route = createFileRoute('/_app')({

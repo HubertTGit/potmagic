@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
-import { authClient } from '../../lib/auth-client'
-import { cn } from '../../lib/cn'
+import { authClient } from '@/lib/auth-client'
+import { cn } from '@/lib/cn'
 
 export const Route = createFileRoute('/_app/profile')({
   component: ProfilePage,

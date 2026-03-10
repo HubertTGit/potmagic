@@ -1,5 +1,5 @@
-import { cn } from '../lib/cn'
-import type { StoryStatus } from '../lib/mock-data'
+import { cn } from '@/lib/cn'
+import type { StoryStatus } from '@/lib/mock-data'
 
 const STATUS_STYLES: Record<StoryStatus, string> = {
   draft: 'badge-warning',

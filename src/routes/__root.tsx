@@ -1,9 +1,9 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
 import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
-import appCss from '../index.css?url'
-import { toast } from '../lib/toast'
-import { Toaster } from '../components/toaster.component'
+import appCss from '@/index.css?url'
+import { toast } from '@/lib/toast'
+import { Toaster } from '@/components/toaster.component'
 
 function errorMessage(error: unknown) {
   if (error instanceof Error) return error.message

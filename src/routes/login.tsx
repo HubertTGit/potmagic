@@ -1,7 +1,7 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { useState, useRef, useEffect } from 'react';
-import { cn } from '../lib/cn';
-import { authClient } from '../lib/auth-client';
+import { cn } from '@/lib/cn';
+import { authClient } from '@/lib/auth-client';
 import PasswordInput from '@/components/password-input.component';
 
 export const Route = createFileRoute('/login')({

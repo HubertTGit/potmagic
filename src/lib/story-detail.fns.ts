@@ -1,9 +1,9 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
 import { eq, sql, ne } from 'drizzle-orm'
-import { auth } from './auth'
-import { db } from '../db'
-import { stories, scenes, cast, props, users } from '../db/schema'
+import { auth } from '@/lib/auth'
+import { db } from '@/db'
+import { stories, scenes, cast, props, users } from '@/db/schema'
 
 async function getSessionOrThrow() {
   const session = await auth.api.getSession({ headers: getRequest().headers })

@@ -1,7 +1,7 @@
 import { Link, useRouter } from '@tanstack/react-router'
-import { authClient } from '../lib/auth-client'
-import { useTheme } from '../hooks/useTheme'
-import { cn } from '../lib/cn'
+import { authClient } from '@/lib/auth-client'
+import { useTheme } from '@/hooks/useTheme'
+import { cn } from '@/lib/cn'
 import {
   BookOpenIcon,
   FilmIcon,

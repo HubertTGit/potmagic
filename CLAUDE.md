@@ -100,6 +100,11 @@ Key API endpoints (see `SPEC.md` for full list):
 - **Custom utilities** — complex multi-property styles (gradients, shadows, fonts) go in `src/index.css` as `@utility` blocks, not inline
 - **Design tokens** — use semantic CSS variables (`--gold`, `--base-100`, etc.) defined in `src/index.css`; extend via `@theme` to make them available as Tailwind classes
 
+## Import Paths
+
+- Always use the `@/` prefix for imports from `src/` (configured in `tsconfig.json` as `"@/*": ["./src/*"]`)
+- Example: `import { cn } from '@/lib/cn'` not `import { cn } from '../../lib/cn'`
+
 ## Key Patterns
 
 - Konva nodes manipulated imperatively via refs (not React state) for performance

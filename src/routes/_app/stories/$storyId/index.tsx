@@ -8,10 +8,10 @@ import {
   removeCast,
   addScene,
   removeScene,
-} from '../../../../lib/story-detail.fns'
-import { StatusBadge } from '../../../../components/status-badge.component'
-import { Breadcrumb } from '../../../../components/breadcrumb.component'
-import { cn } from '../../../../lib/cn'
+} from '@/lib/story-detail.fns'
+import { StatusBadge } from '@/components/status-badge.component'
+import { Breadcrumb } from '@/components/breadcrumb.component'
+import { cn } from '@/lib/cn'
 
 export const Route = createFileRoute('/_app/stories/$storyId/')({
   component: StoryDetailPage,
