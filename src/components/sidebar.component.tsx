@@ -35,7 +35,7 @@ export function Sidebar() {
 
       {/* Nav */}
       <nav className="flex flex-col gap-1 p-2 flex-1">
-        <SidebarLink to="/stories" icon={<BookOpenIcon className="size-4" />}>
+        <SidebarLink to="/stories/" icon={<BookOpenIcon className="size-4" />}>
           Stories
         </SidebarLink>
         {/* /stage is a flat route (no storyId param at this point in the codebase) */}

@@ -163,8 +163,7 @@ function StoryDetailPage() {
             {scenes.length === 0 ? (
               <p className="text-base-content/40 text-sm">No scenes yet.</p>
             ) : (
-              scenes
-                .sort((a, b) => a.order - b.order)
+              [...scenes].sort((a, b) => a.order - b.order)
                 .map((scene) => (
                   <div
                     key={scene.id}

@@ -18,6 +18,8 @@ function StoriesPage() {
 
   const visibleStories = isDirector
     ? stories
+    // TODO: mock user IDs (u2, u3) won't match real session UUIDs — actor view
+    // will appear empty with a real session until DB queries replace mock data
     : stories.filter((s) => s.cast.some((c) => c.userId === session?.user?.id))
 
   const handleAdd = () => {
