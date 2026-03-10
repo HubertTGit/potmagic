@@ -260,8 +260,11 @@ function StoryDetailPage() {
             />
             <button
               onClick={handleAddScene}
-              disabled={addSceneMutation.isPending}
-              className="btn btn-sm btn-gold font-display"
+              disabled={addSceneMutation.isPending || !newSceneTitle.trim()}
+              className={cn(
+                'btn btn-sm btn-gold font-display',
+                (addSceneMutation.isPending || !newSceneTitle.trim()) && 'opacity-40 cursor-not-allowed',
+              )}
             >
               + Add Scene
             </button>
