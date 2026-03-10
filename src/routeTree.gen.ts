@@ -13,6 +13,10 @@ import { Route as StageRouteImport } from './routes/stage'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppProfileRouteImport } from './routes/_app/profile'
+import { Route as AppStoriesIndexRouteImport } from './routes/_app/stories/index'
+import { Route as AppStoriesStoryIdIndexRouteImport } from './routes/_app/stories/$storyId/index'
+import { Route as AppStoriesStoryIdScenesSceneIdRouteImport } from './routes/_app/stories/$storyId/scenes/$sceneId'
 
 const StageRoute = StageRouteImport.update({
   id: '/stage',
@@ -33,30 +37,86 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppProfileRoute = AppProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppStoriesIndexRoute = AppStoriesIndexRouteImport.update({
+  id: '/stories/',
+  path: '/stories/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppStoriesStoryIdIndexRoute = AppStoriesStoryIdIndexRouteImport.update({
+  id: '/stories/$storyId/',
+  path: '/stories/$storyId/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppStoriesStoryIdScenesSceneIdRoute =
+  AppStoriesStoryIdScenesSceneIdRouteImport.update({
+    id: '/stories/$storyId/scenes/$sceneId',
+    path: '/stories/$storyId/scenes/$sceneId',
+    getParentRoute: () => AppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
   '/stage': typeof StageRoute
+  '/profile': typeof AppProfileRoute
+  '/stories/': typeof AppStoriesIndexRoute
+  '/stories/$storyId/': typeof AppStoriesStoryIdIndexRoute
+  '/stories/$storyId/scenes/$sceneId': typeof AppStoriesStoryIdScenesSceneIdRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/stage': typeof StageRoute
+  '/profile': typeof AppProfileRoute
   '/': typeof AppIndexRoute
+  '/stories': typeof AppStoriesIndexRoute
+  '/stories/$storyId': typeof AppStoriesStoryIdIndexRoute
+  '/stories/$storyId/scenes/$sceneId': typeof AppStoriesStoryIdScenesSceneIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/stage': typeof StageRoute
+  '/_app/profile': typeof AppProfileRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/stories/': typeof AppStoriesIndexRoute
+  '/_app/stories/$storyId/': typeof AppStoriesStoryIdIndexRoute
+  '/_app/stories/$storyId/scenes/$sceneId': typeof AppStoriesStoryIdScenesSceneIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/stage'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/stage'
+    | '/profile'
+    | '/stories/'
+    | '/stories/$storyId/'
+    | '/stories/$storyId/scenes/$sceneId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/stage' | '/'
-  id: '__root__' | '/_app' | '/login' | '/stage' | '/_app/'
+  to:
+    | '/login'
+    | '/stage'
+    | '/profile'
+    | '/'
+    | '/stories'
+    | '/stories/$storyId'
+    | '/stories/$storyId/scenes/$sceneId'
+  id:
+    | '__root__'
+    | '/_app'
+    | '/login'
+    | '/stage'
+    | '/_app/profile'
+    | '/_app/'
+    | '/_app/stories/'
+    | '/_app/stories/$storyId/'
+    | '/_app/stories/$storyId/scenes/$sceneId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -95,15 +155,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/profile': {
+      id: '/_app/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AppProfileRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/stories/': {
+      id: '/_app/stories/'
+      path: '/stories'
+      fullPath: '/stories/'
+      preLoaderRoute: typeof AppStoriesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/stories/$storyId/': {
+      id: '/_app/stories/$storyId/'
+      path: '/stories/$storyId'
+      fullPath: '/stories/$storyId/'
+      preLoaderRoute: typeof AppStoriesStoryIdIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/stories/$storyId/scenes/$sceneId': {
+      id: '/_app/stories/$storyId/scenes/$sceneId'
+      path: '/stories/$storyId/scenes/$sceneId'
+      fullPath: '/stories/$storyId/scenes/$sceneId'
+      preLoaderRoute: typeof AppStoriesStoryIdScenesSceneIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppProfileRoute: typeof AppProfileRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppStoriesIndexRoute: typeof AppStoriesIndexRoute
+  AppStoriesStoryIdIndexRoute: typeof AppStoriesStoryIdIndexRoute
+  AppStoriesStoryIdScenesSceneIdRoute: typeof AppStoriesStoryIdScenesSceneIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppProfileRoute: AppProfileRoute,
   AppIndexRoute: AppIndexRoute,
+  AppStoriesIndexRoute: AppStoriesIndexRoute,
+  AppStoriesStoryIdIndexRoute: AppStoriesStoryIdIndexRoute,
+  AppStoriesStoryIdScenesSceneIdRoute: AppStoriesStoryIdScenesSceneIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
