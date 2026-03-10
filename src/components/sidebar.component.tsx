@@ -94,7 +94,7 @@ function SidebarLink({
       className={cn(
         'flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-base-content/60',
         'hover:text-base-content hover:bg-base-300 transition-colors',
-        '[&.active]:text-base-content [&.active]:bg-base-300 [&.active]:border-l-2 [&.active]:border-gold [&.active]:pl-[10px]',
+        '[&.active]:text-base-content [&.active]:bg-base-300 [&.active]:border-l-2 [&.active]:border-gold [&.active]:pl-2.5',
       )}
     >
       {icon}
