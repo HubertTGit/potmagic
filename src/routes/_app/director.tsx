@@ -56,11 +56,14 @@ function DirectorPage() {
       data: { filename: file.name, contentType: file.type },
     })
 
-    await fetch(signedUrl, {
+    const uploadResponse = await fetch(signedUrl, {
       method: 'PUT',
       body: file,
       headers: { 'Content-Type': file.type },
     })
+    if (!uploadResponse.ok) {
+      throw new Error(`Upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`)
+    }
 
     await createProp({ data: { name, type, imageUrl: publicUrl } })
     queryClient.invalidateQueries({ queryKey: ['props', type] })

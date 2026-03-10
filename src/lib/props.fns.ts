@@ -91,7 +91,10 @@ export const deleteProp = createServerFn({ method: 'POST' })
       const pathSegments = url.pathname.split(`/object/public/${BUCKET}/`)
       const storagePath = pathSegments[1]
       if (storagePath) {
-        await supabase.storage.from(BUCKET).remove([storagePath])
+        const { error: storageError } = await supabase.storage.from(BUCKET).remove([storagePath])
+        if (storageError) {
+          throw new Error(`Failed to delete file from storage: ${storageError.message}`)
+        }
       }
     }
   })
