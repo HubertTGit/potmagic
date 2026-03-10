@@ -1,42 +1,64 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getSceneDetail, updateSceneTitle } from '@/lib/scenes.fns'
+import { getSceneDetail, updateSceneTitle, addSceneCast, removeSceneCast } from '@/lib/scenes.fns'
 import { Breadcrumb } from '@/components/breadcrumb.component'
 import { cn } from '@/lib/cn'
 import { authClient } from '@/lib/auth-client'
+import { toast } from '@/lib/toast'
 
 export const Route = createFileRoute('/_app/stories/$storyId/scenes/$sceneId')({
   component: SceneDetailPage,
 })
 
-type Prop = { id: string; name: string; type: string; imageUrl: string | null }
+type CastMember = {
+  id: string
+  userId: string
+  userName: string | null
+  propId: string | null
+  propName: string | null
+  propImageUrl: string | null
+  propType: 'background' | 'character' | null
+}
 
 function SceneDetailPage() {
   const { storyId, sceneId } = Route.useParams()
   const { data: session } = authClient.useSession()
   const isDirector = session?.user?.role === 'director'
   const queryClient = useQueryClient()
+  const qk = ['scene', storyId, sceneId]
 
   const { data, isLoading } = useQuery({
-    queryKey: ['scene', storyId, sceneId],
+    queryKey: qk,
     queryFn: () => getSceneDetail({ data: { storyId, sceneId } }),
   })
 
   const scene = data?.scene
   const story = data?.story
-  const storyProps = data?.props ?? []
+  const storyCast: CastMember[] = (data?.storyCast ?? []) as CastMember[]
+  const sceneCastIds = new Set(data?.sceneCastIds ?? [])
 
   const [title, setTitle] = useState('')
-  const [sceneProps, setSceneProps] = useState<Prop[]>([])
 
   useEffect(() => {
     if (scene) setTitle(scene.title)
   }, [scene])
 
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: qk })
+
   const saveMutation = useMutation({
     mutationFn: (newTitle: string) => updateSceneTitle({ data: { sceneId, title: newTitle } }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['scene', storyId, sceneId] }),
+    onSuccess: invalidate,
+  })
+
+  const addCastMutation = useMutation({
+    mutationFn: (castId: string) => addSceneCast({ data: { sceneId, castId } }),
+    onSuccess: invalidate,
+  })
+
+  const removeCastMutation = useMutation({
+    mutationFn: (castId: string) => removeSceneCast({ data: { sceneId, castId } }),
+    onSuccess: invalidate,
   })
 
   const isTitleDirty = title !== (scene?.title ?? '')
@@ -49,14 +71,17 @@ function SceneDetailPage() {
     return <div className="p-8"><p className="text-base-content/40">Scene not found.</p></div>
   }
 
-  const backgrounds = sceneProps.filter((p) => p.type === 'background')
-  const characters = sceneProps.filter((p) => p.type === 'character')
-  const availableBackgrounds = storyProps.filter(
-    (p) => p.type === 'background' && !sceneProps.some((sp) => sp.id === p.id),
-  )
-  const availableCharacters = storyProps.filter(
-    (p) => p.type === 'character' && !sceneProps.some((sp) => sp.id === p.id),
-  )
+  const assignedCast = storyCast.filter((c) => sceneCastIds.has(c.id))
+  const availableCast = storyCast.filter((c) => !sceneCastIds.has(c.id))
+  const hasBackground = assignedCast.some((c) => c.propType === 'background')
+
+  const handleAddCast = (castMember: CastMember) => {
+    if (castMember.propType === 'background' && hasBackground) {
+      toast.error('A background is already assigned to this scene. Remove it first.')
+      return
+    }
+    addCastMutation.mutate(castMember.id)
+  }
 
   return (
     <div className="p-8 max-w-2xl">
@@ -95,83 +120,120 @@ function SceneDetailPage() {
         )}
       </div>
 
-      <PropSection
-        label="Backgrounds"
-        props={backgrounds}
-        available={availableBackgrounds}
-        onAdd={(p) => setSceneProps((prev) => [...prev, p])}
-        onRemove={(id) => setSceneProps((prev) => prev.filter((p) => p.id !== id))}
-      />
+      {/* Cast section */}
+      <div className="mb-8">
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-base-content/40 mb-3">
+          Cast
+        </h2>
 
-      <PropSection
-        label="Characters"
-        props={characters}
-        available={availableCharacters}
-        onAdd={(p) => setSceneProps((prev) => [...prev, p])}
-        onRemove={(id) => setSceneProps((prev) => prev.filter((p) => p.id !== id))}
-      />
+        <div className="flex flex-col gap-2 mb-3">
+          {assignedCast.length === 0 ? (
+            <p className="text-base-content/30 text-sm">No cast assigned yet.</p>
+          ) : (
+            assignedCast.map((c) => (
+              <div
+                key={c.id}
+                className="flex items-center justify-between bg-base-200 rounded-lg px-4 py-3 border border-base-300"
+              >
+                <div className="flex items-center gap-3">
+                  {c.propImageUrl ? (
+                    <img src={c.propImageUrl} alt={c.propName ?? ''} className="size-8 rounded object-cover bg-base-300 shrink-0" />
+                  ) : (
+                    <div className="size-8 rounded bg-base-300 shrink-0" />
+                  )}
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">{c.userName}</span>
+                    {c.propName && (
+                      <span className="text-xs text-base-content/40">{c.propName}</span>
+                    )}
+                  </div>
+                  {c.propType && (
+                    <span className={cn(
+                      'text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0',
+                      c.propType === 'character' ? 'bg-gold/15 text-gold' : 'bg-info/15 text-info',
+                    )}>
+                      {c.propType}
+                    </span>
+                  )}
+                </div>
+                {isDirector && (
+                  <button
+                    onClick={() => removeCastMutation.mutate(c.id)}
+                    disabled={removeCastMutation.isPending}
+                    className="text-xs text-error/60 hover:text-error transition-colors"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+
+        {isDirector && availableCast.length > 0 && (
+          <CastDropdown
+            availableCast={availableCast}
+            onAdd={handleAddCast}
+          />
+        )}
+      </div>
     </div>
   )
 }
 
-function PropSection({
-  label,
-  props,
-  available,
+function CastDropdown({
+  availableCast,
   onAdd,
-  onRemove,
 }: {
-  label: string
-  props: Prop[]
-  available: Prop[]
-  onAdd: (prop: Prop) => void
-  onRemove: (propId: string) => void
+  availableCast: CastMember[]
+  onAdd: (castMember: CastMember) => void
 }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
   return (
-    <div className="mb-8">
-      <h2 className="text-xs font-semibold uppercase tracking-widest text-base-content/40 mb-3">
-        {label}
-      </h2>
-
-      <div className="flex flex-col gap-2 mb-3">
-        {props.length === 0 ? (
-          <p className="text-base-content/30 text-sm">None added yet.</p>
-        ) : (
-          props.map((prop) => (
-            <div
-              key={prop.id}
-              className="flex items-center justify-between bg-base-200 rounded-lg px-4 py-3 border border-base-300"
-            >
-              <div className="flex items-center gap-3">
-                {prop.imageUrl ? (
-                  <img src={prop.imageUrl} alt={prop.name} className="size-8 rounded object-cover bg-base-300" />
-                ) : (
-                  <div className="size-8 rounded bg-base-300 flex items-center justify-center text-base-content/40 text-xs font-mono">
-                    img
-                  </div>
-                )}
-                <span className="text-sm font-medium">{prop.name}</span>
-              </div>
-              <button
-                onClick={() => onRemove(prop.id)}
-                className="text-xs text-error/60 hover:text-error transition-colors"
-              >
-                Remove
-              </button>
-            </div>
-          ))
-        )}
-      </div>
-
-      {available.length > 0 && (
-        <div className="flex gap-2 flex-wrap">
-          {available.map((prop) => (
+    <div ref={ref} className="relative w-64">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="btn btn-sm btn-outline btn-gold font-display w-full justify-start"
+      >
+        + Add cast member
+      </button>
+      {open && (
+        <div className="absolute top-full mt-1 w-full bg-base-200 border border-base-300 rounded-lg shadow-xl z-50 overflow-hidden">
+          {availableCast.map((c) => (
             <button
-              key={prop.id}
-              onClick={() => onAdd(prop)}
-              className="btn btn-xs btn-outline btn-gold font-display"
+              key={c.id}
+              onMouseDown={(e) => { e.preventDefault(); onAdd(c); setOpen(false) }}
+              className="w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-base-300 transition-colors"
             >
-              + {prop.name}
+              {c.propImageUrl ? (
+                <img src={c.propImageUrl} alt={c.propName ?? ''} className="size-8 rounded object-cover bg-base-300 shrink-0" />
+              ) : (
+                <div className="size-8 rounded bg-base-300 shrink-0" />
+              )}
+              <div className="flex flex-col text-left flex-1">
+                <span className="font-medium">{c.userName}</span>
+                {c.propName && (
+                  <span className="text-xs text-base-content/40">{c.propName}</span>
+                )}
+              </div>
+              {c.propType && (
+                <span className={cn(
+                  'text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0',
+                  c.propType === 'character' ? 'bg-gold/15 text-gold' : 'bg-info/15 text-info',
+                )}>
+                  {c.propType}
+                </span>
+              )}
             </button>
           ))}
         </div>

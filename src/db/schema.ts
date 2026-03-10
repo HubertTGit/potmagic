@@ -159,3 +159,21 @@ export const cast = pgTable(
     unique('cast_user_unique').on(table.userId),
   ],
 )
+
+export const sceneCast = pgTable(
+  'scene_cast',
+  {
+    id: text('id').primaryKey(),
+    sceneId: text('scene_id')
+      .notNull()
+      .references(() => scenes.id, { onDelete: 'cascade' }),
+    castId: text('cast_id')
+      .notNull()
+      .references(() => cast.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('scene_cast_scene_id_idx').on(table.sceneId),
+    unique('scene_cast_unique').on(table.sceneId, table.castId),
+  ],
+)
