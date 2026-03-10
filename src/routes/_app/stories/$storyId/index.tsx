@@ -32,7 +32,7 @@ function StoryDetailPage() {
   })
 
   const [title, setTitle] = useState('')
-  const [activeTab, setActiveTab] = useState<'cast' | 'scenes'>('cast')
+  const [activeTab, setActiveTab] = useState<'scenes' | 'cast'>('scenes')
   const [newSceneTitle, setNewSceneTitle] = useState('')
   const [actorSearch, setActorSearch] = useState('')
   const [actorDropdownOpen, setActorDropdownOpen] = useState(false)
@@ -147,7 +147,7 @@ function StoryDetailPage() {
 
       {/* Tabs */}
       <div role="tablist" className="tabs tabs-border mb-6 border-base-300">
-        {(['cast', 'scenes'] as const).map((tab) => (
+        {(['scenes', 'cast'] as const).map((tab) => (
           <button
             key={tab}
             role="tab"
