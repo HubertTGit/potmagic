@@ -3,7 +3,7 @@ import { getRequest } from '@tanstack/react-start/server'
 import { eq, sql } from 'drizzle-orm'
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { stories } from '@/db/schema'
+import { stories, users } from '@/db/schema'
 
 async function getSessionOrThrow() {
   const session = await auth.api.getSession({ headers: getRequest().headers })
@@ -11,9 +11,17 @@ async function getSessionOrThrow() {
   return session
 }
 
+async function requireDirector() {
+  const session = await getSessionOrThrow()
+  const [user] = await db.select({ role: users.role }).from(users).where(eq(users.id, session.user.id))
+  if (!user || user.role !== 'director') throw new Error('Forbidden')
+  return session
+}
+
 export const listStories = createServerFn({ method: 'GET' }).handler(async () => {
   const session = await getSessionOrThrow()
-  const isDirector = session.user.role === 'director'
+  const [userRow] = await db.select({ role: users.role }).from(users).where(eq(users.id, session.user.id))
+  const isDirector = userRow?.role === 'director'
 
   const rows = await db
     .select({
@@ -39,8 +47,7 @@ export const listStories = createServerFn({ method: 'GET' }).handler(async () =>
 export const createStory = createServerFn({ method: 'POST' })
   .inputValidator((input: unknown) => input as { title: string })
   .handler(async ({ data }) => {
-    const session = await getSessionOrThrow()
-    if (session.user.role !== 'director') throw new Error('Forbidden')
+    const session = await requireDirector()
 
     const id = crypto.randomUUID()
     const [row] = await db
@@ -54,8 +61,6 @@ export const createStory = createServerFn({ method: 'POST' })
 export const deleteStory = createServerFn({ method: 'POST' })
   .inputValidator((input: unknown) => input as { id: string })
   .handler(async ({ data }) => {
-    const session = await getSessionOrThrow()
-    if (session.user.role !== 'director') throw new Error('Forbidden')
-
+    await requireDirector()
     await db.delete(stories).where(eq(stories.id, data.id))
   })

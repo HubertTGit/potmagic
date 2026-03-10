@@ -11,6 +11,13 @@ async function getSessionOrThrow() {
   return session
 }
 
+async function requireDirector() {
+  const session = await getSessionOrThrow()
+  const [user] = await db.select({ role: users.role }).from(users).where(eq(users.id, session.user.id))
+  if (!user || user.role !== 'director') throw new Error('Forbidden')
+  return session
+}
+
 export const getStoryDetail = createServerFn({ method: 'GET' })
   .inputValidator((input: unknown) => input as { storyId: string })
   .handler(async ({ data }) => {
@@ -64,24 +71,21 @@ export const getStoryDetail = createServerFn({ method: 'GET' })
 export const updateStoryStatus = createServerFn({ method: 'POST' })
   .inputValidator((input: unknown) => input as { storyId: string; status: 'draft' | 'active' | 'ended' })
   .handler(async ({ data }) => {
-    const session = await getSessionOrThrow()
-    if (session.user.role !== 'director') throw new Error('Forbidden')
+    await requireDirector()
     await db.update(stories).set({ status: data.status }).where(eq(stories.id, data.storyId))
   })
 
 export const updateStoryTitle = createServerFn({ method: 'POST' })
   .inputValidator((input: unknown) => input as { storyId: string; title: string })
   .handler(async ({ data }) => {
-    const session = await getSessionOrThrow()
-    if (session.user.role !== 'director') throw new Error('Forbidden')
+    await requireDirector()
     await db.update(stories).set({ title: data.title }).where(eq(stories.id, data.storyId))
   })
 
 export const addCast = createServerFn({ method: 'POST' })
   .inputValidator((input: unknown) => input as { storyId: string; userId: string })
   .handler(async ({ data }) => {
-    const session = await getSessionOrThrow()
-    if (session.user.role !== 'director') throw new Error('Forbidden')
+    await requireDirector()
 
     const [user] = await db
       .select({ name: users.name })
@@ -99,24 +103,21 @@ export const addCast = createServerFn({ method: 'POST' })
 export const assignProp = createServerFn({ method: 'POST' })
   .inputValidator((input: unknown) => input as { castId: string; propId: string | null })
   .handler(async ({ data }) => {
-    const session = await getSessionOrThrow()
-    if (session.user.role !== 'director') throw new Error('Forbidden')
+    await requireDirector()
     await db.update(cast).set({ propId: data.propId }).where(eq(cast.id, data.castId))
   })
 
 export const removeCast = createServerFn({ method: 'POST' })
   .inputValidator((input: unknown) => input as { castId: string })
   .handler(async ({ data }) => {
-    const session = await getSessionOrThrow()
-    if (session.user.role !== 'director') throw new Error('Forbidden')
+    await requireDirector()
     await db.delete(cast).where(eq(cast.id, data.castId))
   })
 
 export const addScene = createServerFn({ method: 'POST' })
   .inputValidator((input: unknown) => input as { storyId: string; title: string })
   .handler(async ({ data }) => {
-    const session = await getSessionOrThrow()
-    if (session.user.role !== 'director') throw new Error('Forbidden')
+    await requireDirector()
 
     const [{ maxOrder }] = await db
       .select({ maxOrder: sql<number>`cast(coalesce(max("order"), 0) as integer)` })
@@ -134,7 +135,6 @@ export const addScene = createServerFn({ method: 'POST' })
 export const removeScene = createServerFn({ method: 'POST' })
   .inputValidator((input: unknown) => input as { sceneId: string })
   .handler(async ({ data }) => {
-    const session = await getSessionOrThrow()
-    if (session.user.role !== 'director') throw new Error('Forbidden')
+    await requireDirector()
     await db.delete(scenes).where(eq(scenes.id, data.sceneId))
   })

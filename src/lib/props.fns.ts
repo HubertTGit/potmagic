@@ -4,7 +4,7 @@ import { getRequest } from '@tanstack/react-start/server';
 import { eq } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { props } from '@/db/schema';
+import { props, users } from '@/db/schema';
 import { supabase } from '@/lib/supabase.server';
 
 const BUCKET = 'props';
@@ -17,7 +17,8 @@ async function getSessionOrThrow() {
 
 async function requireDirector() {
   const session = await getSessionOrThrow();
-  if (session.user.role !== 'director') throw new Error('Forbidden');
+  const [user] = await db.select({ role: users.role }).from(users).where(eq(users.id, session.user.id));
+  if (!user || user.role !== 'director') throw new Error('Forbidden');
   return session;
 }
 
