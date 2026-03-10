@@ -15,6 +15,13 @@
       "when": 1773119160447,
       "tag": "0001_lyrical_grim_reaper",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1773125698624,
+      "tag": "0002_charming_kid_colt",
+      "breakpoints": true
     }
   ]
 }

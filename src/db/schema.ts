@@ -122,8 +122,7 @@ export const props = pgTable(
   {
     id: text('id').primaryKey(),
     storyId: text('story_id')
-      .notNull()
-      .references(() => stories.id, { onDelete: 'cascade' }),
+      .references(() => stories.id, { onDelete: 'set null' }),
     name: text('name').notNull(),
     type: propTypeEnum('type').notNull(),
     imageUrl: text('image_url'),
