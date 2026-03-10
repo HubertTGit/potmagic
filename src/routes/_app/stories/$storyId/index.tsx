@@ -13,6 +13,7 @@ import {
 import { StatusBadge } from '@/components/status-badge.component'
 import { Breadcrumb } from '@/components/breadcrumb.component'
 import { cn } from '@/lib/cn'
+import { authClient } from '@/lib/auth-client'
 
 export const Route = createFileRoute('/_app/stories/$storyId/')({
   component: StoryDetailPage,
@@ -20,6 +21,8 @@ export const Route = createFileRoute('/_app/stories/$storyId/')({
 
 function StoryDetailPage() {
   const { storyId } = Route.useParams()
+  const { data: session } = authClient.useSession()
+  const isDirector = session?.user?.role === 'director'
   const queryClient = useQueryClient()
   const qk = ['story', storyId]
 
@@ -117,23 +120,29 @@ function StoryDetailPage() {
 
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="input flex-1 bg-base-200 border-base-300 text-lg font-semibold focus:border-gold/60 focus:ring-2 focus:ring-gold/10"
-        />
+        {isDirector ? (
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="input flex-1 bg-base-200 border-base-300 text-lg font-semibold focus:border-gold/60 focus:ring-2 focus:ring-gold/10"
+          />
+        ) : (
+          <h1 className="flex-1 text-lg font-semibold">{story.title}</h1>
+        )}
         <StatusBadge status={story.status} />
-        <button
-          disabled={!isTitleDirty || saveTitleMutation.isPending}
-          onClick={() => saveTitleMutation.mutate(title)}
-          className={cn(
-            'btn btn-sm btn-gold font-display tracking-[0.05em]',
-            (!isTitleDirty || saveTitleMutation.isPending) && 'opacity-40 cursor-not-allowed',
-          )}
-        >
-          Save
-        </button>
+        {isDirector && (
+          <button
+            disabled={!isTitleDirty || saveTitleMutation.isPending}
+            onClick={() => saveTitleMutation.mutate(title)}
+            className={cn(
+              'btn btn-sm btn-gold font-display tracking-[0.05em]',
+              (!isTitleDirty || saveTitleMutation.isPending) && 'opacity-40 cursor-not-allowed',
+            )}
+          >
+            Save
+          </button>
+        )}
       </div>
 
       {/* Tabs */}
@@ -172,33 +181,52 @@ function StoryDetailPage() {
                   <tr key={c.id} className="hover:bg-base-200 transition-colors">
                     <td className="align-middle">{c.userName}</td>
                     <td className="align-middle">
-                      <PropPicker
-                        castId={c.id}
-                        propId={c.propId ?? null}
-                        propName={c.propName ?? null}
-                        propImageUrl={c.propImageUrl ?? null}
-                        propType={c.propType ?? null}
-                        availableProps={availableProps}
-                        usedPropIds={usedPropIds}
-                        onAssign={(castId, propId) => assignPropMutation.mutate({ castId, propId })}
-                      />
+                      {isDirector ? (
+                        <PropPicker
+                          castId={c.id}
+                          propId={c.propId ?? null}
+                          propName={c.propName ?? null}
+                          propImageUrl={c.propImageUrl ?? null}
+                          propType={c.propType ?? null}
+                          availableProps={availableProps}
+                          usedPropIds={usedPropIds}
+                          onAssign={(castId, propId) => assignPropMutation.mutate({ castId, propId })}
+                        />
+                      ) : c.propId ? (
+                        <div className="flex items-center gap-2">
+                          {c.propImageUrl ? (
+                            <img
+                              src={c.propImageUrl}
+                              alt={c.propName ?? ''}
+                              className="size-7 rounded object-cover bg-base-300 shrink-0"
+                            />
+                          ) : (
+                            <div className="size-7 rounded bg-base-300 shrink-0" />
+                          )}
+                          <span className="text-sm">{c.propName}</span>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-base-content/30">—</span>
+                      )}
                     </td>
-                    <td className="text-right align-middle">
-                      <button
-                        onClick={() => removeCastMutation.mutate(c.id)}
-                        disabled={removeCastMutation.isPending}
-                        className="text-xs text-error/60 hover:text-error transition-colors"
-                      >
-                        Remove
-                      </button>
-                    </td>
+                    {isDirector && (
+                      <td className="text-right align-middle">
+                        <button
+                          onClick={() => removeCastMutation.mutate(c.id)}
+                          disabled={removeCastMutation.isPending}
+                          className="text-xs text-error/60 hover:text-error transition-colors"
+                        >
+                          Remove
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
             </table>
           )}
 
-          {availableActors.length > 0 && (
+          {isDirector && availableActors.length > 0 && (
             <div ref={actorSearchRef} className="relative w-64">
               <input
                 type="text"
@@ -255,39 +283,43 @@ function StoryDetailPage() {
                     >
                       View →
                     </Link>
-                    <button
-                      onClick={() => removeSceneMutation.mutate(scene.id)}
-                      disabled={removeSceneMutation.isPending}
-                      className="text-xs text-error/60 hover:text-error transition-colors"
-                    >
-                      Delete
-                    </button>
+                    {isDirector && (
+                      <button
+                        onClick={() => removeSceneMutation.mutate(scene.id)}
+                        disabled={removeSceneMutation.isPending}
+                        className="text-xs text-error/60 hover:text-error transition-colors"
+                      >
+                        Delete
+                      </button>
+                    )}
                   </div>
                 </div>
               ))
             )}
           </div>
 
-          <div className="flex gap-2 items-center">
-            <input
-              type="text"
-              value={newSceneTitle}
-              onChange={(e) => setNewSceneTitle(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleAddScene() }}
-              placeholder="Scene title…"
-              className="input input-sm bg-base-200 border-base-300 text-sm focus:border-gold/60 focus:ring-2 focus:ring-gold/10 w-56"
-            />
-            <button
-              onClick={handleAddScene}
-              disabled={addSceneMutation.isPending || !newSceneTitle.trim()}
-              className={cn(
-                'btn btn-sm btn-gold font-display',
-                (addSceneMutation.isPending || !newSceneTitle.trim()) && 'opacity-40 cursor-not-allowed',
-              )}
-            >
-              + Add Scene
-            </button>
-          </div>
+          {isDirector && (
+            <div className="flex gap-2 items-center">
+              <input
+                type="text"
+                value={newSceneTitle}
+                onChange={(e) => setNewSceneTitle(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleAddScene() }}
+                placeholder="Scene title…"
+                className="input input-sm bg-base-200 border-base-300 text-sm focus:border-gold/60 focus:ring-2 focus:ring-gold/10 w-56"
+              />
+              <button
+                onClick={handleAddScene}
+                disabled={addSceneMutation.isPending || !newSceneTitle.trim()}
+                className={cn(
+                  'btn btn-sm btn-gold font-display',
+                  (addSceneMutation.isPending || !newSceneTitle.trim()) && 'opacity-40 cursor-not-allowed',
+                )}
+              >
+                + Add Scene
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

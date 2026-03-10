@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getSceneDetail, updateSceneTitle } from '@/lib/scenes.fns'
 import { Breadcrumb } from '@/components/breadcrumb.component'
 import { cn } from '@/lib/cn'
+import { authClient } from '@/lib/auth-client'
 
 export const Route = createFileRoute('/_app/stories/$storyId/scenes/$sceneId')({
   component: SceneDetailPage,
@@ -13,6 +14,8 @@ type Prop = { id: string; name: string; type: string; imageUrl: string | null }
 
 function SceneDetailPage() {
   const { storyId, sceneId } = Route.useParams()
+  const { data: session } = authClient.useSession()
+  const isDirector = session?.user?.role === 'director'
   const queryClient = useQueryClient()
 
   const { data, isLoading } = useQuery({
@@ -65,25 +68,31 @@ function SceneDetailPage() {
 
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="input flex-1 bg-base-200 border-base-300 text-lg font-semibold focus:border-gold/60 focus:ring-2 focus:ring-gold/10"
-        />
+        {isDirector ? (
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="input flex-1 bg-base-200 border-base-300 text-lg font-semibold focus:border-gold/60 focus:ring-2 focus:ring-gold/10"
+          />
+        ) : (
+          <h1 className="flex-1 text-lg font-semibold">{scene.title}</h1>
+        )}
         <span className="text-sm text-base-content/40 whitespace-nowrap">
           Scene {scene.order} of {story.totalScenes}
         </span>
-        <button
-          disabled={!isTitleDirty || saveMutation.isPending}
-          onClick={() => saveMutation.mutate(title)}
-          className={cn(
-            'btn btn-sm btn-gold font-display tracking-[0.05em]',
-            (!isTitleDirty || saveMutation.isPending) && 'opacity-40 cursor-not-allowed',
-          )}
-        >
-          Save
-        </button>
+        {isDirector && (
+          <button
+            disabled={!isTitleDirty || saveMutation.isPending}
+            onClick={() => saveMutation.mutate(title)}
+            className={cn(
+              'btn btn-sm btn-gold font-display tracking-[0.05em]',
+              (!isTitleDirty || saveMutation.isPending) && 'opacity-40 cursor-not-allowed',
+            )}
+          >
+            Save
+          </button>
+        )}
       </div>
 
       <PropSection
