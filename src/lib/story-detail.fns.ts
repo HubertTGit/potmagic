@@ -116,7 +116,7 @@ export const addScene = createServerFn({ method: 'POST' })
     if (session.user.role !== 'director') throw new Error('Forbidden')
 
     const [{ maxOrder }] = await db
-      .select({ maxOrder: sql<number>`coalesce(max("order"), 0)::int` })
+      .select({ maxOrder: sql<number>`cast(coalesce(max("order"), 0) as integer)` })
       .from(scenes)
       .where(eq(scenes.storyId, data.storyId))
 
