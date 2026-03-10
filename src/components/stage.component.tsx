@@ -3,19 +3,19 @@ import { useWindowSize } from '@/hooks/useWindowSize'
 import { DraggableCharacter } from '@/components/draggable-character.component'
 
 interface StageComponentProps {
-  images: string[]
+  casts: { userId: string; path: string }[]
 }
 
-export function StageComponent({ images }: StageComponentProps) {
+export function StageComponent({ casts }: StageComponentProps) {
   const { width, height } = useWindowSize()
 
   return (
     <Stage width={width} height={height}>
       <Layer>
-        {images.map((src, i) => (
+        {casts.map((cast, i) => (
           <DraggableCharacter
-            key={src}
-            src={src}
+            key={cast.userId}
+            src={cast.path}
             initialX={100 + i * 200}
             initialY={100}
           />

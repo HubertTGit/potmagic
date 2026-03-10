@@ -100,6 +100,26 @@ export const removeSceneCast = createServerFn({ method: 'POST' })
       .where(and(eq(sceneCast.sceneId, data.sceneId), eq(sceneCast.castId, data.castId)));
   });
 
+export const getSceneStage = createServerFn({ method: 'GET' })
+  .inputValidator((input: unknown) => input as { sceneId: string })
+  .handler(async ({ data }) => {
+    await getSessionOrThrow();
+
+    const rows = await db
+      .select({
+        userId: cast.userId,
+        path: props.imageUrl,
+      })
+      .from(sceneCast)
+      .innerJoin(cast, eq(sceneCast.castId, cast.id))
+      .leftJoin(props, eq(cast.propId, props.id))
+      .where(eq(sceneCast.sceneId, data.sceneId));
+
+    return rows
+      .filter((r) => r.path !== null)
+      .map((r) => ({ userId: r.userId, path: r.path as string }));
+  });
+
 export const updateSceneTitle = createServerFn({ method: 'POST' })
   .inputValidator(
     (input: unknown) => input as { sceneId: string; title: string },

@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getSceneDetail, updateSceneTitle, addSceneCast, removeSceneCast } from '@/lib/scenes.fns'
@@ -106,6 +106,13 @@ function SceneDetailPage() {
         <span className="text-sm text-base-content/40 whitespace-nowrap">
           Scene {scene.order} of {story.totalScenes}
         </span>
+        <Link
+          to="/stage/$sceneId"
+          params={{ sceneId }}
+          className="btn btn-sm btn-outline btn-gold font-display tracking-[0.05em]"
+        >
+          Enter the scene →
+        </Link>
         {isDirector && (
           <button
             disabled={!isTitleDirty || saveMutation.isPending}
