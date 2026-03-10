@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { authClient } from '../../../lib/auth-client'
-import { MOCK_STORIES, type MockStory } from '../../../lib/mock-data'
+import { listStories, createStory, deleteStory } from '../../../lib/stories.fns'
 import { StatusBadge } from '../../../components/status-badge.component'
-import { cn } from '../../../lib/cn'
 
 export const Route = createFileRoute('/_app/stories/')({
   component: StoriesPage,
@@ -12,34 +12,33 @@ export const Route = createFileRoute('/_app/stories/')({
 function StoriesPage() {
   const { data: session } = authClient.useSession()
   const isDirector = session?.user?.role === 'director'
-  const [stories, setStories] = useState<MockStory[]>(MOCK_STORIES)
+  const queryClient = useQueryClient()
+
   const [newTitle, setNewTitle] = useState('')
   const [adding, setAdding] = useState(false)
 
-  const visibleStories = isDirector
-    ? stories
-    // TODO: mock user IDs (u2, u3) won't match real session UUIDs — actor view
-    // will appear empty with a real session until DB queries replace mock data
-    : stories.filter((s) => s.cast.some((c) => c.userId === session?.user?.id))
+  const { data: stories = [], isLoading } = useQuery({
+    queryKey: ['stories'],
+    queryFn: () => listStories(),
+  })
+
+  const addMutation = useMutation({
+    mutationFn: (title: string) => createStory({ data: { title } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stories'] })
+      setNewTitle('')
+      setAdding(false)
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteStory({ data: { id } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['stories'] }),
+  })
 
   const handleAdd = () => {
     if (!newTitle.trim()) return
-    const story: MockStory = {
-      id: `s${Date.now()}`,
-      title: newTitle.trim(),
-      directorId: session?.user?.id ?? '',
-      status: 'draft',
-      props: [],
-      cast: [],
-      scenes: [],
-    }
-    setStories((prev) => [...prev, story])
-    setNewTitle('')
-    setAdding(false)
-  }
-
-  const handleDelete = (id: string) => {
-    setStories((prev) => prev.filter((s) => s.id !== id))
+    addMutation.mutate(newTitle.trim())
   }
 
   return (
@@ -68,12 +67,14 @@ function StoriesPage() {
             placeholder="Story title…"
             className="input input-sm bg-base-200 border-base-300 text-sm focus:border-gold/60 focus:ring-2 focus:ring-gold/10 w-64"
           />
-          <button onClick={handleAdd} className="btn btn-sm btn-gold font-display">Add</button>
+          <button onClick={handleAdd} disabled={addMutation.isPending} className="btn btn-sm btn-gold font-display">Add</button>
           <button onClick={() => setAdding(false)} className="btn btn-sm btn-ghost text-base-content/50">Cancel</button>
         </div>
       )}
 
-      {visibleStories.length === 0 ? (
+      {isLoading ? (
+        <p className="text-base-content/40 text-sm">Loading…</p>
+      ) : stories.length === 0 ? (
         <p className="text-base-content/40 text-sm">No stories yet.</p>
       ) : (
         <div className="overflow-x-auto">
@@ -88,7 +89,7 @@ function StoriesPage() {
               </tr>
             </thead>
             <tbody>
-              {visibleStories.map((story) => (
+              {stories.map((story) => (
                 <tr key={story.id} className="hover:bg-base-200 transition-colors">
                   <td>
                     <Link
@@ -102,8 +103,8 @@ function StoriesPage() {
                   <td>
                     <StatusBadge status={story.status} />
                   </td>
-                  <td className="text-base-content/50">{story.cast.length}</td>
-                  <td className="text-base-content/50">{story.scenes.length}</td>
+                  <td className="text-base-content/50">{story.castCount}</td>
+                  <td className="text-base-content/50">{story.sceneCount}</td>
                   {isDirector && (
                     <td className="text-right">
                       <Link
@@ -114,7 +115,8 @@ function StoriesPage() {
                         Edit
                       </Link>
                       <button
-                        onClick={() => handleDelete(story.id)}
+                        onClick={() => deleteMutation.mutate(story.id)}
+                        disabled={deleteMutation.isPending}
                         className="text-xs text-error/60 hover:text-error transition-colors"
                       >
                         Delete

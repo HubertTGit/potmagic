@@ -157,6 +157,7 @@ export const cast = pgTable(
   },
   (table) => [
     index('cast_story_id_idx').on(table.storyId),
-    unique('cast_story_user_unique').on(table.storyId, table.userId),
+    // An actor can only be assigned to one story total
+    unique('cast_user_unique').on(table.userId),
   ],
 )

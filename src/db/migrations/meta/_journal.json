@@ -8,6 +8,13 @@
       "when": 1773105213223,
       "tag": "0000_bright_maddog",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1773119160447,
+      "tag": "0001_lyrical_grim_reaper",
+      "breakpoints": true
     }
   ]
 }
