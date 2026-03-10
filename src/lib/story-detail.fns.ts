@@ -58,6 +58,14 @@ export const getStoryDetail = createServerFn({ method: 'GET' })
     return { story, cast: castRows, scenes: sceneRows, props: propRows, availableActors }
   })
 
+export const updateStoryStatus = createServerFn({ method: 'POST' })
+  .inputValidator((input: unknown) => input as { storyId: string; status: 'draft' | 'active' | 'ended' })
+  .handler(async ({ data }) => {
+    const session = await getSessionOrThrow()
+    if (session.user.role !== 'director') throw new Error('Forbidden')
+    await db.update(stories).set({ status: data.status }).where(eq(stories.id, data.storyId))
+  })
+
 export const updateStoryTitle = createServerFn({ method: 'POST' })
   .inputValidator((input: unknown) => input as { storyId: string; title: string })
   .handler(async ({ data }) => {

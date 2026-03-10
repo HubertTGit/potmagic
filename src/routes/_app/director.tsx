@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useRef } from 'react'
-import { MOCK_STORIES, type MockStory, type StoryStatus } from '@/lib/mock-data'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { listStories } from '@/lib/stories.fns'
+import { updateStoryStatus } from '@/lib/story-detail.fns'
 import { StatusBadge } from '@/components/status-badge.component'
 import { cn } from '@/lib/cn'
 import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline'
@@ -18,16 +20,21 @@ interface LibraryItem {
 type Tab = 'dashboard' | 'library'
 
 function DirectorPage() {
-  const [stories, setStories] = useState<MockStory[]>(MOCK_STORIES)
   const [characters, setCharacters] = useState<LibraryItem[]>([])
   const [backgrounds, setBackgrounds] = useState<LibraryItem[]>([])
   const [tab, setTab] = useState<Tab>('dashboard')
 
-  const setStatus = (id: string, status: StoryStatus) => {
-    setStories((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, status } : s)),
-    )
-  }
+  const queryClient = useQueryClient()
+  const { data: stories = [], isLoading } = useQuery({
+    queryKey: ['stories'],
+    queryFn: () => listStories(),
+  })
+
+  const statusMutation = useMutation({
+    mutationFn: ({ storyId, status }: { storyId: string; status: 'draft' | 'active' | 'ended' }) =>
+      updateStoryStatus({ data: { storyId, status } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['stories'] }),
+  })
 
   const active = stories.filter((s) => s.status === 'active')
   const draft = stories.filter((s) => s.status === 'draft')
@@ -73,40 +80,47 @@ function DirectorPage() {
           </div>
 
           {/* Stories table */}
-          <div className="overflow-x-auto">
-            <table className="table table-sm w-full">
-              <thead>
-                <tr className="text-base-content/50 text-xs uppercase tracking-wider">
-                  <th>Story</th>
-                  <th>Cast</th>
-                  <th>Status</th>
-                  <th>Session</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stories.map((story) => (
-                  <tr key={story.id} className="hover:bg-base-200 transition-colors">
-                    <td>
-                      <Link
-                        to="/stories/$storyId"
-                        params={{ storyId: story.id }}
-                        className="font-medium hover:text-gold transition-colors"
-                      >
-                        {story.title}
-                      </Link>
-                    </td>
-                    <td className="text-base-content/50">{story.cast.length}</td>
-                    <td>
-                      <StatusBadge status={story.status} />
-                    </td>
-                    <td>
-                      <SessionControls story={story} onSetStatus={setStatus} />
-                    </td>
+          {isLoading ? (
+            <p className="text-sm text-base-content/40">Loading…</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="table table-sm w-full">
+                <thead>
+                  <tr className="text-base-content/50 text-xs uppercase tracking-wider">
+                    <th>Story</th>
+                    <th>Cast</th>
+                    <th>Status</th>
+                    <th>Session</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {stories.map((story) => (
+                    <tr key={story.id} className="hover:bg-base-200 transition-colors">
+                      <td>
+                        <Link
+                          to="/stories/$storyId"
+                          params={{ storyId: story.id }}
+                          className="font-medium hover:text-gold transition-colors"
+                        >
+                          {story.title}
+                        </Link>
+                      </td>
+                      <td className="text-base-content/50">{story.castCount}</td>
+                      <td>
+                        <StatusBadge status={story.status} />
+                      </td>
+                      <td>
+                        <SessionControls
+                          story={story}
+                          onSetStatus={(id, status) => statusMutation.mutate({ storyId: id, status })}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </>
       )}
 
@@ -248,8 +262,8 @@ function SessionControls({
   story,
   onSetStatus,
 }: {
-  story: MockStory
-  onSetStatus: (id: string, status: StoryStatus) => void
+  story: { id: string; status: 'draft' | 'active' | 'ended' }
+  onSetStatus: (id: string, status: 'draft' | 'active' | 'ended') => void
 }) {
   if (story.status === 'draft') {
     return (
