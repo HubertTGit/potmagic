@@ -1,9 +1,23 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import appCss from '../index.css?url'
+import { toast } from '../lib/toast'
+import { Toaster } from '../components/toaster.component'
 
-const queryClient = new QueryClient()
+function errorMessage(error: unknown) {
+  if (error instanceof Error) return error.message
+  return 'Something went wrong'
+}
+
+const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: (error) => toast.error(errorMessage(error)),
+  }),
+  mutationCache: new MutationCache({
+    onError: (error) => toast.error(errorMessage(error)),
+  }),
+})
 
 export const Route = createRootRoute({
   head: () => ({
@@ -47,6 +61,7 @@ function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
+      <Toaster />
     </QueryClientProvider>
   )
 }

@@ -22,14 +22,14 @@ export const listStories = createServerFn({ method: 'GET' }).handler(async () =>
       directorId: stories.directorId,
       status: stories.status,
       createdAt: stories.createdAt,
-      castCount: sql<number>`(select count(*) from cast where cast.story_id = ${stories.id})::int`,
-      sceneCount: sql<number>`(select count(*) from scenes where scenes.story_id = ${stories.id})::int`,
+      castCount: sql<number>`(select count(*) from "cast" where "cast".story_id = stories.id)::int`,
+      sceneCount: sql<number>`(select count(*) from "scenes" where "scenes".story_id = stories.id)::int`,
     })
     .from(stories)
     .where(
       isDirector
         ? undefined
-        : sql`${stories.id} in (select story_id from cast where user_id = ${session.user.id})`,
+        : sql`stories.id in (select story_id from "cast" where user_id = ${session.user.id})`,
     )
     .orderBy(stories.createdAt)
 
