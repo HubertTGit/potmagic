@@ -8,10 +8,19 @@ export const Route = createFileRoute('/_app/profile')({
 })
 
 function ProfilePage() {
-  const { data: session } = authClient.useSession()
+  const { data: session, refetch } = authClient.useSession()
   const user = session?.user
   const [name, setName] = useState(user?.name ?? '')
-  const isDirty = name !== (user?.name ?? '')
+  const [role, setRole] = useState<'actor' | 'director'>((user?.role as 'actor' | 'director') ?? 'actor')
+  const [saving, setSaving] = useState(false)
+  const isDirty = name !== (user?.name ?? '') || role !== (user?.role ?? 'actor')
+
+  async function handleSave() {
+    setSaving(true)
+    await authClient.updateUser({ name, role })
+    await refetch()
+    setSaving(false)
+  }
 
   return (
     <div className="p-8 max-w-lg">
@@ -59,24 +68,25 @@ function ProfilePage() {
           <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
             Role
           </legend>
-          <div className="flex items-center gap-2 h-10">
-            <span className={cn(
-              'badge font-semibold uppercase tracking-wider',
-              user?.role === 'director' ? 'badge-primary' : 'badge-neutral',
-            )}>
-              {user?.role ?? '—'}
-            </span>
-          </div>
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value as 'actor' | 'director')}
+            className="select w-full bg-base-200 border-base-300 text-sm focus:border-gold/60 focus:ring-2 focus:ring-gold/10"
+          >
+            <option value="actor">Actor</option>
+            <option value="director">Director</option>
+          </select>
         </fieldset>
 
         <button
-          disabled={!isDirty}
+          disabled={!isDirty || saving}
+          onClick={handleSave}
           className={cn(
             'btn btn-gold w-fit mt-2 font-display tracking-[0.08em]',
-            !isDirty && 'opacity-40 cursor-not-allowed',
+            (!isDirty || saving) && 'opacity-40 cursor-not-allowed',
           )}
         >
-          Save changes
+          {saving ? 'Saving…' : 'Save changes'}
         </button>
       </div>
     </div>
