@@ -79,7 +79,6 @@ function SceneDetailPage() {
         available={availableBackgrounds}
         onAdd={handleAddProp}
         onRemove={handleRemoveProp}
-        addLabel="+ Add Background"
       />
 
       {/* Characters */}
@@ -89,7 +88,6 @@ function SceneDetailPage() {
         available={availableCharacters}
         onAdd={handleAddProp}
         onRemove={handleRemoveProp}
-        addLabel="+ Add Character"
       />
     </div>
   )
@@ -101,14 +99,12 @@ function PropSection({
   available,
   onAdd,
   onRemove,
-  addLabel,
 }: {
   label: string
   props: MockProp[]
   available: MockProp[]
   onAdd: (prop: MockProp) => void
   onRemove: (propId: string) => void
-  addLabel: string
 }) {
   return (
     <div className="mb-8">
