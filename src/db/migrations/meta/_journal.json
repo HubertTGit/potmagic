@@ -36,6 +36,20 @@
       "when": 1741651200000,
       "tag": "0004_storage_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1741737600000,
+      "tag": "0005_nullable_cast_prop",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1773168755112,
+      "tag": "0006_sweet_nebula",
+      "breakpoints": true
     }
   ]
 }

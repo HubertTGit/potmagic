@@ -147,9 +147,8 @@ export const cast = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     propId: text('prop_id')
-      .notNull()
       .unique()
-      .references(() => props.id, { onDelete: 'cascade' }),
+      .references(() => props.id, { onDelete: 'set null' }),
     name: text('name').notNull(),
     imageUrl: text('image_url'),
     createdAt: timestamp('created_at').defaultNow().notNull(),

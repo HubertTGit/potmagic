@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
-import { eq, sql, ne } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
 import { stories, scenes, cast, props, users } from '@/db/schema'
@@ -80,21 +80,6 @@ export const addCast = createServerFn({ method: 'POST' })
     const session = await getSessionOrThrow()
     if (session.user.role !== 'director') throw new Error('Forbidden')
 
-    // Pick first unassigned character prop for this story
-    const castPropIds = await db
-      .select({ propId: cast.propId })
-      .from(cast)
-      .where(eq(cast.storyId, data.storyId))
-
-    const usedPropIds = new Set(castPropIds.map((r) => r.propId))
-
-    const [availableProp] = await db
-      .select({ id: props.id, name: props.name })
-      .from(props)
-      .where(eq(props.storyId, data.storyId))
-
-    const prop = availableProp ?? { id: `unassigned-${Date.now()}`, name: 'Unassigned' }
-
     const [user] = await db
       .select({ name: users.name })
       .from(users)
@@ -104,8 +89,7 @@ export const addCast = createServerFn({ method: 'POST' })
       id: crypto.randomUUID(),
       storyId: data.storyId,
       userId: data.userId,
-      propId: prop.id,
-      name: `${user?.name ?? 'Actor'} as ${prop.name}`,
+      name: user?.name ?? 'Actor',
     })
   })
 
