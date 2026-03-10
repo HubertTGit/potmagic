@@ -1,5 +1,4 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
-import { useTheme } from '../hooks/useTheme'
 import type { ReactNode } from 'react'
 import appCss from '../index.css?url'
 
