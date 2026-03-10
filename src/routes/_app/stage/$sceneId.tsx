@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { getSceneStage } from '@/lib/scenes.fns'
 import { StageComponent } from '@/components/stage.component'
+import { CastPreview } from '@/components/cast-preview.component'
 
 export const Route = createFileRoute('/_app/stage/$sceneId')({
   component: SceneStagePage,
@@ -23,5 +24,12 @@ function SceneStagePage() {
     )
   }
 
-  return <StageComponent casts={data ?? []} />
+  const casts = data ?? []
+
+  return (
+    <>
+      <CastPreview casts={casts} />
+      <StageComponent casts={casts} />
+    </>
+  )
 }

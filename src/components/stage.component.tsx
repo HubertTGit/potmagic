@@ -22,6 +22,8 @@ export function StageComponent({ casts }: StageComponentProps) {
           <DraggableCharacter
             key={cast.userId}
             src={cast.path}
+            userId={cast.userId}
+            type={cast.type}
             initialX={100 + i * 200}
             initialY={100}
           />

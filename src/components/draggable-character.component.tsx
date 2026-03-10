@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { Image } from 'react-konva'
 import type Konva from 'konva'
+import { authClient } from '@/lib/auth-client'
 
 interface DraggableCharacterProps {
   src: string
+  userId: string
+  type: 'character' | 'background'
   initialX?: number
   initialY?: number
 }
@@ -16,7 +19,9 @@ function getMidpoint(t1: Touch, t2: Touch) {
   return { x: (t1.clientX + t2.clientX) / 2, y: (t1.clientY + t2.clientY) / 2 }
 }
 
-export function DraggableCharacter({ src, initialX = 100, initialY = 100 }: DraggableCharacterProps) {
+export function DraggableCharacter({ src, userId, type, initialX = 100, initialY = 100 }: DraggableCharacterProps) {
+  const { data: session } = authClient.useSession()
+  const canDrag = session?.user?.id === userId
   const imageRef = useRef<Konva.Image>(null)
   const [image, setImage] = useState<HTMLImageElement | undefined>(undefined)
   const lastAngle = useRef(0)
@@ -35,13 +40,19 @@ export function DraggableCharacter({ src, initialX = 100, initialY = 100 }: Drag
     if (!node || !image) return
     node.offsetX(image.width / 2)
     node.offsetY(image.height / 2)
+    if (type === 'background') {
+      const stageHeight = node.getStage()?.height() ?? 0
+      node.y(stageHeight - image.height / 2)
+      node.moveToBottom()
+    }
     node.getLayer()?.batchDraw()
-  }, [image])
+  }, [image, type])
 
   const handleTouchStart = (e: Konva.KonvaEventObject<TouchEvent>) => {
-    imageRef.current?.moveToTop()
+    if (!canDrag) return
+    if (type !== 'background') imageRef.current?.moveToTop()
     const touches = e.evt.touches
-    if (touches.length === 2) {
+    if (touches.length === 2 && type !== 'background') {
       imageRef.current?.draggable(false)
       lastAngle.current = getAngle(touches[0], touches[1])
       lastMidpoint.current = getMidpoint(touches[0], touches[1])
@@ -49,6 +60,7 @@ export function DraggableCharacter({ src, initialX = 100, initialY = 100 }: Drag
   }
 
   const handleTouchMove = (e: Konva.KonvaEventObject<TouchEvent>) => {
+    if (!canDrag || type === 'background') return
     const touches = e.evt.touches
     if (touches.length !== 2) return
     e.evt.preventDefault()
@@ -68,10 +80,11 @@ export function DraggableCharacter({ src, initialX = 100, initialY = 100 }: Drag
   }
 
   const handleTouchEnd = () => {
-    imageRef.current?.draggable(true)
+    if (canDrag) imageRef.current?.draggable(true)
   }
 
   const handleDblClick = () => {
+    if (!canDrag || type === 'background') return
     const node = imageRef.current
     if (!node) return
     node.scaleX(node.scaleX() * -1)
@@ -84,11 +97,12 @@ export function DraggableCharacter({ src, initialX = 100, initialY = 100 }: Drag
       image={image}
       x={initialX}
       y={initialY}
-      draggable
+      draggable={canDrag}
+      dragBoundFunc={type === 'background' ? (pos) => ({ x: pos.x, y: imageRef.current?.y() ?? pos.y }) : undefined}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      onMouseDown={() => imageRef.current?.moveToTop()}
+      onMouseDown={() => { if (canDrag && type !== 'background') imageRef.current?.moveToTop() }}
       onDblClick={handleDblClick}
       onDblTap={handleDblClick}
     />
