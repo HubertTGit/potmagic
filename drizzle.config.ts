@@ -1,10 +1,13 @@
 import { defineConfig } from 'drizzle-kit'
+import { loadEnv } from 'vite'
+
+const env = loadEnv('', process.cwd(), '')
 
 export default defineConfig({
   schema: './src/db/schema.ts',
   out: './src/db/migrations',
   dialect: 'postgresql',
   dbCredentials: {
-    url: process.env.POSTGRES_URL!,
+    url: env.POSTGRES_URL,
   },
 })

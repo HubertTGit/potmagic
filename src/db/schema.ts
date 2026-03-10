@@ -1,4 +1,8 @@
-import { pgTable, text, timestamp, boolean, index } from 'drizzle-orm/pg-core'
+import { pgTable, pgEnum, text, timestamp, boolean, integer, index, unique } from 'drizzle-orm/pg-core'
+
+export const roleEnum = pgEnum('role', ['actor', 'director'])
+export const storyStatusEnum = pgEnum('story_status', ['draft', 'active', 'ended'])
+export const propTypeEnum = pgEnum('prop_type', ['background', 'character'])
 
 export const users = pgTable('users', {
   id: text('id').primaryKey(),
@@ -6,6 +10,7 @@ export const users = pgTable('users', {
   email: text('email').notNull().unique(),
   emailVerified: boolean('email_verified').default(false).notNull(),
   image: text('image'),
+  role: roleEnum('role').default('actor').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')
     .defaultNow()
@@ -72,4 +77,86 @@ export const verifications = pgTable(
       .notNull(),
   },
   (table) => [index('verifications_identifier_idx').on(table.identifier)],
+)
+
+export const stories = pgTable(
+  'stories',
+  {
+    id: text('id').primaryKey(),
+    title: text('title').notNull(),
+    directorId: text('director_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    status: storyStatusEnum('status').default('draft').notNull(),
+    broadcastAt: timestamp('broadcast_at'),
+    livekitRoomName: text('livekit_room_name'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index('stories_director_id_idx').on(table.directorId)],
+)
+
+export const scenes = pgTable(
+  'scenes',
+  {
+    id: text('id').primaryKey(),
+    storyId: text('story_id')
+      .notNull()
+      .references(() => stories.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    order: integer('order').default(0).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index('scenes_story_id_idx').on(table.storyId)],
+)
+
+export const props = pgTable(
+  'props',
+  {
+    id: text('id').primaryKey(),
+    storyId: text('story_id')
+      .notNull()
+      .references(() => stories.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    type: propTypeEnum('type').notNull(),
+    imageUrl: text('image_url'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index('props_story_id_idx').on(table.storyId)],
+)
+
+// Each actor is assigned exactly one prop (character) per story
+export const cast = pgTable(
+  'cast',
+  {
+    id: text('id').primaryKey(),
+    storyId: text('story_id')
+      .notNull()
+      .references(() => stories.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    propId: text('prop_id')
+      .notNull()
+      .unique()
+      .references(() => props.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    imageUrl: text('image_url'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('cast_story_id_idx').on(table.storyId),
+    unique('cast_story_user_unique').on(table.storyId, table.userId),
+  ],
 )
