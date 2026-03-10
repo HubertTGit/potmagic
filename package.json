@@ -17,6 +17,7 @@
     "@heroicons/react": "^2.2.0",
     "@livekit/components-react": "^2.9.20",
     "@livekit/components-styles": "^1.2.0",
+    "@supabase/supabase-js": "^2.99.0",
     "@tanstack/react-query": "^5.90.21",
     "@tanstack/react-router": "^1.166.3",
     "@tanstack/react-start": "^1.166.3",
