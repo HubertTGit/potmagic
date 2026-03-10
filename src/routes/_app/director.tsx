@@ -1,83 +1,104 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { useState, useRef } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { listStories } from '@/lib/stories.fns'
-import { updateStoryStatus } from '@/lib/story-detail.fns'
-import { getSignedUploadUrl, createProp, listProps, deleteProp } from '@/lib/props.fns'
-import { StatusBadge } from '@/components/status-badge.component'
-import { cn } from '@/lib/cn'
-import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { useState, useRef } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { listStories } from '@/lib/stories.fns';
+import {
+  getSignedUploadUrl,
+  createProp,
+  listProps,
+  deleteProp,
+} from '@/lib/props.fns';
+import { StatusBadge } from '@/components/status-badge.component';
+import { cn } from '@/lib/cn';
+import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { updateStoryStatus } from '@/lib/story-detail.fns';
 
 export const Route = createFileRoute('/_app/director')({
   component: DirectorPage,
-})
+});
 
 interface LibraryItem {
-  id: string
-  name: string
-  imageUrl: string | null
+  id: string;
+  name: string;
+  imageUrl: string | null;
 }
 
-type Tab = 'dashboard' | 'library'
+type Tab = 'dashboard' | 'library';
 
 function DirectorPage() {
-  const [tab, setTab] = useState<Tab>('dashboard')
+  const [tab, setTab] = useState<Tab>('dashboard');
 
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   const { data: stories = [], isLoading } = useQuery({
     queryKey: ['stories'],
     queryFn: () => listStories(),
-  })
+  });
 
   const statusMutation = useMutation({
-    mutationFn: ({ storyId, status }: { storyId: string; status: 'draft' | 'active' | 'ended' }) =>
-      updateStoryStatus({ data: { storyId, status } }),
+    mutationFn: ({
+      storyId,
+      status,
+    }: {
+      storyId: string;
+      status: 'draft' | 'active' | 'ended';
+    }) => updateStoryStatus({ data: { storyId, status } }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['stories'] }),
-  })
+  });
 
   const { data: characters = [], isLoading: loadingChars } = useQuery({
     queryKey: ['props', 'character'],
     queryFn: () => listProps({ data: { type: 'character' } }),
     enabled: tab === 'library',
-  })
+  });
 
   const { data: backgrounds = [], isLoading: loadingBgs } = useQuery({
     queryKey: ['props', 'background'],
     queryFn: () => listProps({ data: { type: 'background' } }),
     enabled: tab === 'library',
-  })
+  });
 
-  const active = stories.filter((s) => s.status === 'active')
-  const draft = stories.filter((s) => s.status === 'draft')
-  const ended = stories.filter((s) => s.status === 'ended')
+  const active = stories.filter((s) => s.status === 'active');
+  const draft = stories.filter((s) => s.status === 'draft');
+  const ended = stories.filter((s) => s.status === 'ended');
 
-  const handleAddProp = async (type: 'character' | 'background', file: File, name: string) => {
+  const handleAddProp = async (
+    type: 'character' | 'background',
+    file: File,
+    name: string,
+  ) => {
     const { signedUrl, publicUrl } = await getSignedUploadUrl({
       data: { filename: file.name, contentType: file.type },
-    })
+    });
 
     const uploadResponse = await fetch(signedUrl, {
       method: 'PUT',
       body: file,
       headers: { 'Content-Type': file.type },
-    })
+    });
     if (!uploadResponse.ok) {
-      throw new Error(`Upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`)
+      throw new Error(
+        `Upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`,
+      );
     }
 
-    await createProp({ data: { name, type, imageUrl: publicUrl } })
-    queryClient.invalidateQueries({ queryKey: ['props', type] })
-  }
+    await createProp({ data: { name, type, imageUrl: publicUrl } });
+    queryClient.invalidateQueries({ queryKey: ['props', type] });
+  };
 
-  const handleRemoveProp = async (type: 'character' | 'background', id: string) => {
-    await deleteProp({ data: { id } })
-    queryClient.invalidateQueries({ queryKey: ['props', type] })
-  }
+  const handleRemoveProp = async (
+    type: 'character' | 'background',
+    id: string,
+  ) => {
+    await deleteProp({ data: { id } });
+    queryClient.invalidateQueries({ queryKey: ['props', type] });
+  };
 
   return (
     <div className="p-8 max-w-3xl">
       <h1 className="text-2xl font-semibold mb-2">Director</h1>
-      <p className="text-sm text-base-content/40 mb-6">Manage sessions and story status.</p>
+      <p className="text-sm text-base-content/40 mb-6">
+        Manage sessions and story status.
+      </p>
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-base-300 mb-8">
@@ -103,12 +124,27 @@ function DirectorPage() {
           <div className="grid grid-cols-3 gap-4 mb-10">
             {[
               { label: 'Active', count: active.length, color: 'text-success' },
-              { label: 'Draft', count: draft.length, color: 'text-base-content/60' },
-              { label: 'Ended', count: ended.length, color: 'text-base-content/30' },
+              {
+                label: 'Draft',
+                count: draft.length,
+                color: 'text-base-content/60',
+              },
+              {
+                label: 'Ended',
+                count: ended.length,
+                color: 'text-base-content/30',
+              },
             ].map(({ label, count, color }) => (
-              <div key={label} className="bg-base-200 border border-base-300 rounded-xl px-5 py-4">
-                <p className={cn('text-3xl font-bold font-display', color)}>{count}</p>
-                <p className="text-xs text-base-content/40 uppercase tracking-widest mt-1">{label}</p>
+              <div
+                key={label}
+                className="bg-base-200 border border-base-300 rounded-xl px-5 py-4"
+              >
+                <p className={cn('text-3xl font-bold font-display', color)}>
+                  {count}
+                </p>
+                <p className="text-xs text-base-content/40 uppercase tracking-widest mt-1">
+                  {label}
+                </p>
               </div>
             ))}
           </div>
@@ -129,7 +165,10 @@ function DirectorPage() {
                 </thead>
                 <tbody>
                   {stories.map((story) => (
-                    <tr key={story.id} className="hover:bg-base-200 transition-colors">
+                    <tr
+                      key={story.id}
+                      className="hover:bg-base-200 transition-colors"
+                    >
                       <td>
                         <Link
                           to="/stories/$storyId"
@@ -139,14 +178,18 @@ function DirectorPage() {
                           {story.title}
                         </Link>
                       </td>
-                      <td className="text-base-content/50">{story.castCount}</td>
+                      <td className="text-base-content/50">
+                        {story.castCount}
+                      </td>
                       <td>
                         <StatusBadge status={story.status} />
                       </td>
                       <td>
                         <SessionControls
                           story={story}
-                          onSetStatus={(id, status) => statusMutation.mutate({ storyId: id, status })}
+                          onSetStatus={(id, status) =>
+                            statusMutation.mutate({ storyId: id, status })
+                          }
                         />
                       </td>
                     </tr>
@@ -184,7 +227,7 @@ function DirectorPage() {
         </>
       )}
     </div>
-  )
+  );
 }
 
 function LibrarySection({
@@ -195,42 +238,46 @@ function LibrarySection({
   onAdd,
   onRemove,
 }: {
-  label: string
-  type: 'character' | 'background'
-  items: LibraryItem[]
-  isLoading: boolean
-  onAdd: (file: File, name: string) => Promise<void>
-  onRemove: (id: string) => Promise<void>
+  label: string;
+  type: 'character' | 'background';
+  items: LibraryItem[];
+  isLoading: boolean;
+  onAdd: (file: File, name: string) => Promise<void>;
+  onRemove: (id: string) => Promise<void>;
 }) {
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [pending, setPending] = useState<{ preview: string; file: File; name: string } | null>(null)
-  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pending, setPending] = useState<{
+    preview: string;
+    file: File;
+    name: string;
+  } | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const preview = URL.createObjectURL(file)
-    const defaultName = file.name.replace(/\.[^.]+$/, '')
-    setPending({ preview, file, name: defaultName })
-    e.target.value = ''
-  }
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const preview = URL.createObjectURL(file);
+    const defaultName = file.name.replace(/\.[^.]+$/, '');
+    setPending({ preview, file, name: defaultName });
+    e.target.value = '';
+  };
 
   const handleConfirm = async () => {
-    if (!pending || !pending.name.trim() || uploading) return
-    setUploading(true)
+    if (!pending || !pending.name.trim() || uploading) return;
+    setUploading(true);
     try {
-      await onAdd(pending.file, pending.name.trim())
-      URL.revokeObjectURL(pending.preview)
-      setPending(null)
+      await onAdd(pending.file, pending.name.trim());
+      URL.revokeObjectURL(pending.preview);
+      setPending(null);
     } finally {
-      setUploading(false)
+      setUploading(false);
     }
-  }
+  };
 
   const handleCancel = () => {
-    if (pending) URL.revokeObjectURL(pending.preview)
-    setPending(null)
-  }
+    if (pending) URL.revokeObjectURL(pending.preview);
+    setPending(null);
+  };
 
   return (
     <div>
@@ -266,10 +313,12 @@ function LibrarySection({
             autoFocus
             type="text"
             value={pending.name}
-            onChange={(e) => setPending((p) => p && { ...p, name: e.target.value })}
+            onChange={(e) =>
+              setPending((p) => p && { ...p, name: e.target.value })
+            }
             onKeyDown={(e) => {
-              if (e.key === 'Enter') handleConfirm()
-              if (e.key === 'Escape') handleCancel()
+              if (e.key === 'Enter') handleConfirm();
+              if (e.key === 'Escape') handleCancel();
             }}
             placeholder="Name…"
             className="input input-sm flex-1 bg-base-300 border-base-300 text-sm focus:border-gold/60"
@@ -304,7 +353,9 @@ function LibrarySection({
           className="flex flex-col items-center justify-center gap-2 border border-dashed border-base-300 rounded-xl py-8 text-base-content/25 cursor-pointer hover:border-gold/30 hover:text-base-content/40 transition-colors"
         >
           <PhotoIcon className="size-7" />
-          <span className="text-xs">Upload your first {label.toLowerCase().slice(0, -1)}</span>
+          <span className="text-xs">
+            Upload your first {label.toLowerCase().slice(0, -1)}
+          </span>
         </div>
       ) : !isLoading ? (
         <div className="grid grid-cols-4 gap-3">
@@ -314,7 +365,11 @@ function LibrarySection({
               className="group relative rounded-xl overflow-hidden bg-base-200 border border-base-300 aspect-square"
             >
               {item.imageUrl && (
-                <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                <img
+                  src={item.imageUrl}
+                  alt={item.name}
+                  className="w-full h-full object-cover"
+                />
               )}
               <div className="absolute inset-0 bg-base-100/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 p-2">
                 <span className="text-xs font-medium text-center leading-tight line-clamp-2">
@@ -335,15 +390,15 @@ function LibrarySection({
         </div>
       ) : null}
     </div>
-  )
+  );
 }
 
 function SessionControls({
   story,
   onSetStatus,
 }: {
-  story: { id: string; status: 'draft' | 'active' | 'ended' }
-  onSetStatus: (id: string, status: 'draft' | 'active' | 'ended') => void
+  story: { id: string; status: 'draft' | 'active' | 'ended' };
+  onSetStatus: (id: string, status: 'draft' | 'active' | 'ended') => void;
 }) {
   if (story.status === 'draft') {
     return (
@@ -353,7 +408,7 @@ function SessionControls({
       >
         Start session
       </button>
-    )
+    );
   }
   if (story.status === 'active') {
     return (
@@ -363,7 +418,7 @@ function SessionControls({
       >
         End session
       </button>
-    )
+    );
   }
-  return <span className="text-xs text-base-content/30">—</span>
+  return <span className="text-xs text-base-content/30">—</span>;
 }

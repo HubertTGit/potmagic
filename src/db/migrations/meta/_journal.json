@@ -22,6 +22,20 @@
       "when": 1773125698624,
       "tag": "0002_charming_kid_colt",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1741564800000,
+      "tag": "0003_disable_rls",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1741651200000,
+      "tag": "0004_storage_policies",
+      "breakpoints": true
     }
   ]
 }
