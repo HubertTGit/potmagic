@@ -9,4 +9,7 @@ export default defineConfig({
   server: {
     host: true,
   },
+  optimizeDeps: {
+    exclude: ['fsevents', 'lightningcss'],
+  },
 });

@@ -19,7 +19,16 @@ const queryClient = new QueryClient({
   }),
 })
 
+function NotFound() {
+  return (
+    <div className="flex h-screen items-center justify-center">
+      <p className="text-base-content/60">Page not found</p>
+    </div>
+  )
+}
+
 export const Route = createRootRoute({
+  notFoundComponent: NotFound,
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
