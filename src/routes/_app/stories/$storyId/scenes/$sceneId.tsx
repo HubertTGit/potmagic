@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
-import { getScene, getStory, type MockProp } from '../../../../../lib/mock-data'
+import { useState, useEffect } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { getSceneDetail, updateSceneTitle } from '../../../../../lib/scenes.fns'
 import { Breadcrumb } from '../../../../../components/breadcrumb.component'
 import { cn } from '../../../../../lib/cn'
 
@@ -8,46 +9,51 @@ export const Route = createFileRoute('/_app/stories/$storyId/scenes/$sceneId')({
   component: SceneDetailPage,
 })
 
+type Prop = { id: string; name: string; type: string; imageUrl: string | null }
+
 function SceneDetailPage() {
   const { storyId, sceneId } = Route.useParams()
-  const story = getStory(storyId)
-  const scene = getScene(storyId, sceneId)
+  const queryClient = useQueryClient()
 
-  const [title, setTitle] = useState(scene?.title ?? '')
-  // Intentionally empty: scene-prop assignments are not in the schema.
-  // The UI lets the director assign story-level props to this scene.
-  const [sceneProps, setSceneProps] = useState<MockProp[]>([])
+  const { data, isLoading } = useQuery({
+    queryKey: ['scene', storyId, sceneId],
+    queryFn: () => getSceneDetail({ data: { storyId, sceneId } }),
+  })
+
+  const scene = data?.scene
+  const story = data?.story
+  const storyProps = data?.props ?? []
+
+  const [title, setTitle] = useState('')
+  const [sceneProps, setSceneProps] = useState<Prop[]>([])
+
+  useEffect(() => {
+    if (scene) setTitle(scene.title)
+  }, [scene])
+
+  const saveMutation = useMutation({
+    mutationFn: (newTitle: string) => updateSceneTitle({ data: { sceneId, title: newTitle } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['scene', storyId, sceneId] }),
+  })
 
   const isTitleDirty = title !== (scene?.title ?? '')
 
-  if (!story || !scene) {
-    return (
-      <div className="p-8">
-        <p className="text-base-content/40">Scene not found.</p>
-      </div>
-    )
+  if (isLoading) {
+    return <div className="p-8"><p className="text-base-content/40 text-sm">Loading…</p></div>
   }
 
-  const totalScenes = story.scenes.length
-  const sceneOrder = scene.order
+  if (!scene || !story) {
+    return <div className="p-8"><p className="text-base-content/40">Scene not found.</p></div>
+  }
 
   const backgrounds = sceneProps.filter((p) => p.type === 'background')
   const characters = sceneProps.filter((p) => p.type === 'character')
-
-  const availableBackgrounds = story.props.filter(
+  const availableBackgrounds = storyProps.filter(
     (p) => p.type === 'background' && !sceneProps.some((sp) => sp.id === p.id),
   )
-  const availableCharacters = story.props.filter(
+  const availableCharacters = storyProps.filter(
     (p) => p.type === 'character' && !sceneProps.some((sp) => sp.id === p.id),
   )
-
-  const handleAddProp = (prop: MockProp) => {
-    setSceneProps((prev) => [...prev, prop])
-  }
-
-  const handleRemoveProp = (propId: string) => {
-    setSceneProps((prev) => prev.filter((p) => p.id !== propId))
-  }
 
   return (
     <div className="p-8 max-w-2xl">
@@ -66,35 +72,34 @@ function SceneDetailPage() {
           className="input flex-1 bg-base-200 border-base-300 text-lg font-semibold focus:border-gold/60 focus:ring-2 focus:ring-gold/10"
         />
         <span className="text-sm text-base-content/40 whitespace-nowrap">
-          Scene {sceneOrder} of {totalScenes}
+          Scene {scene.order} of {story.totalScenes}
         </span>
         <button
-          disabled={!isTitleDirty}
+          disabled={!isTitleDirty || saveMutation.isPending}
+          onClick={() => saveMutation.mutate(title)}
           className={cn(
             'btn btn-sm btn-gold font-display tracking-[0.05em]',
-            !isTitleDirty && 'opacity-40 cursor-not-allowed',
+            (!isTitleDirty || saveMutation.isPending) && 'opacity-40 cursor-not-allowed',
           )}
         >
           Save
         </button>
       </div>
 
-      {/* Backgrounds */}
       <PropSection
         label="Backgrounds"
         props={backgrounds}
         available={availableBackgrounds}
-        onAdd={handleAddProp}
-        onRemove={handleRemoveProp}
+        onAdd={(p) => setSceneProps((prev) => [...prev, p])}
+        onRemove={(id) => setSceneProps((prev) => prev.filter((p) => p.id !== id))}
       />
 
-      {/* Characters */}
       <PropSection
         label="Characters"
         props={characters}
         available={availableCharacters}
-        onAdd={handleAddProp}
-        onRemove={handleRemoveProp}
+        onAdd={(p) => setSceneProps((prev) => [...prev, p])}
+        onRemove={(id) => setSceneProps((prev) => prev.filter((p) => p.id !== id))}
       />
     </div>
   )
@@ -108,9 +113,9 @@ function PropSection({
   onRemove,
 }: {
   label: string
-  props: MockProp[]
-  available: MockProp[]
-  onAdd: (prop: MockProp) => void
+  props: Prop[]
+  available: Prop[]
+  onAdd: (prop: Prop) => void
   onRemove: (propId: string) => void
 }) {
   return (
@@ -129,9 +134,13 @@ function PropSection({
               className="flex items-center justify-between bg-base-200 rounded-lg px-4 py-3 border border-base-300"
             >
               <div className="flex items-center gap-3">
-                <div className="size-8 rounded bg-base-300 flex items-center justify-center text-base-content/40 text-xs font-mono">
-                  img
-                </div>
+                {prop.imageUrl ? (
+                  <img src={prop.imageUrl} alt={prop.name} className="size-8 rounded object-cover bg-base-300" />
+                ) : (
+                  <div className="size-8 rounded bg-base-300 flex items-center justify-center text-base-content/40 text-xs font-mono">
+                    img
+                  </div>
+                )}
                 <span className="text-sm font-medium">{prop.name}</span>
               </div>
               <button
