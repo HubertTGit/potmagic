@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
-import { eq, sql } from 'drizzle-orm'
+import { eq, sql, isNull } from 'drizzle-orm'
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
 import { stories, scenes, cast, props, users } from '@/db/schema'
@@ -32,6 +32,8 @@ export const getStoryDetail = createServerFn({ method: 'GET' })
         userName: users.name,
         userEmail: users.email,
         propName: props.name,
+        propImageUrl: props.imageUrl,
+        propType: props.type,
       })
       .from(cast)
       .leftJoin(users, eq(cast.userId, users.id))
@@ -45,9 +47,10 @@ export const getStoryDetail = createServerFn({ method: 'GET' })
       .orderBy(scenes.order)
 
     const propRows = await db
-      .select({ id: props.id, name: props.name, type: props.type })
+      .select({ id: props.id, name: props.name, type: props.type, imageUrl: props.imageUrl })
       .from(props)
-      .where(eq(props.storyId, data.storyId))
+      .where(isNull(props.storyId))
+      .orderBy(props.name)
 
     // Actors not yet assigned to any story
     const availableActors = await db
@@ -91,6 +94,14 @@ export const addCast = createServerFn({ method: 'POST' })
       userId: data.userId,
       name: user?.name ?? 'Actor',
     })
+  })
+
+export const assignProp = createServerFn({ method: 'POST' })
+  .inputValidator((input: unknown) => input as { castId: string; propId: string | null })
+  .handler(async ({ data }) => {
+    const session = await getSessionOrThrow()
+    if (session.user.role !== 'director') throw new Error('Forbidden')
+    await db.update(cast).set({ propId: data.propId }).where(eq(cast.id, data.castId))
   })
 
 export const removeCast = createServerFn({ method: 'POST' })

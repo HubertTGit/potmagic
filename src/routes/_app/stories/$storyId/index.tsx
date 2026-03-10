@@ -6,6 +6,7 @@ import {
   updateStoryTitle,
   addCast,
   removeCast,
+  assignProp,
   addScene,
   removeScene,
 } from '@/lib/story-detail.fns'
@@ -65,6 +66,12 @@ function StoryDetailPage() {
     onSuccess: invalidate,
   })
 
+  const assignPropMutation = useMutation({
+    mutationFn: ({ castId, propId }: { castId: string; propId: string | null }) =>
+      assignProp({ data: { castId, propId } }),
+    onSuccess: invalidate,
+  })
+
   const addSceneMutation = useMutation({
     mutationFn: (t: string) => addScene({ data: { storyId, title: t } }),
     onSuccess: () => { invalidate(); setNewSceneTitle('') },
@@ -83,9 +90,10 @@ function StoryDetailPage() {
     return <div className="p-8"><p className="text-base-content/40">Story not found.</p></div>
   }
 
-  const { story, cast, scenes, availableActors } = data
+  const { story, cast, scenes, props: availableProps, availableActors } = data
 
   const castUserIds = new Set(cast.map((c) => c.userId))
+  const usedPropIds = new Set(cast.map((c) => c.propId).filter(Boolean) as string[])
   const filteredActors = availableActors.filter(
     (u) =>
       !castUserIds.has(u.id) &&
@@ -155,16 +163,27 @@ function StoryDetailPage() {
               <thead>
                 <tr className="text-base-content/50 text-xs uppercase tracking-wider">
                   <th>Actor</th>
-                  <th>Character</th>
+                  <th>Prop</th>
                   <th />
                 </tr>
               </thead>
               <tbody>
                 {cast.map((c) => (
                   <tr key={c.id} className="hover:bg-base-200 transition-colors">
-                    <td>{c.userName}</td>
-                    <td className="text-base-content/70">{c.propName ?? c.name}</td>
-                    <td className="text-right">
+                    <td className="align-middle">{c.userName}</td>
+                    <td className="align-middle">
+                      <PropPicker
+                        castId={c.id}
+                        propId={c.propId ?? null}
+                        propName={c.propName ?? null}
+                        propImageUrl={c.propImageUrl ?? null}
+                        propType={c.propType ?? null}
+                        availableProps={availableProps}
+                        usedPropIds={usedPropIds}
+                        onAssign={(castId, propId) => assignPropMutation.mutate({ castId, propId })}
+                      />
+                    </td>
+                    <td className="text-right align-middle">
                       <button
                         onClick={() => removeCastMutation.mutate(c.id)}
                         disabled={removeCastMutation.isPending}
@@ -269,6 +288,125 @@ function StoryDetailPage() {
               + Add Scene
             </button>
           </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+type Prop = {
+  id: string
+  name: string
+  type: 'background' | 'character'
+  imageUrl: string | null
+}
+
+function PropTypePill({ type }: { type: 'character' | 'background' }) {
+  return (
+    <span className={cn(
+      'text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0',
+      type === 'character' ? 'bg-gold/15 text-gold' : 'bg-info/15 text-info',
+    )}>
+      {type}
+    </span>
+  )
+}
+
+function PropPicker({
+  castId,
+  propId,
+  propName,
+  propImageUrl,
+  propType,
+  availableProps,
+  usedPropIds,
+  onAssign,
+}: {
+  castId: string
+  propId: string | null
+  propName: string | null
+  propImageUrl: string | null
+  propType: 'character' | 'background' | null
+  availableProps: Prop[]
+  usedPropIds: Set<string>
+  onAssign: (castId: string, propId: string | null) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  // Show props not used by other cast members, plus the currently assigned one
+  const selectableProps = availableProps.filter((p) => !usedPropIds.has(p.id) || p.id === propId)
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2 hover:opacity-75 transition-opacity"
+      >
+        {propId ? (
+          <>
+            {propImageUrl ? (
+              <img
+                src={propImageUrl}
+                alt={propName ?? ''}
+                className="size-7 rounded object-cover bg-base-300 shrink-0"
+              />
+            ) : (
+              <div className="size-7 rounded bg-base-300 shrink-0" />
+            )}
+            <span className="text-sm">{propName}</span>
+            {propType && <PropTypePill type={propType} />}
+          </>
+        ) : (
+          <span className="text-sm text-base-content/30 italic">Assign prop…</span>
+        )}
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full mt-1 w-64 bg-base-200 border border-base-300 rounded-lg shadow-xl z-50 overflow-hidden">
+          {selectableProps.length === 0 ? (
+            <p className="text-xs text-base-content/40 px-3 py-2">No props available</p>
+          ) : (
+            selectableProps.map((p) => (
+              <button
+                key={p.id}
+                onMouseDown={(e) => { e.preventDefault(); onAssign(castId, p.id); setOpen(false) }}
+                className={cn(
+                  'w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-base-300 transition-colors',
+                  p.id === propId && 'bg-base-300',
+                )}
+              >
+                {p.imageUrl ? (
+                  <img src={p.imageUrl} alt={p.name} className="size-8 rounded object-cover bg-base-300 shrink-0" />
+                ) : (
+                  <div className="size-8 rounded bg-base-300 shrink-0" />
+                )}
+                <span className="flex-1 text-left truncate">{p.name}</span>
+                <PropTypePill type={p.type} />
+              </button>
+            ))
+          )}
+          {propId && (
+            <>
+              <div className="border-t border-base-300" />
+              <button
+                onMouseDown={(e) => { e.preventDefault(); onAssign(castId, null); setOpen(false) }}
+                className="w-full text-left px-3 py-2 text-xs text-error/60 hover:text-error hover:bg-base-300 transition-colors"
+              >
+                Unassign
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>
