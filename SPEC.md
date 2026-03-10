@@ -2,7 +2,7 @@
 
 ## Overview
 
-HoneypotMagic is an online collaborative theater platform for storytelling. Groups of people can perform interactive stories together using animated canvas characters, with a public broadcast stream for audiences.
+HoneypotMagic is an online collaborative theater platform for storytelling. Groups of people can perform interactive stories together using animated canvas characters/cast, with a public broadcast stream for audiences.
 
 Two access modes:
 - **Authenticated** — actors and directors perform and manage stories
@@ -14,7 +14,7 @@ Two access modes:
 
 ### Director
 - Creates and manages stories
-- Assigns characters to registered actors
+- Assigns characters/cast to registered actors
 - Starts and ends LiveKit sessions (the performance)
 - Controls the broadcast room
 
@@ -38,7 +38,7 @@ Two access modes:
 | `/login` | No | Any | Email/password login form |
 | `/` | Yes | Actor, Director | Dashboard — lists available stories |
 | `/stage/:storyId` | Yes | Assigned actors + Director | Theater stage — canvas + live session |
-| `/director` | Yes | Director only | Create stories, assign characters, manage sessions |
+| `/director` | Yes | Director only | Create stories, assign characters/cast, manage sessions |
 | `/broadcast/:roomId` | No | Viewer | Watch-only LiveKit stream |
 
 Route guards are enforced via TanStack Router `beforeLoad` hooks. Unauthenticated users are redirected to `/login`. Non-directors attempting `/director` get a 403.
@@ -47,7 +47,7 @@ Route guards are enforced via TanStack Router `beforeLoad` hooks. Unauthenticate
 
 ## Data Models (PostgreSQL + Drizzle ORM)
 
-All tables are defined as Drizzle schemas. The `users` table is managed by better-auth via the Drizzle adapter; custom tables (`characters`, `stories`, `cast`) use Drizzle directly.
+All tables are defined as Drizzle schemas. The `users` table is managed by better-auth via the Drizzle adapter; custom tables (`characters/cast`, `stories`, `cast`) use Drizzle directly.
 
 ### users _(managed by better-auth via Drizzle adapter)_
 | Field | Type | Notes |
@@ -58,7 +58,7 @@ All tables are defined as Drizzle schemas. The `users` table is managed by bette
 | role | TEXT | `actor` or `director` |
 | created_at | DATETIME | |
 
-### characters
+### characters/cast
 | Field | Type | Notes |
 |---|---|---|
 | id | TEXT (UUID) | Primary key |
@@ -84,7 +84,7 @@ All tables are defined as Drizzle schemas. The `users` table is managed by bette
 | id | TEXT (UUID) | Primary key |
 | story_id | TEXT | FK → stories.id |
 | user_id | TEXT | FK → users.id |
-| character_id | TEXT | FK → characters.id |
+| character_id | TEXT | FK → characters/cast.id |
 
 Constraints:
 - One user can only be assigned one character per story (`UNIQUE(story_id, user_id)`)
@@ -119,7 +119,7 @@ Constraints:
 
 ### Canvas Sync
 - Each actor's character movements (position, rotation, scale) are broadcast to other participants via LiveKit data messages
-- Other actors' characters update in real-time on the canvas
+- Other actors' characters/cast update in real-time on the canvas
 - Broadcast viewers receive the same data messages and see the full canvas state
 
 ---
@@ -139,7 +139,7 @@ The backend server runs alongside (or proxied through) the Vite dev server.
 | GET | `/api/stories/:id/cast` | Director | List cast assignments |
 | POST | `/api/stories/:id/cast` | Director | Assign character to user |
 | DELETE | `/api/stories/:id/cast/:castId` | Director | Remove cast assignment |
-| GET | `/api/characters` | Director | List available characters |
+| GET | `/api/characters/cast` | Director | List available characters/cast |
 | POST | `/api/livekit/token` | Actor, Director | Get publisher token |
 | GET | `/api/livekit/broadcast-token/:roomId` | Public | Get subscribe-only token |
 
@@ -188,4 +188,4 @@ The backend server runs alongside (or proxied through) the Vite dev server.
 - Chat or text messaging between actors
 - Story scripting or scene management (title + cast only)
 - Recording or replay of performances
-- Multiple characters per user
+- Multiple characters/cast per user

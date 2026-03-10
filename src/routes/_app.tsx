@@ -1,18 +1,11 @@
-import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
-import { createServerFn } from '@tanstack/react-start'
-import { getRequest } from '@tanstack/react-start/server'
-import { auth } from '../lib/auth'
-import { Sidebar } from '../components/sidebar.component'
-
-const requireAuth = createServerFn().handler(async () => {
-  const session = await auth.api.getSession({ headers: getRequest().headers })
-  if (!session) throw redirect({ to: '/login' })
-})
+import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { Sidebar } from '../components/sidebar.component';
+import { requireAuth } from '@/lib/auth-guard';
 
 export const Route = createFileRoute('/_app')({
   beforeLoad: () => requireAuth(),
   component: AppLayout,
-})
+});
 
 function AppLayout() {
   return (
@@ -22,5 +15,5 @@ function AppLayout() {
         <Outlet />
       </main>
     </div>
-  )
+  );
 }
