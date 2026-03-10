@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { getScene, getStory, type MockProp } from '../../../../../lib/mock-data'
+import { Breadcrumb } from '../../../../../components/breadcrumb.component'
 import { cn } from '../../../../../lib/cn'
 
 export const Route = createFileRoute('/_app/stories/$storyId/scenes/$sceneId')({
@@ -50,6 +51,12 @@ function SceneDetailPage() {
 
   return (
     <div className="p-8 max-w-2xl">
+      <Breadcrumb crumbs={[
+        { label: 'Stories', to: '/stories/' },
+        { label: story.title, to: '/stories/$storyId/', params: { storyId } },
+        { label: scene.title },
+      ]} />
+
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
         <input

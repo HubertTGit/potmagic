@@ -9,20 +9,15 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as StageRouteImport } from './routes/stage'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppStageRouteImport } from './routes/_app/stage'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
 import { Route as AppStoriesIndexRouteImport } from './routes/_app/stories/index'
 import { Route as AppStoriesStoryIdIndexRouteImport } from './routes/_app/stories/$storyId/index'
 import { Route as AppStoriesStoryIdScenesSceneIdRouteImport } from './routes/_app/stories/$storyId/scenes/$sceneId'
 
-const StageRoute = StageRouteImport.update({
-  id: '/stage',
-  path: '/stage',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -35,6 +30,11 @@ const AppRoute = AppRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppStageRoute = AppStageRouteImport.update({
+  id: '/stage',
+  path: '/stage',
   getParentRoute: () => AppRoute,
 } as any)
 const AppProfileRoute = AppProfileRouteImport.update({
@@ -62,16 +62,16 @@ const AppStoriesStoryIdScenesSceneIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
-  '/stage': typeof StageRoute
   '/profile': typeof AppProfileRoute
+  '/stage': typeof AppStageRoute
   '/stories/': typeof AppStoriesIndexRoute
   '/stories/$storyId/': typeof AppStoriesStoryIdIndexRoute
   '/stories/$storyId/scenes/$sceneId': typeof AppStoriesStoryIdScenesSceneIdRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
-  '/stage': typeof StageRoute
   '/profile': typeof AppProfileRoute
+  '/stage': typeof AppStageRoute
   '/': typeof AppIndexRoute
   '/stories': typeof AppStoriesIndexRoute
   '/stories/$storyId': typeof AppStoriesStoryIdIndexRoute
@@ -81,8 +81,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
-  '/stage': typeof StageRoute
   '/_app/profile': typeof AppProfileRoute
+  '/_app/stage': typeof AppStageRoute
   '/_app/': typeof AppIndexRoute
   '/_app/stories/': typeof AppStoriesIndexRoute
   '/_app/stories/$storyId/': typeof AppStoriesStoryIdIndexRoute
@@ -93,16 +93,16 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
-    | '/stage'
     | '/profile'
+    | '/stage'
     | '/stories/'
     | '/stories/$storyId/'
     | '/stories/$storyId/scenes/$sceneId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
-    | '/stage'
     | '/profile'
+    | '/stage'
     | '/'
     | '/stories'
     | '/stories/$storyId'
@@ -111,8 +111,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_app'
     | '/login'
-    | '/stage'
     | '/_app/profile'
+    | '/_app/stage'
     | '/_app/'
     | '/_app/stories/'
     | '/_app/stories/$storyId/'
@@ -122,18 +122,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   LoginRoute: typeof LoginRoute
-  StageRoute: typeof StageRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/stage': {
-      id: '/stage'
-      path: '/stage'
-      fullPath: '/stage'
-      preLoaderRoute: typeof StageRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -153,6 +145,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/stage': {
+      id: '/_app/stage'
+      path: '/stage'
+      fullPath: '/stage'
+      preLoaderRoute: typeof AppStageRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/profile': {
@@ -188,6 +187,7 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppProfileRoute: typeof AppProfileRoute
+  AppStageRoute: typeof AppStageRoute
   AppIndexRoute: typeof AppIndexRoute
   AppStoriesIndexRoute: typeof AppStoriesIndexRoute
   AppStoriesStoryIdIndexRoute: typeof AppStoriesStoryIdIndexRoute
@@ -196,6 +196,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppProfileRoute: AppProfileRoute,
+  AppStageRoute: AppStageRoute,
   AppIndexRoute: AppIndexRoute,
   AppStoriesIndexRoute: AppStoriesIndexRoute,
   AppStoriesStoryIdIndexRoute: AppStoriesStoryIdIndexRoute,
@@ -207,7 +208,6 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   LoginRoute: LoginRoute,
-  StageRoute: StageRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
