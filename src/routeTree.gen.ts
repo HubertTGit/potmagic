@@ -14,6 +14,7 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppStageRouteImport } from './routes/_app/stage'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
+import { Route as AppDirectorRouteImport } from './routes/_app/director'
 import { Route as AppStoriesIndexRouteImport } from './routes/_app/stories/index'
 import { Route as AppStoriesStoryIdIndexRouteImport } from './routes/_app/stories/$storyId/index'
 import { Route as AppStoriesStoryIdScenesSceneIdRouteImport } from './routes/_app/stories/$storyId/scenes/$sceneId'
@@ -42,6 +43,11 @@ const AppProfileRoute = AppProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AppRoute,
 } as any)
+const AppDirectorRoute = AppDirectorRouteImport.update({
+  id: '/director',
+  path: '/director',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppStoriesIndexRoute = AppStoriesIndexRouteImport.update({
   id: '/stories/',
   path: '/stories/',
@@ -62,6 +68,7 @@ const AppStoriesStoryIdScenesSceneIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
+  '/director': typeof AppDirectorRoute
   '/profile': typeof AppProfileRoute
   '/stage': typeof AppStageRoute
   '/stories/': typeof AppStoriesIndexRoute
@@ -70,6 +77,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
+  '/director': typeof AppDirectorRoute
   '/profile': typeof AppProfileRoute
   '/stage': typeof AppStageRoute
   '/': typeof AppIndexRoute
@@ -81,6 +89,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/_app/director': typeof AppDirectorRoute
   '/_app/profile': typeof AppProfileRoute
   '/_app/stage': typeof AppStageRoute
   '/_app/': typeof AppIndexRoute
@@ -93,6 +102,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/director'
     | '/profile'
     | '/stage'
     | '/stories/'
@@ -101,6 +111,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
+    | '/director'
     | '/profile'
     | '/stage'
     | '/'
@@ -111,6 +122,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_app'
     | '/login'
+    | '/_app/director'
     | '/_app/profile'
     | '/_app/stage'
     | '/_app/'
@@ -161,6 +173,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProfileRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/director': {
+      id: '/_app/director'
+      path: '/director'
+      fullPath: '/director'
+      preLoaderRoute: typeof AppDirectorRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/stories/': {
       id: '/_app/stories/'
       path: '/stories'
@@ -186,6 +205,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppDirectorRoute: typeof AppDirectorRoute
   AppProfileRoute: typeof AppProfileRoute
   AppStageRoute: typeof AppStageRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -195,6 +215,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppDirectorRoute: AppDirectorRoute,
   AppProfileRoute: AppProfileRoute,
   AppStageRoute: AppStageRoute,
   AppIndexRoute: AppIndexRoute,
