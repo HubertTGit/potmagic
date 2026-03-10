@@ -2,8 +2,14 @@ import { Stage, Layer } from 'react-konva'
 import { useWindowSize } from '@/hooks/useWindowSize'
 import { DraggableCharacter } from '@/components/draggable-character.component'
 
+export interface StageCast {
+  userId: string
+  path: string
+  type: 'character' | 'background'
+}
+
 interface StageComponentProps {
-  casts: { userId: string; path: string }[]
+  casts: StageCast[]
 }
 
 export function StageComponent({ casts }: StageComponentProps) {

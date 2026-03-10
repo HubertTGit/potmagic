@@ -109,6 +109,7 @@ export const getSceneStage = createServerFn({ method: 'GET' })
       .select({
         userId: cast.userId,
         path: props.imageUrl,
+        type: props.type,
       })
       .from(sceneCast)
       .innerJoin(cast, eq(sceneCast.castId, cast.id))
@@ -116,8 +117,8 @@ export const getSceneStage = createServerFn({ method: 'GET' })
       .where(eq(sceneCast.sceneId, data.sceneId));
 
     return rows
-      .filter((r) => r.path !== null)
-      .map((r) => ({ userId: r.userId, path: r.path as string }));
+      .filter((r) => r.path !== null && r.type !== null)
+      .map((r) => ({ userId: r.userId, path: r.path as string, type: r.type as 'character' | 'background' }));
   });
 
 export const updateSceneTitle = createServerFn({ method: 'POST' })
