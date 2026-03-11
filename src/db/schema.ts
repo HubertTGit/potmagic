@@ -135,7 +135,7 @@ export const props = pgTable(
   (table) => [index('props_story_id_idx').on(table.storyId)],
 )
 
-// Each actor is assigned exactly one prop (character) per story
+// Each actor can be assigned to multiple stories, but only once per story
 export const cast = pgTable(
   'cast',
   {
@@ -155,8 +155,7 @@ export const cast = pgTable(
   },
   (table) => [
     index('cast_story_id_idx').on(table.storyId),
-    // An actor can only be assigned to one story total
-    unique('cast_user_unique').on(table.userId),
+    unique('cast_user_story_unique').on(table.userId, table.storyId),
   ],
 )
 

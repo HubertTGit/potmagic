@@ -3,7 +3,7 @@ import { getRequest } from '@tanstack/react-start/server'
 import { eq, sql, isNull } from 'drizzle-orm'
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { stories, scenes, cast, props, users } from '@/db/schema'
+import { stories, scenes, cast, props, users, sceneCast } from '@/db/schema'
 
 async function getSessionOrThrow() {
   const session = await auth.api.getSession({ headers: getRequest().headers })
@@ -59,11 +59,11 @@ export const getStoryDetail = createServerFn({ method: 'GET' })
       .where(isNull(props.storyId))
       .orderBy(props.name)
 
-    // Actors not yet assigned to any story
+    // Actors not yet assigned to this story
     const availableActors = await db
       .select({ id: users.id, name: users.name, email: users.email })
       .from(users)
-      .where(sql`${users.role} = 'actor' and ${users.id} not in (select user_id from "cast")`)
+      .where(sql`${users.role} = 'actor' and ${users.id} not in (select user_id from "cast" where story_id = ${data.storyId})`)
 
     return { story, cast: castRows, scenes: sceneRows, props: propRows, availableActors }
   })
@@ -111,6 +111,7 @@ export const removeCast = createServerFn({ method: 'POST' })
   .inputValidator((input: unknown) => input as { castId: string })
   .handler(async ({ data }) => {
     await requireDirector()
+    await db.delete(sceneCast).where(eq(sceneCast.castId, data.castId))
     await db.delete(cast).where(eq(cast.id, data.castId))
   })
 

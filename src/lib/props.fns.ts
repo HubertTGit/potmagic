@@ -4,7 +4,7 @@ import { getRequest } from '@tanstack/react-start/server';
 import { eq } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { props, users } from '@/db/schema';
+import { props, users, cast, sceneCast } from '@/db/schema';
 import { supabase } from '@/lib/supabase.server';
 
 const BUCKET = 'props';
@@ -91,9 +91,18 @@ export const deleteProp = createServerFn({ method: 'POST' })
     const [row] = await db.select().from(props).where(eq(props.id, data.id));
     if (!row) return;
 
-    // NOTE: The cast table has propId → props.id with onDelete: 'cascade'.
-    // Deleting a prop will also delete any cast assignment referencing it.
-    // This is intentional: removing a prop from the library removes it from all stories.
+    // Remove actor from all scenes before nulling out their prop.
+    // The FK onDelete: 'set null' only clears cast.propId — scene_cast entries must be
+    // cleaned up explicitly so actors without a character don't linger in scenes.
+    const affectedCasts = await db
+      .select({ id: cast.id })
+      .from(cast)
+      .where(eq(cast.propId, data.id))
+
+    for (const c of affectedCasts) {
+      await db.delete(sceneCast).where(eq(sceneCast.castId, c.id))
+    }
+
     await db.delete(props).where(eq(props.id, data.id));
 
     // Extract storage path from public URL and delete from bucket
