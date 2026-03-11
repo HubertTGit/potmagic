@@ -109,7 +109,11 @@ function SceneDetailPage() {
         <Link
           to="/stage/$sceneId"
           params={{ sceneId }}
-          className="btn btn-sm btn-outline btn-gold font-display tracking-[0.05em]"
+          disabled={assignedCast.length === 0}
+          className={cn(
+            'btn btn-sm btn-outline btn-gold font-display tracking-[0.05em]',
+            assignedCast.length === 0 && 'opacity-40 cursor-not-allowed pointer-events-none',
+          )}
         >
           Enter the scene →
         </Link>
