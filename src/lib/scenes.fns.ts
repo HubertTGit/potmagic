@@ -143,7 +143,7 @@ export const getSceneNavigation = createServerFn({ method: 'GET' })
     await getSessionOrThrow();
 
     const [current] = await db
-      .select({ id: scenes.id, title: scenes.title, order: scenes.order, storyId: scenes.storyId })
+      .select({ id: scenes.id, title: scenes.title, storyId: scenes.storyId })
       .from(scenes)
       .where(eq(scenes.id, data.sceneId));
 
@@ -156,6 +156,8 @@ export const getSceneNavigation = createServerFn({ method: 'GET' })
       .orderBy(asc(scenes.order), asc(scenes.id));
 
     const idx = allScenes.findIndex((s) => s.id === data.sceneId);
+
+    if (idx === -1) return { current: { id: current.id, title: current.title }, prev: null, next: null };
 
     return {
       current: { id: current.id, title: current.title },
