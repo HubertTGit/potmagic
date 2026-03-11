@@ -97,7 +97,7 @@ function SceneDetailPage() {
       ]} />
 
       {/* Header */}
-      <div className="flex items-center gap-3 mb-8">
+      <div className="flex items-center gap-3 mb-3">
         {isDirector ? (
           <input
             type="text"
@@ -108,33 +108,6 @@ function SceneDetailPage() {
         ) : (
           <h1 className="flex-1 text-lg font-semibold">{scene.title}</h1>
         )}
-        <div className="flex items-center gap-1 text-sm text-base-content/40 whitespace-nowrap">
-          {nav?.prev ? (
-            <Link
-              to="/stories/$storyId/scenes/$sceneId"
-              params={{ storyId, sceneId: nav.prev.id }}
-              className="hover:text-base-content transition-colors"
-            >
-              ‹
-            </Link>
-          ) : (
-            <span className="opacity-20">‹</span>
-          )}
-          <span>
-            <strong className="text-base-content">{scene.order}</strong> of {story.totalScenes}
-          </span>
-          {nav?.next ? (
-            <Link
-              to="/stories/$storyId/scenes/$sceneId"
-              params={{ storyId, sceneId: nav.next.id }}
-              className="hover:text-base-content transition-colors"
-            >
-              ›
-            </Link>
-          ) : (
-            <span className="opacity-20">›</span>
-          )}
-        </div>
         <Link
           to="/stage/$sceneId"
           params={{ sceneId }}
@@ -157,6 +130,33 @@ function SceneDetailPage() {
           >
             Save
           </button>
+        )}
+      </div>
+
+      {/* Scene navigator */}
+      <div className="flex justify-end items-center gap-2 mb-8 text-sm text-base-content/40">
+        {nav?.prev ? (
+          <Link
+            to="/stories/$storyId/scenes/$sceneId"
+            params={{ storyId, sceneId: nav.prev.id }}
+            className="btn btn-xs btn-ghost px-2"
+          >
+            ‹
+          </Link>
+        ) : (
+          <span className="btn btn-xs btn-ghost px-2 opacity-20 pointer-events-none">‹</span>
+        )}
+        <span><strong className="text-base-content">{scene.order}</strong> of {story.totalScenes}</span>
+        {nav?.next ? (
+          <Link
+            to="/stories/$storyId/scenes/$sceneId"
+            params={{ storyId, sceneId: nav.next.id }}
+            className="btn btn-xs btn-ghost px-2"
+          >
+            ›
+          </Link>
+        ) : (
+          <span className="btn btn-xs btn-ghost px-2 opacity-20 pointer-events-none">›</span>
         )}
       </div>
 
