@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { authClient } from '@/lib/auth-client'
+import { getIsActorInCast, getHasCreatedStories } from '@/lib/profile.fns'
 import { cn } from '@/lib/cn'
 
 export const Route = createFileRoute('/_app/profile')({
@@ -14,6 +16,22 @@ function ProfilePage() {
   const [role, setRole] = useState<'actor' | 'director'>((user?.role as 'actor' | 'director') ?? 'actor')
   const [saving, setSaving] = useState(false)
   const isDirty = name !== (user?.name ?? '') || role !== (user?.role ?? 'actor')
+
+  const { data: isInCast = false } = useQuery({
+    queryKey: ['profile', 'isInCast'],
+    queryFn: () => getIsActorInCast(),
+    enabled: user?.role === 'actor',
+  })
+
+  const { data: hasCreatedStories = false } = useQuery({
+    queryKey: ['profile', 'hasCreatedStories'],
+    queryFn: () => getHasCreatedStories(),
+    enabled: user?.role === 'director',
+  })
+
+  const roleLocked =
+    (user?.role === 'actor' && isInCast) ||
+    (user?.role === 'director' && hasCreatedStories)
 
   async function handleSave() {
     setSaving(true)
@@ -71,11 +89,22 @@ function ProfilePage() {
           <select
             value={role}
             onChange={(e) => setRole(e.target.value as 'actor' | 'director')}
-            className="select w-full bg-base-200 border-base-300 text-sm focus:border-gold/60 focus:ring-2 focus:ring-gold/10"
+            disabled={roleLocked}
+            className={cn(
+              'select w-full bg-base-200 border-base-300 text-sm focus:border-gold/60 focus:ring-2 focus:ring-gold/10',
+              roleLocked && 'opacity-50 cursor-not-allowed',
+            )}
           >
             <option value="actor">Actor</option>
             <option value="director">Director</option>
           </select>
+          {roleLocked && (
+            <p className="text-xs text-base-content/40 mt-1">
+              {user?.role === 'director'
+                ? 'Role cannot be changed while you have created stories.'
+                : 'Role cannot be changed while assigned to a story cast.'}
+            </p>
+          )}
         </fieldset>
 
         <button

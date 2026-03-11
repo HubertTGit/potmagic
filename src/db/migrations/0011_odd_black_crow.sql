@@ -1,0 +1,1 @@
+ALTER TABLE "cast" DROP CONSTRAINT "cast_prop_id_unique";

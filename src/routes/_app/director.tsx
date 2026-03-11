@@ -420,5 +420,12 @@ function SessionControls({
       </button>
     );
   }
-  return <span className="text-xs text-base-content/30">—</span>;
+  return (
+    <button
+      onClick={() => onSetStatus(story.id, 'draft')}
+      className="btn btn-xs btn-outline font-display tracking-wide"
+    >
+      Set to draft
+    </button>
+  );
 }

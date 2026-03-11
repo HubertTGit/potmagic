@@ -4,7 +4,6 @@ import { useTheme } from '@/hooks/useTheme'
 import { cn } from '@/lib/cn'
 import {
   BookOpenIcon,
-  FilmIcon,
   Cog6ToothIcon,
   UserCircleIcon,
   SunIcon,
@@ -38,11 +37,7 @@ export function Sidebar() {
         <SidebarLink to="/stories/" icon={<BookOpenIcon className="size-4" />}>
           Stories
         </SidebarLink>
-        {/* /stage is a flat route (no storyId param at this point in the codebase) */}
-        <SidebarLink to="/stage" icon={<FilmIcon className="size-4" />}>
-          Stage
-        </SidebarLink>
-        {isDirector && (
+{isDirector && (
           <SidebarLink to="/director" icon={<Cog6ToothIcon className="size-4" />}>
             Director
           </SidebarLink>

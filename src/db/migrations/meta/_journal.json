@@ -71,6 +71,20 @@
       "when": 1773209186172,
       "tag": "0009_yummy_rhino",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1773300000000,
+      "tag": "0010_drop_cast_prop_unique",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1773252854571,
+      "tag": "0011_odd_black_crow",
+      "breakpoints": true
     }
   ]
 }
