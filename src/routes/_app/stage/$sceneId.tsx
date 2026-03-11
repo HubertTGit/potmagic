@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getSceneStage } from '@/lib/scenes.fns'
 import { StageComponent } from '@/components/stage.component'
 import { CastPreview } from '@/components/cast-preview.component'
+import { SceneNavigator } from '@/components/scene-navigator.component'
 
 export const Route = createFileRoute('/_app/stage/$sceneId')({
   component: SceneStagePage,
@@ -28,6 +29,7 @@ function SceneStagePage() {
 
   return (
     <>
+      <SceneNavigator sceneId={sceneId} />
       <CastPreview casts={casts} />
       <StageComponent casts={casts} />
     </>
