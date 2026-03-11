@@ -15,7 +15,7 @@ pnpm preview      # Preview production build
 
 ## Overview
 
-**honeypotmagic** is an online collaborative theater platform for storytelling. Groups perform interactive stories together using animated Konva canvas characters, with a public LiveKit broadcast stream for audiences. See `SPEC.md` for full product specification.
+**honeypotmagic** is an online collaborative theater platform for storytelling. Groups perform interactive stories together using animated Konva canvas characters, with a public LiveKit broadcast stream for audiences. See `SPEC.md` for full product specification and `SPEC_LIVE.md` specifically for LiveKit implementation.
 
 ## Tech Stack
 
