@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start';
 import { getRequest } from '@tanstack/react-start/server';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, asc, eq, sql } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { scenes, stories, props, cast, users, sceneCast } from '@/db/schema';
@@ -135,4 +135,31 @@ export const updateSceneTitle = createServerFn({ method: 'POST' })
       .update(scenes)
       .set({ title: data.title })
       .where(eq(scenes.id, data.sceneId));
+  });
+
+export const getSceneNavigation = createServerFn({ method: 'GET' })
+  .inputValidator((input: unknown) => input as { sceneId: string })
+  .handler(async ({ data }) => {
+    await getSessionOrThrow();
+
+    const [current] = await db
+      .select({ id: scenes.id, title: scenes.title, order: scenes.order, storyId: scenes.storyId })
+      .from(scenes)
+      .where(eq(scenes.id, data.sceneId));
+
+    if (!current) return null;
+
+    const allScenes = await db
+      .select({ id: scenes.id, title: scenes.title })
+      .from(scenes)
+      .where(eq(scenes.storyId, current.storyId))
+      .orderBy(asc(scenes.order), asc(scenes.id));
+
+    const idx = allScenes.findIndex((s) => s.id === data.sceneId);
+
+    return {
+      current: { id: current.id, title: current.title },
+      prev: idx > 0 ? allScenes[idx - 1] : null,
+      next: idx < allScenes.length - 1 ? allScenes[idx + 1] : null,
+    };
   });
