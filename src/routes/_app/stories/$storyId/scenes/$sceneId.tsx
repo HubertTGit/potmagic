@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getSceneDetail, updateSceneTitle, addSceneCast, removeSceneCast } from '@/lib/scenes.fns'
+import { getSceneDetail, updateSceneTitle, addSceneCast, removeSceneCast, getSceneNavigation } from '@/lib/scenes.fns'
 import { Breadcrumb } from '@/components/breadcrumb.component'
 import { cn } from '@/lib/cn'
 import { authClient } from '@/lib/auth-client'
@@ -31,6 +31,11 @@ function SceneDetailPage() {
   const { data, isLoading } = useQuery({
     queryKey: qk,
     queryFn: () => getSceneDetail({ data: { storyId, sceneId } }),
+  })
+
+  const { data: nav } = useQuery({
+    queryKey: ['scene-navigation', sceneId],
+    queryFn: () => getSceneNavigation({ data: { sceneId } }),
   })
 
   const scene = data?.scene
@@ -103,9 +108,33 @@ function SceneDetailPage() {
         ) : (
           <h1 className="flex-1 text-lg font-semibold">{scene.title}</h1>
         )}
-        <span className="text-sm text-base-content/40 whitespace-nowrap">
-          Scene {scene.order} of {story.totalScenes}
-        </span>
+        <div className="flex items-center gap-1 text-sm text-base-content/40 whitespace-nowrap">
+          {nav?.prev ? (
+            <Link
+              to="/stories/$storyId/scenes/$sceneId"
+              params={{ storyId, sceneId: nav.prev.id }}
+              className="hover:text-base-content transition-colors"
+            >
+              ‹
+            </Link>
+          ) : (
+            <span className="opacity-20">‹</span>
+          )}
+          <span>
+            <strong className="text-base-content">{scene.order}</strong> of {story.totalScenes}
+          </span>
+          {nav?.next ? (
+            <Link
+              to="/stories/$storyId/scenes/$sceneId"
+              params={{ storyId, sceneId: nav.next.id }}
+              className="hover:text-base-content transition-colors"
+            >
+              ›
+            </Link>
+          ) : (
+            <span className="opacity-20">›</span>
+          )}
+        </div>
         <Link
           to="/stage/$sceneId"
           params={{ sceneId }}
