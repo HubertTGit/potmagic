@@ -41,12 +41,14 @@ export function StoryStatusButton({ storyId, status: initialStatus, room }: Stor
       }
       if (msg.type !== 'story:status') return;
       setStatus(msg.status);
-      queryClient.invalidateQueries({ queryKey: ['stage'] });
+      updateStoryStatus({ data: { storyId, status: msg.status } }).then(() =>
+        queryClient.invalidateQueries({ queryKey: ['stage'] }),
+      );
     };
 
     room.on(RoomEvent.DataReceived, handler);
     return () => { room.off(RoomEvent.DataReceived, handler); };
-  }, [room, queryClient]);
+  }, [room, storyId, queryClient]);
 
   const mutation = useMutation({
     mutationFn: (nextStatus: StoryStatus) =>
