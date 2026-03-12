@@ -10,7 +10,14 @@ export default defineConfig({
     tailwindcss(),
     tsconfigPaths(),
     tanstackStart(),
-    nitro(),
+    nitro({
+      rollupConfig: {
+        onwarn(warning, handler) {
+          if (warning.code === 'MODULE_LEVEL_DIRECTIVE') return;
+          handler(warning);
+        },
+      },
+    }),
     vitereact(),
   ],
   server: {
