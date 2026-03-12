@@ -69,10 +69,9 @@ export function DraggableCharacter({
   }, [image, type]);
 
   useEffect(() => {
+    const node = imageRef.current;
     return () => {
-      if (!canDragRef.current) return;
-      const node = imageRef.current;
-      if (!node) return;
+      if (!canDragRef.current || !node) return;
       saveSceneCastPosition({
         data: {
           sceneCastId,
