@@ -123,8 +123,8 @@ On every `dragmove` , `rotate` and `dblTap` events in `DraggableCharacter` (for 
   "x": 320,
   "y": 180,
   "rotation": 20,
-  "z-index": 2,
-  "scale-x": -1
+  "indexZ": 2,
+  "scaleX": -1
 }
 ```
 
