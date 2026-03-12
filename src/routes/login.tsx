@@ -1,8 +1,9 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { useState, useRef, useEffect } from 'react';
-import { cn } from '@/lib/cn';
 import { authClient } from '@/lib/auth-client';
-import PasswordInput from '@/components/password-input.component';
+import LoginForm from '@/components/login-form.component';
+import RegisterForm from '@/components/register-form.component';
+import ForgotPasswordForm from '@/components/forgot-password-form.component';
 
 export const Route = createFileRoute('/login')({
   component: LoginPage,
@@ -87,6 +88,12 @@ function LoginPage() {
     setResetSent(true);
   };
 
+  const switchView = (next: View) => {
+    setView(next);
+    setError(null);
+    setResetSent(false);
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center login-bg">
       <div className="relative w-full max-w-sm mx-4">
@@ -112,16 +119,12 @@ function LoginPage() {
                 <button
                   key={tab}
                   role="tab"
-                  onClick={() => {
-                    setView(tab);
-                    setError(null);
-                  }}
-                  className={cn(
-                    'tab font-display text-base tracking-[0.05em]',
+                  onClick={() => switchView(tab)}
+                  className={
                     view === tab
-                      ? 'tab-active text-gold'
-                      : 'text-base-content/30',
-                  )}
+                      ? 'tab tab-active font-display text-base tracking-[0.05em] text-gold'
+                      : 'tab font-display text-base tracking-[0.05em] text-base-content/30'
+                  }
                 >
                   {tab === 'login' ? 'Sign In' : 'Register'}
                 </button>
@@ -131,166 +134,29 @@ function LoginPage() {
 
           {/* Forms */}
           <div className="px-8 pb-8">
-            {error && (
-              <p className="text-error text-xs mb-4 text-center">{error}</p>
-            )}
-
             {view === 'login' ? (
-              <form onSubmit={handleLogin} className="flex flex-col gap-4">
-                <fieldset className="fieldset gap-1">
-                  <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
-                    Email
-                  </legend>
-                  <input
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    placeholder="you@example.com"
-                    required
-                    className="input w-full bg-base-200 border-base-300 text-sm focus:border-gold/60 focus:ring-2 focus:ring-gold/10"
-                  />
-                </fieldset>
-
-                <fieldset className="fieldset gap-1">
-                  <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
-                    Password
-                  </legend>
-                  <PasswordInput
-                    name="password"
-                    autoComplete="current-password"
-                    placeholder="••••••••"
-                  />
-                </fieldset>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className={cn(
-                    'btn btn-block mt-1 font-display text-base tracking-[0.08em] btn-gold',
-                    loading && 'opacity-60 cursor-not-allowed',
-                  )}
-                >
-                  {loading ? 'Signing in…' : 'Sign In'}
-                </button>
-
-                <p className="text-center text-xs text-base-content/40 mt-1">
-                  No seat yet?{' '}
-                  <button
-                    type="button"
-                    onClick={() => setView('register')}
-                    className="text-gold cursor-pointer font-inherit text-xs"
-                  >
-                    Register →
-                  </button>
-                </p>
-
-                <p className="text-center text-xs text-base-content/40">
-                  <button
-                    type="button"
-                    onClick={() => { setView('forgot'); setError(null); setResetSent(false); }}
-                    className="text-gold/60 hover:text-gold cursor-pointer font-inherit text-xs transition-colors"
-                  >
-                    Forgot password?
-                  </button>
-                </p>
-              </form>
+              <LoginForm
+                loading={loading}
+                error={error}
+                onSubmit={handleLogin}
+                onSwitchToRegister={() => switchView('register')}
+                onForgotPassword={() => switchView('forgot')}
+              />
             ) : view === 'register' ? (
-              <form onSubmit={handleRegister} className="flex flex-col gap-4">
-                <fieldset className="fieldset gap-1">
-                  <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
-                    Email
-                  </legend>
-                  <input
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    placeholder="you@example.com"
-                    required
-                    className="input w-full bg-base-200 border-base-300 text-sm focus:border-gold/60 focus:ring-2 focus:ring-gold/10"
-                  />
-                </fieldset>
-
-                <fieldset className="fieldset gap-1">
-                  <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
-                    Password
-                  </legend>
-                  <PasswordInput
-                    name="password"
-                    autoComplete="new-password"
-                    placeholder="••••••••"
-                  />
-                </fieldset>
-
-                <fieldset className="fieldset gap-1">
-                  <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
-                    Confirm Password
-                  </legend>
-                  <PasswordInput
-                    name="confirmPassword"
-                    autoComplete="new-password"
-                    placeholder="••••••••"
-                  />
-                </fieldset>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className={cn(
-                    'btn btn-block mt-1 font-display text-base tracking-[0.08em] btn-gold',
-                    loading && 'opacity-60 cursor-not-allowed',
-                  )}
-                >
-                  {loading ? 'Reserving…' : 'Reserve your seat'}
-                </button>
-
-                <p className="text-center text-xs text-base-content/40 mt-1">
-                  Already have a seat?{' '}
-                  <button
-                    type="button"
-                    onClick={() => setView('login')}
-                    className="text-gold cursor-pointer font-inherit text-xs"
-                  >
-                    Sign in →
-                  </button>
-                </p>
-              </form>
+              <RegisterForm
+                loading={loading}
+                error={error}
+                onSubmit={handleRegister}
+                onSwitchToLogin={() => switchView('login')}
+              />
             ) : (
-              <form onSubmit={handleForgotPassword} className="flex flex-col gap-4">
-                <fieldset className="fieldset gap-1">
-                  <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
-                    Email
-                  </legend>
-                  <input
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    placeholder="you@example.com"
-                    required
-                    className="input w-full bg-base-200 border-base-300 text-sm focus:border-gold/60 focus:ring-2 focus:ring-gold/10"
-                  />
-                </fieldset>
-
-                <button
-                  type="submit"
-                  disabled={loading || resetSent}
-                  className={cn(
-                    'btn btn-block mt-1 font-display text-base tracking-[0.08em] btn-gold',
-                    (loading || resetSent) && 'opacity-60 cursor-not-allowed',
-                  )}
-                >
-                  {loading ? 'Sending…' : resetSent ? 'Link sent ✓' : 'Send reset link'}
-                </button>
-
-                <p className="text-center text-xs text-base-content/40 mt-1">
-                  <button
-                    type="button"
-                    onClick={() => { setView('login'); setError(null); setResetSent(false); }}
-                    className="text-gold cursor-pointer font-inherit text-xs"
-                  >
-                    ← Back to sign in
-                  </button>
-                </p>
-              </form>
+              <ForgotPasswordForm
+                loading={loading}
+                error={error}
+                resetSent={resetSent}
+                onSubmit={handleForgotPassword}
+                onBack={() => switchView('login')}
+              />
             )}
           </div>
         </div>
