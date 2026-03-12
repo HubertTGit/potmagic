@@ -2,13 +2,17 @@ import { useEffect, useRef, useState } from 'react'
 import { Image } from 'react-konva'
 import type Konva from 'konva'
 import { authClient } from '@/lib/auth-client'
+import { saveSceneCastPosition } from '@/lib/scenes.fns'
 
 interface DraggableCharacterProps {
+  sceneCastId: string
   src: string
   userId: string
   type: 'character' | 'background'
   initialX?: number
   initialY?: number
+  initialRotation?: number
+  initialScaleX?: number
 }
 
 function getAngle(t1: Touch, t2: Touch) {
@@ -19,13 +23,27 @@ function getMidpoint(t1: Touch, t2: Touch) {
   return { x: (t1.clientX + t2.clientX) / 2, y: (t1.clientY + t2.clientY) / 2 }
 }
 
-export function DraggableCharacter({ src, userId, type, initialX = 100, initialY = 100 }: DraggableCharacterProps) {
+export function DraggableCharacter({
+  sceneCastId,
+  src,
+  userId,
+  type,
+  initialX = 100,
+  initialY = 100,
+  initialRotation = 0,
+  initialScaleX = 1,
+}: DraggableCharacterProps) {
   const { data: session } = authClient.useSession()
   const canDrag = session?.user?.id === userId
   const imageRef = useRef<Konva.Image>(null)
   const [image, setImage] = useState<HTMLImageElement | undefined>(undefined)
   const lastAngle = useRef(0)
   const lastMidpoint = useRef({ x: 0, y: 0 })
+  const canDragRef = useRef(false)
+
+  useEffect(() => {
+    canDragRef.current = canDrag
+  }, [canDrag])
 
   useEffect(() => {
     const img = new window.Image()
@@ -40,6 +58,8 @@ export function DraggableCharacter({ src, userId, type, initialX = 100, initialY
     if (!node || !image) return
     node.offsetX(image.width / 2)
     node.offsetY(image.height / 2)
+    node.rotation(initialRotation)
+    node.scaleX(initialScaleX)
     if (type === 'background') {
       const stageHeight = node.getStage()?.height() ?? 0
       node.y(stageHeight - image.height / 2)
@@ -47,6 +67,23 @@ export function DraggableCharacter({ src, userId, type, initialX = 100, initialY
     }
     node.getLayer()?.batchDraw()
   }, [image, type])
+
+  useEffect(() => {
+    return () => {
+      if (!canDragRef.current) return
+      const node = imageRef.current
+      if (!node) return
+      saveSceneCastPosition({
+        data: {
+          sceneCastId,
+          x: node.x(),
+          y: node.y(),
+          rotation: node.rotation(),
+          scaleX: node.scaleX(),
+        },
+      })
+    }
+  }, [])
 
   const handleTouchStart = (e: Konva.KonvaEventObject<TouchEvent>) => {
     if (!canDrag) return

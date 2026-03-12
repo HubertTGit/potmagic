@@ -3,10 +3,15 @@ import { Stage, Layer } from 'react-konva';
 import { DraggableCharacter } from '@/components/draggable-character.component';
 
 export interface StageCast {
+  sceneCastId: string;
   castId: string;
   userId: string;
   path: string | null;
   type: 'character' | 'background' | null;
+  posX: number | null;
+  posY: number | null;
+  rotation: number | null;
+  scaleX: number | null;
 }
 
 interface StageComponentProps {
@@ -37,11 +42,14 @@ export function StageComponent({ casts }: StageComponentProps) {
             return (
               <DraggableCharacter
                 key={cast.castId}
+                sceneCastId={cast.sceneCastId}
                 src={cast.path}
                 userId={cast.userId}
                 type={cast.type}
-                initialX={100 + i * 200}
-                initialY={100}
+                initialX={cast.posX ?? 100 + i * 200}
+                initialY={cast.posY ?? 100}
+                initialRotation={cast.rotation ?? 0}
+                initialScaleX={cast.scaleX ?? 1}
               />
             );
           })}
