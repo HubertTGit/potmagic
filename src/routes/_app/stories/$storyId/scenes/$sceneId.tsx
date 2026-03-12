@@ -1,6 +1,6 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute, Link, ErrorComponent } from '@tanstack/react-router';
 import { useState, useEffect, useRef } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSuspenseQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getSceneDetail,
   updateSceneTitle,
@@ -15,6 +15,12 @@ import { toast } from '@/lib/toast';
 
 export const Route = createFileRoute('/_app/stories/$storyId/scenes/$sceneId')({
   component: SceneDetailPage,
+  pendingComponent: () => (
+    <div className="p-8">
+      <p className="text-base-content/40 text-sm">Loading…</p>
+    </div>
+  ),
+  errorComponent: ({ error }) => <ErrorComponent error={error} />,
 });
 
 type CastMember = {
@@ -34,7 +40,7 @@ function SceneDetailPage() {
   const queryClient = useQueryClient();
   const qk = ['scene', storyId, sceneId];
 
-  const { data, isPending, isError } = useQuery({
+  const { data } = useSuspenseQuery({
     queryKey: qk,
     queryFn: () => getSceneDetail({ data: { storyId, sceneId } }),
   });
@@ -76,15 +82,7 @@ function SceneDetailPage() {
 
   const isTitleDirty = title !== (scene?.title ?? '');
 
-  if (isPending) {
-    return (
-      <div className="p-8">
-        <p className="text-base-content/40 text-sm">Loading…</p>
-      </div>
-    );
-  }
-
-  if (isError || !scene || !story) {
+  if (!scene || !story) {
     return (
       <div className="p-8">
         <p className="text-base-content/40">Scene not found.</p>
