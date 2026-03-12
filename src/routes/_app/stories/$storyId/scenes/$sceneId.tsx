@@ -126,18 +126,6 @@ function SceneDetailPage() {
         ) : (
           <h1 className="flex-1 text-lg font-semibold">{scene.title}</h1>
         )}
-        <Link
-          to="/stage/$sceneId"
-          params={{ sceneId }}
-          disabled={assignedCast.length === 0}
-          className={cn(
-            'btn btn-sm btn-outline btn-gold font-display tracking-[0.05em]',
-            assignedCast.length === 0 &&
-              'opacity-40 cursor-not-allowed pointer-events-none',
-          )}
-        >
-          Enter the scene →
-        </Link>
         {isDirector && (
           <button
             disabled={!isTitleDirty || saveMutation.isPending}

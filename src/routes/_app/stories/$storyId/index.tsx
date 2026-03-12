@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
 import { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -24,6 +24,7 @@ function StoryDetailPage() {
   const { data: session } = authClient.useSession()
   const isDirector = session?.user?.role === 'director'
   const queryClient = useQueryClient()
+  const router = useRouter()
   const qk = ['story', storyId]
 
   const { data, isLoading } = useQuery({
@@ -131,6 +132,14 @@ function StoryDetailPage() {
           <h1 className="flex-1 text-lg font-semibold">{story.title}</h1>
         )}
         <StatusBadge status={story.status} />
+        {scenes.length > 0 && (
+          <button
+            className="btn btn-sm btn-gold font-display tracking-[0.05em]"
+            onClick={() => router.navigate({ to: '/stage/$sceneId', params: { sceneId: scenes[0].id } })}
+          >
+            Enter Stage →
+          </button>
+        )}
         {isDirector && (
           <button
             disabled={!isTitleDirty || saveTitleMutation.isPending}

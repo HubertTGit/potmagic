@@ -1,9 +1,9 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
-import { eq, sql } from 'drizzle-orm'
+import { eq, sql, inArray, asc } from 'drizzle-orm'
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { stories, users } from '@/db/schema'
+import { stories, users, scenes } from '@/db/schema'
 
 async function getSessionOrThrow() {
   const session = await auth.api.getSession({ headers: getRequest().headers })
@@ -41,7 +41,23 @@ export const listStories = createServerFn({ method: 'GET' }).handler(async () =>
     )
     .orderBy(stories.createdAt)
 
-  return rows
+  const storyIds = rows.map((r) => r.id)
+  const sceneRows =
+    storyIds.length > 0
+      ? await db
+          .select({ id: scenes.id, storyId: scenes.storyId, title: scenes.title, order: scenes.order })
+          .from(scenes)
+          .where(inArray(scenes.storyId, storyIds))
+          .orderBy(asc(scenes.order))
+      : []
+
+  const scenesByStory = sceneRows.reduce<Record<string, typeof sceneRows>>((acc, s) => {
+    if (!acc[s.storyId]) acc[s.storyId] = []
+    acc[s.storyId].push(s)
+    return acc
+  }, {})
+
+  return rows.map((r) => ({ ...r, scenes: scenesByStory[r.id] ?? [] }))
 })
 
 export const createStory = createServerFn({ method: 'POST' })

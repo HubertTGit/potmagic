@@ -63,9 +63,9 @@ export function Sidebar() {
           collapsed ? 'justify-center px-0' : 'px-4',
         )}
       >
-        <span className="font-display italic font-semibold text-gold text-lg leading-none select-none">
+        <Link to="/" className="font-display italic font-semibold text-gold text-lg leading-none select-none hover:opacity-75 transition-opacity">
           {collapsed ? 'p' : 'potmagic'}
-        </span>
+        </Link>
         <button
           onClick={handleCollapseToggle}
           className={cn(
