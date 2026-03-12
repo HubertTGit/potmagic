@@ -15,6 +15,7 @@ export default defineConfig({
         handler: './server/renderer.ts',
       },
       rollupConfig: {
+        external: ['vite'],
         onwarn(warning, handler) {
           if (warning.code === 'MODULE_LEVEL_DIRECTIVE') return;
           handler(warning);
@@ -28,6 +29,20 @@ export default defineConfig({
   },
   optimizeDeps: {
     exclude: ['fsevents', 'lightningcss'],
+  },
+  environments: {
+    client: {
+      build: {
+        outDir: '.output/public',
+      },
+    },
+    ssr: {
+      build: {
+        rollupOptions: {
+          external: ['vite'],
+        },
+      },
+    },
   },
   build: {
     rollupOptions: {
