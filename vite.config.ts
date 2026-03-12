@@ -21,4 +21,9 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['fsevents', 'lightningcss'],
   },
+  build: {
+    rollupOptions: {
+      external: ['fsevents', 'lightningcss'],
+    },
+  },
 });
