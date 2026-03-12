@@ -7,52 +7,6 @@
 @theme {
   --font-display: 'Lexend', Georgia, serif;
 
-[data-theme="light"] {
-  --color-base-100:          oklch(100% 0 0);
-  --color-base-200:          oklch(96% 0.002 264.542);
-  --color-base-300:          oklch(91% 0.004 264.542);
-  --color-base-content:      oklch(13% 0.028 261.692);
-  --color-primary:           oklch(55% 0.233 277.117);
-  --color-primary-content:   oklch(100% 0 0);
-  --color-secondary:         oklch(52% 0.046 257.417);
-  --color-secondary-content: oklch(100% 0 0);
-  --color-accent:            oklch(58% 0.214 259.815);
-  --color-accent-content:    oklch(100% 0 0);
-  --color-neutral:           oklch(91% 0.004 264.542);
-  --color-neutral-content:   oklch(13% 0.028 261.692);
-  --color-info:              oklch(65% 0.154 211.53);
-  --color-info-content:      oklch(100% 0 0);
-  --color-success:           oklch(62% 0.152 181.912);
-  --color-success-content:   oklch(100% 0 0);
-  --color-warning:           oklch(65% 0.183 55.934);
-  --color-warning-content:   oklch(100% 0 0);
-  --color-error:             oklch(60% 0.202 349.761);
-  --color-error-content:     oklch(100% 0 0);
-}
-
-[data-theme="dark"] {
-  --color-base-100:          oklch(13% 0.028 261.692);
-  --color-base-200:          oklch(21% 0.034 264.665);
-  --color-base-300:          oklch(27% 0.033 256.848);
-  --color-base-content:      oklch(96% 0.003 264.542);
-  --color-primary:           oklch(58% 0.233 277.117);
-  --color-primary-content:   oklch(96% 0.018 272.314);
-  --color-secondary:         oklch(55% 0.046 257.417);
-  --color-secondary-content: oklch(98% 0.003 247.858);
-  --color-accent:            oklch(62% 0.214 259.815);
-  --color-accent-content:    oklch(97% 0.014 254.604);
-  --color-neutral:           oklch(27% 0.033 256.848);
-  --color-neutral-content:   oklch(98% 0.002 247.839);
-  --color-info:              oklch(78% 0.154 211.53);
-  --color-info-content:      oklch(30% 0.056 229.695);
-  --color-success:           oklch(77% 0.152 181.912);
-  --color-success-content:   oklch(27% 0.046 192.524);
-  --color-warning:           oklch(75% 0.183 55.934);
-  --color-warning-content:   oklch(26% 0.079 36.259);
-  --color-error:             oklch(71% 0.202 349.761);
-  --color-error-content:     oklch(28% 0.109 3.907);
-}
-
 /* Login page utilities */
 @utility login-bg {
   background:
