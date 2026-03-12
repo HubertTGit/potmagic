@@ -5,5 +5,5 @@ import { auth } from '@/lib/auth';
 
 export const requireAuth = createServerFn().handler(async () => {
   const session = await auth.api.getSession({ headers: getRequest().headers });
-  if (!session) throw redirect({ to: '/login' });
+  if (!session) throw redirect({ to: '/auth' });
 });

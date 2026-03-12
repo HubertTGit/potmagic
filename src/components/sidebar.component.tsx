@@ -46,7 +46,7 @@ export function Sidebar() {
 
   const handleLogout = async () => {
     await authClient.signOut();
-    router.navigate({ to: '/login' });
+    router.navigate({ to: '/auth' });
   };
 
   return (

@@ -5,7 +5,7 @@ import LoginForm from '@/components/login-form.component';
 import RegisterForm from '@/components/register-form.component';
 import ForgotPasswordForm from '@/components/forgot-password-form.component';
 
-export const Route = createFileRoute('/login')({
+export const Route = createFileRoute('/auth')({
   component: LoginPage,
 });
 
@@ -40,7 +40,7 @@ function LoginPage() {
       setError(error.message ?? 'Sign in failed');
       return;
     }
-    await router.navigate({ to: '/' });
+    await router.navigate({ to: '/stories' });
   };
 
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -64,7 +64,7 @@ function LoginPage() {
       setError(error.message ?? 'Registration failed');
       return;
     }
-    await router.navigate({ to: '/' });
+    await router.navigate({ to: '/stories' });
   };
 
   const handleForgotPassword = async (e: React.FormEvent<HTMLFormElement>) => {

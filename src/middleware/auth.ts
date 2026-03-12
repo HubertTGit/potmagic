@@ -13,11 +13,11 @@ export const authMiddleware = createMiddleware().server(async ({ next, request }
   const session = await auth.api.getSession({ headers: request.headers })
 
   if (pathname.startsWith('/stage') && !session) {
-    throw new Response(null, { status: 302, headers: { Location: '/login' } })
+    throw new Response(null, { status: 302, headers: { Location: '/auth' } })
   }
 
-  if (pathname === '/login' && session) {
-    throw new Response(null, { status: 302, headers: { Location: '/' } })
+  if (pathname === '/auth' && session) {
+    throw new Response(null, { status: 302, headers: { Location: '/stories' } })
   }
 
   return next()
