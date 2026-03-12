@@ -5,14 +5,12 @@ import tailwindcss from '@tailwindcss/vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { nitro } from 'nitro/vite';
 
-const isVercel = !!process.env.VERCEL;
-
 export default defineConfig({
   plugins: [
     tailwindcss(),
     tsconfigPaths(),
     tanstackStart(),
-    ...(isVercel ? [nitro({ preset: 'vercel' })] : []),
+    nitro(),
     vitereact(),
   ],
   server: {
