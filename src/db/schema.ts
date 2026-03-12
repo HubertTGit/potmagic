@@ -1,4 +1,4 @@
-import { pgTable, pgEnum, text, timestamp, boolean, integer, index, unique } from 'drizzle-orm/pg-core'
+import { pgTable, pgEnum, text, timestamp, boolean, integer, real, index, unique } from 'drizzle-orm/pg-core'
 
 export const roleEnum = pgEnum('role', ['actor', 'director'])
 export const storyStatusEnum = pgEnum('story_status', ['draft', 'active', 'ended'])
@@ -168,6 +168,10 @@ export const sceneCast = pgTable(
     castId: text('cast_id')
       .notNull()
       .references(() => cast.id, { onDelete: 'cascade' }),
+    posX: real('pos_x'),
+    posY: real('pos_y'),
+    rotation: real('rotation'),
+    scaleX: real('scale_x'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (table) => [
