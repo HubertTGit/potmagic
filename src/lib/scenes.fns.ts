@@ -134,7 +134,7 @@ export const getSceneStage = createServerFn({ method: 'GET' })
       .where(eq(scenes.id, data.sceneId))
 
     const [storyRow] = await db
-      .select({ directorId: stories.directorId, directorName: users.name })
+      .select({ directorId: stories.directorId, directorName: users.name, status: stories.status })
       .from(stories)
       .innerJoin(users, eq(stories.directorId, users.id))
       .where(eq(stories.id, sceneRow.storyId))
@@ -143,6 +143,7 @@ export const getSceneStage = createServerFn({ method: 'GET' })
       storyId: sceneRow.storyId,
       directorId: storyRow.directorId,
       directorName: storyRow.directorName ?? 'Director',
+      status: storyRow.status,
       casts: rows.map((r) => ({
         sceneCastId: r.sceneCastId,
         castId: r.castId,

@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from 'react';
 import { Stage, Layer } from 'react-konva';
 import type { Room } from 'livekit-client';
 import { DraggableCharacter } from '@/components/draggable-character.component';
@@ -20,24 +19,13 @@ interface StageComponentProps {
   room?: Room | null;
 }
 
+const STAGE_WIDTH = 1024;
+const STAGE_HEIGHT = 768;
+
 export function StageComponent({ casts, room }: StageComponentProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState({ width: 0, height: 0 });
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    setSize({ width: el.clientWidth, height: el.clientHeight });
-    const observer = new ResizeObserver(() => {
-      setSize({ width: el.clientWidth, height: el.clientHeight });
-    });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <div ref={containerRef} className="w-full h-screen">
-      <Stage width={size.width} height={size.height}>
+    <div className="w-5xl h-192">
+      <Stage width={STAGE_WIDTH} height={STAGE_HEIGHT}>
         <Layer>
           {casts.map((cast, i) => {
             if (!cast.path || !cast.type) return null;

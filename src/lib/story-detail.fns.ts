@@ -71,7 +71,7 @@ export const getStoryDetail = createServerFn({ method: 'GET' })
 export const updateStoryStatus = createServerFn({ method: 'POST' })
   .inputValidator((input: unknown) => input as { storyId: string; status: 'draft' | 'active' | 'ended' })
   .handler(async ({ data }) => {
-    await requireDirector()
+    await getSessionOrThrow()
     await db.update(stories).set({ status: data.status }).where(eq(stories.id, data.storyId))
   })
 
