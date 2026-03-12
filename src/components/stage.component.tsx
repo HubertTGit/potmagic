@@ -41,7 +41,7 @@ export function StageComponent({ casts }: StageComponentProps) {
             if (!cast.path || !cast.type) return null;
             return (
               <DraggableCharacter
-                key={cast.castId}
+                key={cast.sceneCastId}
                 sceneCastId={cast.sceneCastId}
                 src={cast.path}
                 userId={cast.userId}
