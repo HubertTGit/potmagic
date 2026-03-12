@@ -80,3 +80,10 @@ export const deleteStory = createServerFn({ method: 'POST' })
     await requireDirector()
     await db.delete(stories).where(eq(stories.id, data.id))
   })
+
+export const listPublicStories = createServerFn({ method: 'GET' }).handler(async () => {
+  return db
+    .select({ id: stories.id, title: stories.title, status: stories.status })
+    .from(stories)
+    .orderBy(stories.createdAt)
+})
