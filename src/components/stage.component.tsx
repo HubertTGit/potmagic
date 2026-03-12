@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Stage, Layer } from 'react-konva';
+import type { Room } from 'livekit-client';
 import { DraggableCharacter } from '@/components/draggable-character.component';
 
 export interface StageCast {
@@ -16,9 +17,10 @@ export interface StageCast {
 
 interface StageComponentProps {
   casts: StageCast[];
+  room?: Room | null;
 }
 
-export function StageComponent({ casts }: StageComponentProps) {
+export function StageComponent({ casts, room }: StageComponentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
 
@@ -43,6 +45,7 @@ export function StageComponent({ casts }: StageComponentProps) {
               <DraggableCharacter
                 key={cast.sceneCastId}
                 sceneCastId={cast.sceneCastId}
+                castId={cast.castId}
                 src={cast.path}
                 userId={cast.userId}
                 type={cast.type}
@@ -50,6 +53,7 @@ export function StageComponent({ casts }: StageComponentProps) {
                 initialY={cast.posY ?? 100}
                 initialRotation={cast.rotation ?? 0}
                 initialScaleX={cast.scaleX ?? 1}
+                room={room}
               />
             );
           })}

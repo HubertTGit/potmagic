@@ -1,7 +1,8 @@
 import { createFileRoute, ErrorComponent } from '@tanstack/react-router'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { LiveKitRoom, useParticipants } from '@livekit/components-react'
+import { LiveKitRoom, useParticipants, useRoomContext } from '@livekit/components-react'
+import type { Room } from 'livekit-client'
 import { getSceneStage } from '@/lib/scenes.fns'
 import { getLiveKitToken } from '@/lib/livekit.fns'
 import { StageComponent } from '@/components/stage.component'
@@ -27,9 +28,10 @@ interface StageContentProps {
   isSwitching: boolean
 }
 
-// Rendered inside LiveKitRoom — can safely call useParticipants
+// Rendered inside LiveKitRoom — can safely call useParticipants + useRoomContext
 function LiveStageContent({ sceneId, casts, directorId, directorName, isSwitching }: StageContentProps) {
   const participants = useParticipants()
+  const room = useRoomContext()
   const onlineIds = new Set(participants.map((p) => p.identity))
 
   return (
@@ -40,11 +42,12 @@ function LiveStageContent({ sceneId, casts, directorId, directorName, isSwitchin
       directorName={directorName}
       onlineIds={onlineIds}
       isSwitching={isSwitching}
+      room={room}
     />
   )
 }
 
-// Rendered outside LiveKitRoom (before token is ready) — no presence data
+// Rendered outside LiveKitRoom (before token is ready) — no presence or data sync
 function OfflineStageContent({ sceneId, casts, directorId, directorName, isSwitching }: StageContentProps) {
   return (
     <StageShell
@@ -54,15 +57,17 @@ function OfflineStageContent({ sceneId, casts, directorId, directorName, isSwitc
       directorName={directorName}
       onlineIds={new Set()}
       isSwitching={isSwitching}
+      room={null}
     />
   )
 }
 
 interface StageShellProps extends StageContentProps {
   onlineIds: Set<string>
+  room: Room | null
 }
 
-function StageShell({ sceneId, casts, directorId, directorName, onlineIds, isSwitching }: StageShellProps) {
+function StageShell({ sceneId, casts, directorId, directorName, onlineIds, isSwitching, room }: StageShellProps) {
   return (
     <>
       {isSwitching && (
@@ -82,7 +87,7 @@ function StageShell({ sceneId, casts, directorId, directorName, onlineIds, isSwi
         directorName={directorName}
         onlineIds={onlineIds}
       />
-      <StageComponent casts={casts} />
+      <StageComponent casts={casts} room={room} />
     </>
   )
 }

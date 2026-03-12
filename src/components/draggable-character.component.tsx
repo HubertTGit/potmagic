@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { Image } from 'react-konva';
 import type Konva from 'konva';
+import { RoomEvent } from 'livekit-client';
+import type { Room } from 'livekit-client';
 import { authClient } from '@/lib/auth-client';
 import { saveSceneCastPosition } from '@/lib/scenes.fns';
 
 interface DraggableCharacterProps {
   sceneCastId: string;
+  castId: string;
   src: string;
   userId: string;
   type: 'character' | 'background';
@@ -13,6 +16,17 @@ interface DraggableCharacterProps {
   initialY?: number;
   initialRotation?: number;
   initialScaleX?: number;
+  room?: Room | null;
+}
+
+interface PropMoveMessage {
+  type: 'prop:move';
+  castId: string;
+  x: number;
+  y: number;
+  rotation: number;
+  scaleX: number;
+  indexZ: number;
 }
 
 function getAngle(t1: Touch, t2: Touch) {
@@ -28,6 +42,7 @@ function getMidpoint(t1: Touch, t2: Touch) {
 
 export function DraggableCharacter({
   sceneCastId,
+  castId,
   src,
   userId,
   type,
@@ -35,6 +50,7 @@ export function DraggableCharacter({
   initialY = 100,
   initialRotation = 0,
   initialScaleX = 1,
+  room,
 }: DraggableCharacterProps) {
   const { data: session } = authClient.useSession();
   const canDrag = session?.user?.id === userId;
@@ -44,6 +60,7 @@ export function DraggableCharacter({
   const lastMidpoint = useRef({ x: 0, y: 0 });
   const canDragRef = useRef(false);
   canDragRef.current = canDrag;
+  const lastSendTimeRef = useRef(0);
 
   useEffect(() => {
     const img = new window.Image();
@@ -84,6 +101,59 @@ export function DraggableCharacter({
     };
   }, []);
 
+  // Subscribe to remote prop:move messages and apply imperatively
+  useEffect(() => {
+    if (!room) return;
+
+    const handler = (payload: Uint8Array) => {
+      // Local actor is authoritative for their own character — skip remote updates
+      if (canDragRef.current) return;
+
+      let msg: PropMoveMessage;
+      try {
+        msg = JSON.parse(new TextDecoder().decode(payload)) as PropMoveMessage;
+      } catch {
+        return;
+      }
+
+      if (msg.type !== 'prop:move' || msg.castId !== castId) return;
+
+      const node = imageRef.current;
+      if (!node) return;
+      node.x(msg.x);
+      node.y(msg.y);
+      node.rotation(msg.rotation);
+      node.scaleX(msg.scaleX);
+      node.getLayer()?.batchDraw();
+    };
+
+    room.on(RoomEvent.DataReceived, handler);
+    return () => {
+      room.off(RoomEvent.DataReceived, handler);
+    };
+  }, [room, castId]);
+
+  function publishMove(node: Konva.Image, immediate = false) {
+    if (!room || !canDrag) return;
+    const now = Date.now();
+    if (!immediate && now - lastSendTimeRef.current < 30) return;
+    lastSendTimeRef.current = now;
+
+    const msg: PropMoveMessage = {
+      type: 'prop:move',
+      castId,
+      x: node.x(),
+      y: node.y(),
+      rotation: node.rotation(),
+      scaleX: node.scaleX(),
+      indexZ: 0,
+    };
+    room.localParticipant.publishData(
+      new TextEncoder().encode(JSON.stringify(msg)),
+      { reliable: false },
+    );
+  }
+
   const handleTouchStart = (e: Konva.KonvaEventObject<TouchEvent>) => {
     if (!canDrag) return;
     if (type !== 'background') imageRef.current?.moveToTop();
@@ -113,6 +183,7 @@ export function DraggableCharacter({
     lastAngle.current = angle;
     lastMidpoint.current = midpoint;
     node.getLayer()?.batchDraw();
+    publishMove(node);
   };
 
   const handleTouchEnd = () => {
@@ -125,6 +196,7 @@ export function DraggableCharacter({
     if (!node) return;
     node.scaleX(node.scaleX() * -1);
     node.getLayer()?.batchDraw();
+    publishMove(node, true); // immediate — discrete event, bypass throttle
   };
 
   return (
@@ -139,6 +211,10 @@ export function DraggableCharacter({
           ? (pos) => ({ x: pos.x, y: imageRef.current?.y() ?? pos.y })
           : undefined
       }
+      onDragMove={() => {
+        const node = imageRef.current;
+        if (node) publishMove(node);
+      }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
