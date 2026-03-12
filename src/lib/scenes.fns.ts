@@ -107,10 +107,15 @@ export const getSceneStage = createServerFn({ method: 'GET' })
 
     const rows = await db
       .select({
+        sceneCastId: sceneCast.id,
         castId: cast.id,
         userId: cast.userId,
         path: props.imageUrl,
         type: props.type,
+        posX: sceneCast.posX,
+        posY: sceneCast.posY,
+        rotation: sceneCast.rotation,
+        scaleX: sceneCast.scaleX,
       })
       .from(sceneCast)
       .innerJoin(cast, eq(sceneCast.castId, cast.id))
@@ -118,10 +123,15 @@ export const getSceneStage = createServerFn({ method: 'GET' })
       .where(eq(sceneCast.sceneId, data.sceneId));
 
     return rows.map((r) => ({
+      sceneCastId: r.sceneCastId,
       castId: r.castId,
       userId: r.userId,
       path: r.path,
       type: r.type,
+      posX: r.posX,
+      posY: r.posY,
+      rotation: r.rotation,
+      scaleX: r.scaleX,
     }));
   });
 
@@ -164,4 +174,40 @@ export const getSceneNavigation = createServerFn({ method: 'GET' })
       prev: idx > 0 ? allScenes[idx - 1] : null,
       next: idx < allScenes.length - 1 ? allScenes[idx + 1] : null,
     };
+  });
+
+export const saveSceneCastPosition = createServerFn({ method: 'POST' })
+  .inputValidator(
+    (input: unknown) =>
+      input as {
+        sceneCastId: string
+        x: number
+        y: number
+        rotation: number
+        scaleX: number
+      },
+  )
+  .handler(async ({ data }) => {
+    const session = await getSessionOrThrow();
+
+    // Verify caller owns this sceneCast row
+    const [row] = await db
+      .select({ userId: cast.userId })
+      .from(sceneCast)
+      .innerJoin(cast, eq(sceneCast.castId, cast.id))
+      .where(eq(sceneCast.id, data.sceneCastId));
+
+    if (!row || row.userId !== session.user.id) {
+      throw new Error('Forbidden');
+    }
+
+    await db
+      .update(sceneCast)
+      .set({
+        posX: data.x,
+        posY: data.y,
+        rotation: data.rotation,
+        scaleX: data.scaleX,
+      })
+      .where(eq(sceneCast.id, data.sceneCastId));
   });
