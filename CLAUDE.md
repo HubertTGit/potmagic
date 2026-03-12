@@ -28,7 +28,7 @@ pnpm preview      # Preview production build
 - **Tailwind CSS v4** + Sass — styling
 - **better-auth** — email/password authentication, Drizzle adapter (PostgreSQL)
 - **Drizzle ORM** — type-safe PostgreSQL schema and queries
-- **DaisyUI v5** — Tailwind CSS component plugin (`@plugin "daisyui"` in index.css)
+- **DaisyUI v5** — primary UI component library; Tailwind CSS plugin (`@plugin "daisyui"` in index.css); use daisyUI component classes for all UI elements
 - **clsx + tailwind-merge** — conditional class composition via `cn()` helper (`src/lib/cn.ts`)
 - **LiveKit** (`livekit-client`, `@livekit/components-react`) — real-time multi-user sessions
 - **Supabase Storage** — file storage for prop images (bucket: `props`)
@@ -181,3 +181,13 @@ Specialized reference agents for documentation lookup:
 - `better-auth-email-service` — Email sending (Resend integration)
 - `better-auth-drizzle` — Drizzle ORM adapter
 - `better-auth-postgres` — PostgreSQL setup
+
+**DaisyUI v5** (model: haiku):
+- `daisyui-use` — Core usage, component classes, combining with Tailwind utilities
+- `daisyui-config` — Plugin config options (themes, root, include/exclude, prefix, logs)
+- `daisyui-themes` — Built-in themes, custom themes, nesting, dark mode integration
+- `daisyui-colors` — Semantic color system, CSS variables, opacity modifiers
+- `daisyui-customize` — Customization methods (daisyUI classes, Tailwind utilities, `@apply`)
+- `daisyui-utilities` — Utility classes, border radius tokens, glass effect, CSS variables
+- `daisyui-base` — Base styles and how to exclude them
+- `daisyui-layout-and-typography` — Tailwind layout utilities + Typography plugin integration
