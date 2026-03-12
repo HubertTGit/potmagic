@@ -5,7 +5,7 @@ import tailwindcss from '@tailwindcss/vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
-  plugins: [tailwindcss(), tsconfigPaths(), tanstackStart(), vitereact()],
+  plugins: [tailwindcss(), tsconfigPaths(), tanstackStart({ deployment: { preset: 'vercel' } }), vitereact()],
   server: {
     host: true,
   },
