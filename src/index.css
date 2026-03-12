@@ -1,54 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap');
 @import "tailwindcss";
-<<<<<<< HEAD
-@plugin "daisyui";
-@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
-
-
-@theme {
-  --font-display: 'Lexend', Georgia, serif;
-
-/* Login page utilities */
-@utility login-bg {
-  background:
-    radial-gradient(ellipse 70% 50% at 50% 40%, oklch(78% 0.16 75 / 0.06) 0%, transparent 65%),
-    oklch(96% 0.008 75);
-  &:where([data-theme=dark], [data-theme=dark] *) {
-    background:
-      radial-gradient(ellipse 60% 50% at 50% 45%, oklch(78% 0.16 75 / 0.12) 0%, oklch(78% 0.16 75 / 0.04) 40%, transparent 70%),
-      oklch(9% 0.02 265);
-  }
-}
-
-@utility login-card {
-  background: oklch(100% 0 0);
-  box-shadow:
-    0 4px 32px oklch(78% 0.16 75 / 0.1),
-    0 1px 3px oklch(0% 0 0 / 0.06);
-  &:where([data-theme=dark], [data-theme=dark] *) {
-    background: oklch(13% 0.028 262 / 0.95);
-    box-shadow:
-      0 0 60px oklch(78% 0.16 75 / 0.08),
-      0 25px 50px oklch(0% 0 0 / 0.5),
-      inset 0 1px 0 oklch(78% 0.16 75 / 0.15);
-  }
-}
-
-@utility gold-glow {
-  text-shadow: 0 0 40px oklch(78% 0.16 75 / 0.4);
-}
-
-@utility btn-gold {
-  background: oklch(78% 0.16 75);
-  color: oklch(12% 0.04 75);
-  box-shadow: 0 4px 20px oklch(78% 0.16 75 / 0.3);
-  &:hover {
-    background: oklch(83% 0.16 75);
-    box-shadow: 0 4px 28px oklch(78% 0.16 75 / 0.5);
-  }
-}
-=======
 @plugin "daisyui" {
   themes: emerald --default, dracula --prefersdark;
 };
->>>>>>> ef786a9 (feat: bootstrap LiveKit voice sessions on stage with online presence and director avatar)
