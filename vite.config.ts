@@ -11,6 +11,9 @@ export default defineConfig({
     tsconfigPaths(),
     tanstackStart(),
     nitro({
+      renderer: {
+        handler: './server/renderer.ts',
+      },
       rollupConfig: {
         onwarn(warning, handler) {
           if (warning.code === 'MODULE_LEVEL_DIRECTIVE') return;
