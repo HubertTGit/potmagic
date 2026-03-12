@@ -20,5 +20,9 @@ export const authMiddleware = createMiddleware().server(async ({ next, request }
     throw new Response(null, { status: 302, headers: { Location: '/stories' } })
   }
 
+  if (pathname === '/' && session) {
+    throw new Response(null, { status: 302, headers: { Location: '/stories' } })
+  }
+
   return next()
 })
