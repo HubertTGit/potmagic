@@ -5,6 +5,12 @@ import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { scenes, stories, props, cast, users, sceneCast } from '@/db/schema';
 
+export type StageContext = {
+  storyId: string
+  directorId: string
+  directorName: string
+}
+
 async function getSessionOrThrow() {
   const session = await auth.api.getSession({ headers: getRequest().headers });
   if (!session) throw new Error('Unauthorized');
@@ -122,17 +128,33 @@ export const getSceneStage = createServerFn({ method: 'GET' })
       .leftJoin(props, eq(cast.propId, props.id))
       .where(eq(sceneCast.sceneId, data.sceneId));
 
-    return rows.map((r) => ({
-      sceneCastId: r.sceneCastId,
-      castId: r.castId,
-      userId: r.userId,
-      path: r.path,
-      type: r.type,
-      posX: r.posX,
-      posY: r.posY,
-      rotation: r.rotation,
-      scaleX: r.scaleX,
-    }));
+    const [sceneRow] = await db
+      .select({ storyId: scenes.storyId })
+      .from(scenes)
+      .where(eq(scenes.id, data.sceneId))
+
+    const [storyRow] = await db
+      .select({ directorId: stories.directorId, directorName: users.name })
+      .from(stories)
+      .innerJoin(users, eq(stories.directorId, users.id))
+      .where(eq(stories.id, sceneRow.storyId))
+
+    return {
+      storyId: sceneRow.storyId,
+      directorId: storyRow.directorId,
+      directorName: storyRow.directorName ?? 'Director',
+      casts: rows.map((r) => ({
+        sceneCastId: r.sceneCastId,
+        castId: r.castId,
+        userId: r.userId,
+        path: r.path,
+        type: r.type,
+        posX: r.posX,
+        posY: r.posY,
+        rotation: r.rotation,
+        scaleX: r.scaleX,
+      })),
+    }
   });
 
 export const updateSceneTitle = createServerFn({ method: 'POST' })

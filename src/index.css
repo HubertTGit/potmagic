@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap');
 @import "tailwindcss";
+<<<<<<< HEAD
 @plugin "daisyui";
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
@@ -46,3 +47,8 @@
     box-shadow: 0 4px 28px oklch(78% 0.16 75 / 0.5);
   }
 }
+=======
+@plugin "daisyui" {
+  themes: emerald --default, dracula --prefersdark;
+};
+>>>>>>> ef786a9 (feat: bootstrap LiveKit voice sessions on stage with online presence and director avatar)
