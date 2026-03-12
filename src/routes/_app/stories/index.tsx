@@ -1,45 +1,46 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { authClient } from '@/lib/auth-client'
-import { listStories, createStory, deleteStory } from '@/lib/stories.fns'
-import { StatusBadge } from '@/components/status-badge.component'
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { authClient } from '@/lib/auth-client';
+import { listStories, createStory, deleteStory } from '@/lib/stories.fns';
+import { StatusBadge } from '@/components/status-badge.component';
+import { RectangleStackIcon, TrashIcon } from '@heroicons/react/24/solid';
 
 export const Route = createFileRoute('/_app/stories/')({
   component: StoriesPage,
-})
+});
 
 function StoriesPage() {
-  const { data: session } = authClient.useSession()
-  const isDirector = session?.user?.role === 'director'
-  const queryClient = useQueryClient()
+  const { data: session } = authClient.useSession();
+  const isDirector = session?.user?.role === 'director';
+  const queryClient = useQueryClient();
 
-  const [newTitle, setNewTitle] = useState('')
-  const [adding, setAdding] = useState(false)
+  const [newTitle, setNewTitle] = useState('');
+  const [adding, setAdding] = useState(false);
 
   const { data: stories = [], isLoading } = useQuery({
     queryKey: ['stories'],
     queryFn: () => listStories(),
-  })
+  });
 
   const addMutation = useMutation({
     mutationFn: (title: string) => createStory({ data: { title } }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['stories'] })
-      setNewTitle('')
-      setAdding(false)
+      queryClient.invalidateQueries({ queryKey: ['stories'] });
+      setNewTitle('');
+      setAdding(false);
     },
-  })
+  });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteStory({ data: { id } }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['stories'] }),
-  })
+  });
 
   const handleAdd = () => {
-    if (!newTitle.trim()) return
-    addMutation.mutate(newTitle.trim())
-  }
+    if (!newTitle.trim()) return;
+    addMutation.mutate(newTitle.trim());
+  };
 
   return (
     <div className="p-8">
@@ -63,12 +64,26 @@ function StoriesPage() {
             type="text"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') setAdding(false) }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleAdd();
+              if (e.key === 'Escape') setAdding(false);
+            }}
             placeholder="Story title…"
             className="input input-sm bg-base-200 border-base-300 text-sm focus:border-gold/60 focus:ring-2 focus:ring-gold/10 w-64"
           />
-          <button onClick={handleAdd} disabled={addMutation.isPending} className="btn btn-sm btn-gold font-display">Add</button>
-          <button onClick={() => setAdding(false)} className="btn btn-sm btn-ghost text-base-content/50">Cancel</button>
+          <button
+            onClick={handleAdd}
+            disabled={addMutation.isPending}
+            className="btn btn-sm btn-gold font-display"
+          >
+            Add
+          </button>
+          <button
+            onClick={() => setAdding(false)}
+            className="btn btn-sm btn-ghost text-base-content/50"
+          >
+            Cancel
+          </button>
         </div>
       )}
 
@@ -85,50 +100,68 @@ function StoriesPage() {
                 <th>Status</th>
                 <th>Actors</th>
                 <th>Scenes</th>
+                <th />
                 {isDirector && <th />}
               </tr>
             </thead>
             <tbody>
-              {stories.map((story) => (
-                <tr key={story.id} className="hover:bg-base-200 transition-colors">
-                  <td>
-                    <Link
-                      to="/stories/$storyId"
-                      params={{ storyId: story.id }}
-                      className="font-medium hover:text-gold transition-colors"
-                    >
-                      {story.title}
-                    </Link>
-                  </td>
-                  <td>
-                    <StatusBadge status={story.status} />
-                  </td>
-                  <td className="text-base-content/50">{story.castCount}</td>
-                  <td className="text-base-content/50">{story.sceneCount}</td>
-                  {isDirector && (
-                    <td className="text-right">
+              {stories.map((story) => {
+                const firstScene = story.scenes[0];
+                return (
+                  <tr
+                    key={story.id}
+                    className="hover:bg-base-200 transition-colors"
+                  >
+                    <td>
                       <Link
                         to="/stories/$storyId"
                         params={{ storyId: story.id }}
-                        className="text-xs text-base-content/50 hover:text-base-content mr-4 transition-colors"
+                        className="font-medium hover:text-gold transition-colors"
                       >
-                        Edit
+                        {story.title}
                       </Link>
-                      <button
-                        onClick={() => deleteMutation.mutate(story.id)}
-                        disabled={deleteMutation.isPending}
-                        className="text-xs text-error/60 hover:text-error transition-colors"
-                      >
-                        Delete
-                      </button>
                     </td>
-                  )}
-                </tr>
-              ))}
+                    <td>
+                      <StatusBadge status={story.status} />
+                    </td>
+                    <td className="text-base-content/50">{story.castCount}</td>
+                    <td className="text-base-content/50">{story.sceneCount}</td>
+                    <td>
+                      {firstScene && (
+                        <Link
+                          to="/stage/$sceneId"
+                          params={{ sceneId: firstScene.id }}
+                          className="btn btn-xs btn-neutral gap-1"
+                        >
+                          Enter Stage <RectangleStackIcon className="size-3" />
+                        </Link>
+                      )}
+                    </td>
+                    {isDirector && (
+                      <td className="flex gap-2 justify-end">
+                        <Link
+                          to="/stories/$storyId"
+                          params={{ storyId: story.id }}
+                          className="btn btn-primary btn-xs"
+                        >
+                          Edit
+                        </Link>
+                        <button
+                          onClick={() => deleteMutation.mutate(story.id)}
+                          disabled={deleteMutation.isPending}
+                          className="btn btn-accent btn-xs text-xs"
+                        >
+                          <TrashIcon className="size-3" />
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       )}
     </div>
-  )
+  );
 }
