@@ -9,9 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
-import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as ShowStoryIdRouteImport } from './routes/show/$storyId'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
 import { Route as AppDirectorRouteImport } from './routes/_app/director'
 import { Route as AppStoriesIndexRouteImport } from './routes/_app/stories/index'
@@ -20,19 +21,24 @@ import { Route as AppStageSceneIdRouteImport } from './routes/_app/stage/$sceneI
 import { Route as AppStoriesStoryIdIndexRouteImport } from './routes/_app/stories/$storyId/index'
 import { Route as AppStoriesStoryIdScenesSceneIdRouteImport } from './routes/_app/stories/$storyId/scenes/$sceneId'
 
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppIndexRoute = AppIndexRouteImport.update({
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShowStoryIdRoute = ShowStoryIdRouteImport.update({
+  id: '/show/$storyId',
+  path: '/show/$storyId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppProfileRoute = AppProfileRouteImport.update({
   id: '/profile',
@@ -72,10 +78,11 @@ const AppStoriesStoryIdScenesSceneIdRoute =
   } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof AppIndexRoute
-  '/login': typeof LoginRoute
+  '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/director': typeof AppDirectorRoute
   '/profile': typeof AppProfileRoute
+  '/show/$storyId': typeof ShowStoryIdRoute
   '/stage/$sceneId': typeof AppStageSceneIdRoute
   '/stage/': typeof AppStageIndexRoute
   '/stories/': typeof AppStoriesIndexRoute
@@ -83,10 +90,11 @@ export interface FileRoutesByFullPath {
   '/stories/$storyId/scenes/$sceneId': typeof AppStoriesStoryIdScenesSceneIdRoute
 }
 export interface FileRoutesByTo {
-  '/login': typeof LoginRoute
+  '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/director': typeof AppDirectorRoute
   '/profile': typeof AppProfileRoute
-  '/': typeof AppIndexRoute
+  '/show/$storyId': typeof ShowStoryIdRoute
   '/stage/$sceneId': typeof AppStageSceneIdRoute
   '/stage': typeof AppStageIndexRoute
   '/stories': typeof AppStoriesIndexRoute
@@ -95,11 +103,12 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
-  '/login': typeof LoginRoute
+  '/auth': typeof AuthRoute
   '/_app/director': typeof AppDirectorRoute
   '/_app/profile': typeof AppProfileRoute
-  '/_app/': typeof AppIndexRoute
+  '/show/$storyId': typeof ShowStoryIdRoute
   '/_app/stage/$sceneId': typeof AppStageSceneIdRoute
   '/_app/stage/': typeof AppStageIndexRoute
   '/_app/stories/': typeof AppStoriesIndexRoute
@@ -110,9 +119,10 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/login'
+    | '/auth'
     | '/director'
     | '/profile'
+    | '/show/$storyId'
     | '/stage/$sceneId'
     | '/stage/'
     | '/stories/'
@@ -120,10 +130,11 @@ export interface FileRouteTypes {
     | '/stories/$storyId/scenes/$sceneId'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/login'
+    | '/'
+    | '/auth'
     | '/director'
     | '/profile'
-    | '/'
+    | '/show/$storyId'
     | '/stage/$sceneId'
     | '/stage'
     | '/stories'
@@ -131,11 +142,12 @@ export interface FileRouteTypes {
     | '/stories/$storyId/scenes/$sceneId'
   id:
     | '__root__'
+    | '/'
     | '/_app'
-    | '/login'
+    | '/auth'
     | '/_app/director'
     | '/_app/profile'
-    | '/_app/'
+    | '/show/$storyId'
     | '/_app/stage/$sceneId'
     | '/_app/stage/'
     | '/_app/stories/'
@@ -144,17 +156,19 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
-  LoginRoute: typeof LoginRoute
+  AuthRoute: typeof AuthRoute
+  ShowStoryIdRoute: typeof ShowStoryIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app': {
@@ -164,12 +178,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_app/': {
-      id: '/_app/'
+    '/': {
+      id: '/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof AppIndexRouteImport
-      parentRoute: typeof AppRoute
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/show/$storyId': {
+      id: '/show/$storyId'
+      path: '/show/$storyId'
+      fullPath: '/show/$storyId'
+      preLoaderRoute: typeof ShowStoryIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_app/profile': {
       id: '/_app/profile'
@@ -226,7 +247,6 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppDirectorRoute: typeof AppDirectorRoute
   AppProfileRoute: typeof AppProfileRoute
-  AppIndexRoute: typeof AppIndexRoute
   AppStageSceneIdRoute: typeof AppStageSceneIdRoute
   AppStageIndexRoute: typeof AppStageIndexRoute
   AppStoriesIndexRoute: typeof AppStoriesIndexRoute
@@ -237,7 +257,6 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppDirectorRoute: AppDirectorRoute,
   AppProfileRoute: AppProfileRoute,
-  AppIndexRoute: AppIndexRoute,
   AppStageSceneIdRoute: AppStageSceneIdRoute,
   AppStageIndexRoute: AppStageIndexRoute,
   AppStoriesIndexRoute: AppStoriesIndexRoute,
@@ -248,8 +267,10 @@ const AppRouteChildren: AppRouteChildren = {
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
-  LoginRoute: LoginRoute,
+  AuthRoute: AuthRoute,
+  ShowStoryIdRoute: ShowStoryIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
