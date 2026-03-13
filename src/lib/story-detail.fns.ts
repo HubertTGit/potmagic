@@ -104,6 +104,12 @@ export const assignProp = createServerFn({ method: 'POST' })
   .inputValidator((input: unknown) => input as { castId: string; propId: string | null })
   .handler(async ({ data }) => {
     await requireDirector()
+    if (data.propId) {
+      const [prop] = await db.select({ type: props.type }).from(props).where(eq(props.id, data.propId))
+      if (!prop || prop.type !== 'character') {
+        throw new Error('Only characters can be assigned to actors')
+      }
+    }
     await db.update(cast).set({ propId: data.propId }).where(eq(cast.id, data.castId))
   })
 

@@ -385,8 +385,10 @@ function PropPicker({
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
-  // Show props not used by other cast members, plus the currently assigned one
-  const selectableProps = availableProps.filter((p) => !usedPropIds.has(p.id) || p.id === propId)
+  // Show props not used by other cast members, plus the currently assigned one, and ONLY of type 'character'
+  const selectableProps = availableProps.filter(
+    (p) => p.type === 'character' && (!usedPropIds.has(p.id) || p.id === propId),
+  )
 
   return (
     <div ref={ref} className="relative">
