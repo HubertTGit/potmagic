@@ -252,6 +252,7 @@ function LibrarySection({
     name: string;
   } | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -269,8 +270,22 @@ function LibrarySection({
       await onAdd(pending.file, pending.name.trim());
       URL.revokeObjectURL(pending.preview);
       setPending(null);
+    } catch (error) {
+      console.error('Upload failed:', error);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleRemove = async (id: string) => {
+    if (deletingId) return;
+    setDeletingId(id);
+    try {
+      await onRemove(id);
+    } catch (error) {
+      console.error('Delete failed:', error);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -329,7 +344,14 @@ function LibrarySection({
             disabled={uploading}
             className="btn btn-sm btn-gold font-display"
           >
-            {uploading ? 'Uploading…' : 'Add'}
+            {uploading ? (
+              <>
+                <span className="loading loading-spinner loading-xs" />
+                Uploading…
+              </>
+            ) : (
+              'Add'
+            )}
           </button>
           <button
             onClick={handleCancel}
@@ -376,12 +398,19 @@ function LibrarySection({
                   {item.name}
                 </span>
                 <button
-                  onClick={() => onRemove(item.id)}
-                  className="text-error/70 hover:text-error transition-colors"
+                  onClick={() => handleRemove(item.id)}
+                  disabled={!!deletingId}
+                  className="text-error/70 hover:text-error transition-colors disabled:opacity-50"
                 >
                   <XMarkIcon className="size-4" />
                 </button>
               </div>
+
+              {deletingId === item.id && (
+                <div className="absolute inset-0 bg-base-100/60 backdrop-blur-[1px] flex items-center justify-center z-10 transition-all">
+                  <span className="loading loading-spinner loading-md text-gold" />
+                </div>
+              )}
               <p className="absolute bottom-0 inset-x-0 text-xs text-center bg-base-300/80 px-1 py-0.5 truncate group-hover:opacity-0 transition-opacity">
                 {item.name}
               </p>
