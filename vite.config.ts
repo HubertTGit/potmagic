@@ -10,18 +10,6 @@ export default defineConfig({
     tailwindcss(),
     tsconfigPaths(),
     tanstackStart(),
-    nitro({
-      renderer: {
-        handler: './server/renderer.ts',
-      },
-      rollupConfig: {
-        external: ['vite'],
-        onwarn(warning, handler) {
-          if (warning.code === 'MODULE_LEVEL_DIRECTIVE') return;
-          handler(warning);
-        },
-      },
-    }),
     vitereact(),
   ],
   server: {
