@@ -43,40 +43,42 @@ export function CastPreview({
         </div>
       </div>
 
-      {casts.map((cast) => {
-        const isMe = cast.userId === currentUserId;
-        const isOnline = onlineIds.has(cast.userId);
-        const ringClass = isMe
-          ? 'ring-2 ring-gold ring-offset-2 ring-offset-base-200 scale-110'
-          : 'ring-1 ring-base-300';
+      {casts
+        .filter((c) => c.type !== 'background')
+        .map((cast) => {
+          const isMe = cast.userId === currentUserId;
+          const isOnline = onlineIds.has(cast.userId);
+          const ringClass = isMe
+            ? 'ring-2 ring-gold ring-offset-2 ring-offset-base-200 scale-110'
+            : 'ring-1 ring-base-300';
 
-        const avatar = cast.path ? (
-          <img
-            src={cast.path}
-            alt=""
-            className={cn(
-              'size-8 rounded-full object-cover bg-base-300 block transition-transform',
-              ringClass,
-            )}
-          />
-        ) : (
-          <div
-            className={cn(
-              'size-8 rounded-full bg-base-300 block transition-transform',
-              ringClass,
-            )}
-          />
-        );
+          const avatar = cast.path ? (
+            <img
+              src={cast.path}
+              alt=""
+              className={cn(
+                'size-8 rounded-full object-cover bg-base-300 block transition-transform',
+                ringClass,
+              )}
+            />
+          ) : (
+            <div
+              className={cn(
+                'size-8 rounded-full bg-base-300 block transition-transform',
+                ringClass,
+              )}
+            />
+          );
 
-        return (
-          <div key={cast.castId} className="indicator">
-            {isOnline && (
-              <span className="indicator-item badge badge-success size-2 min-w-0 p-0 rounded-full" />
-            )}
-            {avatar}
-          </div>
-        );
-      })}
+          return (
+            <div key={cast.castId} className="indicator">
+              {isOnline && (
+                <span className="indicator-item badge badge-success size-2 min-w-0 p-0 rounded-full" />
+              )}
+              {avatar}
+            </div>
+          );
+        })}
     </div>
   );
 }

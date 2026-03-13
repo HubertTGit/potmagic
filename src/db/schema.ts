@@ -108,6 +108,11 @@ export const scenes = pgTable(
       .references(() => stories.id, { onDelete: 'cascade' }),
     title: text('title').notNull(),
     order: integer('order').default(0).notNull(),
+    backgroundId: text('background_id').references(() => props.id, { onDelete: 'set null' }),
+    backgroundPosX: real('background_pos_x'),
+    backgroundPosY: real('background_pos_y'),
+    backgroundRotation: real('background_rotation'),
+    backgroundScaleX: real('background_scale_x'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
       .defaultNow()

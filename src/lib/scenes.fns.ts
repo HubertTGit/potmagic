@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start';
 import { getRequest } from '@tanstack/react-start/server';
-import { and, asc, eq, sql } from 'drizzle-orm';
+import { and, asc, eq, sql, or, isNull } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { scenes, stories, props, cast, users, sceneCast } from '@/db/schema';
@@ -36,6 +36,7 @@ export const getSceneDetail = createServerFn({ method: 'GET' })
         title: scenes.title,
         order: scenes.order,
         storyId: scenes.storyId,
+        backgroundId: scenes.backgroundId,
       })
       .from(scenes)
       .where(eq(scenes.id, data.sceneId));
@@ -59,7 +60,7 @@ export const getSceneDetail = createServerFn({ method: 'GET' })
         imageUrl: props.imageUrl,
       })
       .from(props)
-      .where(eq(props.storyId, data.storyId));
+      .where(or(eq(props.storyId, data.storyId), isNull(props.storyId)));
 
     const storyCast = await db
       .select({
@@ -83,7 +84,38 @@ export const getSceneDetail = createServerFn({ method: 'GET' })
 
     const sceneCastIds = new Set(sceneCastRows.map((r) => r.castId));
 
-    return { scene, story: story ?? null, props: storyProps, storyCast, sceneCastIds: [...sceneCastIds] };
+    const [backgroundProp] = scene.backgroundId
+      ? await db
+          .select({
+            id: props.id,
+            name: props.name,
+            imageUrl: props.imageUrl,
+            type: props.type,
+          })
+          .from(props)
+          .where(eq(props.id, scene.backgroundId))
+      : [null];
+
+    return {
+      scene,
+      story: story ?? null,
+      props: storyProps,
+      storyCast,
+      sceneCastIds: [...sceneCastIds],
+      background: backgroundProp ?? null,
+    };
+  });
+
+export const assignSceneBackground = createServerFn({ method: 'POST' })
+  .inputValidator(
+    (input: unknown) => input as { sceneId: string; backgroundId: string | null },
+  )
+  .handler(async ({ data }) => {
+    await requireDirector();
+    await db
+      .update(scenes)
+      .set({ backgroundId: data.backgroundId })
+      .where(eq(scenes.id, data.sceneId));
   });
 
 export const addSceneCast = createServerFn({ method: 'POST' })
@@ -134,28 +166,75 @@ export const getSceneStage = createServerFn({ method: 'GET' })
       .where(eq(scenes.id, data.sceneId))
 
     const [storyRow] = await db
-      .select({ directorId: stories.directorId, directorName: users.name, status: stories.status })
+      .select({
+        directorId: stories.directorId,
+        directorName: users.name,
+        status: stories.status,
+      })
       .from(stories)
       .innerJoin(users, eq(stories.directorId, users.id))
-      .where(eq(stories.id, sceneRow.storyId))
+      .where(eq(stories.id, sceneRow.storyId));
+
+    const [sceneWithBg] = await db
+      .select({
+        backgroundId: scenes.backgroundId,
+        backgroundPosX: scenes.backgroundPosX,
+        backgroundPosY: scenes.backgroundPosY,
+        backgroundRotation: scenes.backgroundRotation,
+        backgroundScaleX: scenes.backgroundScaleX,
+      })
+      .from(scenes)
+      .where(eq(scenes.id, data.sceneId));
+
+    let backgroundCast = null;
+    if (sceneWithBg?.backgroundId) {
+      const [bgProp] = await db
+        .select({
+          imageUrl: props.imageUrl,
+          type: props.type,
+          name: props.name,
+        })
+        .from(props)
+        .where(eq(props.id, sceneWithBg.backgroundId));
+
+      if (bgProp) {
+        backgroundCast = {
+          sceneCastId: `bg-${data.sceneId}`, // Synthetic ID
+          castId: 'background',
+          userId: storyRow.directorId,
+          path: bgProp.imageUrl,
+          type: bgProp.type,
+          posX: sceneWithBg.backgroundPosX ?? 0,
+          posY: sceneWithBg.backgroundPosY ?? 0,
+          rotation: sceneWithBg.backgroundRotation ?? 0,
+          scaleX: sceneWithBg.backgroundScaleX ?? 1,
+        };
+      }
+    }
+
+    const allCasts = rows.map((r) => ({
+      sceneCastId: r.sceneCastId,
+      castId: r.castId,
+      userId: r.userId,
+      path: r.path,
+      type: r.type,
+      posX: r.posX,
+      posY: r.posY,
+      rotation: r.rotation,
+      scaleX: r.scaleX,
+    }));
+
+    if (backgroundCast) {
+      allCasts.unshift(backgroundCast as any);
+    }
 
     return {
       storyId: sceneRow.storyId,
       directorId: storyRow.directorId,
       directorName: storyRow.directorName ?? 'Director',
       status: storyRow.status,
-      casts: rows.map((r) => ({
-        sceneCastId: r.sceneCastId,
-        castId: r.castId,
-        userId: r.userId,
-        path: r.path,
-        type: r.type,
-        posX: r.posX,
-        posY: r.posY,
-        rotation: r.rotation,
-        scaleX: r.scaleX,
-      })),
-    }
+      casts: allCasts,
+    };
   });
 
 export const updateSceneTitle = createServerFn({ method: 'POST' })
@@ -212,6 +291,32 @@ export const saveSceneCastPosition = createServerFn({ method: 'POST' })
   )
   .handler(async ({ data }) => {
     const session = await getSessionOrThrow();
+
+    if (data.sceneCastId.startsWith('bg-')) {
+      const sceneId = data.sceneCastId.replace('bg-', '');
+
+      // Verify director
+      const [story] = await db
+        .select({ directorId: stories.directorId })
+        .from(stories)
+        .innerJoin(scenes, eq(scenes.storyId, stories.id))
+        .where(eq(scenes.id, sceneId));
+
+      if (story?.directorId !== session.user.id) {
+        throw new Error('Forbidden');
+      }
+
+      await db
+        .update(scenes)
+        .set({
+          backgroundPosX: data.x,
+          backgroundPosY: data.y,
+          backgroundRotation: data.rotation,
+          backgroundScaleX: data.scaleX,
+        })
+        .where(eq(scenes.id, sceneId));
+      return;
+    }
 
     // Verify caller owns this sceneCast row OR is a director
     const [row] = await db

@@ -88,8 +88,8 @@ export function DraggableCharacter({
   }, [image, type]);
 
   useEffect(() => {
-    const node = imageRef.current;
     return () => {
+      const node = imageRef.current;
       if (!canDragRef.current || !node) return;
       saveSceneCastPosition({
         data: {
@@ -101,7 +101,7 @@ export function DraggableCharacter({
         },
       });
     };
-  }, []);
+  }, [sceneCastId]);
 
   // Subscribe to remote prop:move messages and apply imperatively
   useEffect(() => {
@@ -156,6 +156,19 @@ export function DraggableCharacter({
     );
   }
 
+  function persistPosition(node: Konva.Image) {
+    if (!canDrag) return;
+    saveSceneCastPosition({
+      data: {
+        sceneCastId,
+        x: node.x(),
+        y: node.y(),
+        rotation: node.rotation(),
+        scaleX: node.scaleX(),
+      },
+    });
+  }
+
   const handleTouchStart = (e: Konva.KonvaEventObject<TouchEvent>) => {
     if (!canDrag) return;
     if (type !== 'background') imageRef.current?.moveToTop();
@@ -189,7 +202,10 @@ export function DraggableCharacter({
   };
 
   const handleTouchEnd = () => {
-    if (canDrag) imageRef.current?.draggable(true);
+    if (!canDrag) return;
+    imageRef.current?.draggable(true);
+    const node = imageRef.current;
+    if (node) persistPosition(node);
   };
 
   const handleDblClick = () => {
@@ -199,6 +215,7 @@ export function DraggableCharacter({
     node.scaleX(node.scaleX() * -1);
     node.getLayer()?.batchDraw();
     publishMove(node, true); // immediate — discrete event, bypass throttle
+    persistPosition(node);
   };
 
   return (
@@ -216,6 +233,10 @@ export function DraggableCharacter({
       onDragMove={() => {
         const node = imageRef.current;
         if (node) publishMove(node);
+      }}
+      onDragEnd={() => {
+        const node = imageRef.current;
+        if (node) persistPosition(node);
       }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
