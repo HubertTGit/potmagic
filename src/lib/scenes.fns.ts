@@ -213,14 +213,18 @@ export const saveSceneCastPosition = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     const session = await getSessionOrThrow();
 
-    // Verify caller owns this sceneCast row
+    // Verify caller owns this sceneCast row OR is a director
     const [row] = await db
-      .select({ userId: cast.userId })
+      .select({ userId: cast.userId, userRole: users.role })
       .from(sceneCast)
       .innerJoin(cast, eq(sceneCast.castId, cast.id))
+      .innerJoin(users, eq(users.id, session.user.id))
       .where(eq(sceneCast.id, data.sceneCastId));
 
-    if (!row || row.userId !== session.user.id) {
+    const isOwner = row?.userId === session.user.id;
+    const isDirector = row?.userRole === 'director';
+
+    if (!row || (!isOwner && !isDirector)) {
       throw new Error('Forbidden');
     }
 

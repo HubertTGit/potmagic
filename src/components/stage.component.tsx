@@ -23,11 +23,18 @@ const STAGE_WIDTH = 1024;
 const STAGE_HEIGHT = 768;
 
 export function StageComponent({ casts, room }: StageComponentProps) {
+  // Sort casts so backgrounds are rendered first (bottom of stack)
+  const sortedCasts = [...casts].sort((a, b) => {
+    if (a.type === 'background' && b.type !== 'background') return -1;
+    if (a.type !== 'background' && b.type === 'background') return 1;
+    return 0;
+  });
+
   return (
     <div className="w-5xl h-192">
       <Stage width={STAGE_WIDTH} height={STAGE_HEIGHT}>
         <Layer>
-          {casts.map((cast, i) => {
+          {sortedCasts.map((cast, i) => {
             if (!cast.path || !cast.type) return null;
             return (
               <DraggableCharacter

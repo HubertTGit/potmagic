@@ -53,7 +53,7 @@ export function DraggableCharacter({
   room,
 }: DraggableCharacterProps) {
   const { data: session } = authClient.useSession();
-  const canDrag = session?.user?.id === userId;
+  const canDrag = session?.user?.id === userId || session?.user?.role === 'director';
   const imageRef = useRef<Konva.Image>(null);
   const [image, setImage] = useState<HTMLImageElement | undefined>(undefined);
   const lastAngle = useRef(0);
@@ -81,6 +81,8 @@ export function DraggableCharacter({
       const stageHeight = node.getStage()?.height() ?? 0;
       node.y(stageHeight - image.height / 2);
       node.moveToBottom();
+    } else {
+      node.moveToTop();
     }
     node.getLayer()?.batchDraw();
   }, [image, type]);
