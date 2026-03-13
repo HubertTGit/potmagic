@@ -142,6 +142,13 @@ function SceneDetailPage() {
         ) : (
           <h1 className="flex-1 text-lg font-semibold">{scene.title}</h1>
         )}
+        <Link
+          to="/stage/$sceneId"
+          params={{ sceneId }}
+          className="btn btn-sm btn-primary font-display tracking-[0.05em]"
+        >
+          Enter Stage
+        </Link>
         {isDirector && (
           <button
             disabled={!isTitleDirty || saveMutation.isPending}
