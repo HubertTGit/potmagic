@@ -26,7 +26,6 @@ export default defineConfig({
   ],
   server: {
     host: true,
-    preset: 'vercel',
   },
   optimizeDeps: {
     exclude: ['fsevents', 'lightningcss'],
