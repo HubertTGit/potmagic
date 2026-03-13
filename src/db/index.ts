@@ -2,9 +2,14 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from '@/db/schema';
 
-import { loadEnv } from 'vite';
+const POSTGRES_URL = process.env.POSTGRES_URL;
 
-const env = loadEnv('', process.cwd(), '');
+if (!POSTGRES_URL) {
+  // In production, we expect this to be set. 
+  // In development, if running via 'pnpm build && pnpm start', 
+  // you may need to source your .env file first.
+  console.warn('POSTGRES_URL is not set. Database connection may fail.');
+}
 
-const client = postgres(env.POSTGRES_URL!);
+const client = postgres(POSTGRES_URL || '');
 export const db = drizzle({ client, schema });
