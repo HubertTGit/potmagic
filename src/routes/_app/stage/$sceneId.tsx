@@ -3,6 +3,7 @@ import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import {
   LiveKitRoom,
+  RoomAudioRenderer,
   useParticipants,
   useRoomContext,
 } from '@livekit/components-react';
@@ -50,17 +51,20 @@ function LiveStageContent({
   const onlineIds = new Set(participants.map((p) => p.identity));
 
   return (
-    <StageShell
-      sceneId={sceneId}
-      casts={casts}
-      directorId={directorId}
-      directorName={directorName}
-      storyId={storyId}
-      status={status}
-      onlineIds={onlineIds}
-      isSwitching={isSwitching}
-      room={room}
-    />
+    <>
+      <RoomAudioRenderer />
+      <StageShell
+        sceneId={sceneId}
+        casts={casts}
+        directorId={directorId}
+        directorName={directorName}
+        storyId={storyId}
+        status={status}
+        onlineIds={onlineIds}
+        isSwitching={isSwitching}
+        room={room}
+      />
+    </>
   );
 }
 
