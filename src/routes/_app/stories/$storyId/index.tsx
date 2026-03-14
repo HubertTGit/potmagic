@@ -1,6 +1,6 @@
-import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
-import { useState, useRef, useEffect } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { createFileRoute, Link, useRouter } from '@tanstack/react-router';
+import { useState, useRef, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getStoryDetail,
   updateStoryTitle,
@@ -9,115 +9,155 @@ import {
   assignProp,
   addScene,
   removeScene,
-} from '@/lib/story-detail.fns'
-import { StatusBadge } from '@/components/status-badge.component'
-import { Breadcrumb } from '@/components/breadcrumb.component'
-import { cn } from '@/lib/cn'
-import { authClient } from '@/lib/auth-client'
+} from '@/lib/story-detail.fns';
+import { StatusBadge } from '@/components/status-badge.component';
+import { Breadcrumb } from '@/components/breadcrumb.component';
+import { cn } from '@/lib/cn';
+import { authClient } from '@/lib/auth-client';
+import { TrashIcon } from '@heroicons/react/24/outline';
 
 export const Route = createFileRoute('/_app/stories/$storyId/')({
   component: StoryDetailPage,
-})
+});
 
 function StoryDetailPage() {
-  const { storyId } = Route.useParams()
-  const { data: session } = authClient.useSession()
-  const isDirector = session?.user?.role === 'director'
-  const queryClient = useQueryClient()
-  const router = useRouter()
-  const qk = ['story', storyId]
+  const { storyId } = Route.useParams();
+  const { data: session } = authClient.useSession();
+  const isDirector = session?.user?.role === 'director';
+  const queryClient = useQueryClient();
+  const router = useRouter();
+  const qk = ['story', storyId];
 
   const { data, isLoading } = useQuery({
     queryKey: qk,
     queryFn: () => getStoryDetail({ data: { storyId } }),
-  })
+  });
 
-  const [title, setTitle] = useState('')
-  const [activeTab, setActiveTab] = useState<'scenes' | 'cast'>('scenes')
-  const [newSceneTitle, setNewSceneTitle] = useState('')
-  const [actorSearch, setActorSearch] = useState('')
-  const [actorDropdownOpen, setActorDropdownOpen] = useState(false)
-  const actorSearchRef = useRef<HTMLDivElement>(null)
+  const [title, setTitle] = useState('');
+  const [activeTab, setActiveTab] = useState<'scenes' | 'cast'>('scenes');
+  const [newSceneTitle, setNewSceneTitle] = useState('');
+  const [sceneToDelete, setSceneToDelete] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
+  const [castToDelete, setCastToDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [actorSearch, setActorSearch] = useState('');
+  const [actorDropdownOpen, setActorDropdownOpen] = useState(false);
+  const actorSearchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (data?.story) setTitle(data.story.title)
-  }, [data?.story?.title])
+    if (data?.story) setTitle(data.story.title);
+  }, [data?.story?.title]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (actorSearchRef.current && !actorSearchRef.current.contains(e.target as Node)) {
-        setActorDropdownOpen(false)
+      if (
+        actorSearchRef.current &&
+        !actorSearchRef.current.contains(e.target as Node)
+      ) {
+        setActorDropdownOpen(false);
       }
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: qk })
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: qk });
 
   const saveTitleMutation = useMutation({
-    mutationFn: (t: string) => updateStoryTitle({ data: { storyId, title: t } }),
+    mutationFn: (t: string) =>
+      updateStoryTitle({ data: { storyId, title: t } }),
     onSuccess: invalidate,
-  })
+  });
 
   const addCastMutation = useMutation({
     mutationFn: (userId: string) => addCast({ data: { storyId, userId } }),
-    onSuccess: () => { invalidate(); setActorSearch(''); setActorDropdownOpen(false) },
-  })
+    onSuccess: () => {
+      invalidate();
+      setActorSearch('');
+      setActorDropdownOpen(false);
+    },
+  });
 
   const removeCastMutation = useMutation({
     mutationFn: (castId: string) => removeCast({ data: { castId } }),
-    onSuccess: invalidate,
-  })
+    onSuccess: () => {
+      invalidate();
+      setCastToDelete(null);
+    },
+  });
 
   const assignPropMutation = useMutation({
-    mutationFn: ({ castId, propId }: { castId: string; propId: string | null }) =>
-      assignProp({ data: { castId, propId } }),
+    mutationFn: ({
+      castId,
+      propId,
+    }: {
+      castId: string;
+      propId: string | null;
+    }) => assignProp({ data: { castId, propId } }),
     onSuccess: invalidate,
-  })
+  });
 
   const addSceneMutation = useMutation({
     mutationFn: (t: string) => addScene({ data: { storyId, title: t } }),
-    onSuccess: () => { invalidate(); setNewSceneTitle('') },
-  })
+    onSuccess: () => {
+      invalidate();
+      setNewSceneTitle('');
+    },
+  });
 
   const removeSceneMutation = useMutation({
     mutationFn: (sceneId: string) => removeScene({ data: { sceneId } }),
-    onSuccess: invalidate,
-  })
+    onSuccess: () => {
+      invalidate();
+      setSceneToDelete(null);
+    },
+  });
 
   if (isLoading) {
-    return <div className="p-8"><p className="text-base-content/40 text-sm">Loading…</p></div>
+    return (
+      <div className="p-8">
+        <p className="text-base-content/40 text-sm">Loading…</p>
+      </div>
+    );
   }
 
   if (!data) {
-    return <div className="p-8"><p className="text-base-content/40">Story not found.</p></div>
+    return (
+      <div className="p-8">
+        <p className="text-base-content/40">Story not found.</p>
+      </div>
+    );
   }
 
-  const { story, cast, scenes, props: availableProps, availableActors } = data
+  const { story, cast, scenes, props: availableProps, availableActors } = data;
 
-  const castUserIds = new Set(cast.map((c) => c.userId))
-  const usedPropIds = new Set(cast.map((c) => c.propId).filter(Boolean) as string[])
+  const castUserIds = new Set(cast.map((c) => c.userId));
+  const usedPropIds = new Set(
+    cast.map((c) => c.propId).filter(Boolean) as string[],
+  );
   const filteredActors = availableActors.filter(
     (u) =>
       !castUserIds.has(u.id) &&
       (u.name.toLowerCase().includes(actorSearch.toLowerCase()) ||
         u.email.toLowerCase().includes(actorSearch.toLowerCase())),
-  )
+  );
 
-  const isTitleDirty = title !== story.title
+  const isTitleDirty = title !== story.title;
 
   const handleAddScene = () => {
-    if (!newSceneTitle.trim()) return
-    addSceneMutation.mutate(newSceneTitle.trim())
-  }
+    if (!newSceneTitle.trim()) return;
+    addSceneMutation.mutate(newSceneTitle.trim());
+  };
 
   return (
     <div className="p-8 max-w-3xl">
-      <Breadcrumb crumbs={[
-        { label: 'Stories', to: '/stories/' },
-        { label: story.title },
-      ]} />
+      <Breadcrumb
+        crumbs={[{ label: 'Stories', to: '/stories/' }, { label: story.title }]}
+      />
 
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
@@ -132,24 +172,31 @@ function StoryDetailPage() {
           <h1 className="flex-1 text-lg font-semibold">{story.title}</h1>
         )}
         <StatusBadge status={story.status} />
-        {scenes.length > 0 && (
-          <button
-            className="btn btn-sm btn-gold font-display tracking-[0.05em]"
-            onClick={() => router.navigate({ to: '/stage/$sceneId', params: { sceneId: scenes[0].id } })}
-          >
-            Enter Stage →
-          </button>
-        )}
+
         {isDirector && (
           <button
             disabled={!isTitleDirty || saveTitleMutation.isPending}
             onClick={() => saveTitleMutation.mutate(title)}
             className={cn(
-              'btn btn-sm btn-gold font-display tracking-[0.05em]',
-              (!isTitleDirty || saveTitleMutation.isPending) && 'opacity-40 cursor-not-allowed',
+              'btn btn-accent font-display tracking-[0.05em]',
+              (!isTitleDirty || saveTitleMutation.isPending) &&
+                'opacity-40 cursor-not-allowed',
             )}
           >
             Save
+          </button>
+        )}
+        {scenes.length > 0 && (
+          <button
+            className="btn btn-primary font-display tracking-[0.05em]"
+            onClick={() =>
+              router.navigate({
+                to: '/stage/$sceneId',
+                params: { sceneId: scenes[0].id },
+              })
+            }
+          >
+            Enter Stage →
           </button>
         )}
       </div>
@@ -163,7 +210,9 @@ function StoryDetailPage() {
             onClick={() => setActiveTab(tab)}
             className={cn(
               'tab font-display tracking-[0.05em] capitalize',
-              activeTab === tab ? 'tab-active text-gold' : 'text-base-content/40',
+              activeTab === tab
+                ? 'tab-active text-gold'
+                : 'text-base-content/40',
             )}
           >
             {tab} ({tab === 'cast' ? cast.length : scenes.length})
@@ -175,7 +224,9 @@ function StoryDetailPage() {
       {activeTab === 'cast' && (
         <div>
           {cast.length === 0 ? (
-            <p className="text-base-content/40 text-sm mb-4">No actors cast yet.</p>
+            <p className="text-base-content/40 text-sm mb-4">
+              No actors cast yet.
+            </p>
           ) : (
             <table className="table table-sm w-full mb-4">
               <thead>
@@ -187,7 +238,10 @@ function StoryDetailPage() {
               </thead>
               <tbody>
                 {cast.map((c) => (
-                  <tr key={c.id} className="hover:bg-base-200 transition-colors">
+                  <tr
+                    key={c.id}
+                    className="hover:bg-base-200 transition-colors"
+                  >
                     <td className="align-middle">{c.userName}</td>
                     <td className="align-middle">
                       {isDirector ? (
@@ -199,7 +253,9 @@ function StoryDetailPage() {
                           propType={c.propType ?? null}
                           availableProps={availableProps}
                           usedPropIds={usedPropIds}
-                          onAssign={(castId, propId) => assignPropMutation.mutate({ castId, propId })}
+                          onAssign={(castId, propId) =>
+                            assignPropMutation.mutate({ castId, propId })
+                          }
                         />
                       ) : c.propId ? (
                         <div className="flex items-center gap-2">
@@ -221,11 +277,16 @@ function StoryDetailPage() {
                     {isDirector && (
                       <td className="text-right align-middle">
                         <button
-                          onClick={() => removeCastMutation.mutate(c.id)}
+                          onClick={() =>
+                            setCastToDelete({
+                              id: c.id,
+                              name: c.userName ?? 'Unknown Actor',
+                            })
+                          }
                           disabled={removeCastMutation.isPending}
                           className="text-xs text-error/60 hover:text-error transition-colors"
                         >
-                          Remove
+                          <TrashIcon className="size-4" />
                         </button>
                       </td>
                     )}
@@ -240,7 +301,10 @@ function StoryDetailPage() {
               <input
                 type="text"
                 value={actorSearch}
-                onChange={(e) => { setActorSearch(e.target.value); setActorDropdownOpen(true) }}
+                onChange={(e) => {
+                  setActorSearch(e.target.value);
+                  setActorDropdownOpen(true);
+                }}
                 onFocus={() => setActorDropdownOpen(true)}
                 placeholder="Search actors…"
                 className="input input-sm w-full bg-base-200 border-base-300 text-sm focus:border-gold/60 focus:ring-2 focus:ring-gold/10"
@@ -248,16 +312,23 @@ function StoryDetailPage() {
               {actorDropdownOpen && (
                 <div className="absolute top-full mt-1 w-full bg-base-200 border border-base-300 rounded-lg shadow-lg z-10 overflow-hidden">
                   {filteredActors.length === 0 ? (
-                    <p className="text-xs text-base-content/40 px-3 py-2">No actors found</p>
+                    <p className="text-xs text-base-content/40 px-3 py-2">
+                      No actors found
+                    </p>
                   ) : (
                     filteredActors.map((u) => (
                       <button
                         key={u.id}
-                        onMouseDown={(e) => { e.preventDefault(); addCastMutation.mutate(u.id) }}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          addCastMutation.mutate(u.id);
+                        }}
                         className="w-full text-left px-3 py-2 text-sm hover:bg-base-300 transition-colors flex flex-col"
                       >
                         <span className="font-medium">{u.name}</span>
-                        <span className="text-xs text-base-content/40">{u.email}</span>
+                        <span className="text-xs text-base-content/40">
+                          {u.email}
+                        </span>
                       </button>
                     ))
                   )}
@@ -281,24 +352,28 @@ function StoryDetailPage() {
                   className="flex items-center justify-between bg-base-200 rounded-lg px-4 py-3 border border-base-300"
                 >
                   <span className="text-sm">
-                    <span className="text-base-content/40 mr-2">{scene.order}.</span>
+                    <span className="text-base-content/40 mr-2">
+                      {scene.order}.
+                    </span>
                     {scene.title}
                   </span>
                   <div className="flex items-center gap-3">
                     <Link
                       to="/stories/$storyId/scenes/$sceneId"
                       params={{ storyId, sceneId: scene.id }}
-                      className="text-xs text-gold hover:text-gold/70 transition-colors"
+                      className="btn btn-xs btn-primary font-display tracking-[0.05em]"
                     >
-                      View →
+                      Details →
                     </Link>
                     {isDirector && (
                       <button
-                        onClick={() => removeSceneMutation.mutate(scene.id)}
+                        onClick={() =>
+                          setSceneToDelete({ id: scene.id, title: scene.title })
+                        }
                         disabled={removeSceneMutation.isPending}
                         className="text-xs text-error/60 hover:text-error transition-colors"
                       >
-                        Delete
+                        <TrashIcon className="size-4" />
                       </button>
                     )}
                   </div>
@@ -313,7 +388,9 @@ function StoryDetailPage() {
                 type="text"
                 value={newSceneTitle}
                 onChange={(e) => setNewSceneTitle(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleAddScene() }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleAddScene();
+                }}
                 placeholder="Scene title…"
                 className="input input-sm bg-base-200 border-base-300 text-sm focus:border-gold/60 focus:ring-2 focus:ring-gold/10 w-56"
               />
@@ -321,8 +398,9 @@ function StoryDetailPage() {
                 onClick={handleAddScene}
                 disabled={addSceneMutation.isPending || !newSceneTitle.trim()}
                 className={cn(
-                  'btn btn-sm btn-gold font-display',
-                  (addSceneMutation.isPending || !newSceneTitle.trim()) && 'opacity-40 cursor-not-allowed',
+                  'btn btn-sm btn-primary font-display',
+                  (addSceneMutation.isPending || !newSceneTitle.trim()) &&
+                    'opacity-40 cursor-not-allowed',
                 )}
               >
                 + Add Scene
@@ -331,26 +409,92 @@ function StoryDetailPage() {
           )}
         </div>
       )}
+
+      {/* Delete Scene Confirmation Modal */}
+      {sceneToDelete && (
+        <dialog className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg">Confirm Deletion</h3>
+            <p className="py-4">
+              Are you sure you want to delete the scene "{sceneToDelete.title}"?
+              This action cannot be undone.
+            </p>
+            <div className="modal-action">
+              <button
+                className="btn btn-warning"
+                onClick={() => removeSceneMutation.mutate(sceneToDelete.id)}
+                disabled={removeSceneMutation.isPending}
+              >
+                {removeSceneMutation.isPending ? 'Deleting...' : 'Delete'}
+              </button>
+              <button
+                className="btn"
+                onClick={() => setSceneToDelete(null)}
+                disabled={removeSceneMutation.isPending}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+          <form method="dialog" className="modal-backdrop">
+            <button onClick={() => setSceneToDelete(null)}>close</button>
+          </form>
+        </dialog>
+      )}
+
+      {/* Remove Cast Confirmation Modal */}
+      {castToDelete && (
+        <dialog className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg">Confirm Removal</h3>
+            <p className="py-4">
+              Are you sure you want to remove "{castToDelete.name}" from the
+              cast?
+            </p>
+            <div className="modal-action">
+              <button
+                className="btn btn-warning"
+                onClick={() => removeCastMutation.mutate(castToDelete.id)}
+                disabled={removeCastMutation.isPending}
+              >
+                {removeCastMutation.isPending ? 'Removing...' : 'Remove'}
+              </button>
+              <button
+                className="btn"
+                onClick={() => setCastToDelete(null)}
+                disabled={removeCastMutation.isPending}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+          <form method="dialog" className="modal-backdrop">
+            <button onClick={() => setCastToDelete(null)}>close</button>
+          </form>
+        </dialog>
+      )}
     </div>
-  )
+  );
 }
 
 type Prop = {
-  id: string
-  name: string
-  type: 'background' | 'character'
-  imageUrl: string | null
-}
+  id: string;
+  name: string;
+  type: 'background' | 'character';
+  imageUrl: string | null;
+};
 
 function PropTypePill({ type }: { type: 'character' | 'background' }) {
   return (
-    <span className={cn(
-      'text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0',
-      type === 'character' ? 'bg-gold/15 text-gold' : 'bg-info/15 text-info',
-    )}>
+    <span
+      className={cn(
+        'text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0',
+        type === 'character' ? 'bg-gold/15 text-gold' : 'bg-info/15 text-info',
+      )}
+    >
       {type}
     </span>
-  )
+  );
 }
 
 function PropPicker({
@@ -363,32 +507,33 @@ function PropPicker({
   usedPropIds,
   onAssign,
 }: {
-  castId: string
-  propId: string | null
-  propName: string | null
-  propImageUrl: string | null
-  propType: 'character' | 'background' | null
-  availableProps: Prop[]
-  usedPropIds: Set<string>
-  onAssign: (castId: string, propId: string | null) => void
+  castId: string;
+  propId: string | null;
+  propName: string | null;
+  propImageUrl: string | null;
+  propType: 'character' | 'background' | null;
+  availableProps: Prop[];
+  usedPropIds: Set<string>;
+  onAssign: (castId: string, propId: string | null) => void;
 }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false)
+        setOpen(false);
       }
     }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
 
   // Show props not used by other cast members, plus the currently assigned one, and ONLY of type 'character'
   const selectableProps = availableProps.filter(
-    (p) => p.type === 'character' && (!usedPropIds.has(p.id) || p.id === propId),
-  )
+    (p) =>
+      p.type === 'character' && (!usedPropIds.has(p.id) || p.id === propId),
+  );
 
   return (
     <div ref={ref} className="relative">
@@ -411,26 +556,38 @@ function PropPicker({
             {propType && <PropTypePill type={propType} />}
           </>
         ) : (
-          <span className="text-sm text-base-content/30 italic">Assign prop…</span>
+          <span className="text-sm text-base-content/30 italic">
+            Assign prop…
+          </span>
         )}
       </button>
 
       {open && (
         <div className="absolute left-0 top-full mt-1 w-64 bg-base-200 border border-base-300 rounded-lg shadow-xl z-50 overflow-hidden">
           {selectableProps.length === 0 ? (
-            <p className="text-xs text-base-content/40 px-3 py-2">No props available</p>
+            <p className="text-xs text-base-content/40 px-3 py-2">
+              No props available
+            </p>
           ) : (
             selectableProps.map((p) => (
               <button
                 key={p.id}
-                onMouseDown={(e) => { e.preventDefault(); onAssign(castId, p.id); setOpen(false) }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  onAssign(castId, p.id);
+                  setOpen(false);
+                }}
                 className={cn(
                   'w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-base-300 transition-colors',
                   p.id === propId && 'bg-base-300',
                 )}
               >
                 {p.imageUrl ? (
-                  <img src={p.imageUrl} alt={p.name} className="size-8 rounded object-cover bg-base-300 shrink-0" />
+                  <img
+                    src={p.imageUrl}
+                    alt={p.name}
+                    className="size-8 rounded object-cover bg-base-300 shrink-0"
+                  />
                 ) : (
                   <div className="size-8 rounded bg-base-300 shrink-0" />
                 )}
@@ -443,7 +600,11 @@ function PropPicker({
             <>
               <div className="border-t border-base-300" />
               <button
-                onMouseDown={(e) => { e.preventDefault(); onAssign(castId, null); setOpen(false) }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  onAssign(castId, null);
+                  setOpen(false);
+                }}
                 className="w-full text-left px-3 py-2 text-xs text-error/60 hover:text-error hover:bg-base-300 transition-colors"
               >
                 Unassign
@@ -453,5 +614,5 @@ function PropPicker({
         </div>
       )}
     </div>
-  )
+  );
 }

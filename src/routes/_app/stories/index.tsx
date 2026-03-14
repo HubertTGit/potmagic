@@ -5,7 +5,6 @@ import { authClient } from '@/lib/auth-client';
 import { listStories, createStory } from '@/lib/stories.fns';
 import { StoryGrid } from '@/components/story-grid';
 
-
 export const Route = createFileRoute('/_app/stories/')({
   component: StoriesPage,
 });
@@ -44,7 +43,7 @@ function StoriesPage() {
         {isDirector && (
           <button
             onClick={() => setAdding(true)}
-            className="btn btn-sm btn-gold font-display tracking-[0.05em]"
+            className="btn btn-primary font-display tracking-[0.05em]"
           >
             + New Story
           </button>
