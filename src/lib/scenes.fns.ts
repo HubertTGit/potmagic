@@ -41,7 +41,7 @@ export const getSceneDetail = createServerFn({ method: 'GET' })
       .from(scenes)
       .where(eq(scenes.id, data.sceneId));
 
-    if (!scene) return null;
+    if (!scene) throw new Error('Scene not found');
 
     const [story] = await db
       .select({

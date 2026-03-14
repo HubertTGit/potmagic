@@ -18,7 +18,6 @@ import { Breadcrumb } from '@/components/breadcrumb.component';
 import { cn } from '@/lib/cn';
 import { ConfirmModal } from '@/components/confirm-modal';
 import { authClient } from '@/lib/auth-client';
-import { toast } from '@/lib/toast';
 import { TrashIcon } from '@heroicons/react/24/outline';
 
 export const Route = createFileRoute('/_app/stories/$storyId/scenes/$sceneId')({
@@ -57,7 +56,11 @@ function SceneDetailPage() {
 
   const { data } = useSuspenseQuery({
     queryKey: qk,
-    queryFn: () => getSceneDetail({ data: { storyId, sceneId } }),
+    queryFn: async () => {
+      const res = await getSceneDetail({ data: { storyId, sceneId } });
+      if (!res) throw new Error('Data is undefined');
+      return res;
+    },
   });
 
   const { data: nav } = useQuery({
@@ -156,19 +159,13 @@ function SceneDetailPage() {
         ) : (
           <h1 className="flex-1 text-lg font-semibold">{scene.title}</h1>
         )}
-        <Link
-          to="/stage/$sceneId"
-          params={{ sceneId }}
-          className="btn btn-sm btn-primary font-display tracking-[0.05em]"
-        >
-          Enter Stage
-        </Link>
+
         {isDirector && (
           <button
             disabled={!isTitleDirty || saveMutation.isPending}
             onClick={() => saveMutation.mutate(title)}
             className={cn(
-              'btn btn-sm btn-gold font-display tracking-[0.05em]',
+              'btn btn-accent font-display tracking-[0.05em]',
               (!isTitleDirty || saveMutation.isPending) &&
                 'opacity-40 cursor-not-allowed',
             )}
@@ -176,6 +173,13 @@ function SceneDetailPage() {
             Save
           </button>
         )}
+        <Link
+          to="/stage/$sceneId"
+          params={{ sceneId }}
+          className="btn btn-primary font-display tracking-[0.05em]"
+        >
+          Enter Stage
+        </Link>
       </div>
 
       {/* Cast section */}
@@ -191,7 +195,7 @@ function SceneDetailPage() {
               <Link
                 to="/stories/$storyId/scenes/$sceneId"
                 params={{ storyId, sceneId: nav.prev.id }}
-                className="btn btn-xs btn-ghost px-2"
+                className="btn btn-xs btn-secondary px-2"
               >
                 ‹
               </Link>
@@ -208,7 +212,7 @@ function SceneDetailPage() {
               <Link
                 to="/stories/$storyId/scenes/$sceneId"
                 params={{ storyId, sceneId: nav.next.id }}
-                className="btn btn-xs btn-ghost px-2"
+                className="btn btn-xs btn-secondary px-2"
               >
                 ›
               </Link>
