@@ -5,6 +5,7 @@ interface Crumb {
   label: string;
   to?: string;
   params?: Record<string, string>;
+  type?: 'story' | 'scene';
 }
 
 export function Breadcrumb({ crumbs }: { crumbs: Crumb[] }) {
@@ -15,17 +16,21 @@ export function Breadcrumb({ crumbs }: { crumbs: Crumb[] }) {
           const isLast = i === crumbs.length - 1;
           return (
             <li key={i}>
-              {crumb.to && !isLast ? (
-                <Link
-                  to={crumb.to}
-                  params={crumb.params}
-                  className="hover:text-gold transition-colors"
-                >
-                  {crumb.label}
-                </Link>
-              ) : (
-                <span>{crumb.label}</span>
-              )}
+              <div className="flex items-center gap-2">
+                {crumb.type === 'story' && <RectangleStackIcon className="w-4 h-4" />}
+                {crumb.type === 'scene' && <FilmIcon className="w-4 h-4" />}
+                {crumb.to && !isLast ? (
+                  <Link
+                    to={crumb.to}
+                    params={crumb.params}
+                    className="hover:text-gold transition-colors"
+                  >
+                    {crumb.label}
+                  </Link>
+                ) : (
+                  <span>{crumb.label}</span>
+                )}
+              </div>
             </li>
           );
         })}

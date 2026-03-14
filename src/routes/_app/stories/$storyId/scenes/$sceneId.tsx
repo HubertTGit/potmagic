@@ -142,8 +142,13 @@ function SceneDetailPage() {
       <Breadcrumb
         crumbs={[
           { label: 'Stories', to: '/stories/' },
-          { label: story.title, to: '/stories/$storyId/', params: { storyId } },
-          { label: scene.title },
+          {
+            label: story.title,
+            to: '/stories/$storyId/',
+            params: { storyId },
+            type: 'story',
+          },
+          { label: scene.title, type: 'scene' },
         ]}
       />
 

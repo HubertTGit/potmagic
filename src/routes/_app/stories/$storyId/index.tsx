@@ -157,7 +157,10 @@ function StoryDetailPage() {
   return (
     <div className="p-8 max-w-3xl">
       <Breadcrumb
-        crumbs={[{ label: 'Stories', to: '/stories/' }, { label: story.title }]}
+        crumbs={[
+          { label: 'Stories', to: '/stories/' },
+          { label: story.title, type: 'story' },
+        ]}
       />
 
       {/* Header */}
