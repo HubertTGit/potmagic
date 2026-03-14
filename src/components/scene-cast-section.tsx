@@ -88,18 +88,18 @@ export function SceneCastSection({
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 mb-3">
+      <ul className="list bg-base-100 rounded-box shadow-sm mb-4 border border-base-300">
         {assignedCast.length === 0 ? (
-          <p className="text-base-content/30 text-sm italic py-2">
+          <li className="list-row p-4 text-base-content/40 text-sm italic">
             No cast assigned yet.
-          </p>
+          </li>
         ) : (
           assignedCast.map((c) => (
-            <div
+            <li
               key={c.id}
-              className="flex items-center justify-between bg-base-200 rounded-lg px-4 py-3 border border-base-300"
+              className="list-row items-center hover:bg-base-200/50 transition-colors group first:rounded-t-box last:rounded-b-box"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 list-col-grow">
                 {c.propImageUrl ? (
                   <img
                     src={c.propImageUrl}
@@ -118,23 +118,27 @@ export function SceneCastSection({
                   )}
                 </div>
                 {c.propType && (
-                  <PropTypePill type={c.propType as 'character' | 'background'} />
+                  <PropTypePill
+                    type={c.propType as 'character' | 'background'}
+                  />
                 )}
               </div>
               {isDirector && (
-                <button
-                  onClick={() => onRemoveCast(c)}
-                  disabled={isRemovingCast}
-                  className="text-xs text-error/60 hover:text-error transition-colors p-2 hover:bg-error/10 rounded-lg"
-                  title="Remove from scene"
-                >
-                  <TrashIcon className="size-4" />
-                </button>
+                <div className="flex justify-end shrink-0">
+                  <button
+                    onClick={() => onRemoveCast(c)}
+                    disabled={isRemovingCast}
+                    className="text-xs text-error/60 hover:text-error transition-colors p-2 hover:bg-error/10 rounded-lg"
+                    title="Remove from scene"
+                  >
+                    <TrashIcon className="size-4" />
+                  </button>
+                </div>
               )}
-            </div>
+            </li>
           ))
         )}
-      </div>
+      </ul>
 
       {isDirector && availableCast.length > 0 && (
         <CastDropdown
