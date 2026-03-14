@@ -1,4 +1,5 @@
-import { pgTable, pgEnum, text, timestamp, boolean, integer, real, index, unique } from 'drizzle-orm/pg-core'
+import { pgTable, pgEnum, text, timestamp, boolean, integer, real, index, unique, check } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
 
 export const roleEnum = pgEnum('role', ['actor', 'director'])
 export const storyStatusEnum = pgEnum('story_status', ['draft', 'active', 'ended'])
@@ -131,13 +132,17 @@ export const props = pgTable(
     name: text('name').notNull(),
     type: propTypeEnum('type').notNull(),
     imageUrl: text('image_url'),
+    size: integer('size'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
       .defaultNow()
       .$onUpdate(() => new Date())
       .notNull(),
   },
-  (table) => [index('props_story_id_idx').on(table.storyId)],
+  (table) => [
+    index('props_story_id_idx').on(table.storyId),
+    check('props_size_limit', sql`${table.size} <= 1048576`),
+  ],
 )
 
 // Each actor can be assigned to multiple stories, but only once per story

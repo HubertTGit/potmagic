@@ -54,18 +54,26 @@ export const createProp = createServerFn({ method: 'POST' })
         name: string;
         type: 'character' | 'background';
         imageUrl: string;
+        size: number;
       },
   )
   .handler(async ({ data }) => {
     await requireDirector();
 
     const id = crypto.randomUUID();
-    const [row] = await db
-      .insert(props)
-      .values({ id, name: data.name, type: data.type, imageUrl: data.imageUrl })
-      .returning();
+    try {
+      const [row] = await db
+        .insert(props)
+        .values({ id, name: data.name, type: data.type, imageUrl: data.imageUrl, size: data.size })
+        .returning();
 
-    return row;
+      return row;
+    } catch (error: any) {
+      if (error.message && error.message.includes('props_size_limit')) {
+        throw new Error('File size is too big. It should not be larger than 1MB.');
+      }
+      throw error;
+    }
   });
 
 export const listProps = createServerFn({ method: 'GET' })

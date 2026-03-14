@@ -12,6 +12,7 @@ import { StatusBadge } from '@/components/status-badge.component';
 import { cn } from '@/lib/cn';
 import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { updateStoryStatus } from '@/lib/story-detail.fns';
+import { toast } from '@/lib/toast';
 
 export const Route = createFileRoute('/_app/director')({
   component: DirectorPage,
@@ -66,23 +67,38 @@ function DirectorPage() {
     file: File,
     name: string,
   ) => {
-    const { signedUrl, publicUrl } = await getSignedUploadUrl({
-      data: { filename: file.name, contentType: file.type },
-    });
+    try {
+      const { signedUrl, publicUrl } = await getSignedUploadUrl({
+        data: { filename: file.name, contentType: file.type },
+      });
 
-    const uploadResponse = await fetch(signedUrl, {
-      method: 'PUT',
-      body: file,
-      headers: { 'Content-Type': file.type },
-    });
-    if (!uploadResponse.ok) {
-      throw new Error(
-        `Upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`,
-      );
+      // Insert into DB first so Drizzle check constraint validates the size.
+      const prop = await createProp({ data: { name, type, imageUrl: publicUrl, size: file.size } });
+
+      const uploadResponse = await fetch(signedUrl, {
+        method: 'PUT',
+        body: file,
+        headers: { 'Content-Type': file.type },
+      });
+      
+      if (!uploadResponse.ok) {
+        // Rollback the DB entry if the actual file upload fails
+        try {
+          await deleteProp({ data: { id: prop.id } });
+        } catch (e) {
+          // Swallow rollback errors to retain original fetch error
+        }
+        
+        throw new Error(
+          `Upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`,
+        );
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['props', type] });
+    } catch (error: any) {
+      toast.error(`File size is too big. It should not be larger than 1MB.\n${error.message}`);
+      throw error;
     }
-
-    await createProp({ data: { name, type, imageUrl: publicUrl } });
-    queryClient.invalidateQueries({ queryKey: ['props', type] });
   };
 
   const handleRemoveProp = async (
