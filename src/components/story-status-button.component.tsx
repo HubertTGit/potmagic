@@ -4,6 +4,7 @@ import { RoomEvent } from 'livekit-client';
 import type { Room } from 'livekit-client';
 import { authClient } from '@/lib/auth-client';
 import { updateStoryStatus } from '@/lib/story-detail.fns';
+import { PlayIcon, PauseIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
 
 export type StoryStatus = 'draft' | 'active' | 'ended';
 
@@ -18,7 +19,11 @@ interface StoryStatusButtonProps {
   room?: Room | null;
 }
 
-export function StoryStatusButton({ storyId, status: initialStatus, room }: StoryStatusButtonProps) {
+export function StoryStatusButton({
+  storyId,
+  status: initialStatus,
+  room,
+}: StoryStatusButtonProps) {
   const { data: session } = authClient.useSession();
   const queryClient = useQueryClient();
   const [status, setStatus] = useState<StoryStatus>(initialStatus);
@@ -47,7 +52,9 @@ export function StoryStatusButton({ storyId, status: initialStatus, room }: Stor
     };
 
     room.on(RoomEvent.DataReceived, handler);
-    return () => { room.off(RoomEvent.DataReceived, handler); };
+    return () => {
+      room.off(RoomEvent.DataReceived, handler);
+    };
   }, [room, storyId, queryClient]);
 
   const mutation = useMutation({
@@ -75,12 +82,12 @@ export function StoryStatusButton({ storyId, status: initialStatus, room }: Stor
         onClick={() => mutation.mutate('active')}
         disabled={!isDirector || mutation.isPending}
       >
+        Go Live
         {mutation.isPending ? (
           <span className="loading loading-spinner loading-xs" />
         ) : (
-          '▶'
+          <PlayIcon className="w-4 h-4" />
         )}
-        Go Live
       </button>
     );
   }
@@ -92,12 +99,12 @@ export function StoryStatusButton({ storyId, status: initialStatus, room }: Stor
         onClick={() => mutation.mutate('ended')}
         disabled={!isDirector || mutation.isPending}
       >
+        End Show
         {mutation.isPending ? (
           <span className="loading loading-spinner loading-xs" />
         ) : (
-          '■'
+          <PauseIcon className="w-4 h-4" />
         )}
-        End Show
       </button>
     );
   }
@@ -108,12 +115,12 @@ export function StoryStatusButton({ storyId, status: initialStatus, room }: Stor
       onClick={() => mutation.mutate('draft')}
       disabled={!isDirector || mutation.isPending}
     >
+      Reset to Draft
       {mutation.isPending ? (
         <span className="loading loading-spinner loading-xs" />
       ) : (
-        '↺'
+        <ArrowPathIcon className="w-4 h-4" />
       )}
-      Reset to Draft
     </button>
   );
 }

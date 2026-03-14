@@ -13,7 +13,10 @@ import { getLiveKitToken } from '@/lib/livekit.fns';
 import { StageComponent } from '@/components/stage.component';
 import { CastPreview } from '@/components/cast-preview.component';
 import { SceneNavigator } from '@/components/scene-navigator.component';
-import { StoryStatusButton, type StoryStatus } from '@/components/story-status-button.component';
+import {
+  StoryStatusButton,
+  type StoryStatus,
+} from '@/components/story-status-button.component';
 import type { StageCast } from '@/components/stage.component';
 
 export const Route = createFileRoute('/_app/stage/$sceneId')({
@@ -110,7 +113,7 @@ function StageShell({
   room,
 }: StageShellProps) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-between gap-4 p-6">
+    <div className="min-h-screen flex flex-col items-center gap-4 p-6">
       {isSwitching && (
         <div className="fixed inset-x-0 top-6 z-50 flex justify-center pointer-events-none">
           <div className="flex items-center gap-2.5 bg-base-100/75 backdrop-blur-md px-5 py-2 rounded-full border border-base-300 shadow-lg">
