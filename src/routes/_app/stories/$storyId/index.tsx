@@ -172,7 +172,6 @@ function StoryDetailPage() {
         ) : (
           <h1 className="flex-1 text-lg font-semibold">{story.title}</h1>
         )}
-        <StatusBadge status={story.status} />
 
         {isDirector && (
           <button
@@ -203,22 +202,25 @@ function StoryDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div role="tablist" className="tabs tabs-border mb-6 border-base-300">
-        {(['scenes', 'cast'] as const).map((tab) => (
-          <button
-            key={tab}
-            role="tab"
-            onClick={() => setActiveTab(tab)}
-            className={cn(
-              'tab font-display tracking-[0.05em] capitalize',
-              activeTab === tab
-                ? 'tab-active text-gold'
-                : 'text-base-content/40',
-            )}
-          >
-            {tab} ({tab === 'cast' ? cast.length : scenes.length})
-          </button>
-        ))}
+      <div className="flex justify-between items-center">
+        <div role="tablist" className="tabs tabs-border mb-6 border-base-300">
+          {(['scenes', 'cast'] as const).map((tab) => (
+            <button
+              key={tab}
+              role="tab"
+              onClick={() => setActiveTab(tab)}
+              className={cn(
+                'tab font-display tracking-[0.05em] capitalize',
+                activeTab === tab
+                  ? 'tab-active text-gold'
+                  : 'text-base-content/40',
+              )}
+            >
+              {tab} ({tab === 'cast' ? cast.length : scenes.length})
+            </button>
+          ))}
+        </div>
+        <StatusBadge status={story.status} />
       </div>
 
       {/* Cast tab */}
@@ -423,7 +425,9 @@ function StoryDetailPage() {
         }
         confirmText="Delete"
         pendingText="Deleting..."
-        onConfirm={() => sceneToDelete && removeSceneMutation.mutate(sceneToDelete.id)}
+        onConfirm={() =>
+          sceneToDelete && removeSceneMutation.mutate(sceneToDelete.id)
+        }
         onCancel={() => setSceneToDelete(null)}
         isPending={removeSceneMutation.isPending}
       />
@@ -440,7 +444,9 @@ function StoryDetailPage() {
         }
         confirmText="Remove"
         pendingText="Removing..."
-        onConfirm={() => castToDelete && removeCastMutation.mutate(castToDelete.id)}
+        onConfirm={() =>
+          castToDelete && removeCastMutation.mutate(castToDelete.id)
+        }
         onCancel={() => setCastToDelete(null)}
         isPending={removeCastMutation.isPending}
       />
