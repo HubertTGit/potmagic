@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { deleteStory } from '@/lib/stories.fns';
@@ -23,6 +23,7 @@ export function StoryGrid({
   isDirector: boolean;
 }) {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [storyToDelete, setStoryToDelete] = useState<{ id: string; title: string } | null>(null);
 
   const deleteMutation = useMutation({
@@ -45,7 +46,16 @@ export function StoryGrid({
           return (
             <div
               key={story.id}
-              className="card bg-base-200 shadow-sm hover:shadow-md transition-shadow"
+              className="card bg-base-200 shadow-sm hover:shadow-md transition-all cursor-pointer hover:outline-2 hover:outline-primary hover:outline-offset-2"
+              role="button"
+              tabIndex={0}
+              onClick={() => navigate({ to: '/stories/$storyId', params: { storyId: story.id } })}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  navigate({ to: '/stories/$storyId', params: { storyId: story.id } });
+                }
+              }}
             >
               <div className="card-body p-6">
                 <div className="flex justify-between items-start mb-2">
@@ -53,10 +63,13 @@ export function StoryGrid({
                     to="/stories/$storyId"
                     params={{ storyId: story.id }}
                     className="card-title font-medium hover:text-gold transition-colors text-lg"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     {story.title}
                   </Link>
-                  <StatusBadge status={story.status} />
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <StatusBadge status={story.status} />
+                  </div>
                 </div>
 
                 <div className="flex gap-4 text-sm text-base-content/60 mb-6">
@@ -74,7 +87,7 @@ export function StoryGrid({
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2 mt-auto w-full">
+                <div className="flex flex-col gap-2 mt-auto w-full" onClick={(e) => e.stopPropagation()}>
                   {firstScene && (
                     <Link
                       to="/stage/$sceneId"
@@ -95,7 +108,10 @@ export function StoryGrid({
                         Edit
                       </Link>
                       <button
-                        onClick={() => setStoryToDelete({ id: story.id, title: story.title })}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setStoryToDelete({ id: story.id, title: story.title });
+                        }}
                         disabled={deleteMutation.isPending}
                         className="btn btn-warning btn-xs flex-1"
                         title="Delete Story"
