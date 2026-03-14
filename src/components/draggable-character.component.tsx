@@ -108,9 +108,6 @@ export function DraggableCharacter({
     if (!room) return;
 
     const handler = (payload: Uint8Array) => {
-      // Local actor is authoritative for their own character — skip remote updates
-      if (canDragRef.current) return;
-
       let msg: PropMoveMessage;
       try {
         msg = JSON.parse(new TextDecoder().decode(payload)) as PropMoveMessage;
