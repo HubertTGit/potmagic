@@ -200,10 +200,11 @@ function SceneStagePage() {
       {showMicModal && (
         <div className="modal modal-open">
           <div className="modal-box max-w-sm">
-            <h3 className="font-bold text-lg mb-2">Microphone Access</h3>
+            <h3 className="font-bold text-lg mb-2">Live Session</h3>
             <p className="text-base-content/70 text-sm mb-6">
-              This stage uses your microphone for live voice collaboration with
-              other participants.
+              Join the remote session to collaborate with others in real-time.
+              Your microphone will be used for live voice interactions. You can
+              mute your microphone at any time.
             </p>
             <div className="modal-action flex-col gap-2">
               <button
@@ -213,7 +214,7 @@ function SceneStagePage() {
                   setMicState('granted');
                 }}
               >
-                Enable Microphone
+                Enter Session
               </button>
               <button
                 className="btn btn-ghost btn-sm w-full"
@@ -222,7 +223,7 @@ function SceneStagePage() {
                   setMicState('denied');
                 }}
               >
-                Continue without microphone
+                I don't want to join session.
               </button>
             </div>
           </div>
