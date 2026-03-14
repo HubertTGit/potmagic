@@ -24,7 +24,10 @@ export function StoryGrid({
 }) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [storyToDelete, setStoryToDelete] = useState<{ id: string; title: string } | null>(null);
+  const [storyToDelete, setStoryToDelete] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteStory({ data: { id } }),
@@ -49,11 +52,19 @@ export function StoryGrid({
               className="card bg-base-200 shadow-sm hover:shadow-md transition-all cursor-pointer hover:outline-2 hover:outline-primary hover:outline-offset-2"
               role="button"
               tabIndex={0}
-              onClick={() => navigate({ to: '/stories/$storyId', params: { storyId: story.id } })}
+              onClick={() =>
+                navigate({
+                  to: '/stories/$storyId',
+                  params: { storyId: story.id },
+                })
+              }
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  navigate({ to: '/stories/$storyId', params: { storyId: story.id } });
+                  navigate({
+                    to: '/stories/$storyId',
+                    params: { storyId: story.id },
+                  });
                 }
               }}
             >
@@ -87,7 +98,10 @@ export function StoryGrid({
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2 mt-auto w-full" onClick={(e) => e.stopPropagation()}>
+                <div
+                  className="flex flex-col gap-2 mt-auto w-full"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   {firstScene && (
                     <Link
                       to="/stage/$sceneId"
@@ -110,10 +124,13 @@ export function StoryGrid({
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          setStoryToDelete({ id: story.id, title: story.title });
+                          setStoryToDelete({
+                            id: story.id,
+                            title: story.title,
+                          });
                         }}
                         disabled={deleteMutation.isPending}
-                        className="btn btn-warning btn-xs flex-1"
+                        className="text-xs text-error/60 hover:text-error transition-colors"
                         title="Delete Story"
                       >
                         <TrashIcon className="size-4" />
@@ -133,12 +150,15 @@ export function StoryGrid({
         title="Confirm Deletion"
         message={
           <>
-            Are you sure you want to delete the story "{storyToDelete?.title}"? This action cannot be undone.
+            Are you sure you want to delete the story "{storyToDelete?.title}"?
+            This action cannot be undone.
           </>
         }
         confirmText="Delete"
         pendingText="Deleting..."
-        onConfirm={() => storyToDelete && deleteMutation.mutate(storyToDelete.id)}
+        onConfirm={() =>
+          storyToDelete && deleteMutation.mutate(storyToDelete.id)
+        }
         onCancel={() => setStoryToDelete(null)}
         isPending={deleteMutation.isPending}
       />
