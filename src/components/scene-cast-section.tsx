@@ -29,6 +29,7 @@ interface SceneCastSectionProps {
   nav?: {
     prev?: { id: string } | null;
     next?: { id: string } | null;
+    all?: { id: string; title: string }[] | null;
   } | null;
 }
 
@@ -53,39 +54,13 @@ export function SceneCastSection({
           Cast
         </h2>
 
-        {/* Scene navigator */}
-        <div className="flex justify-end items-center gap-2 text-sm text-base-content/40">
-          {nav?.prev ? (
-            <Link
-              to="/stories/$storyId/scenes/$sceneId"
-              params={{ storyId, sceneId: nav.prev.id }}
-              className="btn btn-xs btn-secondary px-2"
-            >
-              ‹
-            </Link>
-          ) : (
-            <span className="btn btn-xs btn-ghost px-2 opacity-20 pointer-events-none">
-              ‹
-            </span>
-          )}
-          <span>
-            <strong className="text-base-content">{sceneOrder}</strong> of{' '}
-            {totalScenes}
-          </span>
-          {nav?.next ? (
-            <Link
-              to="/stories/$storyId/scenes/$sceneId"
-              params={{ storyId, sceneId: nav.next.id }}
-              className="btn btn-xs btn-secondary px-2"
-            >
-              ›
-            </Link>
-          ) : (
-            <span className="btn btn-xs btn-ghost px-2 opacity-20 pointer-events-none">
-              ›
-            </span>
-          )}
-        </div>
+        <SceneNavigator
+          storyId={storyId}
+          sceneId={sceneId}
+          sceneOrder={sceneOrder}
+          totalScenes={totalScenes}
+          nav={nav}
+        />
       </div>
 
       <ul className="list bg-base-100 rounded-box shadow-sm mb-4 border border-base-300">
@@ -221,3 +196,44 @@ function CastDropdown({
     </div>
   );
 }
+
+function SceneNavigator({
+  storyId,
+  sceneId,
+  sceneOrder,
+  totalScenes,
+  nav,
+}: {
+  storyId: string;
+  sceneId: string;
+  sceneOrder: number;
+  totalScenes: number;
+  nav?: {
+    all?: { id: string; title: string }[] | null;
+  } | null;
+}) {
+  return (
+    <div className="join border border-base-300">
+      {nav?.all ? (
+        nav.all.map((s, idx) => (
+          <Link
+            key={s.id}
+            to="/stories/$storyId/scenes/$sceneId"
+            params={{ storyId, sceneId: s.id }}
+            className={cn(
+              "join-item btn btn-xs",
+              s.id === sceneId ? "btn-primary" : "btn-ghost"
+            )}
+          >
+            {idx + 1}
+          </Link>
+        ))
+      ) : (
+        <button className="join-item btn btn-xs btn-ghost btn-disabled no-animation">
+          {sceneOrder}
+        </button>
+      )}
+    </div>
+  );
+}
+

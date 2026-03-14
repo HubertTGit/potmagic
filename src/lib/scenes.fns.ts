@@ -275,6 +275,7 @@ export const getSceneNavigation = createServerFn({ method: 'GET' })
       current: { id: current.id, title: current.title },
       prev: idx > 0 ? allScenes[idx - 1] : null,
       next: idx < allScenes.length - 1 ? allScenes[idx + 1] : null,
+      all: allScenes,
     };
   });
 
