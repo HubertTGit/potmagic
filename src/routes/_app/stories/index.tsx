@@ -2,9 +2,9 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { authClient } from '@/lib/auth-client';
-import { listStories, createStory, deleteStory } from '@/lib/stories.fns';
-import { StatusBadge } from '@/components/status-badge.component';
-import { RectangleStackIcon, TrashIcon } from '@heroicons/react/24/solid';
+import { listStories, createStory } from '@/lib/stories.fns';
+import { StoryGrid } from '@/components/story-grid';
+
 
 export const Route = createFileRoute('/_app/stories/')({
   component: StoriesPage,
@@ -30,11 +30,6 @@ function StoriesPage() {
       setNewTitle('');
       setAdding(false);
     },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteStory({ data: { id } }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['stories'] }),
   });
 
   const handleAdd = () => {
@@ -89,76 +84,8 @@ function StoriesPage() {
 
       {isLoading ? (
         <p className="text-base-content/40 text-sm">Loading…</p>
-      ) : stories.length === 0 ? (
-        <p className="text-base-content/40 text-sm">No stories yet.</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {stories.map((story) => {
-            const firstScene = story.scenes[0];
-            return (
-              <div
-                key={story.id}
-                className="card bg-base-200 shadow-sm hover:shadow-md transition-shadow"
-              >
-                <div className="card-body p-6">
-                  <div className="flex justify-between items-start mb-2">
-                    <Link
-                      to="/stories/$storyId"
-                      params={{ storyId: story.id }}
-                      className="card-title font-medium hover:text-gold transition-colors text-lg"
-                    >
-                      {story.title}
-                    </Link>
-                    <StatusBadge status={story.status} />
-                  </div>
-                  
-                  <div className="flex gap-4 text-sm text-base-content/60 mb-6">
-                    <div>
-                      <span className="font-semibold text-base-content/80">{story.castCount}</span> Actors
-                    </div>
-                    <div>
-                      <span className="font-semibold text-base-content/80">{story.sceneCount}</span> Scenes
-                    </div>
-                  </div>
-
-                  <div className="card-actions justify-between items-center mt-auto">
-                    {firstScene ? (
-                      <Link
-                        to="/stage/$sceneId"
-                        params={{ sceneId: firstScene.id }}
-                        className="btn btn-sm btn-neutral gap-2"
-                      >
-                        Enter Stage <RectangleStackIcon className="size-4" />
-                      </Link>
-                    ) : (
-                      <div />
-                    )}
-                    
-                    {isDirector && (
-                      <div className="flex gap-2">
-                        <Link
-                          to="/stories/$storyId"
-                          params={{ storyId: story.id }}
-                          className="btn btn-primary btn-sm"
-                        >
-                          Edit
-                        </Link>
-                        <button
-                          onClick={() => deleteMutation.mutate(story.id)}
-                          disabled={deleteMutation.isPending}
-                          className="btn btn-accent btn-sm"
-                          title="Delete Story"
-                        >
-                          <TrashIcon className="size-4" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <StoryGrid stories={stories} isDirector={isDirector} />
       )}
     </div>
   );

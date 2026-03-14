@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { listStories } from '@/lib/stories.fns';
 import {
@@ -10,7 +10,7 @@ import {
 } from '@/lib/props.fns';
 import { StatusBadge } from '@/components/status-badge.component';
 import { cn } from '@/lib/cn';
-import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { PhotoIcon, XMarkIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { updateStoryStatus } from '@/lib/story-detail.fns';
 import { toast } from '@/lib/toast';
 
@@ -269,6 +269,22 @@ function LibrarySection({
   } | null>(null);
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (selectedIndex === null) return;
+      if (e.key === 'Escape') setSelectedIndex(null);
+      if (e.key === 'ArrowRight') {
+        setSelectedIndex((prev) => (prev !== null && prev < items.length - 1 ? prev + 1 : prev));
+      }
+      if (e.key === 'ArrowLeft') {
+        setSelectedIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : prev));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedIndex, items.length]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -397,10 +413,11 @@ function LibrarySection({
         </div>
       ) : !isLoading ? (
         <div className="grid grid-cols-4 gap-3">
-          {items.map((item) => (
+          {items.map((item, index) => (
             <div
               key={item.id}
-              className="group relative rounded-xl overflow-hidden bg-base-200 border border-base-300 aspect-square"
+              onClick={() => setSelectedIndex(index)}
+              className="group relative rounded-xl overflow-hidden bg-base-200 border border-base-300 aspect-square cursor-pointer"
             >
               {item.imageUrl && (
                 <img
@@ -414,7 +431,10 @@ function LibrarySection({
                   {item.name}
                 </span>
                 <button
-                  onClick={() => handleRemove(item.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemove(item.id);
+                  }}
                   disabled={!!deletingId}
                   className="text-error/70 hover:text-error transition-colors disabled:opacity-50"
                 >
@@ -434,6 +454,70 @@ function LibrarySection({
           ))}
         </div>
       ) : null}
+
+      {/* Image Modal */}
+      {selectedIndex !== null && items[selectedIndex] && (
+        <dialog className="modal modal-open backdrop-blur-sm">
+          <div className="modal-box max-w-[95vw] md:max-w-[85vw] bg-transparent shadow-none p-0 overflow-visible relative flex flex-col items-center justify-center">
+            {/* Close button */}
+            <button
+              onClick={() => setSelectedIndex(null)}
+              className="btn btn-circle btn-sm btn-ghost bg-base-100/50 hover:bg-base-100 backdrop-blur-md absolute -top-12 right-0 md:-top-4 md:-right-12 xl:-right-16 z-50 text-base-content/80"
+              title="Close (Esc)"
+            >
+              <XMarkIcon className="size-5" />
+            </button>
+
+            {/* Prev button */}
+            {selectedIndex > 0 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedIndex(selectedIndex - 1);
+                }}
+                className="btn btn-circle btn-ghost bg-base-100/50 hover:bg-base-100 backdrop-blur-md absolute top-1/2 -translate-y-1/2 left-2 md:-left-12 xl:-left-16 z-50 shadow-md text-base-content/80"
+                title="Previous (Left Arrow)"
+              >
+                <ChevronLeftIcon className="size-6" />
+              </button>
+            )}
+
+            {/* Next button */}
+            {selectedIndex < items.length - 1 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedIndex(selectedIndex + 1);
+                }}
+                className="btn btn-circle btn-ghost bg-base-100/50 hover:bg-base-100 backdrop-blur-md absolute top-1/2 -translate-y-1/2 right-2 md:-right-12 xl:-right-16 z-50 shadow-md text-base-content/80"
+                title="Next (Right Arrow)"
+              >
+                <ChevronRightIcon className="size-6" />
+              </button>
+            )}
+
+            <div className="bg-base-100/5 p-2 rounded-2xl relative inline-block max-w-full">
+              <img
+                src={items[selectedIndex].imageUrl!}
+                alt={items[selectedIndex].name}
+                className="max-h-[80vh] w-auto max-w-full object-contain rounded-xl shadow-2xl bg-base-100/80"
+              />
+            </div>
+            
+            <div className="mt-4 flex flex-col items-center pb-8">
+              <p className="font-medium bg-base-100/80 backdrop-blur-md px-6 py-2 rounded-full shadow-lg text-base-content text-sm inline-flex items-center gap-2">
+                {items[selectedIndex].name} 
+                <span className="text-base-content/50 font-normal text-xs px-2 py-0.5 bg-base-content/5 rounded-full">
+                  {selectedIndex + 1} / {items.length}
+                </span>
+              </p>
+            </div>
+          </div>
+          <form method="dialog" className="modal-backdrop bg-base-200/60">
+            <button onClick={() => setSelectedIndex(null)}>close</button>
+          </form>
+        </dialog>
+      )}
     </div>
   );
 }
