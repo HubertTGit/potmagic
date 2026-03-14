@@ -213,7 +213,7 @@ function SceneNavigator({
   } | null;
 }) {
   return (
-    <div className="join border border-base-300">
+    <div className="join border border-base-300 rounded-2xl">
       {nav?.all ? (
         nav.all.map((s, idx) => (
           <Link
@@ -221,19 +221,16 @@ function SceneNavigator({
             to="/stories/$storyId/scenes/$sceneId"
             params={{ storyId, sceneId: s.id }}
             className={cn(
-              "join-item btn btn-xs",
-              s.id === sceneId ? "btn-primary" : "btn-ghost"
+              'join-item btn btn-xs',
+              s.id === sceneId ? 'btn-primary' : 'btn-ghost',
             )}
           >
             {idx + 1}
           </Link>
         ))
       ) : (
-        <button className="join-item btn btn-xs btn-ghost btn-disabled no-animation">
-          {sceneOrder}
-        </button>
+        <button className="join-item btn btn-xs">{sceneOrder}</button>
       )}
     </div>
   );
 }
-
