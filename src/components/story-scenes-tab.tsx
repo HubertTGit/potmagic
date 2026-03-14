@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { TrashIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/cn';
 
@@ -29,6 +29,7 @@ export function StoryScenesTab({
   isRemovingScene,
 }: StoryScenesTabProps) {
   const [newSceneTitle, setNewSceneTitle] = useState('');
+  const navigate = useNavigate();
 
   const handleAddScene = () => {
     if (!newSceneTitle.trim()) return;
@@ -38,41 +39,44 @@ export function StoryScenesTab({
 
   return (
     <div>
-      <div className="flex flex-col gap-2 mb-4">
+      <ul className="list bg-base-100 rounded-box shadow-sm mb-4 border border-base-300">
         {scenes.length === 0 ? (
-          <p className="text-base-content/40 text-sm">No scenes yet.</p>
+          <li className="list-row p-4 text-base-content/40 text-sm">No scenes yet.</li>
         ) : (
           scenes.map((scene) => (
-            <div
+            <li
               key={scene.id}
-              className="flex items-center justify-between bg-base-200 rounded-lg px-4 py-3 border border-base-300"
+              className="list-row items-center hover:bg-base-200 cursor-pointer transition-colors group first:rounded-t-box last:rounded-b-box"
+              onClick={() => navigate({ to: '/stories/$storyId/scenes/$sceneId', params: { storyId, sceneId: scene.id } })}
             >
-              <span className="text-sm">
-                <span className="text-base-content/40 mr-2">{scene.order}.</span>
+              <div className="text-base-content/40 text-sm tabular-nums font-medium w-6">
+                {scene.order}.
+              </div>
+              <div className="list-col-grow text-sm font-medium">
                 {scene.title}
-              </span>
+              </div>
               <div className="flex items-center gap-3">
-                <Link
-                  to="/stories/$storyId/scenes/$sceneId"
-                  params={{ storyId, sceneId: scene.id }}
-                  className="btn btn-xs btn-primary font-display tracking-[0.05em]"
-                >
-                  Details →
-                </Link>
+                <span className="text-xs text-base-content/20 group-hover:text-base-content/40 transition-colors mr-1">
+                  Click to view details →
+                </span>
                 {isDirector && (
                   <button
-                    onClick={() => onRemoveScene(scene.id, scene.title)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemoveScene(scene.id, scene.title);
+                    }}
                     disabled={isRemovingScene}
-                    className="text-xs text-error/60 hover:text-error transition-colors"
+                    className="text-xs text-error/60 hover:text-error transition-colors p-2 hover:bg-error/10 rounded-lg"
+                    title="Remove scene"
                   >
                     <TrashIcon className="size-4" />
                   </button>
                 )}
               </div>
-            </div>
+            </li>
           ))
         )}
-      </div>
+      </ul>
 
       {isDirector && (
         <div className="flex gap-2 items-center">
