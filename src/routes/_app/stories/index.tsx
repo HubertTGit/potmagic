@@ -92,74 +92,72 @@ function StoriesPage() {
       ) : stories.length === 0 ? (
         <p className="text-base-content/40 text-sm">No stories yet.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="table table-sm w-full">
-            <thead>
-              <tr className="text-base-content/50 text-xs uppercase tracking-wider">
-                <th>Title</th>
-                <th>Status</th>
-                <th>Actors</th>
-                <th>Scenes</th>
-                <th />
-                {isDirector && <th />}
-              </tr>
-            </thead>
-            <tbody>
-              {stories.map((story) => {
-                const firstScene = story.scenes[0];
-                return (
-                  <tr
-                    key={story.id}
-                    className="hover:bg-base-200 transition-colors"
-                  >
-                    <td>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {stories.map((story) => {
+            const firstScene = story.scenes[0];
+            return (
+              <div
+                key={story.id}
+                className="card bg-base-200 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div className="card-body p-6">
+                  <div className="flex justify-between items-start mb-2">
+                    <Link
+                      to="/stories/$storyId"
+                      params={{ storyId: story.id }}
+                      className="card-title font-medium hover:text-gold transition-colors text-lg"
+                    >
+                      {story.title}
+                    </Link>
+                    <StatusBadge status={story.status} />
+                  </div>
+                  
+                  <div className="flex gap-4 text-sm text-base-content/60 mb-6">
+                    <div>
+                      <span className="font-semibold text-base-content/80">{story.castCount}</span> Actors
+                    </div>
+                    <div>
+                      <span className="font-semibold text-base-content/80">{story.sceneCount}</span> Scenes
+                    </div>
+                  </div>
+
+                  <div className="card-actions justify-between items-center mt-auto">
+                    {firstScene ? (
                       <Link
-                        to="/stories/$storyId"
-                        params={{ storyId: story.id }}
-                        className="font-medium hover:text-gold transition-colors"
+                        to="/stage/$sceneId"
+                        params={{ sceneId: firstScene.id }}
+                        className="btn btn-sm btn-neutral gap-2"
                       >
-                        {story.title}
+                        Enter Stage <RectangleStackIcon className="size-4" />
                       </Link>
-                    </td>
-                    <td>
-                      <StatusBadge status={story.status} />
-                    </td>
-                    <td className="text-base-content/50">{story.castCount}</td>
-                    <td className="text-base-content/50">{story.sceneCount}</td>
-                    <td>
-                      {firstScene && (
-                        <Link
-                          to="/stage/$sceneId"
-                          params={{ sceneId: firstScene.id }}
-                          className="btn btn-xs btn-neutral gap-1"
-                        >
-                          Enter Stage <RectangleStackIcon className="size-3" />
-                        </Link>
-                      )}
-                    </td>
+                    ) : (
+                      <div />
+                    )}
+                    
                     {isDirector && (
-                      <td className="flex gap-2 justify-end">
+                      <div className="flex gap-2">
                         <Link
                           to="/stories/$storyId"
                           params={{ storyId: story.id }}
-                          className="btn btn-primary btn-xs"
+                          className="btn btn-primary btn-sm"
                         >
                           Edit
                         </Link>
                         <button
                           onClick={() => deleteMutation.mutate(story.id)}
                           disabled={deleteMutation.isPending}
-                          className="btn btn-accent btn-xs text-xs"
+                          className="btn btn-accent btn-sm"
+                          title="Delete Story"
                         >
-                          <TrashIcon className="size-3" />
+                          <TrashIcon className="size-4" />
                         </button>
-                      </td>
+                      </div>
                     )}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
