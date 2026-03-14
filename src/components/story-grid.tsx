@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { deleteStory } from '@/lib/stories.fns';
 import { StatusBadge } from '@/components/status-badge.component';
+import { ConfirmModal } from '@/components/confirm-modal';
 import { RectangleStackIcon, TrashIcon } from '@heroicons/react/24/solid';
 
 type Story = {
@@ -111,35 +112,20 @@ export function StoryGrid({
       </div>
 
       {/* Delete Confirmation Modal */}
-      {storyToDelete && (
-        <dialog className="modal modal-open">
-          <div className="modal-box">
-            <h3 className="font-bold text-lg">Confirm Deletion</h3>
-            <p className="py-4">
-              Are you sure you want to delete the story "{storyToDelete.title}"? This action cannot be undone.
-            </p>
-            <div className="modal-action">
-              <button
-                className="btn btn-warning"
-                onClick={() => deleteMutation.mutate(storyToDelete.id)}
-                disabled={deleteMutation.isPending}
-              >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-              </button>
-              <button
-                className="btn"
-                onClick={() => setStoryToDelete(null)}
-                disabled={deleteMutation.isPending}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-          <form method="dialog" className="modal-backdrop">
-            <button onClick={() => setStoryToDelete(null)}>close</button>
-          </form>
-        </dialog>
-      )}
+      <ConfirmModal
+        isOpen={!!storyToDelete}
+        title="Confirm Deletion"
+        message={
+          <>
+            Are you sure you want to delete the story "{storyToDelete?.title}"? This action cannot be undone.
+          </>
+        }
+        confirmText="Delete"
+        pendingText="Deleting..."
+        onConfirm={() => storyToDelete && deleteMutation.mutate(storyToDelete.id)}
+        onCancel={() => setStoryToDelete(null)}
+        isPending={deleteMutation.isPending}
+      />
     </>
   );
 }

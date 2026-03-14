@@ -12,6 +12,7 @@ import {
 } from '@/lib/story-detail.fns';
 import { StatusBadge } from '@/components/status-badge.component';
 import { Breadcrumb } from '@/components/breadcrumb.component';
+import { ConfirmModal } from '@/components/confirm-modal';
 import { cn } from '@/lib/cn';
 import { authClient } from '@/lib/auth-client';
 import { TrashIcon } from '@heroicons/react/24/outline';
@@ -411,68 +412,38 @@ function StoryDetailPage() {
       )}
 
       {/* Delete Scene Confirmation Modal */}
-      {sceneToDelete && (
-        <dialog className="modal modal-open">
-          <div className="modal-box">
-            <h3 className="font-bold text-lg">Confirm Deletion</h3>
-            <p className="py-4">
-              Are you sure you want to delete the scene "{sceneToDelete.title}"?
-              This action cannot be undone.
-            </p>
-            <div className="modal-action">
-              <button
-                className="btn btn-warning"
-                onClick={() => removeSceneMutation.mutate(sceneToDelete.id)}
-                disabled={removeSceneMutation.isPending}
-              >
-                {removeSceneMutation.isPending ? 'Deleting...' : 'Delete'}
-              </button>
-              <button
-                className="btn"
-                onClick={() => setSceneToDelete(null)}
-                disabled={removeSceneMutation.isPending}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-          <form method="dialog" className="modal-backdrop">
-            <button onClick={() => setSceneToDelete(null)}>close</button>
-          </form>
-        </dialog>
-      )}
+      <ConfirmModal
+        isOpen={!!sceneToDelete}
+        title="Confirm Deletion"
+        message={
+          <>
+            Are you sure you want to delete the scene "{sceneToDelete?.title}"?
+            This action cannot be undone.
+          </>
+        }
+        confirmText="Delete"
+        pendingText="Deleting..."
+        onConfirm={() => sceneToDelete && removeSceneMutation.mutate(sceneToDelete.id)}
+        onCancel={() => setSceneToDelete(null)}
+        isPending={removeSceneMutation.isPending}
+      />
 
       {/* Remove Cast Confirmation Modal */}
-      {castToDelete && (
-        <dialog className="modal modal-open">
-          <div className="modal-box">
-            <h3 className="font-bold text-lg">Confirm Removal</h3>
-            <p className="py-4">
-              Are you sure you want to remove "{castToDelete.name}" from the
-              cast?
-            </p>
-            <div className="modal-action">
-              <button
-                className="btn btn-warning"
-                onClick={() => removeCastMutation.mutate(castToDelete.id)}
-                disabled={removeCastMutation.isPending}
-              >
-                {removeCastMutation.isPending ? 'Removing...' : 'Remove'}
-              </button>
-              <button
-                className="btn"
-                onClick={() => setCastToDelete(null)}
-                disabled={removeCastMutation.isPending}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-          <form method="dialog" className="modal-backdrop">
-            <button onClick={() => setCastToDelete(null)}>close</button>
-          </form>
-        </dialog>
-      )}
+      <ConfirmModal
+        isOpen={!!castToDelete}
+        title="Confirm Removal"
+        message={
+          <>
+            Are you sure you want to remove "{castToDelete?.name}" from the
+            cast?
+          </>
+        }
+        confirmText="Remove"
+        pendingText="Removing..."
+        onConfirm={() => castToDelete && removeCastMutation.mutate(castToDelete.id)}
+        onCancel={() => setCastToDelete(null)}
+        isPending={removeCastMutation.isPending}
+      />
     </div>
   );
 }
