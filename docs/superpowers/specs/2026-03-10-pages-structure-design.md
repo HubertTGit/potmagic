@@ -4,7 +4,7 @@ Date: 2026-03-10
 
 ## Overview
 
-Add profile, stories list, story detail, and scene detail pages to honeypotmagic. UI only — no database connections in this phase. Refactor root layout to use a persistent left sidebar.
+Add profile, stories list, story detail, and scene detail pages to potmagic. UI only — no database connections in this phase. Refactor root layout to use a persistent left sidebar.
 
 ## Decisions
 
@@ -31,7 +31,7 @@ Stage (`/stage`) and broadcast (`/broadcast/:roomId`) routes keep full-screen la
 Persistent left sidebar (~200px wide) on all authenticated routes except stage/broadcast.
 
 Contents (top to bottom):
-- App name "honeypotmagic"
+- App name "potmagic"
 - Nav links: Stories, Stage, Director (director role only)
 - Bottom: Profile link, theme toggle, Logout
 

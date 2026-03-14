@@ -1,4 +1,4 @@
-# HoneypotMagic
+# PotMagic
 
 An online collaborative theater platform for storytelling. Groups perform interactive stories together using animated canvas characters, with a public live broadcast stream for audiences.
 

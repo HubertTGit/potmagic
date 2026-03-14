@@ -5,7 +5,7 @@
 
 ## Overview
 
-Add Supabase Storage to honeypotmagic so directors can upload character and background images via the Library tab in the director dashboard. Images are stored in a Supabase bucket; public URLs are persisted in the `props` database table.
+Add Supabase Storage to potmagic so directors can upload character and background images via the Library tab in the director dashboard. Images are stored in a Supabase bucket; public URLs are persisted in the `props` database table.
 
 ## Scope
 

@@ -1,6 +1,6 @@
 # SPEC_LIVE — Live Collaboration
 
-Specifies real-time multi-user voice and data collaboration for honeypotmagic, built on LiveKit (WebRTC + SFU).
+Specifies real-time multi-user voice and data collaboration for potmagic, built on LiveKit (WebRTC + SFU).
 
 ---
 

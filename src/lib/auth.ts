@@ -32,7 +32,7 @@ export const auth = betterAuth({
       await resend.emails.send({
         from: process.env.FROM_EMAIL!,
         to: user.email,
-        subject: 'Reset your honeypotmagic password',
+        subject: 'Reset your potmagic password',
         html: `
           <p>You requested a password reset.</p>
           <p><a href="${url}">Click here to reset your password</a></p>

@@ -1,8 +1,8 @@
-# HoneypotMagic — Theater App Specification
+# PotMagic — Theater App Specification
 
 ## Overview
 
-HoneypotMagic is an online collaborative theater platform for storytelling. Groups of people can perform interactive stories together using animated canvas characters/cast, with a public broadcast stream for audiences.
+PotMagic is an online collaborative theater platform for storytelling. Groups of people can perform interactive stories together using animated canvas characters/cast, with a public broadcast stream for audiences.
 
 Two access modes:
 - **Authenticated** — actors and directors perform and manage stories
