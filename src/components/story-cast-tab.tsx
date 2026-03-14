@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { TrashIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/cn';
+import { PropTypePill } from './prop-type-pill';
 
 type Prop = {
   id: string;
@@ -34,19 +35,6 @@ interface StoryCastTabProps {
   onRemoveCast: (castId: string, name: string) => void;
   onAssignProp: (castId: string, propId: string | null) => void;
   isRemovingCast: boolean;
-}
-
-function PropTypePill({ type }: { type: 'character' | 'background' }) {
-  return (
-    <span
-      className={cn(
-        'text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0',
-        type === 'character' ? 'bg-gold/15 text-gold' : 'bg-info/15 text-info',
-      )}
-    >
-      {type}
-    </span>
-  );
 }
 
 function PropPicker({
