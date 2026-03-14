@@ -12,6 +12,8 @@ import {
   ArrowRightEndOnRectangleIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  AcademicCapIcon,
+  Square3Stack3DIcon,
 } from '@heroicons/react/24/outline';
 
 export function Sidebar() {
@@ -63,7 +65,10 @@ export function Sidebar() {
           collapsed ? 'justify-center px-0' : 'px-4',
         )}
       >
-        <Link to="/" className="font-display italic font-semibold text-gold text-lg leading-none select-none hover:opacity-75 transition-opacity">
+        <Link
+          to="/"
+          className="font-display italic font-semibold text-gold text-lg leading-none select-none hover:opacity-75 transition-opacity"
+        >
           {collapsed ? 'p' : 'potmagic'}
         </Link>
         <button
@@ -86,7 +91,7 @@ export function Sidebar() {
       <nav className="flex flex-col gap-1 p-2 flex-1">
         <SidebarLink
           to="/stories/"
-          icon={<BookOpenIcon className="size-4" />}
+          icon={<Square3Stack3DIcon className="size-4" />}
           collapsed={collapsed}
         >
           Stories
@@ -94,7 +99,7 @@ export function Sidebar() {
         {isDirector && (
           <SidebarLink
             to="/director"
-            icon={<Cog6ToothIcon className="size-4" />}
+            icon={<AcademicCapIcon className="size-4" />}
             collapsed={collapsed}
           >
             Director

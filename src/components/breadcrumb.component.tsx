@@ -1,5 +1,9 @@
 import { Link } from '@tanstack/react-router';
-import { RectangleStackIcon, FilmIcon } from '@heroicons/react/24/outline';
+import {
+  RectangleStackIcon,
+  FilmIcon,
+  Square3Stack3DIcon,
+} from '@heroicons/react/24/outline';
 
 interface Crumb {
   label: string;
@@ -17,7 +21,9 @@ export function Breadcrumb({ crumbs }: { crumbs: Crumb[] }) {
           return (
             <li key={i}>
               <div className="flex items-center gap-2">
-                {crumb.type === 'story' && <RectangleStackIcon className="w-4 h-4" />}
+                {crumb.type === 'story' && (
+                  <Square3Stack3DIcon className="w-4 h-4" />
+                )}
                 {crumb.type === 'scene' && <FilmIcon className="w-4 h-4" />}
                 {crumb.to && !isLast ? (
                   <Link
