@@ -75,7 +75,7 @@ export const listProps = createServerFn({ method: 'GET' })
   .handler(async ({ data }) => {
     await requireDirector();
 
-    return db
+    return await db
       .select()
       .from(props)
       .where(eq(props.type, data.type))

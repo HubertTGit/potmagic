@@ -82,7 +82,7 @@ export const deleteStory = createServerFn({ method: 'POST' })
   })
 
 export const listPublicStories = createServerFn({ method: 'GET' }).handler(async () => {
-  return db
+  return await db
     .select({ id: stories.id, title: stories.title, status: stories.status })
     .from(stories)
     .orderBy(stories.createdAt)
