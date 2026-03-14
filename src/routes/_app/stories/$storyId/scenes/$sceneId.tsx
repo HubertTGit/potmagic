@@ -277,7 +277,11 @@ function SceneDetailPage() {
         </div>
 
         {isDirector && availableCast.length > 0 && (
-          <CastDropdown availableCast={availableCast} onAdd={handleAddCast} />
+          <CastDropdown
+            availableCast={availableCast}
+            onAdd={handleAddCast}
+            isLoading={addCastMutation.isPending}
+          />
         )}
       </div>
 
@@ -315,9 +319,12 @@ function SceneDetailPage() {
                 <button
                   onClick={() => handleAssignBackground(null)}
                   disabled={assignBgMutation.isPending}
-                  className="text-xs text-error/60 hover:text-error transition-colors"
+                  className="text-xs text-error/60 hover:text-error transition-colors flex items-center gap-1"
                 >
-                  Remove
+                  {assignBgMutation.isPending && (
+                    <span className="loading loading-spinner loading-xs" />
+                  )}
+                  <TrashIcon className="size-4" />
                 </button>
               )}
             </div>
@@ -329,6 +336,7 @@ function SceneDetailPage() {
             availableBackgrounds={availableBackgrounds}
             onAssign={handleAssignBackground}
             currentId={background?.id}
+            isLoading={assignBgMutation.isPending}
           />
         )}
       </div>
@@ -344,7 +352,9 @@ function SceneDetailPage() {
         }
         confirmText="Remove"
         pendingText="Removing..."
-        onConfirm={() => castToDelete && removeCastMutation.mutate(castToDelete.id)}
+        onConfirm={() =>
+          castToDelete && removeCastMutation.mutate(castToDelete.id)
+        }
         onCancel={() => setCastToDelete(null)}
         isPending={removeCastMutation.isPending}
       />
@@ -355,9 +365,11 @@ function SceneDetailPage() {
 function CastDropdown({
   availableCast,
   onAdd,
+  isLoading,
 }: {
   availableCast: CastMember[];
   onAdd: (castMember: CastMember) => void;
+  isLoading?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -375,9 +387,11 @@ function CastDropdown({
     <div ref={ref} className="relative w-64">
       <button
         onClick={() => setOpen((o) => !o)}
+        disabled={isLoading}
         className="btn btn-sm btn-outline btn-gold font-display w-full justify-start"
       >
-        + Add cast member
+        {isLoading && <span className="loading loading-spinner loading-xs" />}+
+        Add cast member
       </button>
       {open && (
         <div className="absolute top-full mt-1 w-full bg-base-200 border border-base-300 rounded-lg shadow-xl z-50 overflow-hidden">
@@ -432,10 +446,12 @@ function BackgroundDropdown({
   availableBackgrounds,
   onAssign,
   currentId,
+  isLoading,
 }: {
   availableBackgrounds: BackgroundProp[];
   onAssign: (bg: BackgroundProp) => void;
   currentId?: string;
+  isLoading?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -453,8 +469,10 @@ function BackgroundDropdown({
     <div ref={ref} className="relative w-64">
       <button
         onClick={() => setOpen((o) => !o)}
+        disabled={isLoading}
         className="btn btn-sm btn-outline btn-info font-display w-full justify-start"
       >
+        {isLoading && <span className="loading loading-spinner loading-xs" />}
         {currentId ? 'Change background' : '+ Assign background'}
       </button>
       {open && (
