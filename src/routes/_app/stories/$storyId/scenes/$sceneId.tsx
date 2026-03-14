@@ -1,6 +1,11 @@
 import { createFileRoute, Link, ErrorComponent } from '@tanstack/react-router';
 import { useState, useEffect, useRef } from 'react';
-import { useSuspenseQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  useSuspenseQuery,
+  useQuery,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 import {
   getSceneDetail,
   updateSceneTitle,
@@ -11,8 +16,10 @@ import {
 } from '@/lib/scenes.fns';
 import { Breadcrumb } from '@/components/breadcrumb.component';
 import { cn } from '@/lib/cn';
+import { ConfirmModal } from '@/components/confirm-modal';
 import { authClient } from '@/lib/auth-client';
 import { toast } from '@/lib/toast';
+import { TrashIcon } from '@heroicons/react/24/outline';
 
 export const Route = createFileRoute('/_app/stories/$storyId/scenes/$sceneId')({
   component: SceneDetailPage,
@@ -62,10 +69,12 @@ function SceneDetailPage() {
   const story = data?.story;
   const storyCast: CastMember[] = (data?.storyCast ?? []) as CastMember[];
   const sceneCastIds = new Set(data?.sceneCastIds ?? []);
-  const background: BackgroundProp | null = data?.background as BackgroundProp | null;
+  const background: BackgroundProp | null =
+    data?.background as BackgroundProp | null;
   const storyProps = (data?.props ?? []) as BackgroundProp[];
 
   const [title, setTitle] = useState('');
+  const [castToDelete, setCastToDelete] = useState<CastMember | null>(null);
 
   useEffect(() => {
     if (scene) setTitle(scene.title);
@@ -87,7 +96,10 @@ function SceneDetailPage() {
   const removeCastMutation = useMutation({
     mutationFn: (castId: string) =>
       removeSceneCast({ data: { sceneId, castId } }),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      setCastToDelete(null);
+    },
   });
 
   const assignBgMutation = useMutation({
@@ -110,7 +122,9 @@ function SceneDetailPage() {
   const availableCast = storyCast.filter(
     (c) => !sceneCastIds.has(c.id) && c.propType === 'character',
   );
-  const availableBackgrounds = storyProps.filter((p) => p.type === 'background');
+  const availableBackgrounds = storyProps.filter(
+    (p) => p.type === 'background',
+  );
 
   const handleAddCast = (castMember: CastMember) => {
     addCastMutation.mutate(castMember.id);
@@ -250,11 +264,11 @@ function SceneDetailPage() {
                 </div>
                 {isDirector && (
                   <button
-                    onClick={() => removeCastMutation.mutate(c.id)}
+                    onClick={() => setCastToDelete(c)}
                     disabled={removeCastMutation.isPending}
                     className="text-xs text-error/60 hover:text-error transition-colors"
                   >
-                    Remove
+                    <TrashIcon className="size-4" />
                   </button>
                 )}
               </div>
@@ -318,6 +332,22 @@ function SceneDetailPage() {
           />
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={!!castToDelete}
+        title="Confirm Removal"
+        message={
+          <>
+            Are you sure you want to remove "{castToDelete?.userName}" from the
+            scene?
+          </>
+        }
+        confirmText="Remove"
+        pendingText="Removing..."
+        onConfirm={() => castToDelete && removeCastMutation.mutate(castToDelete.id)}
+        onCancel={() => setCastToDelete(null)}
+        isPending={removeCastMutation.isPending}
+      />
     </div>
   );
 }
