@@ -46,6 +46,17 @@ export function Sidebar() {
     }
   };
 
+  const expandSidebar = () => {
+    if (collapsed) {
+      setCollapsed(false);
+      if (!isStage) {
+        try {
+          localStorage.setItem('sidebar-collapsed', 'false');
+        } catch {}
+      }
+    }
+  };
+
   const handleLogout = async () => {
     await authClient.signOut();
     router.navigate({ to: '/auth' });
@@ -93,6 +104,7 @@ export function Sidebar() {
           to="/stories/"
           icon={<Square3Stack3DIcon className="size-4" />}
           collapsed={collapsed}
+          onClick={expandSidebar}
         >
           Stories
         </SidebarLink>
@@ -101,6 +113,7 @@ export function Sidebar() {
             to="/director"
             icon={<AcademicCapIcon className="size-4" />}
             collapsed={collapsed}
+            onClick={expandSidebar}
           >
             Director
           </SidebarLink>
@@ -113,6 +126,7 @@ export function Sidebar() {
           to="/profile"
           icon={<UserCircleIcon className="size-4" />}
           collapsed={collapsed}
+          onClick={expandSidebar}
         >
           Profile
         </SidebarLink>
@@ -153,16 +167,19 @@ function SidebarLink({
   to,
   icon,
   collapsed,
+  onClick,
   children,
 }: {
   to: string;
   icon: React.ReactNode;
   collapsed: boolean;
+  onClick?: () => void;
   children: React.ReactNode;
 }) {
   return (
     <Link
       to={to}
+      onClick={onClick}
       title={collapsed ? String(children) : undefined}
       className={cn(
         'flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-base-content/60',
