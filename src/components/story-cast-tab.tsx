@@ -73,7 +73,7 @@ function PropPicker({
       <div
         tabIndex={0}
         role="button"
-        className="flex items-center gap-2 hover:opacity-75 transition-opacity"
+        className="flex items-center gap-2 hover:opacity-75 transition-opacity cursor-pointer"
       >
         {propId ? (
           <>
