@@ -56,29 +56,23 @@ function PropPicker({
   usedPropIds: Set<string>;
   onAssign: (castId: string, propId: string | null) => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
-
   // Show props not used by other cast members, plus the currently assigned one, and ONLY of type 'character'
   const selectableProps = availableProps.filter(
     (p) =>
       p.type === 'character' && (!usedPropIds.has(p.id) || p.id === propId),
   );
 
+  const closeDropdown = () => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  };
+
   return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={() => setOpen((o) => !o)}
+    <div className="dropdown dropdown-bottom dropdown-start">
+      <div
+        tabIndex={0}
+        role="button"
         className="flex items-center gap-2 hover:opacity-75 transition-opacity"
       >
         {propId ? (
@@ -100,25 +94,27 @@ function PropPicker({
             Assign prop…
           </span>
         )}
-      </button>
+      </div>
 
-      {open && (
-        <div className="absolute left-0 top-full mt-1 w-64 bg-base-200 border border-base-300 rounded-lg shadow-xl z-50 overflow-hidden">
-          {selectableProps.length === 0 ? (
-            <p className="text-xs text-base-content/40 px-3 py-2">
-              No props available
-            </p>
-          ) : (
-            selectableProps.map((p) => (
+      <div
+        tabIndex={0}
+        className="dropdown-content mt-1 w-64 bg-base-200 border border-base-300 rounded-lg shadow-xl z-50 overflow-hidden"
+      >
+        {selectableProps.length === 0 ? (
+          <p className="text-xs text-base-content/40 px-3 py-2">
+            No props available
+          </p>
+        ) : (
+          <div className="flex flex-col">
+            {selectableProps.map((p) => (
               <button
                 key={p.id}
-                onMouseDown={(e) => {
-                  e.preventDefault();
+                onClick={() => {
                   onAssign(castId, p.id);
-                  setOpen(false);
+                  closeDropdown();
                 }}
                 className={cn(
-                  'w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-base-300 transition-colors',
+                  'w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-base-300/50 transition-colors cursor-pointer',
                   p.id === propId && 'bg-base-300',
                 )}
               >
@@ -134,25 +130,25 @@ function PropPicker({
                 <span className="flex-1 text-left truncate">{p.name}</span>
                 <PropTypePill type={p.type} />
               </button>
-            ))
-          )}
-          {propId && (
-            <>
-              <div className="border-t border-base-300" />
-              <button
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  onAssign(castId, null);
-                  setOpen(false);
-                }}
-                className="w-full text-left px-3 py-2 text-xs text-error/60 hover:text-error hover:bg-base-300 transition-colors"
-              >
-                Unassign
-              </button>
-            </>
-          )}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+
+        {propId && (
+          <>
+            <div className="border-t border-base-300" />
+            <button
+              onClick={() => {
+                onAssign(castId, null);
+                closeDropdown();
+              }}
+              className="btn btn-xs btn-primary float-end m-3"
+            >
+              Unassign
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -199,67 +195,69 @@ export function StoryCastTab({
     <div>
       <ul className="list bg-base-100 rounded-box shadow-sm mb-4 border border-base-300">
         {cast.length === 0 ? (
-          <li className="list-row p-4 text-base-content/40 text-sm italic">No actors cast yet.</li>
+          <li className="list-row p-4 text-base-content/40 text-sm italic">
+            No actors cast yet.
+          </li>
         ) : (
           cast.map((c) => (
-          <li
-            key={c.id}
-            className="list-row items-center hover:bg-base-200/50 transition-colors group first:rounded-t-box last:rounded-b-box"
-          >
-            <div className="flex flex-col gap-0.5 w-48 shrink-0">
-              <span className="text-sm font-semibold">{c.userName}</span>
-              <span className="text-[10px] text-base-content/40 uppercase tracking-widest font-bold">
-                Actor
-              </span>
-            </div>
-
-            <div className="list-col-grow">
-              {isDirector ? (
-                <PropPicker
-                  castId={c.id}
-                  propId={c.propId ?? null}
-                  propName={c.propName ?? null}
-                  propImageUrl={c.propImageUrl ?? null}
-                  propType={c.propType ?? null}
-                  availableProps={availableProps}
-                  usedPropIds={usedPropIds}
-                  onAssign={onAssignProp}
-                />
-              ) : c.propId ? (
-                <div className="flex items-center gap-2">
-                  {c.propImageUrl ? (
-                    <img
-                      src={c.propImageUrl}
-                      alt={c.propName ?? ''}
-                      className="size-7 rounded object-cover bg-base-300 shrink-0"
-                    />
-                  ) : (
-                    <div className="size-7 rounded bg-base-300 shrink-0" />
-                  )}
-                  <span className="text-sm">{c.propName}</span>
-                </div>
-              ) : (
-                <span className="text-sm text-base-content/30 italic">
-                  No prop assigned
+            <li
+              key={c.id}
+              className="list-row items-center hover:bg-base-200/50 transition-colors group first:rounded-t-box last:rounded-b-box"
+            >
+              <div className="flex flex-col gap-0.5 w-48 shrink-0">
+                <span className="text-sm font-semibold">{c.userName}</span>
+                <span className="text-[10px] text-base-content/40 uppercase tracking-widest font-bold">
+                  Actor
                 </span>
-              )}
-            </div>
-
-            {isDirector && (
-              <div className="flex justify-end shrink-0">
-                <button
-                  onClick={() =>
-                    onRemoveCast(c.id, c.userName ?? 'Unknown Actor')
-                  }
-                  disabled={isRemovingCast}
-                  className="text-xs text-error/60 hover:text-error transition-colors p-2 hover:bg-error/10 rounded-lg"
-                  title="Remove from cast"
-                >
-                  <TrashIcon className="size-4" />
-                </button>
               </div>
-            )}
-          </li>
+
+              <div className="list-col-grow">
+                {isDirector ? (
+                  <PropPicker
+                    castId={c.id}
+                    propId={c.propId ?? null}
+                    propName={c.propName ?? null}
+                    propImageUrl={c.propImageUrl ?? null}
+                    propType={c.propType ?? null}
+                    availableProps={availableProps}
+                    usedPropIds={usedPropIds}
+                    onAssign={onAssignProp}
+                  />
+                ) : c.propId ? (
+                  <div className="flex items-center gap-2">
+                    {c.propImageUrl ? (
+                      <img
+                        src={c.propImageUrl}
+                        alt={c.propName ?? ''}
+                        className="size-7 rounded object-cover bg-base-300 shrink-0"
+                      />
+                    ) : (
+                      <div className="size-7 rounded bg-base-300 shrink-0" />
+                    )}
+                    <span className="text-sm">{c.propName}</span>
+                  </div>
+                ) : (
+                  <span className="text-sm text-base-content/30 italic">
+                    No prop assigned
+                  </span>
+                )}
+              </div>
+
+              {isDirector && (
+                <div className="flex justify-end shrink-0">
+                  <button
+                    onClick={() =>
+                      onRemoveCast(c.id, c.userName ?? 'Unknown Actor')
+                    }
+                    disabled={isRemovingCast}
+                    className="text-xs text-error/60 hover:text-error transition-colors p-2 hover:bg-error/10 rounded-lg"
+                    title="Remove from cast"
+                  >
+                    <TrashIcon className="size-4" />
+                  </button>
+                </div>
+              )}
+            </li>
           ))
         )}
       </ul>
