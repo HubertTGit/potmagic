@@ -120,7 +120,8 @@ function ShowContent({
     >
       <RoomAudioRenderer />
 
-      {/* Top bar — browser hides this when stageContainer is fullscreen */}
+      {/* Top bar */}
+      {!isFullscreen && (
       <div className="flex items-center justify-between w-7xl py-4 px-2">
         <div className="flex items-center gap-3">
           <span className="font-display text-base-content font-semibold tracking-wide">
@@ -153,6 +154,7 @@ function ShowContent({
           <span className="text-xs">Enlarge</span>
         </button>
       </div>
+      )}
 
       {/*
         Stage container — this is the fullscreen element.
