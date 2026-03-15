@@ -315,8 +315,8 @@ function LibrarySection({
     setDeletingId(id);
     try {
       await onRemove(id);
-    } catch (error) {
-      console.error('Delete failed:', error);
+    } catch (error: any) {
+      toast.error(error?.message ?? 'Failed to delete prop');
     } finally {
       setDeletingId(null);
     }
