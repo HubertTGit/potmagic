@@ -1,5 +1,9 @@
+import Konva from 'konva';
 import { Stage, Layer } from 'react-konva';
 import type { Room } from 'livekit-client';
+
+// Force 1:1 pixel ratio — prevents Konva from doubling canvas dimensions on HiDPI screens
+Konva.pixelRatio = 1;
 import { DraggableCharacter } from '@/components/draggable-character.component';
 import type { PropType } from '@/db/schema';
 
@@ -19,6 +23,8 @@ interface StageComponentProps {
   casts: StageCast[];
   room?: Room | null;
   speakingIds?: Set<string>;
+  stageWidth?: number;
+  stageHeight?: number;
 }
 
 const STAGE_WIDTH = 1280;
@@ -28,6 +34,8 @@ export function StageComponent({
   casts,
   room,
   speakingIds = new Set(),
+  stageWidth = STAGE_WIDTH,
+  stageHeight = STAGE_HEIGHT,
 }: StageComponentProps) {
   // Sort casts so backgrounds are rendered first (bottom of stack)
   const sortedCasts = [...casts].sort((a, b) => {
@@ -37,8 +45,8 @@ export function StageComponent({
   });
 
   return (
-    <div className="w-5xl h-192">
-      <Stage width={STAGE_WIDTH} height={STAGE_HEIGHT}>
+    <div>
+      <Stage width={stageWidth} height={stageHeight}>
         <Layer>
           {sortedCasts.map((cast, i) => {
             if (!cast.path || !cast.type) return null;
