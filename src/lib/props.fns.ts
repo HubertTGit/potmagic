@@ -9,6 +9,45 @@ import { supabase } from '@/lib/supabase.server';
 
 const BUCKET = 'props';
 
+// TEMPORARY: Debug storage — remove after fixing
+export const debugStorage = createServerFn({ method: 'GET' })
+  .handler(async () => {
+    const { data: buckets } = await supabase.storage.listBuckets();
+    const propsBucket = buckets?.find(b => b.name === BUCKET);
+
+    const { data: files, error: listErr } = await supabase.storage
+      .from(BUCKET)
+      .list('', { limit: 10 });
+
+    let deleteTest = null;
+    if (files && files.length > 0) {
+      const testFile = files[0];
+      const { data: removeData, error: removeErr } = await supabase.storage
+        .from(BUCKET)
+        .remove([testFile.name]);
+
+      const { data: filesAfter } = await supabase.storage
+        .from(BUCKET)
+        .list('', { limit: 10 });
+
+      const stillExists = filesAfter?.find(f => f.name === testFile.name);
+
+      deleteTest = {
+        deletedFile: testFile.name,
+        removeData,
+        removeErr,
+        stillExistsAfterDelete: !!stillExists,
+      };
+    }
+
+    return {
+      bucket: propsBucket,
+      files: files?.map(f => f.name),
+      listErr,
+      deleteTest,
+    };
+  });
+
 async function getSessionOrThrow() {
   const session = await auth.api.getSession({ headers: getRequest().headers });
   if (!session) throw new Error('Unauthorized');
@@ -118,16 +157,35 @@ export const deleteProp = createServerFn({ method: 'POST' })
       const url = new URL(row.imageUrl);
       // Public URL format: .../storage/v1/object/public/{bucket}/{path}
       const pathSegments = url.pathname.split(`/object/public/${BUCKET}/`);
-      const storagePath = pathSegments[1];
+      const storagePath = pathSegments[1]
+        ? decodeURIComponent(pathSegments[1])
+        : undefined;
       if (storagePath) {
-        const { error: storageError } = await supabase.storage
-          .from(BUCKET)
-          .remove([storagePath]);
-        if (storageError) {
+        // Use direct REST API — the JS client's remove() silently swallows errors
+        const supabaseUrl = process.env.SUPABASE_URL!;
+        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+        const deleteUrl = `${supabaseUrl}/storage/v1/object/${BUCKET}`;
+
+        const res = await fetch(deleteUrl, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${serviceKey}`,
+            'Content-Type': 'application/json',
+            apikey: serviceKey,
+          },
+          body: JSON.stringify({ prefixes: [storagePath] }),
+        });
+
+        const resBody = await res.text();
+        console.log('[deleteProp] Storage DELETE status:', res.status, resBody);
+
+        if (!res.ok) {
           throw new Error(
-            `Failed to delete file from storage: ${storageError.message}`,
+            `Failed to delete file from storage (${res.status}): ${resBody}`,
           );
         }
+      } else {
+        console.warn('[deleteProp] Could not extract storage path from URL:', row.imageUrl);
       }
     }
   });
