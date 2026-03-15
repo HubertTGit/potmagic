@@ -12,7 +12,7 @@ export type CastMember = {
   propId: string | null;
   propName: string | null;
   propImageUrl: string | null;
-  propType: 'background' | 'character' | null;
+  propType: 'background' | 'character' | 'animation' | null;
 };
 
 interface SceneCastSectionProps {
@@ -94,7 +94,7 @@ export function SceneCastSection({
                 </div>
                 {c.propType && (
                   <PropTypePill
-                    type={c.propType as 'character' | 'background'}
+                    type={c.propType as 'character' | 'background' | 'animation'}
                   />
                 )}
               </div>
@@ -187,7 +187,7 @@ function CastDropdown({
                 )}
               </div>
               {c.propType && (
-                <PropTypePill type={c.propType as 'character' | 'background'} />
+                <PropTypePill type={c.propType as 'character' | 'background' | 'animation'} />
               )}
             </button>
           ))}

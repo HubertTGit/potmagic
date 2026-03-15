@@ -52,7 +52,7 @@ export const createProp = createServerFn({ method: 'POST' })
     (input: unknown) =>
       input as {
         name: string;
-        type: 'character' | 'background';
+        type: 'character' | 'background' | 'animation';
         imageUrl: string;
         size: number;
       },
@@ -78,7 +78,7 @@ export const createProp = createServerFn({ method: 'POST' })
 
 export const listProps = createServerFn({ method: 'GET' })
   .inputValidator(
-    (input: unknown) => input as { type: 'character' | 'background' },
+    (input: unknown) => input as { type: 'character' | 'background' | 'animation' },
   )
   .handler(async ({ data }) => {
     await requireDirector();

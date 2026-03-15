@@ -1,7 +1,7 @@
 // Typed mock data matching Drizzle schema shapes (UI-only, no DB)
 
 export type StoryStatus = 'draft' | 'active' | 'ended'
-export type PropType = 'background' | 'character'
+export type PropType = 'background' | 'character' | 'animation'
 export type UserRole = 'actor' | 'director'
 
 export interface MockUser {

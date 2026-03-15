@@ -11,7 +11,7 @@ interface DraggableCharacterProps {
   castId: string;
   src: string;
   userId: string;
-  type: 'character' | 'background';
+  type: 'character' | 'background' | 'animation';
   initialX?: number;
   initialY?: number;
   initialRotation?: number;

@@ -6,7 +6,7 @@ import { PropTypePill } from './prop-type-pill';
 type Prop = {
   id: string;
   name: string;
-  type: 'background' | 'character';
+  type: 'background' | 'character' | 'animation';
   imageUrl: string | null;
 };
 
@@ -17,7 +17,7 @@ type CastMember = {
   propId: string | null;
   propName: string | null;
   propImageUrl: string | null;
-  propType: 'background' | 'character' | null;
+  propType: 'background' | 'character' | 'animation' | null;
 };
 
 type Actor = {
@@ -51,7 +51,7 @@ function PropPicker({
   propId: string | null;
   propName: string | null;
   propImageUrl: string | null;
-  propType: 'character' | 'background' | null;
+  propType: 'character' | 'background' | 'animation' | null;
   availableProps: Prop[];
   usedPropIds: Set<string>;
   onAssign: (castId: string, propId: string | null) => void;

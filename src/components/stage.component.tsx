@@ -7,7 +7,7 @@ export interface StageCast {
   castId: string;
   userId: string;
   path: string | null;
-  type: 'character' | 'background' | null;
+  type: 'character' | 'background' | 'animation' | null;
   posX: number | null;
   posY: number | null;
   rotation: number | null;

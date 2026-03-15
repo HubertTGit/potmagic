@@ -63,7 +63,7 @@ function DirectorPage() {
   const ended = stories.filter((s) => s.status === 'ended');
 
   const handleAddProp = async (
-    type: 'character' | 'background',
+    type: 'character' | 'background' | 'animation',
     file: File,
     name: string,
   ) => {
@@ -102,7 +102,7 @@ function DirectorPage() {
   };
 
   const handleRemoveProp = async (
-    type: 'character' | 'background',
+    type: 'character' | 'background' | 'animation',
     id: string,
   ) => {
     await deleteProp({ data: { id } });
@@ -255,7 +255,7 @@ function LibrarySection({
   onRemove,
 }: {
   label: string;
-  type: 'character' | 'background';
+  type: 'character' | 'background' | 'animation';
   items: LibraryItem[];
   isLoading: boolean;
   onAdd: (file: File, name: string) => Promise<void>;

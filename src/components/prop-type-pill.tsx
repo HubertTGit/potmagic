@@ -1,7 +1,7 @@
 import { cn } from '@/lib/cn';
 
 interface PropTypePillProps {
-  type: 'character' | 'background';
+  type: 'character' | 'background' | 'animation';
   className?: string;
 }
 
@@ -12,7 +12,9 @@ export function PropTypePill({ type, className }: PropTypePillProps) {
         'badge badge-xs font-bold uppercase tracking-widest py-2 shrink-0',
         type === 'character'
           ? 'badge-soft badge-primary'
-          : 'badge-soft badge-info',
+          : type === 'background'
+            ? 'badge-soft badge-info'
+            : 'badge-soft badge-secondary',
         className,
       )}
     >
