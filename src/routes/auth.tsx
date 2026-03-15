@@ -2,7 +2,6 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import DirectorLogin from '@/components/director-login.component';
 import ActorLogin from '@/components/actor-login.component';
-import { cn } from '@/lib/cn';
 
 export const Route = createFileRoute('/auth')({
   component: LoginPage,
@@ -30,31 +29,25 @@ function LoginPage() {
           {mode === 'director' ? <DirectorLogin /> : <ActorLogin />}
 
           {/* Mode switcher */}
-          <p className="text-center text-xs text-base-content/30 pb-6">
+          <div className="flex justify-center pb-6">
             {mode === 'director' ? (
-              <>
-                Are you an actor?{' '}
-                <button
-                  type="button"
-                  onClick={() => setMode('actor')}
-                  className={cn('text-gold/60 hover:text-gold transition-colors cursor-pointer font-inherit text-xs')}
-                >
-                  Actor login →
-                </button>
-              </>
+              <button
+                type="button"
+                onClick={() => setMode('actor')}
+                className="btn btn-sm btn-accent font-display tracking-[0.05em]"
+              >
+                Actor login →
+              </button>
             ) : (
-              <>
-                Are you a director?{' '}
-                <button
-                  type="button"
-                  onClick={() => setMode('director')}
-                  className={cn('text-gold/60 hover:text-gold transition-colors cursor-pointer font-inherit text-xs')}
-                >
-                  Director login →
-                </button>
-              </>
+              <button
+                type="button"
+                onClick={() => setMode('director')}
+                className="btn btn-sm btn-accent font-display tracking-[0.05em]"
+              >
+                Director login →
+              </button>
             )}
-          </p>
+          </div>
         </div>
       </div>
     </div>

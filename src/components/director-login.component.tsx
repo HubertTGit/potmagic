@@ -1,9 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from '@tanstack/react-router';
 import { authClient } from '@/lib/auth-client';
-import LoginForm from '@/components/login-form.component';
-import RegisterForm from '@/components/register-form.component';
-import ForgotPasswordForm from '@/components/forgot-password-form.component';
+import PasswordInput from '@/components/password-input.component';
 import { cn } from '@/lib/cn';
 
 type DirectorView = 'login' | 'register' | 'forgot';
@@ -112,29 +110,160 @@ export default function DirectorLogin() {
       )}
 
       <div className="px-8 pb-8">
-        {view === 'login' ? (
-          <LoginForm
-            loading={loading}
-            error={error}
-            onSubmit={handleLogin}
-            onSwitchToRegister={() => switchView('register')}
-            onForgotPassword={() => switchView('forgot')}
-          />
-        ) : view === 'register' ? (
-          <RegisterForm
-            loading={loading}
-            error={error}
-            onSubmit={handleRegister}
-            onSwitchToLogin={() => switchView('login')}
-          />
-        ) : (
-          <ForgotPasswordForm
-            loading={loading}
-            error={error}
-            resetSent={resetSent}
-            onSubmit={handleForgotPassword}
-            onBack={() => switchView('login')}
-          />
+        {view === 'login' && (
+          <form onSubmit={handleLogin} className="flex flex-col gap-4">
+            {error && <p className="text-error text-xs text-center">{error}</p>}
+
+            <fieldset className="fieldset gap-1">
+              <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
+                Email
+              </legend>
+              <input
+                name="email"
+                type="email"
+                autoComplete="email"
+                placeholder="you@example.com"
+                required
+                className="input w-full"
+              />
+            </fieldset>
+
+            <fieldset className="fieldset gap-1">
+              <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
+                Password
+              </legend>
+              <PasswordInput name="password" autoComplete="current-password" placeholder="••••••••" />
+            </fieldset>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className={cn(
+                'btn btn-primary btn-block mt-1 font-display text-base tracking-[0.08em]',
+                loading && 'opacity-60 cursor-not-allowed',
+              )}
+            >
+              {loading ? 'Signing in…' : 'Sign In'}
+            </button>
+
+            <p className="text-center text-xs text-base-content/40 mt-1">
+              No seat yet?{' '}
+              <button
+                type="button"
+                onClick={() => switchView('register')}
+                className="link link-primary text-xs"
+              >
+                Register →
+              </button>
+            </p>
+
+            <p className="text-center text-xs text-base-content/40">
+              <button
+                type="button"
+                onClick={() => switchView('forgot')}
+                className="link text-xs opacity-60 hover:opacity-100"
+              >
+                Forgot password?
+              </button>
+            </p>
+          </form>
+        )}
+
+        {view === 'register' && (
+          <form onSubmit={handleRegister} className="flex flex-col gap-4">
+            {error && <p className="text-error text-xs text-center">{error}</p>}
+
+            <fieldset className="fieldset gap-1">
+              <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
+                Email
+              </legend>
+              <input
+                name="email"
+                type="email"
+                autoComplete="email"
+                placeholder="you@example.com"
+                required
+                className="input w-full"
+              />
+            </fieldset>
+
+            <fieldset className="fieldset gap-1">
+              <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
+                Password
+              </legend>
+              <PasswordInput name="password" autoComplete="new-password" placeholder="••••••••" />
+            </fieldset>
+
+            <fieldset className="fieldset gap-1">
+              <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
+                Confirm Password
+              </legend>
+              <PasswordInput name="confirmPassword" autoComplete="new-password" placeholder="••••••••" />
+            </fieldset>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className={cn(
+                'btn btn-primary btn-block mt-1 font-display text-base tracking-[0.08em]',
+                loading && 'opacity-60 cursor-not-allowed',
+              )}
+            >
+              {loading ? 'Reserving…' : 'Reserve your seat'}
+            </button>
+
+            <p className="text-center text-xs text-base-content/40 mt-1">
+              Already have a seat?{' '}
+              <button
+                type="button"
+                onClick={() => switchView('login')}
+                className="link link-primary text-xs"
+              >
+                Sign in →
+              </button>
+            </p>
+          </form>
+        )}
+
+        {view === 'forgot' && (
+          <form onSubmit={handleForgotPassword} className="flex flex-col gap-4">
+            {error && <p className="text-error text-xs text-center">{error}</p>}
+
+            <fieldset className="fieldset gap-1">
+              <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
+                Email
+              </legend>
+              <input
+                name="email"
+                type="email"
+                autoComplete="email"
+                placeholder="you@example.com"
+                required
+                className="input w-full"
+              />
+            </fieldset>
+
+            <button
+              type="submit"
+              disabled={loading || resetSent}
+              className={cn(
+                'btn btn-primary btn-block mt-1 font-display text-base tracking-[0.08em]',
+                (loading || resetSent) && 'opacity-60 cursor-not-allowed',
+              )}
+            >
+              {loading ? 'Sending…' : resetSent ? 'Link sent ✓' : 'Send reset link'}
+            </button>
+
+            <p className="text-center text-xs text-base-content/40 mt-1">
+              <button
+                type="button"
+                onClick={() => switchView('login')}
+                className="link link-primary text-xs"
+              >
+                ← Back to sign in
+              </button>
+            </p>
+          </form>
         )}
       </div>
 
