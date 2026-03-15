@@ -5,6 +5,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
 } from '@heroicons/react/24/outline';
+import { toast } from '@/lib/toast';
 import type { PropType } from '@/db/schema';
 
 export interface LibraryItem {
@@ -73,8 +74,8 @@ export function LibrarySection({
       await onAdd(pending.file, pending.name.trim());
       URL.revokeObjectURL(pending.preview);
       setPending(null);
-    } catch (error) {
-      console.error('Upload failed:', error);
+    } catch (error: any) {
+      toast.error(error?.message ?? 'Upload failed');
     } finally {
       setUploading(false);
     }
@@ -85,8 +86,8 @@ export function LibrarySection({
     setDeletingId(id);
     try {
       await onRemove(id);
-    } catch (error) {
-      console.error('Delete failed:', error);
+    } catch (error: any) {
+      toast.error(error?.message ?? 'Failed to delete prop');
     } finally {
       setDeletingId(null);
     }
