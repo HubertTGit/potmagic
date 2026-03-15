@@ -7,7 +7,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { toast } from '@/lib/toast';
 import type { PropType } from '@/db/schema';
-import { useRive, Layout, Fit, Alignment } from '@rive-app/react-canvas';
+import { RiveCanvas } from '@/components/rive-canvas.component';
 
 export interface LibraryItem {
   id: string;
@@ -15,38 +15,34 @@ export interface LibraryItem {
   imageUrl: string | null;
 }
 
-function RiveCanvas({ src, className }: { src: string; className?: string }) {
-  const { RiveComponent } = useRive({
-    src,
-    autoplay: true,
-    layout: new Layout({
-      fit: Fit.Contain,
-      alignment: Alignment.Center,
-    }),
-  });
-
-  return (
-    <div className={className}>
-      <RiveComponent />
-    </div>
-  );
-}
-
 function MediaPreview({
   src,
+  buffer,
   name,
   className,
   isAnimation,
 }: {
-  src: string;
+  src?: string | null;
+  buffer?: ArrayBuffer;
   name?: string;
   className?: string;
   isAnimation?: boolean;
 }) {
   if (isAnimation) {
-    return <RiveCanvas src={src} className={className} />;
+    if (!src && !buffer) return null;
+    return (
+      <RiveCanvas
+        src={src || undefined}
+        buffer={buffer}
+        className={className}
+      />
+    );
   }
-  return <img src={src} alt={name} className={className} />;
+  return src ? (
+    <img src={src} alt={name} className={className} />
+  ) : (
+    <div className={className} />
+  );
 }
 
 export function LibrarySection({
@@ -67,6 +63,7 @@ export function LibrarySection({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<{
     preview: string;
+    buffer?: ArrayBuffer;
     file: File;
     name: string;
   } | null>(null);
@@ -93,12 +90,33 @@ export function LibrarySection({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedIndex, items.length]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const isAnimation = type === 'animation';
+  const acceptMime = isAnimation ? 'application/octet-stream,.riv' : 'image/*';
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const preview = URL.createObjectURL(file);
-    const defaultName = file.name.replace(/\.[^.]+$/, '');
-    setPending({ preview, file, name: defaultName });
+
+    if (isAnimation) {
+      // For animations, we read as buffer for immediate Rive preview
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const arrayBuffer = event.target?.result as ArrayBuffer;
+        if (arrayBuffer) {
+          setPending({
+            preview: '', // Not needed when buffer is present
+            buffer: arrayBuffer,
+            file,
+            name: file.name.replace(/\.[^.]+$/, ''),
+          });
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      const preview = URL.createObjectURL(file);
+      const defaultName = file.name.replace(/\.[^.]+$/, '');
+      setPending({ preview, file, name: defaultName });
+    }
     e.target.value = '';
   };
 
@@ -107,7 +125,7 @@ export function LibrarySection({
     setUploading(true);
     try {
       await onAdd(pending.file, pending.name.trim());
-      URL.revokeObjectURL(pending.preview);
+      if (pending.preview) URL.revokeObjectURL(pending.preview);
       setPending(null);
     } catch (error: any) {
       toast.error(error?.message ?? 'Upload failed');
@@ -129,14 +147,9 @@ export function LibrarySection({
   };
 
   const handleCancel = () => {
-    if (pending) URL.revokeObjectURL(pending.preview);
+    if (pending && pending.preview) URL.revokeObjectURL(pending.preview);
     setPending(null);
   };
-
-  const isAnimation = type === 'animation';
-  const acceptMime = isAnimation
-    ? 'application/octet-stream,.riv'
-    : 'image/*';
 
   return (
     <div>
@@ -165,8 +178,9 @@ export function LibrarySection({
         <div className="flex items-center gap-3 bg-base-200 border border-gold/30 rounded-xl p-3 mb-4">
           <MediaPreview
             src={pending.preview}
+            buffer={pending.buffer}
             isAnimation={isAnimation}
-            className="size-14 rounded-lg object-cover shrink-0 bg-base-300"
+            className="size-14 rounded-lg object-cover shrink-0 bg-base-300 overflow-hidden"
           />
           <input
             autoFocus
@@ -309,12 +323,12 @@ export function LibrarySection({
               </button>
             )}
 
-            <div className="bg-base-100/5 p-2 rounded-2xl relative inline-block max-w-full min-w-[50vw] min-h-[50vh]">
+            <div className="bg-base-100/5 p-2 rounded-2xl relative flex items-center justify-center max-w-full min-w-[50vw] min-h-[50vh] overflow-hidden">
               <MediaPreview
                 src={items[selectedIndex].imageUrl!}
                 name={items[selectedIndex].name}
                 isAnimation={isAnimation}
-                className="max-h-[80vh] w-auto max-w-full object-contain rounded-xl shadow-2xl bg-base-100/80"
+                className="max-h-[80vh] w-auto max-w-full object-contain rounded-xl shadow-2xl bg-base-100/80 overflow-hidden"
               />
             </div>
 
