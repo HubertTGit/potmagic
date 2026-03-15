@@ -17,6 +17,7 @@ interface DraggableCharacterProps {
   initialRotation?: number;
   initialScaleX?: number;
   room?: Room | null;
+  isSpeaking?: boolean;
 }
 
 interface PropMoveMessage {
@@ -51,6 +52,7 @@ export function DraggableCharacter({
   initialRotation = 0,
   initialScaleX = 1,
   room,
+  isSpeaking,
 }: DraggableCharacterProps) {
   const { data: session } = authClient.useSession();
   const canDrag = session?.user?.id === userId || session?.user?.role === 'director';
@@ -222,6 +224,13 @@ export function DraggableCharacter({
       x={initialX}
       y={initialY}
       draggable={canDrag}
+      shadowEnabled={isSpeaking && type !== 'background'}
+      shadowColor="#a855f7"
+      shadowBlur={15}
+      shadowOpacity={1}
+      strokeEnabled={isSpeaking && type !== 'background'}
+      stroke="#a855f7"
+      strokeWidth={4}
       dragBoundFunc={
         type === 'background'
           ? (pos) => ({ x: pos.x, y: imageRef.current?.y() ?? pos.y })

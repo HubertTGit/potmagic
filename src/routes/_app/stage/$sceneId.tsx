@@ -144,7 +144,7 @@ function StageShell({
         />
       </div>
       <div className="rounded-xl border-2 border-base-300 shadow-xl overflow-hidden">
-        <StageComponent casts={casts} room={room} />
+        <StageComponent casts={casts} room={room} speakingIds={speakingIds} />
       </div>
       <div></div>
     </div>

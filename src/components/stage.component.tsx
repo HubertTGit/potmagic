@@ -17,12 +17,13 @@ export interface StageCast {
 interface StageComponentProps {
   casts: StageCast[];
   room?: Room | null;
+  speakingIds?: Set<string>;
 }
 
 const STAGE_WIDTH = 1024;
 const STAGE_HEIGHT = 768;
 
-export function StageComponent({ casts, room }: StageComponentProps) {
+export function StageComponent({ casts, room, speakingIds = new Set() }: StageComponentProps) {
   // Sort casts so backgrounds are rendered first (bottom of stack)
   const sortedCasts = [...casts].sort((a, b) => {
     if (a.type === 'background' && b.type !== 'background') return -1;
@@ -49,6 +50,7 @@ export function StageComponent({ casts, room }: StageComponentProps) {
                 initialRotation={cast.rotation ?? 0}
                 initialScaleX={cast.scaleX ?? 1}
                 room={room}
+                isSpeaking={speakingIds.has(cast.userId)}
               />
             );
           })}
