@@ -53,7 +53,7 @@ function LiveStageContent({
   const room = useRoomContext();
   const onlineIds = new Set(participants.map((p) => p.identity));
   const speakingIds = new Set(
-    participants.filter((p) => p.isSpeaking).map((p) => p.identity)
+    participants.filter((p) => p.isSpeaking).map((p) => p.identity),
   );
 
   return (
@@ -132,7 +132,7 @@ function StageShell({
         </div>
       )}
 
-      <div className="flex items-center justify-between w-5xl">
+      <div className="flex items-center justify-between w-7xl">
         <StoryStatusButton storyId={storyId} status={status} room={room} />
         <SceneNavigator sceneId={sceneId} room={room} />
         <CastPreview

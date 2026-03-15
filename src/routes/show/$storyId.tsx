@@ -9,7 +9,11 @@ import {
 } from '@livekit/components-react';
 import { RoomEvent } from 'livekit-client';
 import type { Room } from 'livekit-client';
-import { getPublicStory, getPublicSceneStage, getViewerToken } from '@/lib/show.fns';
+import {
+  getPublicStory,
+  getPublicSceneStage,
+  getViewerToken,
+} from '@/lib/show.fns';
 import { StageComponent } from '@/components/stage.component';
 import type { StageCast } from '@/components/stage.component';
 import { cn } from '@/lib/cn';
@@ -52,7 +56,10 @@ function ShowContent({
   );
   const stageContainerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [stageDims, setStageDims] = useState({ width: STAGE_WIDTH, height: STAGE_HEIGHT });
+  const [stageDims, setStageDims] = useState({
+    width: STAGE_WIDTH,
+    height: STAGE_HEIGHT,
+  });
 
   // Listen to data channel messages
   useEffect(() => {
@@ -107,11 +114,14 @@ function ShowContent({
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-base-100">
+    <div
+      ref={stageContainerRef}
+      className="min-h-screen flex flex-col items-center bg-base-100"
+    >
       <RoomAudioRenderer />
 
       {/* Top bar — browser hides this when stageContainer is fullscreen */}
-      <div className="flex items-center justify-between w-5xl py-4 px-2">
+      <div className="flex items-center justify-between w-7xl py-4 px-2">
         <div className="flex items-center gap-3">
           <span className="font-display text-base-content font-semibold tracking-wide">
             {storyTitle}
@@ -151,7 +161,6 @@ function ShowContent({
         remains visible during fullscreen.
       */}
       <div
-        ref={stageContainerRef}
         className={cn(
           'relative',
           isFullscreen
