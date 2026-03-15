@@ -20,10 +20,14 @@ interface StageComponentProps {
   speakingIds?: Set<string>;
 }
 
-const STAGE_WIDTH = 1024;
-const STAGE_HEIGHT = 768;
+const STAGE_WIDTH = 1280;
+const STAGE_HEIGHT = 720;
 
-export function StageComponent({ casts, room, speakingIds = new Set() }: StageComponentProps) {
+export function StageComponent({
+  casts,
+  room,
+  speakingIds = new Set(),
+}: StageComponentProps) {
   // Sort casts so backgrounds are rendered first (bottom of stack)
   const sortedCasts = [...casts].sort((a, b) => {
     if (a.type === 'background' && b.type !== 'background') return -1;
