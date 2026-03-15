@@ -7,11 +7,46 @@ import {
 } from '@heroicons/react/24/outline';
 import { toast } from '@/lib/toast';
 import type { PropType } from '@/db/schema';
+import { useRive, Layout, Fit, Alignment } from '@rive-app/react-canvas';
 
 export interface LibraryItem {
   id: string;
   name: string;
   imageUrl: string | null;
+}
+
+function RiveCanvas({ src, className }: { src: string; className?: string }) {
+  const { RiveComponent } = useRive({
+    src,
+    autoplay: true,
+    layout: new Layout({
+      fit: Fit.Contain,
+      alignment: Alignment.Center,
+    }),
+  });
+
+  return (
+    <div className={className}>
+      <RiveComponent />
+    </div>
+  );
+}
+
+function MediaPreview({
+  src,
+  name,
+  className,
+  isAnimation,
+}: {
+  src: string;
+  name?: string;
+  className?: string;
+  isAnimation?: boolean;
+}) {
+  if (isAnimation) {
+    return <RiveCanvas src={src} className={className} />;
+  }
+  return <img src={src} alt={name} className={className} />;
 }
 
 export function LibrarySection({
@@ -98,6 +133,11 @@ export function LibrarySection({
     setPending(null);
   };
 
+  const isAnimation = type === 'animation';
+  const acceptMime = isAnimation
+    ? 'application/octet-stream,.riv'
+    : 'image/*';
+
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
@@ -114,7 +154,7 @@ export function LibrarySection({
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept={acceptMime}
           className="hidden"
           onChange={handleFileChange}
         />
@@ -123,9 +163,9 @@ export function LibrarySection({
       {/* Pending upload — name confirmation */}
       {pending && (
         <div className="flex items-center gap-3 bg-base-200 border border-gold/30 rounded-xl p-3 mb-4">
-          <img
+          <MediaPreview
             src={pending.preview}
-            alt=""
+            isAnimation={isAnimation}
             className="size-14 rounded-lg object-cover shrink-0 bg-base-300"
           />
           <input
@@ -192,9 +232,10 @@ export function LibrarySection({
               className="group relative rounded-xl overflow-hidden bg-base-200 border border-base-300 aspect-square cursor-pointer"
             >
               {item.imageUrl && (
-                <img
+                <MediaPreview
                   src={item.imageUrl}
-                  alt={item.name}
+                  name={item.name}
+                  isAnimation={isAnimation}
                   className="w-full h-full object-cover"
                 />
               )}
@@ -268,10 +309,11 @@ export function LibrarySection({
               </button>
             )}
 
-            <div className="bg-base-100/5 p-2 rounded-2xl relative inline-block max-w-full">
-              <img
+            <div className="bg-base-100/5 p-2 rounded-2xl relative inline-block max-w-full min-w-[50vw] min-h-[50vh]">
+              <MediaPreview
                 src={items[selectedIndex].imageUrl!}
-                alt={items[selectedIndex].name}
+                name={items[selectedIndex].name}
+                isAnimation={isAnimation}
                 className="max-h-[80vh] w-auto max-w-full object-contain rounded-xl shadow-2xl bg-base-100/80"
               />
             </div>

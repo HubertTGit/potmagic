@@ -60,6 +60,12 @@ function DirectorPage() {
     enabled: tab === 'library',
   });
 
+  const { data: animations = [], isLoading: loadingAnims } = useQuery({
+    queryKey: ['props', 'animation'],
+    queryFn: () => listProps({ data: { type: 'animation' } }),
+    enabled: tab === 'library',
+  });
+
   const active = stories.filter((s) => s.status === 'active');
   const draft = stories.filter((s) => s.status === 'draft');
   const ended = stories.filter((s) => s.status === 'ended');
@@ -219,7 +225,7 @@ function DirectorPage() {
       {tab === 'library' && (
         <>
           <p className="text-sm text-base-content/40 mb-6">
-            Upload characters and backgrounds available across stories.
+            Upload characters, backgrounds, and animations available across stories.
           </p>
           <div className="flex flex-col gap-8">
             <LibrarySection
@@ -237,6 +243,14 @@ function DirectorPage() {
               isLoading={loadingBgs}
               onAdd={(file, name) => handleAddProp('background', file, name)}
               onRemove={(id) => handleRemoveProp('background', id)}
+            />
+            <LibrarySection
+              label="Animations"
+              type="animation"
+              items={animations}
+              isLoading={loadingAnims}
+              onAdd={(file, name) => handleAddProp('animation', file, name)}
+              onRemove={(id) => handleRemoveProp('animation', id)}
             />
           </div>
         </>
