@@ -169,6 +169,16 @@ export const cast = pgTable(
   ],
 )
 
+export const invitedActors = pgTable('invited_actors', {
+  id: text('id').primaryKey(),
+  email: text('email').notNull().unique(),
+  userId: text('user_id').references(() => users.id, { onDelete: 'set null' }),
+  addedBy: text('added_by')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
 export const sceneCast = pgTable(
   'scene_cast',
   {

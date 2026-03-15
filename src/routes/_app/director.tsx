@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { listStories } from '@/lib/stories.fns';
 import {
@@ -8,16 +8,15 @@ import {
   listProps,
   deleteProp,
 } from '@/lib/props.fns';
+import {
+  listInvitedActors,
+  addInvitedActor,
+  removeInvitedActor,
+} from '@/lib/actor-auth.fns';
 import { StatusBadge } from '@/components/status-badge.component';
 import { cn } from '@/lib/cn';
-import {
-  PhotoIcon,
-  XMarkIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-} from '@heroicons/react/24/outline';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 import { LibrarySection } from '@/components/library-section.component';
-import type { LibraryItem } from '@/components/library-section.component';
 import { updateStoryStatus } from '@/lib/story-detail.fns';
 import type { PropType } from '@/db/schema';
 import { toast } from '@/lib/toast';
@@ -26,7 +25,7 @@ export const Route = createFileRoute('/_app/director')({
   component: DirectorPage,
 });
 
-type Tab = 'dashboard' | 'library';
+type Tab = 'dashboard' | 'library' | 'actors';
 
 function DirectorPage() {
   const [tab, setTab] = useState<Tab>('dashboard');
@@ -66,6 +65,23 @@ function DirectorPage() {
     enabled: tab === 'library',
   });
 
+  const { data: invitedActors = [], isLoading: loadingActors } = useQuery({
+    queryKey: ['invitedActors'],
+    queryFn: () => listInvitedActors(),
+    enabled: tab === 'actors',
+  });
+
+  const addActorMutation = useMutation({
+    mutationFn: (email: string) => addInvitedActor({ data: { email } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['invitedActors'] }),
+    onError: (err: any) => toast.error(err?.message ?? 'Failed to invite actor'),
+  });
+
+  const removeActorMutation = useMutation({
+    mutationFn: (id: string) => removeInvitedActor({ data: { id } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['invitedActors'] }),
+  });
+
   const active = stories.filter((s) => s.status === 'active');
   const draft = stories.filter((s) => s.status === 'draft');
   const ended = stories.filter((s) => s.status === 'ended');
@@ -76,7 +92,6 @@ function DirectorPage() {
         data: { filename: file.name, contentType: file.type },
       });
 
-      // Insert into DB first so Drizzle check constraint validates the size.
       const prop = await createProp({
         data: { name, type, imageUrl: publicUrl, size: file.size },
       });
@@ -88,11 +103,10 @@ function DirectorPage() {
       });
 
       if (!uploadResponse.ok) {
-        // Rollback the DB entry if the actual file upload fails
         try {
           await deleteProp({ data: { id: prop.id } });
         } catch (e) {
-          // Swallow rollback errors to retain original fetch error
+          // Swallow rollback errors
         }
 
         throw new Error(
@@ -123,7 +137,7 @@ function DirectorPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-base-300 mb-8">
-        {(['dashboard', 'library'] as Tab[]).map((t) => (
+        {(['dashboard', 'library', 'actors'] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -254,6 +268,119 @@ function DirectorPage() {
             />
           </div>
         </>
+      )}
+
+      {tab === 'actors' && (
+        <ActorsTab
+          actors={invitedActors}
+          isLoading={loadingActors}
+          onInvite={(email) => addActorMutation.mutate(email)}
+          onRemove={(id) => removeActorMutation.mutate(id)}
+          isInviting={addActorMutation.isPending}
+        />
+      )}
+    </div>
+  );
+}
+
+function ActorsTab({
+  actors,
+  isLoading,
+  onInvite,
+  onRemove,
+  isInviting,
+}: {
+  actors: { id: string; email: string; accepted: boolean; createdAt: Date }[];
+  isLoading: boolean;
+  onInvite: (email: string) => void;
+  onRemove: (id: string) => void;
+  isInviting: boolean;
+}) {
+  const [email, setEmail] = useState('');
+
+  const handleSubmit = (e: { preventDefault(): void }) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    onInvite(email.trim());
+    setEmail('');
+  };
+
+  return (
+    <div>
+      <p className="text-sm text-base-content/40 mb-6">
+        Invite actors by email. They can log in once invited.
+      </p>
+
+      {/* Invite form */}
+      <form onSubmit={handleSubmit} className="flex gap-2 mb-8">
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="actor@example.com"
+          required
+          className="input flex-1 bg-base-200 border-base-300 text-sm focus:border-gold/60 focus:ring-2 focus:ring-gold/10"
+        />
+        <button
+          type="submit"
+          disabled={isInviting || !email.trim()}
+          className={cn(
+            'btn btn-gold font-display tracking-[0.05em]',
+            (isInviting || !email.trim()) && 'opacity-50',
+          )}
+        >
+          {isInviting ? 'Inviting…' : 'Invite'}
+        </button>
+      </form>
+
+      {/* Actors list */}
+      {isLoading ? (
+        <p className="text-sm text-base-content/40">Loading…</p>
+      ) : actors.length === 0 ? (
+        <p className="text-sm text-base-content/30 text-center py-8">
+          No actors invited yet.
+        </p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="table table-sm w-full">
+            <thead>
+              <tr className="text-base-content/50 text-xs uppercase tracking-wider">
+                <th>Email</th>
+                <th>Status</th>
+                <th>Added</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {actors.map((actor) => (
+                <tr key={actor.id} className="hover:bg-base-200 transition-colors">
+                  <td className="font-medium">{actor.email}</td>
+                  <td>
+                    <span
+                      className={cn(
+                        'text-xs font-medium uppercase tracking-wider',
+                        actor.accepted ? 'text-success' : 'text-base-content/40',
+                      )}
+                    >
+                      {actor.accepted ? 'Accepted' : 'Pending'}
+                    </span>
+                  </td>
+                  <td className="text-base-content/40 text-xs">
+                    {new Date(actor.createdAt).toLocaleDateString()}
+                  </td>
+                  <td>
+                    <button
+                      onClick={() => onRemove(actor.id)}
+                      className="btn btn-ghost btn-xs text-base-content/40 hover:text-error"
+                    >
+                      <XMarkIcon className="size-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

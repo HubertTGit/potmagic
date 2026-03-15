@@ -1,18 +1,23 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { useState, useRef, useEffect } from 'react';
 import { authClient } from '@/lib/auth-client';
+import { actorSignIn } from '@/lib/actor-auth.fns';
 import LoginForm from '@/components/login-form.component';
 import RegisterForm from '@/components/register-form.component';
 import ForgotPasswordForm from '@/components/forgot-password-form.component';
+import ActorLoginForm from '@/components/actor-login-form.component';
+import { cn } from '@/lib/cn';
 
 export const Route = createFileRoute('/auth')({
   component: LoginPage,
 });
 
-type View = 'login' | 'register' | 'forgot';
+type AuthMode = 'director' | 'actor';
+type DirectorView = 'login' | 'register' | 'forgot';
 
 function LoginPage() {
-  const [view, setView] = useState<View>('login');
+  const [mode, setMode] = useState<AuthMode>('director');
+  const [directorView, setDirectorView] = useState<DirectorView>('login');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [toastEmail, setToastEmail] = useState<string | null>(null);
@@ -25,6 +30,13 @@ function LoginPage() {
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     };
   }, []);
+
+  const switchMode = (next: AuthMode) => {
+    setMode(next);
+    setError(null);
+    setDirectorView('login');
+    setResetSent(false);
+  };
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -88,8 +100,21 @@ function LoginPage() {
     setResetSent(true);
   };
 
-  const switchView = (next: View) => {
-    setView(next);
+  const handleActorLogin = async (email: string) => {
+    setError(null);
+    setLoading(true);
+    try {
+      await actorSignIn({ data: { email } });
+      await router.navigate({ to: '/stories' });
+    } catch (err: any) {
+      setError(err?.message ?? 'Login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const switchDirectorView = (next: DirectorView) => {
+    setDirectorView(next);
     setError(null);
     setResetSent(false);
   };
@@ -109,22 +134,39 @@ function LoginPage() {
             </p>
           </div>
 
-          {/* Tab switcher */}
-          {view !== 'forgot' && (
-            <div
-              role="tablist"
-              className="tabs tabs-border mx-8 mb-6 border-gold/15"
-            >
-              {(['login', 'register'] as View[]).map((tab) => (
+          {/* Director / Actor mode tabs */}
+          <div role="tablist" className="tabs tabs-border mx-8 mb-4 border-gold/15">
+            {(['director', 'actor'] as AuthMode[]).map((m) => (
+              <button
+                key={m}
+                role="tab"
+                onClick={() => switchMode(m)}
+                className={cn(
+                  'tab font-display text-base tracking-[0.05em] capitalize',
+                  mode === m
+                    ? 'tab-active text-gold'
+                    : 'text-base-content/30',
+                )}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+
+          {/* Director sub-tabs (Sign In / Register) */}
+          {mode === 'director' && directorView !== 'forgot' && (
+            <div role="tablist" className="tabs tabs-border mx-8 mb-6 border-gold/10">
+              {(['login', 'register'] as DirectorView[]).map((tab) => (
                 <button
                   key={tab}
                   role="tab"
-                  onClick={() => switchView(tab)}
-                  className={
-                    view === tab
-                      ? 'tab tab-active font-display text-base tracking-[0.05em] text-gold'
-                      : 'tab font-display text-base tracking-[0.05em] text-base-content/30'
-                  }
+                  onClick={() => switchDirectorView(tab)}
+                  className={cn(
+                    'tab font-display text-sm tracking-[0.05em]',
+                    directorView === tab
+                      ? 'tab-active text-base-content'
+                      : 'text-base-content/30',
+                  )}
                 >
                   {tab === 'login' ? 'Sign In' : 'Register'}
                 </button>
@@ -134,28 +176,36 @@ function LoginPage() {
 
           {/* Forms */}
           <div className="px-8 pb-8">
-            {view === 'login' ? (
-              <LoginForm
-                loading={loading}
-                error={error}
-                onSubmit={handleLogin}
-                onSwitchToRegister={() => switchView('register')}
-                onForgotPassword={() => switchView('forgot')}
-              />
-            ) : view === 'register' ? (
-              <RegisterForm
-                loading={loading}
-                error={error}
-                onSubmit={handleRegister}
-                onSwitchToLogin={() => switchView('login')}
-              />
+            {mode === 'director' ? (
+              directorView === 'login' ? (
+                <LoginForm
+                  loading={loading}
+                  error={error}
+                  onSubmit={handleLogin}
+                  onSwitchToRegister={() => switchDirectorView('register')}
+                  onForgotPassword={() => switchDirectorView('forgot')}
+                />
+              ) : directorView === 'register' ? (
+                <RegisterForm
+                  loading={loading}
+                  error={error}
+                  onSubmit={handleRegister}
+                  onSwitchToLogin={() => switchDirectorView('login')}
+                />
+              ) : (
+                <ForgotPasswordForm
+                  loading={loading}
+                  error={error}
+                  resetSent={resetSent}
+                  onSubmit={handleForgotPassword}
+                  onBack={() => switchDirectorView('login')}
+                />
+              )
             ) : (
-              <ForgotPasswordForm
+              <ActorLoginForm
                 loading={loading}
                 error={error}
-                resetSent={resetSent}
-                onSubmit={handleForgotPassword}
-                onBack={() => switchView('login')}
+                onSubmit={handleActorLogin}
               />
             )}
           </div>
