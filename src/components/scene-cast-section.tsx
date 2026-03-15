@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link } from '@tanstack/react-router';
 import { TrashIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/cn';
+import { DataList, DataListItem } from './data-list';
 import { PropTypePill } from './prop-type-pill';
 
 export type CastMember = {
@@ -63,16 +64,15 @@ export function SceneCastSection({
         />
       </div>
 
-      <ul className="list bg-base-100 rounded-box shadow-sm mb-4 border border-base-300">
+      <DataList>
         {assignedCast.length === 0 ? (
-          <li className="list-row p-4 text-base-content/40 text-sm italic">
+          <DataListItem className="p-4 text-base-content/40 text-sm italic">
             No cast assigned yet.
-          </li>
+          </DataListItem>
         ) : (
           assignedCast.map((c) => (
-            <li
+            <DataListItem
               key={c.id}
-              className="list-row items-center hover:bg-base-200/50 transition-colors group first:rounded-t-box last:rounded-b-box"
             >
               <div className="flex items-center gap-3 list-col-grow">
                 {c.propImageUrl ? (
@@ -110,10 +110,10 @@ export function SceneCastSection({
                   </button>
                 </div>
               )}
-            </li>
+            </DataListItem>
           ))
         )}
-      </ul>
+      </DataList>
 
       {isDirector && availableCast.length > 0 && (
         <CastDropdown

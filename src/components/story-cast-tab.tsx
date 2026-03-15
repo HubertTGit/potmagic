@@ -153,6 +153,8 @@ function PropPicker({
   );
 }
 
+import { DataList, DataListItem } from './data-list';
+
 export function StoryCastTab({
   cast,
   availableProps,
@@ -193,16 +195,15 @@ export function StoryCastTab({
 
   return (
     <div>
-      <ul className="list bg-base-100 rounded-box shadow-sm mb-4 border border-base-300">
+      <DataList>
         {cast.length === 0 ? (
-          <li className="list-row p-4 text-base-content/40 text-sm italic">
+          <DataListItem className="p-4 text-base-content/40 text-sm italic">
             No actors cast yet.
-          </li>
+          </DataListItem>
         ) : (
           cast.map((c) => (
-            <li
+            <DataListItem
               key={c.id}
-              className="list-row items-center hover:bg-base-200/50 transition-colors group first:rounded-t-box last:rounded-b-box"
             >
               <div className="flex flex-col gap-0.5 w-48 shrink-0">
                 <span className="text-sm font-semibold">{c.userName}</span>
@@ -257,10 +258,10 @@ export function StoryCastTab({
                   </button>
                 </div>
               )}
-            </li>
+            </DataListItem>
           ))
         )}
-      </ul>
+      </DataList>
 
       {isDirector && availableActors.length > 0 && (
         <div ref={actorSearchRef} className="relative w-64">

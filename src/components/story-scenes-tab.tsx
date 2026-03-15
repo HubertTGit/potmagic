@@ -3,6 +3,8 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import { TrashIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/cn';
 
+import { DataList, DataListItem } from './data-list';
+
 interface Scene {
   id: string;
   order: number;
@@ -39,14 +41,14 @@ export function StoryScenesTab({
 
   return (
     <div>
-      <ul className="list bg-base-100 rounded-box shadow-sm mb-4 border border-base-300">
+      <DataList>
         {scenes.length === 0 ? (
-          <li className="list-row p-4 text-base-content/40 text-sm">No scenes yet.</li>
+          <DataListItem className="p-4 text-base-content/40 text-sm">No scenes yet.</DataListItem>
         ) : (
           scenes.map((scene) => (
-            <li
+            <DataListItem
               key={scene.id}
-              className="list-row items-center hover:bg-base-200 cursor-pointer transition-colors group first:rounded-t-box last:rounded-b-box"
+              className="hover:bg-base-200"
               onClick={() => navigate({ to: '/stories/$storyId/scenes/$sceneId', params: { storyId, sceneId: scene.id } })}
             >
               <div className="text-base-content/40 text-sm tabular-nums font-medium w-6">
@@ -73,10 +75,10 @@ export function StoryScenesTab({
                   </button>
                 )}
               </div>
-            </li>
+            </DataListItem>
           ))
         )}
-      </ul>
+      </DataList>
 
       {isDirector && (
         <div className="flex gap-2 items-center">
