@@ -43,13 +43,19 @@ export function StoryScenesTab({
     <div>
       <DataList>
         {scenes.length === 0 ? (
-          <DataListItem className="p-4 text-base-content/40 text-sm">No scenes yet.</DataListItem>
+          <DataListItem className="p-4 text-base-content/40 text-sm">
+            No scenes yet.
+          </DataListItem>
         ) : (
           scenes.map((scene) => (
             <DataListItem
               key={scene.id}
-              className="hover:bg-base-200"
-              onClick={() => navigate({ to: '/stories/$storyId/scenes/$sceneId', params: { storyId, sceneId: scene.id } })}
+              onClick={() =>
+                navigate({
+                  to: '/stories/$storyId/scenes/$sceneId',
+                  params: { storyId, sceneId: scene.id },
+                })
+              }
             >
               <div className="text-base-content/40 text-sm tabular-nums font-medium w-6">
                 {scene.order}.

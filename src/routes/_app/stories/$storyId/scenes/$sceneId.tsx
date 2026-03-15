@@ -18,8 +18,14 @@ import { Breadcrumb } from '@/components/breadcrumb.component';
 import { cn } from '@/lib/cn';
 import { ConfirmModal } from '@/components/confirm-modal';
 import { authClient } from '@/lib/auth-client';
-import { SceneCastSection, type CastMember } from '@/components/scene-cast-section';
-import { SceneBackgroundSection, type BackgroundProp } from '@/components/scene-background-section';
+import {
+  SceneCastSection,
+  type CastMember,
+} from '@/components/scene-cast-section';
+import {
+  SceneBackgroundSection,
+  type BackgroundProp,
+} from '@/components/scene-background-section';
 
 export const Route = createFileRoute('/_app/stories/$storyId/scenes/$sceneId')({
   component: SceneDetailPage,
@@ -30,7 +36,6 @@ export const Route = createFileRoute('/_app/stories/$storyId/scenes/$sceneId')({
   ),
   errorComponent: ({ error }) => <ErrorComponent error={error} />,
 });
-
 
 function SceneDetailPage() {
   const { storyId, sceneId } = Route.useParams();
@@ -123,7 +128,7 @@ function SceneDetailPage() {
   };
 
   return (
-    <div className="p-8 max-w-2xl">
+    <div className="p-8 max-w-3xl">
       <Breadcrumb
         crumbs={[
           { label: 'Stories', to: '/stories/' },
@@ -215,4 +220,3 @@ function SceneDetailPage() {
     </div>
   );
 }
-
