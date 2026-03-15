@@ -1,16 +1,33 @@
-import * as RiveModule from '@rive-app/react-webgl2';
+import { useRive, Layout, Fit } from '@rive-app/react-webgl2';
+import { useState, useEffect } from 'react';
 import { cn } from '@/lib/cn';
 
-// Safely resolve Rive exports for SSR and CJS compatibility
-const getRive = () => {
-  if (typeof window === 'undefined') return {};
-  return (RiveModule as any).default || RiveModule;
-};
+function RivePlayer({
+  src,
+  buffer,
+  className,
+}: {
+  src?: string;
+  buffer?: ArrayBuffer;
+  className?: string;
+}) {
+  const isCover = className?.includes('object-cover');
+  const fit = isCover ? Fit.Cover : Fit.Contain;
 
-const Rive = getRive();
-const useRive = Rive.useRive;
-const Layout = Rive.Layout;
-const Fit = Rive.Fit;
+  const { RiveComponent } = useRive({
+    src,
+    buffer,
+    stateMachines: 'State Machine 1',
+    layout: new Layout({ fit }),
+    autoplay: true,
+  });
+
+  return (
+    <div className={cn(className, 'overflow-hidden')}>
+      <RiveComponent className="w-full h-full" />
+    </div>
+  );
+}
 
 export function RiveCanvas({
   src,
@@ -21,28 +38,15 @@ export function RiveCanvas({
   buffer?: ArrayBuffer;
   className?: string;
 }) {
-  const isCover = className?.includes('object-cover');
-  const fit = isCover ? Fit?.Cover || 'cover' : Fit?.Contain || 'contain';
+  const [isClient, setIsClient] = useState(false);
 
-  if (typeof window === 'undefined' || !useRive) {
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
     return <div className={className} />;
   }
 
-  const { RiveComponent } = useRive({
-    src,
-    buffer,
-    stateMachines: 'State Machine 1',
-    layout: Layout
-      ? new Layout({
-          fit: fit,
-        })
-      : undefined,
-    autoplay: true,
-  });
-
-  return (
-    <div className={cn(className, 'overflow-hidden')}>
-      <RiveComponent className="w-full h-full" />
-    </div>
-  );
+  return <RivePlayer src={src} buffer={buffer} className={className} />;
 }
