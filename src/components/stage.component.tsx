@@ -1,13 +1,14 @@
 import { Stage, Layer } from 'react-konva';
 import type { Room } from 'livekit-client';
 import { DraggableCharacter } from '@/components/draggable-character.component';
+import type { PropType } from '@/db/schema';
 
 export interface StageCast {
   sceneCastId: string;
   castId: string;
   userId: string;
   path: string | null;
-  type: 'character' | 'background' | 'animation' | null;
+  type: PropType | null;
   posX: number | null;
   posY: number | null;
   rotation: number | null;

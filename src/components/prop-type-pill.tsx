@@ -1,7 +1,9 @@
 import { cn } from '@/lib/cn';
 
+import type { PropType } from '@/db/schema';
+
 interface PropTypePillProps {
-  type: 'character' | 'background' | 'animation';
+  type: PropType;
   className?: string;
 }
 

@@ -2,11 +2,12 @@ import { useState, useRef, useEffect } from 'react';
 import { TrashIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/cn';
 import { PropTypePill } from './prop-type-pill';
+import type { PropType } from '@/db/schema';
 
 type Prop = {
   id: string;
   name: string;
-  type: 'background' | 'character' | 'animation';
+  type: PropType;
   imageUrl: string | null;
 };
 
@@ -17,7 +18,7 @@ type CastMember = {
   propId: string | null;
   propName: string | null;
   propImageUrl: string | null;
-  propType: 'background' | 'character' | 'animation' | null;
+  propType: PropType | null;
 };
 
 type Actor = {
@@ -51,7 +52,7 @@ function PropPicker({
   propId: string | null;
   propName: string | null;
   propImageUrl: string | null;
-  propType: 'character' | 'background' | 'animation' | null;
+  propType: PropType | null;
   availableProps: Prop[];
   usedPropIds: Set<string>;
   onAssign: (castId: string, propId: string | null) => void;

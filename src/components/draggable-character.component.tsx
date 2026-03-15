@@ -5,13 +5,14 @@ import { RoomEvent } from 'livekit-client';
 import type { Room } from 'livekit-client';
 import { authClient } from '@/lib/auth-client';
 import { saveSceneCastPosition } from '@/lib/scenes.fns';
+import type { PropType } from '@/db/schema';
 
 interface DraggableCharacterProps {
   sceneCastId: string;
   castId: string;
   src: string;
   userId: string;
-  type: 'character' | 'background' | 'animation';
+  type: PropType;
   initialX?: number;
   initialY?: number;
   initialRotation?: number;

@@ -12,6 +12,7 @@ import { StatusBadge } from '@/components/status-badge.component';
 import { cn } from '@/lib/cn';
 import { PhotoIcon, XMarkIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { updateStoryStatus } from '@/lib/story-detail.fns';
+import type { PropType } from '@/db/schema';
 import { toast } from '@/lib/toast';
 
 export const Route = createFileRoute('/_app/director')({
@@ -63,7 +64,7 @@ function DirectorPage() {
   const ended = stories.filter((s) => s.status === 'ended');
 
   const handleAddProp = async (
-    type: 'character' | 'background' | 'animation',
+    type: PropType,
     file: File,
     name: string,
   ) => {
@@ -102,7 +103,7 @@ function DirectorPage() {
   };
 
   const handleRemoveProp = async (
-    type: 'character' | 'background' | 'animation',
+    type: PropType,
     id: string,
   ) => {
     await deleteProp({ data: { id } });
@@ -255,7 +256,7 @@ function LibrarySection({
   onRemove,
 }: {
   label: string;
-  type: 'character' | 'background' | 'animation';
+  type: PropType;
   items: LibraryItem[];
   isLoading: boolean;
   onAdd: (file: File, name: string) => Promise<void>;

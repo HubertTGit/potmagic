@@ -4,6 +4,7 @@ import { TrashIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/cn';
 import { DataList, DataListItem } from './data-list';
 import { PropTypePill } from './prop-type-pill';
+import type { PropType } from '@/db/schema';
 
 export type CastMember = {
   id: string;
@@ -12,7 +13,7 @@ export type CastMember = {
   propId: string | null;
   propName: string | null;
   propImageUrl: string | null;
-  propType: 'background' | 'character' | 'animation' | null;
+  propType: PropType | null;
 };
 
 interface SceneCastSectionProps {
@@ -94,7 +95,7 @@ export function SceneCastSection({
                 </div>
                 {c.propType && (
                   <PropTypePill
-                    type={c.propType as 'character' | 'background' | 'animation'}
+                    type={c.propType as PropType}
                   />
                 )}
               </div>
@@ -187,7 +188,7 @@ function CastDropdown({
                 )}
               </div>
               {c.propType && (
-                <PropTypePill type={c.propType as 'character' | 'background' | 'animation'} />
+                <PropTypePill type={c.propType as PropType} />
               )}
             </button>
           ))}

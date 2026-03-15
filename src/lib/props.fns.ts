@@ -4,7 +4,7 @@ import { getRequest } from '@tanstack/react-start/server';
 import { eq } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { props, users, cast, sceneCast } from '@/db/schema';
+import { props, users, cast, sceneCast, type PropType } from '@/db/schema';
 import { supabase } from '@/lib/supabase.server';
 
 const BUCKET = 'props';
@@ -52,7 +52,7 @@ export const createProp = createServerFn({ method: 'POST' })
     (input: unknown) =>
       input as {
         name: string;
-        type: 'character' | 'background' | 'animation';
+        type: PropType;
         imageUrl: string;
         size: number;
       },
@@ -78,7 +78,7 @@ export const createProp = createServerFn({ method: 'POST' })
 
 export const listProps = createServerFn({ method: 'GET' })
   .inputValidator(
-    (input: unknown) => input as { type: 'character' | 'background' | 'animation' },
+    (input: unknown) => input as { type: PropType },
   )
   .handler(async ({ data }) => {
     await requireDirector();
