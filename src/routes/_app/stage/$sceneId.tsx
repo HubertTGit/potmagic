@@ -52,6 +52,9 @@ function LiveStageContent({
   const participants = useParticipants();
   const room = useRoomContext();
   const onlineIds = new Set(participants.map((p) => p.identity));
+  const speakingIds = new Set(
+    participants.filter((p) => p.isSpeaking).map((p) => p.identity)
+  );
 
   return (
     <>
@@ -64,6 +67,7 @@ function LiveStageContent({
         storyId={storyId}
         status={status}
         onlineIds={onlineIds}
+        speakingIds={speakingIds}
         isSwitching={isSwitching}
         room={room}
       />
@@ -90,6 +94,7 @@ function OfflineStageContent({
       storyId={storyId}
       status={status}
       onlineIds={new Set()}
+      speakingIds={new Set()}
       isSwitching={isSwitching}
       room={null}
     />
@@ -98,6 +103,7 @@ function OfflineStageContent({
 
 interface StageShellProps extends StageContentProps {
   onlineIds: Set<string>;
+  speakingIds: Set<string>;
   room: Room | null;
 }
 
@@ -109,6 +115,7 @@ function StageShell({
   storyId,
   status,
   onlineIds,
+  speakingIds,
   isSwitching,
   room,
 }: StageShellProps) {
@@ -133,6 +140,7 @@ function StageShell({
           directorId={directorId}
           directorName={directorName}
           onlineIds={onlineIds}
+          speakingIds={speakingIds}
         />
       </div>
       <div className="rounded-xl border-2 border-base-300 shadow-xl overflow-hidden">

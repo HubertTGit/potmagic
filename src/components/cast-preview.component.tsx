@@ -8,6 +8,7 @@ interface CastPreviewProps {
   directorId: string;
   directorName: string;
   onlineIds?: Set<string>;
+  speakingIds?: Set<string>;
 }
 
 export function CastPreview({
@@ -15,6 +16,7 @@ export function CastPreview({
   directorId,
   directorName,
   onlineIds = new Set(),
+  speakingIds = new Set(),
 }: CastPreviewProps) {
   const { data: session } = authClient.useSession();
   const currentUserId = session?.user?.id;
@@ -23,17 +25,25 @@ export function CastPreview({
 
   const isCurrentUserDirector = currentUserId === directorId;
   const isDirectorOnline = onlineIds.has(directorId);
+  const isDirectorSpeaking = speakingIds.has(directorId);
 
   return (
     <div className="flex items-center gap-2 bg-base-200 border border-base-300 rounded-xl px-3 py-2 shadow-lg">
       {/* Director avatar — first in list */}
       <div className="indicator">
-        {isDirectorOnline && (
-          <span className="indicator-item badge badge-success size-2 min-w-0 p-0 rounded-full" />
+        {(isDirectorOnline || isDirectorSpeaking) && (
+          <span
+            className={cn(
+              'indicator-item badge min-w-0 p-0 rounded-full transition-all duration-300',
+              isDirectorSpeaking
+                ? 'bg-purple-500 border-purple-500 size-3 animate-bounce'
+                : 'badge-success size-2',
+            )}
+          />
         )}
         <div
           className={cn(
-            'size-8 rounded-full bg-base-300 flex items-center justify-center transition-transform',
+            'size-8 rounded-full bg-base-300 flex items-center justify-center transition-all duration-300',
             isCurrentUserDirector &&
               'ring-2 ring-gold ring-offset-2 ring-offset-base-200 scale-110',
           )}
@@ -48,23 +58,29 @@ export function CastPreview({
         .map((cast) => {
           const isMe = cast.userId === currentUserId;
           const isOnline = onlineIds.has(cast.userId);
-          const ringClass = isMe
-            ? 'ring-2 ring-gold ring-offset-2 ring-offset-base-200 scale-110'
-            : 'ring-1 ring-base-300';
+          const isSpeaking = speakingIds.has(cast.userId);
+
+          console.log(isSpeaking, cast.userId);
+
+          let ringClass = 'ring-1 ring-base-300';
+          if (isMe) {
+            ringClass =
+              'ring-2 ring-gold ring-offset-2 ring-offset-base-200 scale-110';
+          }
 
           const avatar = cast.path ? (
             <img
               src={cast.path}
               alt=""
               className={cn(
-                'size-8 rounded-full object-cover bg-base-300 block transition-transform',
+                'size-8 rounded-full object-cover bg-base-300 block transition-all duration-300',
                 ringClass,
               )}
             />
           ) : (
             <div
               className={cn(
-                'size-8 rounded-full bg-base-300 block transition-transform',
+                'size-8 rounded-full bg-base-300 block transition-all duration-300',
                 ringClass,
               )}
             />
@@ -72,8 +88,15 @@ export function CastPreview({
 
           return (
             <div key={cast.castId} className="indicator">
-              {isOnline && (
-                <span className="indicator-item badge badge-success size-2 min-w-0 p-0 rounded-full" />
+              {(isOnline || isSpeaking) && (
+                <span
+                  className={cn(
+                    'indicator-item badge min-w-0 p-0 rounded-full transition-all duration-300',
+                    isSpeaking
+                      ? 'bg-purple-500 border-purple-500 size-3 animate-bounce'
+                      : 'badge-success size-2',
+                  )}
+                />
               )}
               {avatar}
             </div>
