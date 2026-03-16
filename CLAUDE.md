@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 always use pnpm never use npm
 
+**Never commit changes unless the user explicitly asks you to.** Always show what would be committed and wait for confirmation first.
+
 ```bash
 pnpm dev          # Start development server
 pnpm build        # TypeScript check + production build
@@ -26,13 +28,15 @@ pnpm preview      # Preview production build
 - **TanStack Router** — file-based routing with `beforeLoad` auth guards
 - **TanStack Query** — data fetching/caching
 - **Tailwind CSS v4** + Sass — styling
-- **better-auth** — email/password authentication, Drizzle adapter (PostgreSQL)
+- **better-auth** — email/password + magic link authentication, Drizzle adapter (PostgreSQL)
 - **Drizzle ORM** — type-safe PostgreSQL schema and queries
 - **DaisyUI v5** — primary UI component library; Tailwind CSS plugin (`@plugin "daisyui"` in index.css); use daisyUI component classes for all UI elements
 - **clsx + tailwind-merge** — conditional class composition via `cn()` helper (`src/lib/cn.ts`)
+- **@dnd-kit/core + @dnd-kit/sortable + @dnd-kit/utilities** — drag-and-drop (scene reordering)
 - **LiveKit** (`livekit-client`, `@livekit/components-react`) — real-time multi-user sessions
+- **Rive** (`@rive-app/canvas`, `@rive-app/react-webgl2`) — animated prop support
 - **Supabase Storage** — file storage for prop images (bucket: `props`)
-- **Resend** — transactional email (password reset)
+- **Resend** — transactional email (magic links, password reset)
 - **PostgreSQL** — database via Drizzle ORM
 
 ## User Roles
