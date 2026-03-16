@@ -195,3 +195,103 @@ Specialized reference agents for documentation lookup:
 - `daisyui-utilities` — Utility classes, border radius tokens, glass effect, CSS variables
 - `daisyui-base` — Base styles and how to exclude them
 - `daisyui-layout-and-typography` — Tailwind layout utilities + Typography plugin integration
+
+## Figma MCP Integration Rules
+
+These rules define how to translate Figma inputs into code for this project. Follow them for every Figma-driven change.
+
+### Required Flow (do not skip)
+
+1. Call `get_design_context` first to fetch the structured representation for the exact node(s)
+2. If the response is too large or truncated, call `get_metadata` to get the high-level node map, then re-fetch only the required node(s) with `get_design_context`
+3. Call `get_screenshot` for a visual reference of the node being implemented
+4. Only after you have both `get_design_context` and `get_screenshot`, download any assets needed and start implementation
+5. Translate the output (usually React + Tailwind) into this project's conventions, styles, and framework
+6. Validate against the Figma screenshot for 1:1 visual parity before marking complete
+
+### Component Organization
+
+- All UI components live in `src/components/`; file names use `.component.tsx` suffix for named components (e.g. `sidebar.component.tsx`) and plain `.tsx` for simpler primitives (e.g. `confirm-modal.tsx`, `data-list.tsx`)
+- IMPORTANT: Before creating a new component, search `src/components/` for an existing one that can be reused or extended
+- Export components as named exports (not default exports): `export function MyComponent(...)`
+- No Storybook — validate visually against the running app and Figma screenshots
+
+### Styling Rules
+
+- **IMPORTANT: Never use the `style` prop** — use Tailwind utility classes only
+- **IMPORTANT: Never hardcode colors** — use DaisyUI semantic color classes (`text-base-content`, `bg-base-200`, `text-gold`, `text-success`, `text-error`, etc.) or Tailwind utilities mapped to theme tokens
+- Conditional/merged class names must always use `cn()` from `src/lib/cn.ts` (wraps `clsx` + `tailwind-merge`)
+- DaisyUI v5 is the primary component library — use its component classes (`btn`, `card`, `modal`, `badge`, `input`, `table`, `dropdown`, `loading`, etc.) before writing custom markup
+- Tailwind CSS v4 is used via `@import "tailwindcss"` in `src/index.css`; no `tailwind.config.js` — extend via `@theme` in CSS
+- Custom multi-property utilities (gradients, shadows, fonts) go in `src/index.css` as `@utility` blocks, never inline
+
+### Design Tokens
+
+- **Themes:** DaisyUI themes set via `data-theme` attribute on `<html>`. Active themes are `dracula` (dark) and `emerald` (light), toggled by `useTheme` hook in `src/hooks/useTheme.ts`
+- **Gold accent:** `text-gold` / `bg-gold` / `border-gold` / `btn-gold` — the primary brand accent color defined as a CSS custom property
+- **Semantic colors:** use DaisyUI CSS variables (`--base-100`, `--base-200`, `--base-300`, `--base-content`, `--gold`) — never raw hex values
+- **Opacity modifiers:** use Tailwind opacity syntax (`text-base-content/60`, `bg-base-100/80`) for muted variants — never hardcode rgba
+
+### Typography
+
+- Primary font: **Lexend** (variable weight 100–900), loaded from Google Fonts in `src/index.css`
+- Display/heading text uses `font-display` class (maps to Lexend with appropriate weight)
+- Label/tracking patterns: `uppercase tracking-wider` for section labels, `tracking-wide` for buttons
+
+### Icon System
+
+- Icons come from `@heroicons/react/24/outline` (outline style, 24px grid)
+- Import named icon components: `import { BookOpenIcon } from '@heroicons/react/24/outline'`
+- Render with size utility: `<BookOpenIcon className="size-4" />` (use `size-*` not `w-* h-*`)
+- **IMPORTANT: Do NOT install new icon packages** — use HeroIcons exclusively; inline SVG only as a last resort for custom shapes
+
+### Asset Handling
+
+- Prop images (characters, backgrounds, animations) are stored in **Supabase Storage**, bucket `props`, and referenced via public URLs on the `props` table (`imageUrl` column)
+- Static app assets live in `public/`
+- **IMPORTANT:** If the Figma MCP server returns a `localhost` source for an image or SVG, use that source directly — do not create placeholders
+- Rive animations (`.riv` files) are rendered via `<RiveCanvas>` component (`src/components/rive-canvas.component.tsx`)
+
+### Responsive Design
+
+- Layout is sidebar + main content: sidebar is `w-14` (collapsed) / `w-52` (expanded), controlled by `Sidebar` component
+- Stage/canvas route auto-collapses the sidebar
+- Use Tailwind responsive prefixes (`md:`, `lg:`) for breakpoint variants; the canvas (`Stage`) uses `useWindowSize` hook for dynamic sizing
+
+### Project Structure Summary
+
+```
+src/
+  components/       # All UI components
+  routes/           # TanStack file-based routes
+    _app/           # Authenticated layout (wraps Sidebar)
+    auth.tsx        # Auth pages
+    show/           # Public broadcast viewer
+  lib/              # Server functions (*.fns.ts), utilities, auth config
+  db/               # Drizzle schema + migrations
+  hooks/            # React hooks (useTheme, useWindowSize)
+  index.css         # Global styles, Tailwind + DaisyUI config
+```
+
+### Key Patterns
+
+```tsx
+// Class composition
+import { cn } from '@/lib/cn'
+<div className={cn('btn btn-sm', isActive && 'btn-gold', className)} />
+
+// DaisyUI modal
+<dialog className="modal modal-open">
+  <div className="modal-box">...</div>
+  <form method="dialog" className="modal-backdrop"><button>close</button></form>
+</dialog>
+
+// DaisyUI badge with semantic color
+<span className={cn('badge badge-sm font-semibold uppercase tracking-wider', 'badge-success')}>
+  Active
+</span>
+
+// HeroIcon usage
+import { XMarkIcon } from '@heroicons/react/24/outline'
+<XMarkIcon className="size-4" />
+```
