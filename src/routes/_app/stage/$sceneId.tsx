@@ -19,6 +19,8 @@ import {
   StoryStatusButton,
   type StoryStatus,
 } from '@/components/story-status-button.component';
+import { SoundControlBar } from '@/components/sound-control-bar.component';
+import { useSceneSound } from '@/hooks/useSceneSound';
 import type { StageCast } from '@/components/stage.component';
 import type Konva from 'konva';
 
@@ -40,6 +42,9 @@ interface StageContentProps {
   storyId: string;
   status: StoryStatus;
   isSwitching: boolean;
+  soundUrl: string | null;
+  soundName: string | null;
+  soundAutoplay: boolean;
 }
 
 // Rendered inside LiveKitRoom — can safely call useParticipants + useRoomContext
@@ -51,6 +56,9 @@ function LiveStageContent({
   storyId,
   status,
   isSwitching,
+  soundUrl,
+  soundName,
+  soundAutoplay,
 }: StageContentProps) {
   const participants = useParticipants();
   const room = useRoomContext();
@@ -80,6 +88,9 @@ function LiveStageContent({
         isSwitching={isSwitching}
         room={room}
         isDirector={isDirector}
+        soundUrl={soundUrl}
+        soundName={soundName}
+        soundAutoplay={soundAutoplay}
       />
     </>
   );
@@ -94,6 +105,9 @@ function OfflineStageContent({
   storyId,
   status,
   isSwitching,
+  soundUrl,
+  soundName,
+  soundAutoplay,
 }: StageContentProps) {
   return (
     <StageShell
@@ -108,6 +122,9 @@ function OfflineStageContent({
       isSwitching={isSwitching}
       room={null}
       isDirector={false}
+      soundUrl={soundUrl}
+      soundName={soundName}
+      soundAutoplay={soundAutoplay}
     />
   );
 }
@@ -131,9 +148,19 @@ function StageShell({
   isSwitching,
   room,
   isDirector,
+  soundUrl,
+  soundName,
+  soundAutoplay,
 }: StageShellProps) {
   const konvaStageRef = useRef<Konva.Stage>(null);
   const stageWrapperRef = useRef<HTMLDivElement>(null);
+
+  const { playing, volume, setPlaying, setVolume } = useSceneSound({
+    room,
+    isDirector,
+    soundUrl,
+    soundAutoplay,
+  });
 
   useEffect(() => {
     if (!isDirector || !room) return;
@@ -185,7 +212,18 @@ function StageShell({
 
       <div className="flex items-center justify-between w-7xl">
         <StoryStatusButton storyId={storyId} status={status} room={room} />
-        <SceneNavigator sceneId={sceneId} room={room} />
+        <div className="flex items-center gap-3">
+          {isDirector && soundName && (
+            <SoundControlBar
+              soundName={soundName}
+              playing={playing}
+              volume={volume}
+              onTogglePlay={() => setPlaying(!playing)}
+              onVolumeChange={setVolume}
+            />
+          )}
+          <SceneNavigator sceneId={sceneId} room={room} />
+        </div>
         <CastPreview
           casts={casts}
           directorId={directorId}
@@ -259,6 +297,9 @@ function SceneStagePage() {
   const storyId = data?.storyId ?? '';
   const status = (data?.status ?? 'draft') as StoryStatus;
   const isSwitching = isFetching && isPlaceholderData;
+  const soundUrl = data?.soundUrl ?? null;
+  const soundName = data?.soundName ?? null;
+  const soundAutoplay = data?.soundAutoplay ?? false;
   const liveKitReady = !!livekitData && micResolved;
   const showMicModal = micState === 'prompt' && !micResolved;
 
@@ -314,6 +355,9 @@ function SceneStagePage() {
             storyId={storyId}
             status={status}
             isSwitching={isSwitching}
+            soundUrl={soundUrl}
+            soundName={soundName}
+            soundAutoplay={soundAutoplay}
           />
         </LiveKitRoom>
       ) : (
@@ -325,6 +369,9 @@ function SceneStagePage() {
           storyId={storyId}
           status={status}
           isSwitching={isSwitching}
+          soundUrl={soundUrl}
+          soundName={soundName}
+          soundAutoplay={soundAutoplay}
         />
       )}
     </>

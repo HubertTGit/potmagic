@@ -12,6 +12,8 @@ import {
   removeSceneCast,
   getSceneNavigation,
   assignSceneBackground,
+  assignSceneSound,
+  setSceneSoundAutoplay,
   addActorToScene,
   assignSceneProp,
 } from '@/lib/scenes.fns';
@@ -27,6 +29,10 @@ import {
   SceneBackgroundSection,
   type BackgroundProp,
 } from '@/components/scene-background-section';
+import {
+  SceneSoundSection,
+  type SoundProp,
+} from '@/components/scene-sound-section';
 
 export const Route = createFileRoute('/_app/stories/$storyId/scenes/$sceneId')({
   component: SceneDetailPage,
@@ -76,6 +82,7 @@ function SceneDetailPage() {
   const availableProps = (data?.props ?? []).filter((p) => p.type === 'character');
   const background: BackgroundProp | null =
     data?.background as BackgroundProp | null;
+  const sound: SoundProp | null = data?.sound as SoundProp | null;
   const storyProps = (data?.props ?? []) as BackgroundProp[];
 
   const [title, setTitle] = useState('');
@@ -120,6 +127,18 @@ function SceneDetailPage() {
     onSuccess: invalidate,
   });
 
+  const assignSoundMutation = useMutation({
+    mutationFn: (soundId: string | null) =>
+      assignSceneSound({ data: { sceneId, soundId } }),
+    onSuccess: invalidate,
+  });
+
+  const autoplayMutation = useMutation({
+    mutationFn: (autoplay: boolean) =>
+      setSceneSoundAutoplay({ data: { sceneId, autoplay } }),
+    onSuccess: invalidate,
+  });
+
   const isTitleDirty = title !== (scene?.title ?? '');
 
   if (!scene || !story) {
@@ -133,9 +152,16 @@ function SceneDetailPage() {
   const availableBackgrounds = storyProps.filter(
     (p) => p.type === 'background',
   );
+  const availableSounds = (data?.props ?? []).filter(
+    (p) => p.type === 'sound',
+  ) as SoundProp[];
 
   const handleAssignBackground = (bg: BackgroundProp | null) => {
     assignBgMutation.mutate(bg?.id ?? null);
+  };
+
+  const handleAssignSound = (s: SoundProp | null) => {
+    assignSoundMutation.mutate(s?.id ?? null);
   };
 
   return (
@@ -214,6 +240,16 @@ function SceneDetailPage() {
         availableBackgrounds={availableBackgrounds}
         onAssignBackground={handleAssignBackground}
         isAssigning={assignBgMutation.isPending}
+      />
+
+      <SceneSoundSection
+        isDirector={isDirector}
+        sound={sound}
+        availableSounds={availableSounds}
+        onAssignSound={handleAssignSound}
+        isAssigning={assignSoundMutation.isPending}
+        autoplay={data?.soundAutoplay ?? true}
+        onToggleAutoplay={(autoplay) => autoplayMutation.mutate(autoplay)}
       />
 
       <ConfirmModal

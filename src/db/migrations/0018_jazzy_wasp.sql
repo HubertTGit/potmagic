@@ -1,0 +1,2 @@
+ALTER TABLE "scenes" ADD COLUMN "sound_id" text;--> statement-breakpoint
+ALTER TABLE "scenes" ADD CONSTRAINT "scenes_sound_id_props_id_fk" FOREIGN KEY ("sound_id") REFERENCES "public"."props"("id") ON DELETE set null ON UPDATE no action;

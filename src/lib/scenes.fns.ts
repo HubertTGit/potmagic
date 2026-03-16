@@ -37,6 +37,8 @@ export const getSceneDetail = createServerFn({ method: 'GET' })
         order: scenes.order,
         storyId: scenes.storyId,
         backgroundId: scenes.backgroundId,
+        soundId: scenes.soundId,
+        soundAutoplay: scenes.soundAutoplay,
       })
       .from(scenes)
       .where(eq(scenes.id, data.sceneId));
@@ -106,6 +108,18 @@ export const getSceneDetail = createServerFn({ method: 'GET' })
           .where(eq(props.id, scene.backgroundId))
       : [null];
 
+    const [soundProp] = scene.soundId
+      ? await db
+          .select({
+            id: props.id,
+            name: props.name,
+            imageUrl: props.imageUrl,
+            type: props.type,
+          })
+          .from(props)
+          .where(eq(props.id, scene.soundId))
+      : [null];
+
     return {
       scene,
       story: story ?? null,
@@ -113,7 +127,33 @@ export const getSceneDetail = createServerFn({ method: 'GET' })
       assignedCast,
       availableActors,
       background: backgroundProp ?? null,
+      sound: soundProp ?? null,
+      soundAutoplay: scene.soundAutoplay,
     };
+  });
+
+export const assignSceneSound = createServerFn({ method: 'POST' })
+  .inputValidator(
+    (input: unknown) => input as { sceneId: string; soundId: string | null },
+  )
+  .handler(async ({ data }) => {
+    await requireDirector();
+    await db
+      .update(scenes)
+      .set({ soundId: data.soundId })
+      .where(eq(scenes.id, data.sceneId));
+  });
+
+export const setSceneSoundAutoplay = createServerFn({ method: 'POST' })
+  .inputValidator(
+    (input: unknown) => input as { sceneId: string; autoplay: boolean },
+  )
+  .handler(async ({ data }) => {
+    await requireDirector();
+    await db
+      .update(scenes)
+      .set({ soundAutoplay: data.autoplay })
+      .where(eq(scenes.id, data.sceneId));
   });
 
 export const assignSceneBackground = createServerFn({ method: 'POST' })
@@ -250,6 +290,8 @@ export const getSceneStage = createServerFn({ method: 'GET' })
         backgroundPosY: scenes.backgroundPosY,
         backgroundRotation: scenes.backgroundRotation,
         backgroundScaleX: scenes.backgroundScaleX,
+        soundId: scenes.soundId,
+        soundAutoplay: scenes.soundAutoplay,
       })
       .from(scenes)
       .where(eq(scenes.id, data.sceneId));
@@ -296,12 +338,22 @@ export const getSceneStage = createServerFn({ method: 'GET' })
       allCasts.unshift(backgroundCast as any);
     }
 
+    const [soundProp] = sceneWithBg?.soundId
+      ? await db
+          .select({ imageUrl: props.imageUrl, name: props.name })
+          .from(props)
+          .where(eq(props.id, sceneWithBg.soundId))
+      : [null];
+
     return {
       storyId: sceneRow.storyId,
       directorId: storyRow.directorId,
       directorName: storyRow.directorName ?? 'Director',
       status: storyRow.status,
       casts: allCasts,
+      soundUrl: soundProp?.imageUrl ?? null,
+      soundName: soundProp?.name ?? null,
+      soundAutoplay: sceneWithBg?.soundAutoplay ?? false,
     };
   });
 

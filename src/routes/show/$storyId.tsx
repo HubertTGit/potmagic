@@ -26,7 +26,14 @@ interface StoryStatusMessage {
   status: string;
 }
 
-type DataMessage = SceneNavigateMessage | StoryStatusMessage;
+interface SoundStateMessage {
+  type: 'sound:state';
+  url: string;
+  playing: boolean;
+  volume: number;
+}
+
+type DataMessage = SceneNavigateMessage | StoryStatusMessage | SoundStateMessage;
 
 const STAGE_WIDTH = 1280;
 const STAGE_HEIGHT = 720;
@@ -81,7 +88,20 @@ function ShowContent({
 }) {
   const room = useRoomContext();
   const stageContainerRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Create audio element on mount
+  useEffect(() => {
+    const audio = new Audio();
+    audio.loop = true;
+    audioRef.current = audio;
+    return () => {
+      audio.pause();
+      audio.src = '';
+      audioRef.current = null;
+    };
+  }, []);
 
   // Listen to data channel messages
   useEffect(() => {
@@ -94,6 +114,18 @@ function ShowContent({
       }
       if (msg.type === 'story:status' && msg.status !== 'active') {
         onShowEnded();
+      } else if (msg.type === 'sound:state') {
+        const audio = audioRef.current;
+        if (!audio) return;
+        if (audio.src !== msg.url) {
+          audio.src = msg.url;
+        }
+        audio.volume = msg.volume;
+        if (msg.playing) {
+          audio.play().catch(() => {});
+        } else {
+          audio.pause();
+        }
       }
     };
 

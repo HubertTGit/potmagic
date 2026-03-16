@@ -127,6 +127,20 @@
       "when": 1773686731184,
       "tag": "0017_known_jamie_braddock",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1773688557661,
+      "tag": "0018_jazzy_wasp",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1773689013267,
+      "tag": "0019_mighty_the_captain",
+      "breakpoints": true
     }
   ]
 }

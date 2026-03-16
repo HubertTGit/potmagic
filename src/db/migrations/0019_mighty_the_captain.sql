@@ -1,0 +1,1 @@
+ALTER TABLE "scenes" ADD COLUMN "sound_autoplay" boolean DEFAULT true NOT NULL;

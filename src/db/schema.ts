@@ -111,6 +111,8 @@ export const scenes = pgTable(
     title: text('title').notNull(),
     order: integer('order').default(0).notNull(),
     backgroundId: text('background_id').references(() => props.id, { onDelete: 'set null' }),
+    soundId: text('sound_id').references(() => props.id, { onDelete: 'set null' }),
+    soundAutoplay: boolean('sound_autoplay').default(true).notNull(),
     backgroundPosX: real('background_pos_x'),
     backgroundPosY: real('background_pos_y'),
     backgroundRotation: real('background_rotation'),
