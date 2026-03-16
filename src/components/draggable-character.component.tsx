@@ -56,7 +56,8 @@ export function DraggableCharacter({
   isSpeaking,
 }: DraggableCharacterProps) {
   const { data: session } = authClient.useSession();
-  const canDrag = session?.user?.id === userId || session?.user?.role === 'director';
+  const canDrag =
+    session?.user?.id === userId || session?.user?.role === 'director';
   const imageRef = useRef<Konva.Image>(null);
   const [image, setImage] = useState<HTMLImageElement | undefined>(undefined);
   const lastAngle = useRef(0);
@@ -230,7 +231,6 @@ export function DraggableCharacter({
       shadowBlur={15}
       shadowOpacity={1}
       strokeEnabled={isSpeaking && type !== 'background'}
-      stroke="#a855f7"
       strokeWidth={4}
       dragBoundFunc={
         type === 'background'
