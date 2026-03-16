@@ -4,6 +4,7 @@ import { TrashIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/cn';
 import { DataList, DataListItem } from './data-list';
 import { PropTypePill } from './prop-type-pill';
+import { QuestionMarkCircleIcon } from '@heroicons/react/24/solid';
 import type { PropType } from '@/db/schema';
 
 export type CastMember = {
@@ -14,6 +15,7 @@ export type CastMember = {
   propName: string | null;
   propImageUrl: string | null;
   propType: PropType | null;
+  userImage: string | null;
 };
 
 interface SceneCastSectionProps {
@@ -33,6 +35,7 @@ interface SceneCastSectionProps {
     next?: { id: string } | null;
     all?: { id: string; title: string }[] | null;
   } | null;
+  currentUserId?: string;
 }
 
 export function SceneCastSection({
@@ -48,6 +51,7 @@ export function SceneCastSection({
   sceneOrder,
   totalScenes,
   nav,
+  currentUserId,
 }: SceneCastSectionProps) {
   return (
     <div className="mb-8">
@@ -71,33 +75,70 @@ export function SceneCastSection({
             No cast assigned yet.
           </DataListItem>
         ) : (
-          assignedCast.map((c) => (
+          [...assignedCast]
+            .sort((a, b) => {
+              if (a.userId === currentUserId) return -1;
+              if (b.userId === currentUserId) return 1;
+              return 0;
+            })
+            .map((c) => (
             <DataListItem
               key={c.id}
             >
-              <div className="flex items-center gap-3 list-col-grow">
-                {c.propImageUrl ? (
-                  <img
-                    src={c.propImageUrl}
-                    alt={c.propName ?? ''}
-                    className="size-8 rounded object-cover bg-base-300 shrink-0"
-                  />
-                ) : (
-                  <div className="size-8 rounded bg-base-300 shrink-0" />
-                )}
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">{c.userName}</span>
-                  {c.propName && (
-                    <span className="text-xs text-base-content/40">
-                      {c.propName}
+              <div className="flex items-center gap-3 w-48 shrink-0">
+                <div
+                  className={cn(
+                    'relative size-9 rounded-full flex items-center justify-center bg-base-300 shrink-0',
+                    c.userId === currentUserId &&
+                      'ring-2 ring-gold ring-offset-2 ring-offset-base-100 shadow-[0_0_10px_rgba(212,175,55,0.3)]',
+                  )}
+                >
+                  {c.userImage ? (
+                    <img
+                      src={c.userImage}
+                      alt={c.userName ?? ''}
+                      className="size-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-xs font-bold uppercase text-base-content/30">
+                      {c.userName?.slice(0, 2)}
                     </span>
                   )}
+                  {c.userId === currentUserId && (
+                    <div
+                      className="absolute -top-2 -right-2 size-5 flex items-center justify-center tooltip tooltip-top"
+                      data-tip="This is you"
+                    >
+                      <QuestionMarkCircleIcon className="size-4 text-primary bg-base-100 rounded-full" />
+                    </div>
+                  )}
                 </div>
-                {c.propType && (
-                  <PropTypePill
-                    type={c.propType as PropType}
-                  />
-                )}
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-sm font-semibold">{c.userName}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-base-content/40 uppercase tracking-widest font-bold">
+                      Actor
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="list-col-grow flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  {c.propImageUrl ? (
+                    <img
+                      src={c.propImageUrl}
+                      alt={c.propName ?? ''}
+                      className="size-7 rounded object-cover bg-base-300 shrink-0"
+                    />
+                  ) : c.propId ? (
+                    <div className="size-7 rounded bg-base-300 shrink-0" />
+                  ) : null}
+                  {c.propName && (
+                    <span className="text-sm font-medium">{c.propName}</span>
+                  )}
+                </div>
+                {c.propType && <PropTypePill type={c.propType as PropType} />}
               </div>
               {isDirector && (
                 <div className="flex justify-end shrink-0">

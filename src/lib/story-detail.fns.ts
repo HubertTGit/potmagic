@@ -38,6 +38,7 @@ export const getStoryDetail = createServerFn({ method: 'GET' })
         name: cast.name,
         userName: users.name,
         userEmail: users.email,
+        userImage: users.image,
         propName: props.name,
         propImageUrl: props.imageUrl,
         propType: props.type,

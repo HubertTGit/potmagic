@@ -3,6 +3,7 @@ import { TrashIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/cn';
 import { PropTypePill } from './prop-type-pill';
 import type { PropType } from '@/db/schema';
+import { QuestionMarkCircleIcon } from '@heroicons/react/24/solid';
 
 type Prop = {
   id: string;
@@ -19,6 +20,7 @@ type CastMember = {
   propName: string | null;
   propImageUrl: string | null;
   propType: PropType | null;
+  userImage: string | null;
 };
 
 type Actor = {
@@ -36,6 +38,7 @@ interface StoryCastTabProps {
   onRemoveCast: (castId: string, name: string) => void;
   onAssignProp: (castId: string, propId: string | null) => void;
   isRemovingCast: boolean;
+  currentUserId?: string;
 }
 
 function PropPicker({
@@ -165,6 +168,7 @@ export function StoryCastTab({
   onRemoveCast,
   onAssignProp,
   isRemovingCast,
+  currentUserId,
 }: StoryCastTabProps) {
   const [actorSearch, setActorSearch] = useState('');
   const [actorDropdownOpen, setActorDropdownOpen] = useState(false);
@@ -202,65 +206,102 @@ export function StoryCastTab({
             No actors cast yet.
           </DataListItem>
         ) : (
-          cast.map((c) => (
-            <DataListItem
-              key={c.id}
-            >
-              <div className="flex flex-col gap-0.5 w-48 shrink-0">
-                <span className="text-sm font-semibold">{c.userName}</span>
-                <span className="text-[10px] text-base-content/40 uppercase tracking-widest font-bold">
-                  Actor
-                </span>
-              </div>
-
-              <div className="list-col-grow">
-                {isDirector ? (
-                  <PropPicker
-                    castId={c.id}
-                    propId={c.propId ?? null}
-                    propName={c.propName ?? null}
-                    propImageUrl={c.propImageUrl ?? null}
-                    propType={c.propType ?? null}
-                    availableProps={availableProps}
-                    usedPropIds={usedPropIds}
-                    onAssign={onAssignProp}
-                  />
-                ) : c.propId ? (
-                  <div className="flex items-center gap-2">
-                    {c.propImageUrl ? (
+          [...cast]
+            .sort((a, b) => {
+              if (a.userId === currentUserId) return -1;
+              if (b.userId === currentUserId) return 1;
+              return 0;
+            })
+            .map((c) => (
+              <DataListItem key={c.id}>
+                <div className="flex items-center gap-3 w-48 shrink-0">
+                  <div
+                    className={cn(
+                      'relative size-9 rounded-full flex items-center justify-center bg-base-300 shrink-0',
+                      c.userId === currentUserId &&
+                        'ring-2 ring-gold ring-offset-2 ring-offset-base-100 shadow-[0_0_10px_rgba(212,175,55,0.3)]',
+                    )}
+                  >
+                    {c.userImage ? (
                       <img
-                        src={c.propImageUrl}
-                        alt={c.propName ?? ''}
-                        className="size-7 rounded object-cover bg-base-300 shrink-0"
+                        src={c.userImage}
+                        alt={c.userName ?? ''}
+                        className="size-full rounded-full object-cover"
                       />
                     ) : (
-                      <div className="size-7 rounded bg-base-300 shrink-0" />
+                      <span className="text-xs font-bold uppercase text-base-content/30">
+                        {c.userName?.slice(0, 2)}
+                      </span>
                     )}
-                    <span className="text-sm">{c.propName}</span>
+                    {c.userId === currentUserId && (
+                      <div
+                        className="absolute -top-2 -right-2 size-5 flex items-center justify-center tooltip tooltip-top"
+                        data-tip="This is you"
+                      >
+                        <QuestionMarkCircleIcon className="size-4 text-primary bg-base-100 rounded-full" />
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <span className="text-sm text-base-content/30 italic">
-                    No prop assigned
-                  </span>
-                )}
-              </div>
-
-              {isDirector && (
-                <div className="flex justify-end shrink-0">
-                  <button
-                    onClick={() =>
-                      onRemoveCast(c.id, c.userName ?? 'Unknown Actor')
-                    }
-                    disabled={isRemovingCast}
-                    className="text-xs text-error/60 hover:text-error transition-colors p-2 hover:bg-error/10 rounded-lg"
-                    title="Remove from cast"
-                  >
-                    <TrashIcon className="size-4" />
-                  </button>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-sm font-semibold">{c.userName}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-base-content/40 uppercase tracking-widest font-bold">
+                        Actor
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              )}
-            </DataListItem>
-          ))
+
+                <div className="list-col-grow">
+                  {isDirector ? (
+                    <PropPicker
+                      castId={c.id}
+                      propId={c.propId ?? null}
+                      propName={c.propName ?? null}
+                      propImageUrl={c.propImageUrl ?? null}
+                      propType={c.propType ?? null}
+                      availableProps={availableProps}
+                      usedPropIds={usedPropIds}
+                      onAssign={onAssignProp}
+                    />
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      {c.propImageUrl ? (
+                        <img
+                          src={c.propImageUrl}
+                          alt={c.propName ?? ''}
+                          className="size-7 rounded object-cover bg-base-300 shrink-0"
+                        />
+                      ) : c.propId ? (
+                        <div className="size-7 rounded bg-base-300 shrink-0" />
+                      ) : null}
+                      {c.propName ? (
+                        <span className="text-sm">{c.propName}</span>
+                      ) : (
+                        <span className="text-sm text-base-content/30 italic">
+                          No prop assigned
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {isDirector && (
+                  <div className="flex justify-end shrink-0">
+                    <button
+                      onClick={() =>
+                        onRemoveCast(c.id, c.userName ?? 'Unknown Actor')
+                      }
+                      disabled={isRemovingCast}
+                      className="text-xs text-error/60 hover:text-error transition-colors p-2 hover:bg-error/10 rounded-lg"
+                      title="Remove from cast"
+                    >
+                      <TrashIcon className="size-4" />
+                    </button>
+                  </div>
+                )}
+              </DataListItem>
+            ))
         )}
       </DataList>
 

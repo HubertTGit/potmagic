@@ -199,6 +199,7 @@ function StoryDetailPage() {
           onAssignProp={(castId, propId) =>
             assignPropMutation.mutate({ castId, propId })
           }
+          currentUserId={session?.user?.id}
           isRemovingCast={removeCastMutation.isPending}
         />
       )}

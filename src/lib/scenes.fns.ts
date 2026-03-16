@@ -67,6 +67,7 @@ export const getSceneDetail = createServerFn({ method: 'GET' })
         id: cast.id,
         userId: cast.userId,
         userName: users.name,
+        userImage: users.image,
         propId: cast.propId,
         propName: props.name,
         propImageUrl: props.imageUrl,

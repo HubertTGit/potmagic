@@ -190,6 +190,7 @@ function SceneDetailPage() {
         sceneOrder={scene.order}
         totalScenes={story.totalScenes}
         nav={nav}
+        currentUserId={session?.user?.id}
       />
 
       <SceneBackgroundSection
