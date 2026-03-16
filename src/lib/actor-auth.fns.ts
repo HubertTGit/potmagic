@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest, setCookie } from '@tanstack/react-start/server'
-import { eq } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
 import { users, sessions, invitedActors } from '@/db/schema'
@@ -111,7 +111,7 @@ export const actorSignIn = createServerFn({ method: 'POST' })
 
 export const listInvitedActors = createServerFn({ method: 'GET' })
   .handler(async () => {
-    await requireDirector()
+    const session = await requireDirector()
 
     const rows = await db
       .select({
@@ -121,6 +121,7 @@ export const listInvitedActors = createServerFn({ method: 'GET' })
         createdAt: invitedActors.createdAt,
       })
       .from(invitedActors)
+      .where(eq(invitedActors.addedBy, session.user.id))
       .orderBy(invitedActors.createdAt)
 
     return rows.map((r) => ({
@@ -159,6 +160,6 @@ export const addInvitedActor = createServerFn({ method: 'POST' })
 export const removeInvitedActor = createServerFn({ method: 'POST' })
   .inputValidator((input: unknown) => input as { id: string })
   .handler(async ({ data }) => {
-    await requireDirector()
-    await db.delete(invitedActors).where(eq(invitedActors.id, data.id))
+    const session = await requireDirector()
+    await db.delete(invitedActors).where(and(eq(invitedActors.id, data.id), eq(invitedActors.addedBy, session.user.id)))
   })

@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
-import { eq, sql, inArray, asc } from 'drizzle-orm'
+import { eq, sql, inArray, asc, and } from 'drizzle-orm'
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
 import { stories, users, scenes } from '@/db/schema'
@@ -36,7 +36,7 @@ export const listStories = createServerFn({ method: 'GET' }).handler(async () =>
     .from(stories)
     .where(
       isDirector
-        ? undefined
+        ? eq(stories.directorId, session.user.id)
         : sql`stories.id in (select story_id from "cast" where user_id = ${session.user.id})`,
     )
     .orderBy(stories.createdAt)
@@ -77,8 +77,8 @@ export const createStory = createServerFn({ method: 'POST' })
 export const deleteStory = createServerFn({ method: 'POST' })
   .inputValidator((input: unknown) => input as { id: string })
   .handler(async ({ data }) => {
-    await requireDirector()
-    await db.delete(stories).where(eq(stories.id, data.id))
+    const session = await requireDirector()
+    await db.delete(stories).where(and(eq(stories.id, data.id), eq(stories.directorId, session.user.id)))
   })
 
 export const listPublicStories = createServerFn({ method: 'GET' }).handler(async () => {

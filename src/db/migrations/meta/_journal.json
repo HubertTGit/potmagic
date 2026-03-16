@@ -113,6 +113,13 @@
       "when": 1773658706788,
       "tag": "0015_fat_spirit",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1773669791431,
+      "tag": "0016_cultured_franklin_storm",
+      "breakpoints": true
     }
   ]
 }

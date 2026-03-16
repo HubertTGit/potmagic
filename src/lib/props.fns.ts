@@ -1,7 +1,7 @@
 // src/lib/props.fns.ts
 import { createServerFn } from '@tanstack/react-start';
 import { getRequest } from '@tanstack/react-start/server';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { props, users, cast, sceneCast, type PropType } from '@/db/schema';
@@ -58,13 +58,13 @@ export const createProp = createServerFn({ method: 'POST' })
       },
   )
   .handler(async ({ data }) => {
-    await requireDirector();
+    const session = await requireDirector();
 
     const id = crypto.randomUUID();
     try {
       const [row] = await db
         .insert(props)
-        .values({ id, name: data.name, type: data.type, imageUrl: data.imageUrl, size: data.size })
+        .values({ id, createdBy: session.user.id, name: data.name, type: data.type, imageUrl: data.imageUrl, size: data.size })
         .returning();
 
       return row;
@@ -81,22 +81,22 @@ export const listProps = createServerFn({ method: 'GET' })
     (input: unknown) => input as { type: PropType },
   )
   .handler(async ({ data }) => {
-    await requireDirector();
+    const session = await requireDirector();
 
     return await db
       .select()
       .from(props)
-      .where(eq(props.type, data.type))
+      .where(and(eq(props.type, data.type), eq(props.createdBy, session.user.id)))
       .orderBy(props.createdAt);
   });
 
 export const deleteProp = createServerFn({ method: 'POST' })
   .inputValidator((input: unknown) => input as { id: string })
   .handler(async ({ data }) => {
-    await requireDirector();
+    const session = await requireDirector();
 
     // Fetch the row to get the imageUrl for storage deletion
-    const [row] = await db.select().from(props).where(eq(props.id, data.id));
+    const [row] = await db.select().from(props).where(and(eq(props.id, data.id), eq(props.createdBy, session.user.id)));
     if (!row) return;
 
     // Remove actor from all scenes before nulling out their prop.
