@@ -98,9 +98,14 @@ export const actorSignIn = createServerFn({ method: 'POST' })
     const secret = process.env.BETTER_AUTH_SECRET!
     const signedValue = await makeSignedCookieValue(token, secret)
 
-    setCookie('better-auth.session_token', signedValue, {
+    // better-auth uses the __Secure- prefix when baseURL is https (i.e. on Vercel/production)
+    const baseURL = process.env.BETTER_AUTH_URL ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+    const isSecure = baseURL.startsWith('https://')
+    const cookieName = isSecure ? '__Secure-better-auth.session_token' : 'better-auth.session_token'
+
+    setCookie(cookieName, signedValue, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isSecure,
       sameSite: 'lax',
       path: '/',
       maxAge: 7 * 24 * 60 * 60,
