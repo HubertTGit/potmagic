@@ -9,6 +9,7 @@ import {
   assignProp,
   addScene,
   removeScene,
+  reorderScenes,
 } from '@/lib/story-detail.fns';
 import { StatusBadge } from '@/components/status-badge.component';
 import { Breadcrumb } from '@/components/breadcrumb.component';
@@ -93,6 +94,13 @@ function StoryDetailPage() {
       invalidate();
       setSceneToDelete(null);
     },
+  });
+
+  const reorderScenesMutation = useMutation({
+    mutationFn: (reordered: { id: string; order: number }[]) =>
+      reorderScenes({ data: { scenes: reordered } }),
+    onSuccess: invalidate,
+    onError: invalidate,
   });
 
   if (isLoading) {
@@ -212,6 +220,7 @@ function StoryDetailPage() {
           isDirector={isDirector}
           onAddScene={(title) => addSceneMutation.mutate(title)}
           onRemoveScene={(id, title) => setSceneToDelete({ id, title })}
+          onReorderScenes={(reordered) => reorderScenesMutation.mutate(reordered)}
           isAddingScene={addSceneMutation.isPending}
           isRemovingScene={removeSceneMutation.isPending}
         />
