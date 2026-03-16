@@ -2,6 +2,8 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { listPublicStories } from '@/lib/stories.fns'
 import { cn } from '@/lib/cn'
+import { useTheme, Theme } from '@/hooks/useTheme'
+import { SunIcon, MoonIcon } from '@heroicons/react/24/outline'
 
 export const Route = createFileRoute('/')({
   component: LandingPage,
@@ -22,6 +24,7 @@ const STATUS_LABEL: Record<StoryStatus, string> = {
 }
 
 function LandingPage() {
+  const { theme, toggle } = useTheme()
   const { data: stories = [], isLoading } = useQuery({
     queryKey: ['public-stories'],
     queryFn: () => listPublicStories(),
@@ -34,9 +37,26 @@ function LandingPage() {
         <span className="font-display italic font-semibold text-2xl text-gold gold-glow tracking-[-0.01em]">
           potmagic
         </span>
-        <Link to="/auth" className="btn btn-sm btn-outline">
-          Sign In
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={toggle}
+            className="btn btn-sm btn-ghost btn-square"
+            aria-label="Toggle theme"
+          >
+            {theme === Theme.dark ? (
+              <SunIcon className="size-4" />
+            ) : (
+              <MoonIcon className="size-4" />
+            )}
+          </button>
+          <Link to="/auth" className="btn btn-sm btn-outline">
+            Director login
+          </Link>
+          <Link to="/actor-access" className="btn btn-sm btn-outline">
+            Actor login
+          </Link>
+        </div>
       </div>
 
       {/* Stories grid */}
