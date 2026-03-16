@@ -56,8 +56,14 @@ function SortableSceneRow({
   onRemoveScene,
 }: SortableSceneRowProps) {
   const navigate = useNavigate();
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: scene.id });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: scene.id });
 
   // Inline style is the sole exception to the no-inline-styles rule:
   // @dnd-kit's CSS.Transform produces a dynamic translate3d value that
@@ -84,40 +90,43 @@ function SortableSceneRow({
         })
       }
     >
-      {isDirector && (
-        <button
-          className="cursor-grab active:cursor-grabbing text-base-content/20 hover:text-base-content/50 transition-colors p-2 shrink-0"
-          aria-label="Drag to reorder"
-          onClick={(e) => e.stopPropagation()}
-          {...attributes}
-          {...listeners}
-        >
-          <Bars3Icon className="size-4" />
-        </button>
-      )}
-      <div className="text-base-content/40 text-sm tabular-nums font-medium w-6 shrink-0">
-        {index + 1}.
-      </div>
-      <div className="list-col-grow text-sm font-medium">
-        {scene.title}
-      </div>
-      <div className="flex items-center gap-3">
-        <span className="text-xs text-base-content/20 group-hover:text-base-content/40 transition-colors mr-1">
-          Click to view details →
-        </span>
-        {isDirector && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemoveScene(scene.id, scene.title);
-            }}
-            disabled={isRemovingScene}
-            className="text-xs text-error/60 hover:text-error transition-colors p-2 hover:bg-error/10 rounded-lg"
-            title="Remove scene"
-          >
-            <TrashIcon className="size-4" />
-          </button>
-        )}
+      <div className="flex justify-between items-center w-full">
+        <div className="flex items-center">
+          {isDirector && (
+            <button
+              className="cursor-grab active:cursor-grabbing text-base-content/20 hover:text-base-content/50 transition-colors p-2 shrink-0"
+              aria-label="Drag to reorder"
+              onClick={(e) => e.stopPropagation()}
+              {...attributes}
+              {...listeners}
+            >
+              <Bars3Icon className="size-4" />
+            </button>
+          )}
+          <div className="text-base-content/40 text-sm tabular-nums font-medium w-6 shrink-0">
+            {index + 1}.
+          </div>
+          <div className="list-col-grow text-sm font-medium">{scene.title}</div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-base-content/20 group-hover:text-base-content/40 transition-colors mr-1">
+            Click to view details →
+          </span>
+          {isDirector && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemoveScene(scene.id, scene.title);
+              }}
+              disabled={isRemovingScene}
+              className="text-xs text-error/60 hover:text-error transition-colors p-2 hover:bg-error/10 rounded-lg"
+              title="Remove scene"
+            >
+              <TrashIcon className="size-4" />
+            </button>
+          )}
+        </div>
       </div>
     </li>
   );
@@ -142,7 +151,9 @@ export function StoryScenesTab({
 
   const sensors = useSensors(
     useSensor(PointerSensor),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
   );
 
   const handleAddScene = () => {
