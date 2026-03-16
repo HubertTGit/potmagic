@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ShowStoryIdRouteImport } from './routes/show/$storyId'
+import { Route as AuthDirectorSetupRouteImport } from './routes/auth.director-setup'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
 import { Route as AppDirectorRouteImport } from './routes/_app/director'
 import { Route as AppStoriesIndexRouteImport } from './routes/_app/stories/index'
@@ -39,6 +40,11 @@ const ShowStoryIdRoute = ShowStoryIdRouteImport.update({
   id: '/show/$storyId',
   path: '/show/$storyId',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthDirectorSetupRoute = AuthDirectorSetupRouteImport.update({
+  id: '/director-setup',
+  path: '/director-setup',
+  getParentRoute: () => AuthRoute,
 } as any)
 const AppProfileRoute = AppProfileRouteImport.update({
   id: '/profile',
@@ -79,9 +85,10 @@ const AppStoriesStoryIdScenesSceneIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/director': typeof AppDirectorRoute
   '/profile': typeof AppProfileRoute
+  '/auth/director-setup': typeof AuthDirectorSetupRoute
   '/show/$storyId': typeof ShowStoryIdRoute
   '/stage/$sceneId': typeof AppStageSceneIdRoute
   '/stage/': typeof AppStageIndexRoute
@@ -91,9 +98,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/director': typeof AppDirectorRoute
   '/profile': typeof AppProfileRoute
+  '/auth/director-setup': typeof AuthDirectorSetupRoute
   '/show/$storyId': typeof ShowStoryIdRoute
   '/stage/$sceneId': typeof AppStageSceneIdRoute
   '/stage': typeof AppStageIndexRoute
@@ -105,9 +113,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/_app/director': typeof AppDirectorRoute
   '/_app/profile': typeof AppProfileRoute
+  '/auth/director-setup': typeof AuthDirectorSetupRoute
   '/show/$storyId': typeof ShowStoryIdRoute
   '/_app/stage/$sceneId': typeof AppStageSceneIdRoute
   '/_app/stage/': typeof AppStageIndexRoute
@@ -122,6 +131,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/director'
     | '/profile'
+    | '/auth/director-setup'
     | '/show/$storyId'
     | '/stage/$sceneId'
     | '/stage/'
@@ -134,6 +144,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/director'
     | '/profile'
+    | '/auth/director-setup'
     | '/show/$storyId'
     | '/stage/$sceneId'
     | '/stage'
@@ -147,6 +158,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_app/director'
     | '/_app/profile'
+    | '/auth/director-setup'
     | '/show/$storyId'
     | '/_app/stage/$sceneId'
     | '/_app/stage/'
@@ -158,7 +170,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
-  AuthRoute: typeof AuthRoute
+  AuthRoute: typeof AuthRouteWithChildren
   ShowStoryIdRoute: typeof ShowStoryIdRoute
 }
 
@@ -191,6 +203,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/show/$storyId'
       preLoaderRoute: typeof ShowStoryIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/auth/director-setup': {
+      id: '/auth/director-setup'
+      path: '/director-setup'
+      fullPath: '/auth/director-setup'
+      preLoaderRoute: typeof AuthDirectorSetupRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/_app/profile': {
       id: '/_app/profile'
@@ -266,10 +285,20 @@ const AppRouteChildren: AppRouteChildren = {
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
+interface AuthRouteChildren {
+  AuthDirectorSetupRoute: typeof AuthDirectorSetupRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthDirectorSetupRoute: AuthDirectorSetupRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
-  AuthRoute: AuthRoute,
+  AuthRoute: AuthRouteWithChildren,
   ShowStoryIdRoute: ShowStoryIdRoute,
 }
 export const routeTree = rootRouteImport

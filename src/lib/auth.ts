@@ -1,6 +1,7 @@
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { tanstackStartCookies } from 'better-auth/tanstack-start'
+import { magicLink } from 'better-auth/plugins'
 import { Resend } from 'resend'
 import { db } from '@/db'
 import * as schema from '@/db/schema'
@@ -29,7 +30,7 @@ export const auth = betterAuth({
     enabled: true,
     sendResetPassword: async ({ user, url }) => {
       const resend = new Resend(process.env.RESEND_API_KEY)
-      await resend.emails.send({
+      const { error } = await resend.emails.send({
         from: process.env.FROM_EMAIL!,
         to: user.email,
         subject: 'Reset your potmagic password',
@@ -39,7 +40,30 @@ export const auth = betterAuth({
           <p>This link expires in 1 hour. If you didn't request this, ignore this email.</p>
         `,
       })
+      if (error) throw new Error(error.message)
     },
   },
-  plugins: [tanstackStartCookies()],
+  plugins: [
+    tanstackStartCookies(),
+    magicLink({
+      sendMagicLink: async ({ email, url }) => {
+        const resend = new Resend(process.env.RESEND_API_KEY)
+        const { error } = await resend.emails.send({
+          from: process.env.FROM_EMAIL!,
+          to: email,
+          subject: 'Your potmagic sign-in link',
+          html: `
+            <p>Click the link below to sign in to potmagic.</p>
+            <p><a href="${url}">Sign in to potmagic</a></p>
+            <p>This link expires in 5 minutes. If you didn't request this, ignore this email.</p>
+          `,
+        })
+        if (error) {
+          console.error('[magic-link] Resend error:', error)
+          throw new Error(error.message)
+        }
+      },
+      expiresIn: 300,
+    }),
+  ],
 })
