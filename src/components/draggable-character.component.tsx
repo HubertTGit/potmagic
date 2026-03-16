@@ -19,6 +19,7 @@ interface DraggableCharacterProps {
   initialScaleX?: number;
   room?: Room | null;
   isSpeaking?: boolean;
+  stageWidth?: number;
 }
 
 interface PropMoveMessage {
@@ -54,6 +55,7 @@ export function DraggableCharacter({
   initialScaleX = 1,
   room,
   isSpeaking,
+  stageWidth = 1280,
 }: DraggableCharacterProps) {
   const { data: session } = authClient.useSession();
   const canDrag =
@@ -192,7 +194,9 @@ export function DraggableCharacter({
     const angle = getAngle(touches[0], touches[1]);
     const midpoint = getMidpoint(touches[0], touches[1]);
 
-    node.rotation(node.rotation() + (angle - lastAngle.current));
+    if (type !== 'background') {
+      node.rotation(node.rotation() + (angle - lastAngle.current));
+    }
     node.x(node.x() + (midpoint.x - lastMidpoint.current.x));
     if (type !== 'background') {
       node.y(node.y() + (midpoint.y - lastMidpoint.current.y));
@@ -236,7 +240,13 @@ export function DraggableCharacter({
       strokeWidth={4}
       dragBoundFunc={
         type === 'background'
-          ? (pos) => ({ x: pos.x, y: imageRef.current?.y() ?? pos.y })
+          ? (pos) => {
+              const halfW = (image?.width ?? 0) / 2;
+              const minX = stageWidth - halfW;
+              const maxX = halfW;
+              const clampedX = maxX > minX ? Math.min(Math.max(pos.x, minX), maxX) : pos.x;
+              return { x: clampedX, y: imageRef.current?.y() ?? pos.y };
+            }
           : undefined
       }
       onDragMove={() => {

@@ -94,6 +94,7 @@ export const StageComponent = React.forwardRef<Konva.Stage, StageComponentProps>
                   initialScaleX={cast.scaleX ?? 1}
                   room={room}
                   isSpeaking={speakingIds.has(cast.userId)}
+                  stageWidth={stageWidth}
                 />
               );
             })}
