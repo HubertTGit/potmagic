@@ -1,10 +1,11 @@
 import { createServerFn } from '@tanstack/react-start';
 import { and, asc, eq } from 'drizzle-orm';
+import { z } from 'zod';
 import { db } from '@/db';
 import { cast, props, scenes, sceneCast, stories } from '@/db/schema';
 
 export const getPublicStory = createServerFn({ method: 'GET' })
-  .inputValidator((input: unknown) => input as { storyId: string })
+  .inputValidator((input) => z.object({ storyId: z.string() }).parse(input))
   .handler(async ({ data }) => {
     const [story] = await db
       .select({ id: stories.id, title: stories.title, status: stories.status })
@@ -24,7 +25,7 @@ export const getPublicStory = createServerFn({ method: 'GET' })
   });
 
 export const getPublicSceneStage = createServerFn({ method: 'GET' })
-  .inputValidator((input: unknown) => input as { sceneId: string })
+  .inputValidator((input) => z.object({ sceneId: z.string() }).parse(input))
   .handler(async ({ data }) => {
     const rows = await db
       .select({
@@ -104,7 +105,7 @@ export const getPublicSceneStage = createServerFn({ method: 'GET' })
   });
 
 export const getViewerToken = createServerFn({ method: 'GET' })
-  .inputValidator((input: unknown) => input as { storyId: string })
+  .inputValidator((input) => z.object({ storyId: z.string() }).parse(input))
   .handler(async ({ data }) => {
     const [story] = await db
       .select({ status: stories.status })
@@ -129,9 +130,9 @@ export const getViewerToken = createServerFn({ method: 'GET' })
     at.addGrant({
       room: data.storyId,
       roomJoin: true,
-      canPublish: true, // needed for microphone audio
+      canPublish: false, // viewers are subscribe-only; they do not broadcast
       canSubscribe: true,
-      canPublishData: false, // viewers cannot send data channel messages
+      canPublishData: false,
     });
 
     return {

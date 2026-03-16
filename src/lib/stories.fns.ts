@@ -1,6 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
 import { eq, sql, inArray, asc, and } from 'drizzle-orm'
+import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
 import { stories, users, scenes } from '@/db/schema'
@@ -61,7 +62,7 @@ export const listStories = createServerFn({ method: 'GET' }).handler(async () =>
 })
 
 export const createStory = createServerFn({ method: 'POST' })
-  .inputValidator((input: unknown) => input as { title: string })
+  .inputValidator((input) => z.object({ title: z.string().min(1).max(200) }).parse(input))
   .handler(async ({ data }) => {
     const session = await requireDirector()
 
@@ -75,7 +76,7 @@ export const createStory = createServerFn({ method: 'POST' })
   })
 
 export const deleteStory = createServerFn({ method: 'POST' })
-  .inputValidator((input: unknown) => input as { id: string })
+  .inputValidator((input) => z.object({ id: z.string() }).parse(input))
   .handler(async ({ data }) => {
     const session = await requireDirector()
     await db.delete(stories).where(and(eq(stories.id, data.id), eq(stories.directorId, session.user.id)))

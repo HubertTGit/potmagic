@@ -1,6 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
-import { eq, sql } from 'drizzle-orm'
+import { eq, sql, inArray, and } from 'drizzle-orm'
+import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
 import { stories, scenes, cast, users, sceneCast } from '@/db/schema'
@@ -18,8 +19,46 @@ async function requireDirector() {
   return session
 }
 
+/** Verifies the caller is a director AND owns the given story. */
+async function requireStoryOwner(storyId: string) {
+  const session = await requireDirector()
+  const [story] = await db
+    .select({ directorId: stories.directorId })
+    .from(stories)
+    .where(eq(stories.id, storyId))
+  if (!story) throw new Error('Story not found')
+  if (story.directorId !== session.user.id) throw new Error('Forbidden')
+  return session
+}
+
+/** Verifies the caller is a director AND owns the story the given cast member belongs to. */
+async function requireCastOwner(castId: string) {
+  const session = await requireDirector()
+  const [row] = await db
+    .select({ directorId: stories.directorId })
+    .from(cast)
+    .innerJoin(stories, eq(cast.storyId, stories.id))
+    .where(eq(cast.id, castId))
+  if (!row) throw new Error('Cast not found')
+  if (row.directorId !== session.user.id) throw new Error('Forbidden')
+  return session
+}
+
+/** Verifies the caller is a director AND owns the story the given scene belongs to. */
+async function requireSceneOwnerViaStory(sceneId: string) {
+  const session = await requireDirector()
+  const [row] = await db
+    .select({ directorId: stories.directorId })
+    .from(scenes)
+    .innerJoin(stories, eq(scenes.storyId, stories.id))
+    .where(eq(scenes.id, sceneId))
+  if (!row) throw new Error('Scene not found')
+  if (row.directorId !== session.user.id) throw new Error('Forbidden')
+  return session
+}
+
 export const getStoryDetail = createServerFn({ method: 'GET' })
-  .inputValidator((input: unknown) => input as { storyId: string })
+  .inputValidator((input) => z.object({ storyId: z.string() }).parse(input))
   .handler(async ({ data }) => {
     await getSessionOrThrow()
 
@@ -40,23 +79,29 @@ export const getStoryDetail = createServerFn({ method: 'GET' })
   })
 
 export const updateStoryStatus = createServerFn({ method: 'POST' })
-  .inputValidator((input: unknown) => input as { storyId: string; status: 'draft' | 'active' | 'ended' })
+  .inputValidator((input) =>
+    z.object({ storyId: z.string(), status: z.enum(['draft', 'active', 'ended']) }).parse(input),
+  )
   .handler(async ({ data }) => {
-    await getSessionOrThrow()
+    await requireStoryOwner(data.storyId)
     await db.update(stories).set({ status: data.status }).where(eq(stories.id, data.storyId))
   })
 
 export const updateStoryTitle = createServerFn({ method: 'POST' })
-  .inputValidator((input: unknown) => input as { storyId: string; title: string })
+  .inputValidator((input) =>
+    z.object({ storyId: z.string(), title: z.string().min(1).max(200) }).parse(input),
+  )
   .handler(async ({ data }) => {
-    await requireDirector()
+    await requireStoryOwner(data.storyId)
     await db.update(stories).set({ title: data.title }).where(eq(stories.id, data.storyId))
   })
 
 export const addCast = createServerFn({ method: 'POST' })
-  .inputValidator((input: unknown) => input as { storyId: string; userId: string })
+  .inputValidator((input) =>
+    z.object({ storyId: z.string(), userId: z.string() }).parse(input),
+  )
   .handler(async ({ data }) => {
-    await requireDirector()
+    await requireStoryOwner(data.storyId)
 
     const [user] = await db
       .select({ name: users.name })
@@ -72,17 +117,19 @@ export const addCast = createServerFn({ method: 'POST' })
   })
 
 export const removeCast = createServerFn({ method: 'POST' })
-  .inputValidator((input: unknown) => input as { castId: string })
+  .inputValidator((input) => z.object({ castId: z.string() }).parse(input))
   .handler(async ({ data }) => {
-    await requireDirector()
+    await requireCastOwner(data.castId)
     await db.delete(sceneCast).where(eq(sceneCast.castId, data.castId))
     await db.delete(cast).where(eq(cast.id, data.castId))
   })
 
 export const addScene = createServerFn({ method: 'POST' })
-  .inputValidator((input: unknown) => input as { storyId: string; title: string })
+  .inputValidator((input) =>
+    z.object({ storyId: z.string(), title: z.string().min(1).max(200) }).parse(input),
+  )
   .handler(async ({ data }) => {
-    await requireDirector()
+    await requireStoryOwner(data.storyId)
 
     const [{ maxOrder }] = await db
       .select({ maxOrder: sql<number>`cast(coalesce(max("order"), 0) as integer)` })
@@ -98,16 +145,35 @@ export const addScene = createServerFn({ method: 'POST' })
   })
 
 export const removeScene = createServerFn({ method: 'POST' })
-  .inputValidator((input: unknown) => input as { sceneId: string })
+  .inputValidator((input) => z.object({ sceneId: z.string() }).parse(input))
   .handler(async ({ data }) => {
-    await requireDirector()
+    await requireSceneOwnerViaStory(data.sceneId)
     await db.delete(scenes).where(eq(scenes.id, data.sceneId))
   })
 
 export const reorderScenes = createServerFn({ method: 'POST' })
-  .inputValidator((input: unknown) => input as { scenes: { id: string; order: number }[] })
+  .inputValidator((input) =>
+    z.object({
+      scenes: z.array(z.object({ id: z.string(), order: z.number().int() })),
+    }).parse(input),
+  )
   .handler(async ({ data }) => {
-    await requireDirector()
+    const session = await requireDirector()
+    if (data.scenes.length === 0) return
+
+    // Verify all scene IDs belong to stories owned by this director
+    const sceneIds = data.scenes.map((s) => s.id)
+    const ownedRows = await db
+      .select({ id: scenes.id })
+      .from(scenes)
+      .innerJoin(
+        stories,
+        and(eq(scenes.storyId, stories.id), eq(stories.directorId, session.user.id)),
+      )
+      .where(inArray(scenes.id, sceneIds))
+
+    if (ownedRows.length !== sceneIds.length) throw new Error('Forbidden')
+
     for (const { id, order } of data.scenes) {
       await db.update(scenes).set({ order }).where(eq(scenes.id, id))
     }

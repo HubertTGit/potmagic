@@ -1,6 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest, setCookie } from '@tanstack/react-start/server'
 import { eq, and } from 'drizzle-orm'
+import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
 import { users, sessions, invitedActors } from '@/db/schema'
@@ -39,7 +40,7 @@ async function makeSignedCookieValue(value: string, secret: string): Promise<str
 }
 
 export const actorSignIn = createServerFn({ method: 'POST' })
-  .inputValidator((input: unknown) => input as { email: string })
+  .inputValidator((input) => z.object({ email: z.email().max(254) }).parse(input))
   .handler(async ({ data }) => {
     const email = data.email.trim().toLowerCase()
 
@@ -136,7 +137,7 @@ export const listInvitedActors = createServerFn({ method: 'GET' })
   })
 
 export const addInvitedActor = createServerFn({ method: 'POST' })
-  .inputValidator((input: unknown) => input as { email: string })
+  .inputValidator((input) => z.object({ email: z.email().max(254) }).parse(input))
   .handler(async ({ data }) => {
     const session = await requireDirector()
     const email = data.email.trim().toLowerCase()
@@ -163,7 +164,7 @@ export const addInvitedActor = createServerFn({ method: 'POST' })
   })
 
 export const removeInvitedActor = createServerFn({ method: 'POST' })
-  .inputValidator((input: unknown) => input as { id: string })
+  .inputValidator((input) => z.object({ id: z.string() }).parse(input))
   .handler(async ({ data }) => {
     const session = await requireDirector()
     await db.delete(invitedActors).where(and(eq(invitedActors.id, data.id), eq(invitedActors.addedBy, session.user.id)))

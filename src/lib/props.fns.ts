@@ -2,12 +2,27 @@
 import { createServerFn } from '@tanstack/react-start';
 import { getRequest } from '@tanstack/react-start/server';
 import { eq, and } from 'drizzle-orm';
+import { z } from 'zod';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { props, users, type PropType } from '@/db/schema';
 import { supabase } from '@/lib/supabase.server';
 
 const BUCKET = 'props';
+
+const ALLOWED_MIME_TYPES = [
+  'image/png',
+  'image/jpeg',
+  'image/webp',
+  'image/gif',
+  'image/svg+xml',
+  'audio/mpeg',
+  'audio/mp3',
+  'audio/wav',
+  'audio/ogg',
+  'audio/aac',
+  'application/octet-stream', // .riv Rive animations
+] as const;
 
 async function getSessionOrThrow() {
   const session = await auth.api.getSession({ headers: getRequest().headers });
@@ -24,8 +39,14 @@ async function requireDirector() {
 
 // Returns a signed PUT URL + the future public URL for a file
 export const getSignedUploadUrl = createServerFn({ method: 'POST' })
-  .inputValidator(
-    (input: unknown) => input as { filename: string; contentType: string },
+  .inputValidator((input) =>
+    z.object({
+      filename: z.string().min(1).max(255),
+      contentType: z.string().refine(
+        (ct) => ALLOWED_MIME_TYPES.includes(ct as (typeof ALLOWED_MIME_TYPES)[number]),
+        { message: 'File type not allowed' },
+      ),
+    }).parse(input),
   )
   .handler(async ({ data }) => {
     await requireDirector();
@@ -48,14 +69,13 @@ export const getSignedUploadUrl = createServerFn({ method: 'POST' })
   });
 
 export const createProp = createServerFn({ method: 'POST' })
-  .inputValidator(
-    (input: unknown) =>
-      input as {
-        name: string;
-        type: PropType;
-        imageUrl: string;
-        size: number;
-      },
+  .inputValidator((input) =>
+    z.object({
+      name: z.string().min(1).max(200),
+      type: z.enum(['character', 'background', 'animation', 'sound']),
+      imageUrl: z.url(),
+      size: z.number().int().positive(),
+    }).parse(input),
   )
   .handler(async ({ data }) => {
     const session = await requireDirector();
@@ -64,7 +84,7 @@ export const createProp = createServerFn({ method: 'POST' })
     try {
       const [row] = await db
         .insert(props)
-        .values({ id, createdBy: session.user.id, name: data.name, type: data.type, imageUrl: data.imageUrl, size: data.size })
+        .values({ id, createdBy: session.user.id, name: data.name, type: data.type as PropType, imageUrl: data.imageUrl, size: data.size })
         .returning();
 
       return row;
@@ -77,8 +97,8 @@ export const createProp = createServerFn({ method: 'POST' })
   });
 
 export const listProps = createServerFn({ method: 'GET' })
-  .inputValidator(
-    (input: unknown) => input as { type: PropType },
+  .inputValidator((input) =>
+    z.object({ type: z.enum(['character', 'background', 'animation', 'sound']) }).parse(input),
   )
   .handler(async ({ data }) => {
     const session = await requireDirector();
@@ -86,12 +106,12 @@ export const listProps = createServerFn({ method: 'GET' })
     return await db
       .select()
       .from(props)
-      .where(and(eq(props.type, data.type), eq(props.createdBy, session.user.id)))
+      .where(and(eq(props.type, data.type as PropType), eq(props.createdBy, session.user.id)))
       .orderBy(props.createdAt);
   });
 
 export const deleteProp = createServerFn({ method: 'POST' })
-  .inputValidator((input: unknown) => input as { id: string })
+  .inputValidator((input) => z.object({ id: z.string() }).parse(input))
   .handler(async ({ data }) => {
     const session = await requireDirector();
 

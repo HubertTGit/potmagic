@@ -1,6 +1,7 @@
 import { createServerFn } from '@tanstack/react-start';
 import { getRequest } from '@tanstack/react-start/server';
 import { and, asc, eq, sql, or, isNull } from 'drizzle-orm';
+import { z } from 'zod';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { scenes, stories, props, cast, users, sceneCast, invitedActors } from '@/db/schema';
@@ -21,14 +22,49 @@ async function requireDirector() {
   const session = await getSessionOrThrow();
   const [user] = await db.select({ role: users.role }).from(users).where(eq(users.id, session.user.id));
   if (!user || user.role !== 'director') throw new Error('Forbidden');
+  return session;
+}
+
+/** Verifies the caller is a director AND owns the story the given scene belongs to. */
+async function requireSceneOwner(sceneId: string) {
+  const session = await requireDirector();
+  const [row] = await db
+    .select({ directorId: stories.directorId })
+    .from(scenes)
+    .innerJoin(stories, eq(scenes.storyId, stories.id))
+    .where(eq(scenes.id, sceneId));
+  if (!row) throw new Error('Scene not found');
+  if (row.directorId !== session.user.id) throw new Error('Forbidden');
+  return session;
+}
+
+/** Verifies the caller is a director AND owns the story the given sceneCast belongs to. */
+async function requireSceneCastOwner(sceneCastId: string) {
+  const session = await requireDirector();
+  const [row] = await db
+    .select({ directorId: stories.directorId })
+    .from(sceneCast)
+    .innerJoin(scenes, eq(sceneCast.sceneId, scenes.id))
+    .innerJoin(stories, eq(scenes.storyId, stories.id))
+    .where(eq(sceneCast.id, sceneCastId));
+  if (!row) throw new Error('Scene cast not found');
+  if (row.directorId !== session.user.id) throw new Error('Forbidden');
+  return session;
 }
 
 export const getSceneDetail = createServerFn({ method: 'GET' })
-  .inputValidator(
-    (input: unknown) => input as { storyId: string; sceneId: string },
+  .inputValidator((input) =>
+    z.object({ storyId: z.string(), sceneId: z.string() }).parse(input),
   )
   .handler(async ({ data }) => {
-    await getSessionOrThrow();
+    const session = await getSessionOrThrow();
+
+    // Only the story director may access scene detail management
+    const [story] = await db
+      .select({ directorId: stories.directorId })
+      .from(stories)
+      .where(eq(stories.id, data.storyId));
+    if (!story || story.directorId !== session.user.id) throw new Error('Forbidden');
 
     const [scene] = await db
       .select({
@@ -45,7 +81,7 @@ export const getSceneDetail = createServerFn({ method: 'GET' })
 
     if (!scene) throw new Error('Scene not found');
 
-    const [story] = await db
+    const [storyRow] = await db
       .select({
         id: stories.id,
         title: stories.title,
@@ -122,7 +158,7 @@ export const getSceneDetail = createServerFn({ method: 'GET' })
 
     return {
       scene,
-      story: story ?? null,
+      story: storyRow ?? null,
       props: storyProps,
       assignedCast,
       availableActors,
@@ -133,11 +169,11 @@ export const getSceneDetail = createServerFn({ method: 'GET' })
   });
 
 export const assignSceneSound = createServerFn({ method: 'POST' })
-  .inputValidator(
-    (input: unknown) => input as { sceneId: string; soundId: string | null },
+  .inputValidator((input) =>
+    z.object({ sceneId: z.string(), soundId: z.string().nullable() }).parse(input),
   )
   .handler(async ({ data }) => {
-    await requireDirector();
+    await requireSceneOwner(data.sceneId);
     await db
       .update(scenes)
       .set({ soundId: data.soundId })
@@ -145,11 +181,11 @@ export const assignSceneSound = createServerFn({ method: 'POST' })
   });
 
 export const setSceneSoundAutoplay = createServerFn({ method: 'POST' })
-  .inputValidator(
-    (input: unknown) => input as { sceneId: string; autoplay: boolean },
+  .inputValidator((input) =>
+    z.object({ sceneId: z.string(), autoplay: z.boolean() }).parse(input),
   )
   .handler(async ({ data }) => {
-    await requireDirector();
+    await requireSceneOwner(data.sceneId);
     await db
       .update(scenes)
       .set({ soundAutoplay: data.autoplay })
@@ -157,11 +193,11 @@ export const setSceneSoundAutoplay = createServerFn({ method: 'POST' })
   });
 
 export const assignSceneBackground = createServerFn({ method: 'POST' })
-  .inputValidator(
-    (input: unknown) => input as { sceneId: string; backgroundId: string | null },
+  .inputValidator((input) =>
+    z.object({ sceneId: z.string(), backgroundId: z.string().nullable() }).parse(input),
   )
   .handler(async ({ data }) => {
-    await requireDirector();
+    await requireSceneOwner(data.sceneId);
     await db
       .update(scenes)
       .set({ backgroundId: data.backgroundId })
@@ -169,9 +205,11 @@ export const assignSceneBackground = createServerFn({ method: 'POST' })
   });
 
 export const addActorToScene = createServerFn({ method: 'POST' })
-  .inputValidator((input: unknown) => input as { sceneId: string; userId: string })
+  .inputValidator((input) =>
+    z.object({ sceneId: z.string(), userId: z.string() }).parse(input),
+  )
   .handler(async ({ data }) => {
-    await requireDirector();
+    await requireSceneOwner(data.sceneId);
 
     // Get storyId from scene
     const [scene] = await db
@@ -211,9 +249,11 @@ export const addActorToScene = createServerFn({ method: 'POST' })
   });
 
 export const assignSceneProp = createServerFn({ method: 'POST' })
-  .inputValidator((input: unknown) => input as { sceneCastId: string; propId: string | null })
+  .inputValidator((input) =>
+    z.object({ sceneCastId: z.string(), propId: z.string().nullable() }).parse(input),
+  )
   .handler(async ({ data }) => {
-    await requireDirector();
+    await requireSceneCastOwner(data.sceneCastId);
     if (data.propId) {
       const [prop] = await db.select({ type: props.type }).from(props).where(eq(props.id, data.propId));
       if (!prop || prop.type !== 'character') {
@@ -227,9 +267,11 @@ export const assignSceneProp = createServerFn({ method: 'POST' })
   });
 
 export const addSceneCast = createServerFn({ method: 'POST' })
-  .inputValidator((input: unknown) => input as { sceneId: string; castId: string })
+  .inputValidator((input) =>
+    z.object({ sceneId: z.string(), castId: z.string() }).parse(input),
+  )
   .handler(async ({ data }) => {
-    await requireDirector();
+    await requireSceneOwner(data.sceneId);
     await db.insert(sceneCast).values({
       id: crypto.randomUUID(),
       sceneId: data.sceneId,
@@ -238,18 +280,20 @@ export const addSceneCast = createServerFn({ method: 'POST' })
   });
 
 export const removeSceneCast = createServerFn({ method: 'POST' })
-  .inputValidator((input: unknown) => input as { sceneId: string; castId: string })
+  .inputValidator((input) =>
+    z.object({ sceneId: z.string(), castId: z.string() }).parse(input),
+  )
   .handler(async ({ data }) => {
-    await requireDirector();
+    await requireSceneOwner(data.sceneId);
     await db
       .delete(sceneCast)
       .where(and(eq(sceneCast.sceneId, data.sceneId), eq(sceneCast.castId, data.castId)));
   });
 
 export const getSceneStage = createServerFn({ method: 'GET' })
-  .inputValidator((input: unknown) => input as { sceneId: string })
+  .inputValidator((input) => z.object({ sceneId: z.string() }).parse(input))
   .handler(async ({ data }) => {
-    await getSessionOrThrow();
+    const session = await getSessionOrThrow();
 
     const rows = await db
       .select({
@@ -282,6 +326,16 @@ export const getSceneStage = createServerFn({ method: 'GET' })
       .from(stories)
       .innerJoin(users, eq(stories.directorId, users.id))
       .where(eq(stories.id, sceneRow.storyId));
+
+    // Verify caller is the director OR a cast member of this story
+    const isDirector = storyRow.directorId === session.user.id;
+    if (!isDirector) {
+      const [castRecord] = await db
+        .select({ id: cast.id })
+        .from(cast)
+        .where(and(eq(cast.storyId, sceneRow.storyId), eq(cast.userId, session.user.id)));
+      if (!castRecord) throw new Error('Forbidden');
+    }
 
     const [sceneWithBg] = await db
       .select({
@@ -335,7 +389,7 @@ export const getSceneStage = createServerFn({ method: 'GET' })
     }));
 
     if (backgroundCast) {
-      allCasts.unshift(backgroundCast as any);
+      allCasts.unshift(backgroundCast as (typeof allCasts)[0]);
     }
 
     const [soundProp] = sceneWithBg?.soundId
@@ -358,11 +412,11 @@ export const getSceneStage = createServerFn({ method: 'GET' })
   });
 
 export const updateSceneTitle = createServerFn({ method: 'POST' })
-  .inputValidator(
-    (input: unknown) => input as { sceneId: string; title: string },
+  .inputValidator((input) =>
+    z.object({ sceneId: z.string(), title: z.string().min(1).max(200) }).parse(input),
   )
   .handler(async ({ data }) => {
-    await getSessionOrThrow();
+    await requireSceneOwner(data.sceneId);
     await db
       .update(scenes)
       .set({ title: data.title })
@@ -370,7 +424,7 @@ export const updateSceneTitle = createServerFn({ method: 'POST' })
   });
 
 export const getSceneNavigation = createServerFn({ method: 'GET' })
-  .inputValidator((input: unknown) => input as { sceneId: string })
+  .inputValidator((input) => z.object({ sceneId: z.string() }).parse(input))
   .handler(async ({ data }) => {
     await getSessionOrThrow();
 
@@ -400,15 +454,14 @@ export const getSceneNavigation = createServerFn({ method: 'GET' })
   });
 
 export const saveSceneCastPosition = createServerFn({ method: 'POST' })
-  .inputValidator(
-    (input: unknown) =>
-      input as {
-        sceneCastId: string
-        x: number
-        y: number
-        rotation: number
-        scaleX: number
-      },
+  .inputValidator((input) =>
+    z.object({
+      sceneCastId: z.string(),
+      x: z.number(),
+      y: z.number(),
+      rotation: z.number(),
+      scaleX: z.number(),
+    }).parse(input),
   )
   .handler(async ({ data }) => {
     const session = await getSessionOrThrow();
@@ -438,17 +491,19 @@ export const saveSceneCastPosition = createServerFn({ method: 'POST' })
       return;
     }
 
+    // Verify caller is the cast owner OR the story director (ownership-based, not just role)
     const [row] = await db
-      .select({ userId: cast.userId, userRole: users.role })
+      .select({ userId: cast.userId, storyDirectorId: stories.directorId })
       .from(sceneCast)
       .innerJoin(cast, eq(sceneCast.castId, cast.id))
-      .innerJoin(users, eq(users.id, session.user.id))
+      .innerJoin(scenes, eq(sceneCast.sceneId, scenes.id))
+      .innerJoin(stories, eq(scenes.storyId, stories.id))
       .where(eq(sceneCast.id, data.sceneCastId));
 
     const isOwner = row?.userId === session.user.id;
-    const isDirector = row?.userRole === 'director';
+    const isStoryDirector = row?.storyDirectorId === session.user.id;
 
-    if (!row || (!isOwner && !isDirector)) {
+    if (!row || (!isOwner && !isStoryDirector)) {
       throw new Error('Forbidden');
     }
 

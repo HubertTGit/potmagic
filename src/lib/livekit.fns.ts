@@ -1,6 +1,7 @@
 import { createServerFn } from '@tanstack/react-start';
 import { getRequest } from '@tanstack/react-start/server';
 import { and, eq } from 'drizzle-orm';
+import { z } from 'zod';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { cast, stories } from '@/db/schema';
@@ -12,7 +13,7 @@ async function getSessionOrThrow() {
 }
 
 export const getLiveKitToken = createServerFn({ method: 'GET' })
-  .inputValidator((input: unknown) => input as { storyId: string })
+  .inputValidator((input) => z.object({ storyId: z.string() }).parse(input))
   .handler(async ({ data }) => {
     const session = await getSessionOrThrow();
     const userId = session.user.id;
@@ -48,8 +49,6 @@ export const getLiveKitToken = createServerFn({ method: 'GET' })
         ttl: 43200, // 12 hours in seconds
       },
     );
-
-    console.log(at);
 
     at.addGrant({
       room: data.storyId,
