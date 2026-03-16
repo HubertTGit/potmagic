@@ -17,6 +17,7 @@ export default defineConfig({
   },
   optimizeDeps: {
     exclude: ['fsevents', 'lightningcss'],
+    include: ['@rive-app/react-webgl2'],
   },
   build: {
     rollupOptions: {

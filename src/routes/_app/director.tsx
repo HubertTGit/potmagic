@@ -59,13 +59,7 @@ function DirectorPage() {
     enabled: tab === 'library',
   });
 
-  const { data: animations = [], isLoading: loadingAnims } = useQuery({
-    queryKey: ['props', 'animation'],
-    queryFn: () => listProps({ data: { type: 'animation' } }),
-    enabled: tab === 'library',
-  });
-
-  const { data: invitedActors = [], isLoading: loadingActors } = useQuery({
+const { data: invitedActors = [], isLoading: loadingActors } = useQuery({
     queryKey: ['invitedActors'],
     queryFn: () => listInvitedActors(),
     enabled: tab === 'actors',
@@ -258,14 +252,15 @@ function DirectorPage() {
               onAdd={(file, name) => handleAddProp('background', file, name)}
               onRemove={(id) => handleRemoveProp('background', id)}
             />
-            <LibrarySection
+            {/* Animations section hidden until feature is ready */}
+            {/* <LibrarySection
               label="Animations"
               type="animation"
               items={animations}
               isLoading={loadingAnims}
               onAdd={(file, name) => handleAddProp('animation', file, name)}
               onRemove={(id) => handleRemoveProp('animation', id)}
-            />
+            /> */}
           </div>
         </>
       )}

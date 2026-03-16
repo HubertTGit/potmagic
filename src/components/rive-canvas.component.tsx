@@ -1,4 +1,8 @@
-import { useRive, Layout, Fit } from '@rive-app/react-webgl2';
+// @rive-app/react-webgl2 is a CJS module; destructure from the default export to avoid
+// Vite's "named export not found" error when the package is pre-bundled.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+import pkg from '@rive-app/react-webgl2';
+const { useRive, Layout, Fit } = pkg as any;
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/cn';
 

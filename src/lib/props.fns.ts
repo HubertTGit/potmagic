@@ -4,7 +4,7 @@ import { getRequest } from '@tanstack/react-start/server';
 import { eq, and } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { props, users, cast, sceneCast, type PropType } from '@/db/schema';
+import { props, users, type PropType } from '@/db/schema';
 import { supabase } from '@/lib/supabase.server';
 
 const BUCKET = 'props';
@@ -98,18 +98,6 @@ export const deleteProp = createServerFn({ method: 'POST' })
     // Fetch the row to get the imageUrl for storage deletion
     const [row] = await db.select().from(props).where(and(eq(props.id, data.id), eq(props.createdBy, session.user.id)));
     if (!row) return;
-
-    // Remove actor from all scenes before nulling out their prop.
-    // The FK onDelete: 'set null' only clears cast.propId — scene_cast entries must be
-    // cleaned up explicitly so actors without a character don't linger in scenes.
-    const affectedCasts = await db
-      .select({ id: cast.id })
-      .from(cast)
-      .where(eq(cast.propId, data.id))
-
-    for (const c of affectedCasts) {
-      await db.delete(sceneCast).where(eq(sceneCast.castId, c.id))
-    }
 
     await db.delete(props).where(eq(props.id, data.id));
 
