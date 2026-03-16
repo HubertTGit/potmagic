@@ -276,10 +276,20 @@ export function StoryCastTab({
                         <div className="size-7 rounded bg-base-300 shrink-0" />
                       ) : null}
                       {c.propName ? (
-                        <span className="text-sm">{c.propName}</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-medium">{c.propName}</span>
+                          {c.userId === currentUserId && (
+                            <div
+                              className="tooltip tooltip-right flex items-center"
+                              data-tip="Your character is assigned by the director and cannot be changed."
+                            >
+                              <QuestionMarkCircleIcon className="size-3.5 text-base-content/20 hover:text-base-content/40 transition-colors cursor-help" />
+                            </div>
+                          )}
+                        </div>
                       ) : (
                         <span className="text-sm text-base-content/30 italic">
-                          No prop assigned
+                          No character assigned
                         </span>
                       )}
                     </div>

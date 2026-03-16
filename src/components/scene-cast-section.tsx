@@ -135,7 +135,17 @@ export function SceneCastSection({
                     <div className="size-7 rounded bg-base-300 shrink-0" />
                   ) : null}
                   {c.propName && (
-                    <span className="text-sm font-medium">{c.propName}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-medium">{c.propName}</span>
+                      {!isDirector && c.userId === currentUserId && (
+                        <div
+                          className="tooltip tooltip-right flex items-center"
+                          data-tip="Your character is assigned by the director and cannot be changed."
+                        >
+                          <QuestionMarkCircleIcon className="size-3.5 text-base-content/20 hover:text-base-content/40 transition-colors cursor-help" />
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
                 {c.propType && <PropTypePill type={c.propType as PropType} />}
