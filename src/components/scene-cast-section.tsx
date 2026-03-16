@@ -8,7 +8,8 @@ import { QuestionMarkCircleIcon } from '@heroicons/react/24/solid';
 import type { PropType } from '@/db/schema';
 
 export type CastMember = {
-  id: string;
+  id: string;          // cast.id
+  sceneCastId: string; // sceneCast.id — needed for prop assignment
   userId: string;
   userName: string | null;
   propId: string | null;
@@ -18,14 +19,29 @@ export type CastMember = {
   userImage: string | null;
 };
 
+type AvailableActor = {
+  id: string;
+  name: string;
+  email: string;
+};
+
+type AvailableProp = {
+  id: string;
+  name: string;
+  type: PropType;
+  imageUrl: string | null;
+};
+
 interface SceneCastSectionProps {
   storyId: string;
   sceneId: string;
   isDirector: boolean;
   assignedCast: CastMember[];
-  availableCast: CastMember[];
-  onAddCast: (castMember: CastMember) => void;
+  availableActors: AvailableActor[];
+  availableProps: AvailableProp[];
+  onAddCast: (userId: string) => void;
   onRemoveCast: (castMember: CastMember) => void;
+  onAssignProp: (sceneCastId: string, propId: string | null) => void;
   isAddingCast: boolean;
   isRemovingCast: boolean;
   sceneOrder: number;
@@ -43,9 +59,11 @@ export function SceneCastSection({
   sceneId,
   isDirector,
   assignedCast,
-  availableCast,
+  availableActors,
+  availableProps,
   onAddCast,
   onRemoveCast,
+  onAssignProp,
   isAddingCast,
   isRemovingCast,
   sceneOrder,
@@ -53,6 +71,10 @@ export function SceneCastSection({
   nav,
   currentUserId,
 }: SceneCastSectionProps) {
+  const usedPropIds = new Set(
+    assignedCast.map((c) => c.propId).filter(Boolean) as string[],
+  );
+
   return (
     <div className="mb-8">
       <div className="flex justify-between items-center my-3">
@@ -82,94 +104,109 @@ export function SceneCastSection({
               return 0;
             })
             .map((c) => (
-            <DataListItem
-              key={c.id}
-            >
-              <div className="flex items-center gap-3 w-48 shrink-0">
-                <div
-                  className={cn(
-                    'relative size-9 rounded-full flex items-center justify-center bg-base-300 shrink-0',
-                    c.userId === currentUserId &&
-                      'ring-2 ring-gold ring-offset-2 ring-offset-base-100 shadow-[0_0_10px_rgba(212,175,55,0.3)]',
-                  )}
-                >
-                  {c.userImage ? (
-                    <img
-                      src={c.userImage}
-                      alt={c.userName ?? ''}
-                      className="size-full rounded-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-xs font-bold uppercase text-base-content/30">
-                      {c.userName?.slice(0, 2)}
-                    </span>
-                  )}
-                  {c.userId === currentUserId && (
-                    <div
-                      className="absolute -top-2 -right-2 size-5 flex items-center justify-center tooltip tooltip-top"
-                      data-tip="This is you"
-                    >
-                      <QuestionMarkCircleIcon className="size-4 text-primary bg-base-100 rounded-full" />
+              <DataListItem key={c.id}>
+                <div className="flex items-center gap-3 w-48 shrink-0">
+                  <div
+                    className={cn(
+                      'relative size-9 rounded-full flex items-center justify-center bg-base-300 shrink-0',
+                      c.userId === currentUserId &&
+                        'ring-2 ring-gold ring-offset-2 ring-offset-base-100 shadow-[0_0_10px_rgba(212,175,55,0.3)]',
+                    )}
+                  >
+                    {c.userImage ? (
+                      <img
+                        src={c.userImage}
+                        alt={c.userName ?? ''}
+                        className="size-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-xs font-bold uppercase text-base-content/30">
+                        {c.userName?.slice(0, 2)}
+                      </span>
+                    )}
+                    {c.userId === currentUserId && (
+                      <div
+                        className="absolute -top-2 -right-2 size-5 flex items-center justify-center tooltip tooltip-top"
+                        data-tip="This is you"
+                      >
+                        <QuestionMarkCircleIcon className="size-4 text-primary bg-base-100 rounded-full" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-sm font-semibold">{c.userName}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-base-content/40 uppercase tracking-widest font-bold">
+                        Actor
+                      </span>
                     </div>
-                  )}
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-semibold">{c.userName}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-base-content/40 uppercase tracking-widest font-bold">
-                      Actor
-                    </span>
                   </div>
                 </div>
-              </div>
 
-              <div className="list-col-grow flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  {c.propImageUrl ? (
-                    <img
-                      src={c.propImageUrl}
-                      alt={c.propName ?? ''}
-                      className="size-7 rounded object-cover bg-base-300 shrink-0"
+                <div className="list-col-grow">
+                  {isDirector ? (
+                    <PropPicker
+                      sceneCastId={c.sceneCastId}
+                      propId={c.propId ?? null}
+                      propName={c.propName ?? null}
+                      propImageUrl={c.propImageUrl ?? null}
+                      propType={c.propType ?? null}
+                      availableProps={availableProps}
+                      usedPropIds={usedPropIds}
+                      onAssign={onAssignProp}
                     />
-                  ) : c.propId ? (
-                    <div className="size-7 rounded bg-base-300 shrink-0" />
-                  ) : null}
-                  {c.propName && (
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-medium">{c.propName}</span>
-                      {!isDirector && c.userId === currentUserId && (
-                        <div
-                          className="tooltip tooltip-right flex items-center"
-                          data-tip="Your character is assigned by the director and cannot be changed."
-                        >
-                          <QuestionMarkCircleIcon className="size-3.5 text-base-content/20 hover:text-base-content/40 transition-colors cursor-help" />
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      {c.propImageUrl ? (
+                        <img
+                          src={c.propImageUrl}
+                          alt={c.propName ?? ''}
+                          className="size-7 rounded object-cover bg-base-300 shrink-0"
+                        />
+                      ) : c.propId ? (
+                        <div className="size-7 rounded bg-base-300 shrink-0" />
+                      ) : null}
+                      {c.propName ? (
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-medium">{c.propName}</span>
+                          {c.userId === currentUserId && (
+                            <div
+                              className="tooltip tooltip-right flex items-center"
+                              data-tip="Your character is assigned by the director and cannot be changed."
+                            >
+                              <QuestionMarkCircleIcon className="size-3.5 text-base-content/20 hover:text-base-content/40 transition-colors cursor-help" />
+                            </div>
+                          )}
                         </div>
+                      ) : (
+                        <span className="text-sm text-base-content/30 italic">
+                          No character assigned
+                        </span>
                       )}
                     </div>
                   )}
                 </div>
-                {c.propType && <PropTypePill type={c.propType as PropType} />}
-              </div>
-              {isDirector && (
-                <div className="flex justify-end shrink-0">
-                  <button
-                    onClick={() => onRemoveCast(c)}
-                    disabled={isRemovingCast}
-                    className="text-xs text-error/60 hover:text-error transition-colors p-2 hover:bg-error/10 rounded-lg"
-                    title="Remove from scene"
-                  >
-                    <TrashIcon className="size-4" />
-                  </button>
-                </div>
-              )}
-            </DataListItem>
-          ))
+
+                {isDirector && (
+                  <div className="flex justify-end shrink-0">
+                    <button
+                      onClick={() => onRemoveCast(c)}
+                      disabled={isRemovingCast}
+                      className="text-xs text-error/60 hover:text-error transition-colors p-2 hover:bg-error/10 rounded-lg"
+                      title="Remove from scene"
+                    >
+                      <TrashIcon className="size-4" />
+                    </button>
+                  </div>
+                )}
+              </DataListItem>
+            ))
         )}
       </DataList>
 
-      {isDirector && availableCast.length > 0 && (
-        <CastDropdown
-          availableCast={availableCast}
+      {isDirector && availableActors.length > 0 && (
+        <ActorDropdown
+          availableActors={availableActors}
           onAdd={onAddCast}
           isLoading={isAddingCast}
         />
@@ -178,13 +215,128 @@ export function SceneCastSection({
   );
 }
 
-function CastDropdown({
-  availableCast,
+function PropPicker({
+  sceneCastId,
+  propId,
+  propName,
+  propImageUrl,
+  propType,
+  availableProps,
+  usedPropIds,
+  onAssign,
+}: {
+  sceneCastId: string;
+  propId: string | null;
+  propName: string | null;
+  propImageUrl: string | null;
+  propType: PropType | null;
+  availableProps: AvailableProp[];
+  usedPropIds: Set<string>;
+  onAssign: (sceneCastId: string, propId: string | null) => void;
+}) {
+  const selectableProps = availableProps.filter(
+    (p) =>
+      p.type === 'character' && (!usedPropIds.has(p.id) || p.id === propId),
+  );
+
+  const closeDropdown = () => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  };
+
+  return (
+    <div className="dropdown dropdown-bottom dropdown-start">
+      <div
+        tabIndex={0}
+        role="button"
+        className="flex items-center gap-2 hover:opacity-75 transition-opacity cursor-pointer"
+      >
+        {propId ? (
+          <>
+            {propImageUrl ? (
+              <img
+                src={propImageUrl}
+                alt={propName ?? ''}
+                className="size-7 rounded object-cover bg-base-300 shrink-0"
+              />
+            ) : (
+              <div className="size-7 rounded bg-base-300 shrink-0" />
+            )}
+            <span className="text-sm">{propName}</span>
+            {propType && <PropTypePill type={propType} />}
+          </>
+        ) : (
+          <span className="text-sm text-base-content/30 italic">
+            Assign prop…
+          </span>
+        )}
+      </div>
+
+      <div
+        tabIndex={0}
+        className="dropdown-content mt-1 w-64 bg-base-200 border border-base-300 rounded-lg shadow-xl z-50 overflow-hidden"
+      >
+        {selectableProps.length === 0 ? (
+          <p className="text-xs text-base-content/40 px-3 py-2">
+            No props available
+          </p>
+        ) : (
+          <div className="flex flex-col">
+            {selectableProps.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => {
+                  onAssign(sceneCastId, p.id);
+                  closeDropdown();
+                }}
+                className={cn(
+                  'w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-base-300/50 transition-colors cursor-pointer',
+                  p.id === propId && 'bg-base-300',
+                )}
+              >
+                {p.imageUrl ? (
+                  <img
+                    src={p.imageUrl}
+                    alt={p.name}
+                    className="size-8 rounded object-cover bg-base-300 shrink-0"
+                  />
+                ) : (
+                  <div className="size-8 rounded bg-base-300 shrink-0" />
+                )}
+                <span className="flex-1 text-left truncate">{p.name}</span>
+                <PropTypePill type={p.type} />
+              </button>
+            ))}
+          </div>
+        )}
+
+        {propId && (
+          <>
+            <div className="border-t border-base-300" />
+            <button
+              onClick={() => {
+                onAssign(sceneCastId, null);
+                closeDropdown();
+              }}
+              className="btn btn-xs btn-primary float-end m-3"
+            >
+              Unassign
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ActorDropdown({
+  availableActors,
   onAdd,
   isLoading,
 }: {
-  availableCast: CastMember[];
-  onAdd: (castMember: CastMember) => void;
+  availableActors: AvailableActor[];
+  onAdd: (userId: string) => void;
   isLoading?: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -211,36 +363,20 @@ function CastDropdown({
       </button>
       {open && (
         <div className="absolute top-full mt-1 w-72 bg-base-200 border border-base-300 rounded-lg shadow-xl z-50 overflow-hidden">
-          {availableCast.map((c) => (
+          {availableActors.map((a) => (
             <button
-              key={c.id}
+              key={a.id}
               onMouseDown={(e) => {
                 e.preventDefault();
-                onAdd(c);
+                onAdd(a.id);
                 setOpen(false);
               }}
               className="w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-base-300 transition-colors"
             >
-              {c.propImageUrl ? (
-                <img
-                  src={c.propImageUrl}
-                  alt={c.propName ?? ''}
-                  className="size-8 rounded object-cover bg-base-300 shrink-0"
-                />
-              ) : (
-                <div className="size-8 rounded bg-base-300 shrink-0" />
-              )}
               <div className="flex flex-col text-left flex-1">
-                <span className="font-medium">{c.userName}</span>
-                {c.propName && (
-                  <span className="text-xs text-base-content/40">
-                    {c.propName}
-                  </span>
-                )}
+                <span className="font-medium">{a.name}</span>
+                <span className="text-xs text-base-content/40">{a.email}</span>
               </div>
-              {c.propType && (
-                <PropTypePill type={c.propType as PropType} />
-              )}
             </button>
           ))}
         </div>
@@ -253,7 +389,6 @@ function SceneNavigator({
   storyId,
   sceneId,
   sceneOrder,
-  totalScenes,
   nav,
 }: {
   storyId: string;

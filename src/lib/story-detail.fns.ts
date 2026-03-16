@@ -1,9 +1,9 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
-import { eq, sql, isNull, isNotNull, and } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { stories, scenes, cast, props, users, sceneCast, invitedActors } from '@/db/schema'
+import { stories, scenes, cast, users, sceneCast } from '@/db/schema'
 
 async function getSessionOrThrow() {
   const session = await auth.api.getSession({ headers: getRequest().headers })
@@ -30,49 +30,13 @@ export const getStoryDetail = createServerFn({ method: 'GET' })
 
     if (!story) return null
 
-    const castRows = await db
-      .select({
-        id: cast.id,
-        userId: cast.userId,
-        propId: cast.propId,
-        name: cast.name,
-        userName: users.name,
-        userEmail: users.email,
-        userImage: users.image,
-        propName: props.name,
-        propImageUrl: props.imageUrl,
-        propType: props.type,
-      })
-      .from(cast)
-      .leftJoin(users, eq(cast.userId, users.id))
-      .leftJoin(props, eq(cast.propId, props.id))
-      .where(eq(cast.storyId, data.storyId))
-
     const sceneRows = await db
       .select({ id: scenes.id, title: scenes.title, order: scenes.order })
       .from(scenes)
       .where(eq(scenes.storyId, data.storyId))
       .orderBy(scenes.order)
 
-    const propRows = await db
-      .select({ id: props.id, name: props.name, type: props.type, imageUrl: props.imageUrl })
-      .from(props)
-      .where(isNull(props.storyId))
-      .orderBy(props.name)
-
-    // Accepted actors (have logged in) not yet assigned to this story
-    const availableActors = await db
-      .select({ id: users.id, name: users.name, email: users.email })
-      .from(users)
-      .innerJoin(invitedActors, eq(invitedActors.email, users.email))
-      .where(
-        and(
-          isNotNull(invitedActors.userId),
-          sql`${users.id} not in (select user_id from "cast" where story_id = ${data.storyId})`
-        )
-      )
-
-    return { story, cast: castRows, scenes: sceneRows, props: propRows, availableActors }
+    return { story, scenes: sceneRows }
   })
 
 export const updateStoryStatus = createServerFn({ method: 'POST' })
@@ -105,19 +69,6 @@ export const addCast = createServerFn({ method: 'POST' })
       userId: data.userId,
       name: user?.name ?? 'Actor',
     })
-  })
-
-export const assignProp = createServerFn({ method: 'POST' })
-  .inputValidator((input: unknown) => input as { castId: string; propId: string | null })
-  .handler(async ({ data }) => {
-    await requireDirector()
-    if (data.propId) {
-      const [prop] = await db.select({ type: props.type }).from(props).where(eq(props.id, data.propId))
-      if (!prop || prop.type !== 'character') {
-        throw new Error('Only characters can be assigned to actors')
-      }
-    }
-    await db.update(cast).set({ propId: data.propId }).where(eq(cast.id, data.castId))
   })
 
 export const removeCast = createServerFn({ method: 'POST' })

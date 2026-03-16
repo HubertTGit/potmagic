@@ -1,12 +1,9 @@
-import { createFileRoute, Link, useRouter } from '@tanstack/react-router';
-import { useState, useRef, useEffect } from 'react';
+import { createFileRoute, useRouter } from '@tanstack/react-router';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getStoryDetail,
   updateStoryTitle,
-  addCast,
-  removeCast,
-  assignProp,
   addScene,
   removeScene,
   reorderScenes,
@@ -16,7 +13,6 @@ import { Breadcrumb } from '@/components/breadcrumb.component';
 import { ConfirmModal } from '@/components/confirm-modal';
 import { cn } from '@/lib/cn';
 import { authClient } from '@/lib/auth-client';
-import { StoryCastTab } from '@/components/story-cast-tab';
 import { StoryScenesTab } from '@/components/story-scenes-tab';
 
 export const Route = createFileRoute('/_app/stories/$storyId/')({
@@ -37,14 +33,9 @@ function StoryDetailPage() {
   });
 
   const [title, setTitle] = useState('');
-  const [activeTab, setActiveTab] = useState<'scenes' | 'cast'>('scenes');
   const [sceneToDelete, setSceneToDelete] = useState<{
     id: string;
     title: string;
-  } | null>(null);
-  const [castToDelete, setCastToDelete] = useState<{
-    id: string;
-    name: string;
   } | null>(null);
 
   useEffect(() => {
@@ -56,30 +47,6 @@ function StoryDetailPage() {
   const saveTitleMutation = useMutation({
     mutationFn: (t: string) =>
       updateStoryTitle({ data: { storyId, title: t } }),
-    onSuccess: invalidate,
-  });
-
-  const addCastMutation = useMutation({
-    mutationFn: (userId: string) => addCast({ data: { storyId, userId } }),
-    onSuccess: invalidate,
-  });
-
-  const removeCastMutation = useMutation({
-    mutationFn: (castId: string) => removeCast({ data: { castId } }),
-    onSuccess: () => {
-      invalidate();
-      setCastToDelete(null);
-    },
-  });
-
-  const assignPropMutation = useMutation({
-    mutationFn: ({
-      castId,
-      propId,
-    }: {
-      castId: string;
-      propId: string | null;
-    }) => assignProp({ data: { castId, propId } }),
     onSuccess: invalidate,
   });
 
@@ -119,7 +86,7 @@ function StoryDetailPage() {
     );
   }
 
-  const { story, cast, scenes, props: availableProps, availableActors } = data;
+  const { story, scenes } = data;
 
   const isTitleDirty = title !== story.title;
 
@@ -173,58 +140,21 @@ function StoryDetailPage() {
         )}
       </div>
 
-      {/* Tabs */}
-      <div className="flex justify-between items-center">
-        <div role="tablist" className="tabs tabs-border mb-6 border-base-300">
-          {(['scenes', 'cast'] as const).map((tab) => (
-            <button
-              key={tab}
-              role="tab"
-              onClick={() => setActiveTab(tab)}
-              className={cn(
-                'tab font-display tracking-[0.05em] capitalize',
-                activeTab === tab
-                  ? 'tab-active text-gold'
-                  : 'text-base-content/40',
-              )}
-            >
-              {tab} ({tab === 'cast' ? cast.length : scenes.length})
-            </button>
-          ))}
-        </div>
+      {/* Status */}
+      <div className="flex justify-end items-center mb-6">
         <StatusBadge status={story.status} />
       </div>
 
-      {/* Cast tab */}
-      {activeTab === 'cast' && (
-        <StoryCastTab
-          cast={cast}
-          availableProps={availableProps}
-          availableActors={availableActors}
-          isDirector={isDirector}
-          onAddCast={(userId) => addCastMutation.mutate(userId)}
-          onRemoveCast={(id, name) => setCastToDelete({ id, name })}
-          onAssignProp={(castId, propId) =>
-            assignPropMutation.mutate({ castId, propId })
-          }
-          currentUserId={session?.user?.id}
-          isRemovingCast={removeCastMutation.isPending}
-        />
-      )}
-
-      {/* Scenes tab */}
-      {activeTab === 'scenes' && (
-        <StoryScenesTab
-          scenes={scenes}
-          storyId={storyId}
-          isDirector={isDirector}
-          onAddScene={(title) => addSceneMutation.mutate(title)}
-          onRemoveScene={(id, title) => setSceneToDelete({ id, title })}
-          onReorderScenes={(reordered) => reorderScenesMutation.mutate(reordered)}
-          isAddingScene={addSceneMutation.isPending}
-          isRemovingScene={removeSceneMutation.isPending}
-        />
-      )}
+      <StoryScenesTab
+        scenes={scenes}
+        storyId={storyId}
+        isDirector={isDirector}
+        onAddScene={(title) => addSceneMutation.mutate(title)}
+        onRemoveScene={(id, title) => setSceneToDelete({ id, title })}
+        onReorderScenes={(reordered) => reorderScenesMutation.mutate(reordered)}
+        isAddingScene={addSceneMutation.isPending}
+        isRemovingScene={removeSceneMutation.isPending}
+      />
 
       {/* Delete Scene Confirmation Modal */}
       <ConfirmModal
@@ -243,25 +173,6 @@ function StoryDetailPage() {
         }
         onCancel={() => setSceneToDelete(null)}
         isPending={removeSceneMutation.isPending}
-      />
-
-      {/* Remove Cast Confirmation Modal */}
-      <ConfirmModal
-        isOpen={!!castToDelete}
-        title="Confirm Removal"
-        message={
-          <>
-            Are you sure you want to remove "{castToDelete?.name}" from the
-            cast?
-          </>
-        }
-        confirmText="Remove"
-        pendingText="Removing..."
-        onConfirm={() =>
-          castToDelete && removeCastMutation.mutate(castToDelete.id)
-        }
-        onCancel={() => setCastToDelete(null)}
-        isPending={removeCastMutation.isPending}
       />
     </div>
   );

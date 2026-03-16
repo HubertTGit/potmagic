@@ -40,7 +40,7 @@ export const getPublicSceneStage = createServerFn({ method: 'GET' })
       })
       .from(sceneCast)
       .innerJoin(cast, eq(sceneCast.castId, cast.id))
-      .leftJoin(props, eq(cast.propId, props.id))
+      .leftJoin(props, eq(sceneCast.propId, props.id))
       .where(eq(sceneCast.sceneId, data.sceneId));
 
     const [sceneWithBg] = await db

@@ -3,7 +3,7 @@ import { getRequest } from '@tanstack/react-start/server';
 import { and, asc, eq, sql, or, isNull } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { scenes, stories, props, cast, users, sceneCast } from '@/db/schema';
+import { scenes, stories, props, cast, users, sceneCast, invitedActors } from '@/db/schema';
 
 export type StageContext = {
   storyId: string
@@ -62,28 +62,37 @@ export const getSceneDetail = createServerFn({ method: 'GET' })
       .from(props)
       .where(or(eq(props.storyId, data.storyId), isNull(props.storyId)));
 
-    const storyCast = await db
+    // Cast members assigned to this scene, with their scene-level prop
+    const assignedCast = await db
       .select({
+        sceneCastId: sceneCast.id,
         id: cast.id,
         userId: cast.userId,
         userName: users.name,
         userImage: users.image,
-        propId: cast.propId,
+        propId: sceneCast.propId,
         propName: props.name,
         propImageUrl: props.imageUrl,
         propType: props.type,
       })
-      .from(cast)
-      .leftJoin(users, eq(cast.userId, users.id))
-      .leftJoin(props, eq(cast.propId, props.id))
-      .where(eq(cast.storyId, data.storyId));
-
-    const sceneCastRows = await db
-      .select({ castId: sceneCast.castId })
       .from(sceneCast)
+      .innerJoin(cast, eq(sceneCast.castId, cast.id))
+      .innerJoin(users, eq(cast.userId, users.id))
+      .leftJoin(props, eq(sceneCast.propId, props.id))
       .where(eq(sceneCast.sceneId, data.sceneId));
 
-    const sceneCastIds = new Set(sceneCastRows.map((r) => r.castId));
+    // Invited actors (have a user account) not already in this scene
+    const availableActors = await db
+      .select({ id: users.id, name: users.name, email: users.email })
+      .from(users)
+      .innerJoin(invitedActors, eq(invitedActors.email, users.email))
+      .where(
+        sql`${users.id} not in (
+          select ${cast.userId} from ${sceneCast}
+          inner join ${cast} on ${sceneCast.castId} = ${cast.id}
+          where ${sceneCast.sceneId} = ${data.sceneId}
+        )`
+      );
 
     const [backgroundProp] = scene.backgroundId
       ? await db
@@ -101,8 +110,8 @@ export const getSceneDetail = createServerFn({ method: 'GET' })
       scene,
       story: story ?? null,
       props: storyProps,
-      storyCast,
-      sceneCastIds: [...sceneCastIds],
+      assignedCast,
+      availableActors,
       background: backgroundProp ?? null,
     };
   });
@@ -117,6 +126,64 @@ export const assignSceneBackground = createServerFn({ method: 'POST' })
       .update(scenes)
       .set({ backgroundId: data.backgroundId })
       .where(eq(scenes.id, data.sceneId));
+  });
+
+export const addActorToScene = createServerFn({ method: 'POST' })
+  .inputValidator((input: unknown) => input as { sceneId: string; userId: string })
+  .handler(async ({ data }) => {
+    await requireDirector();
+
+    // Get storyId from scene
+    const [scene] = await db
+      .select({ storyId: scenes.storyId })
+      .from(scenes)
+      .where(eq(scenes.id, data.sceneId));
+
+    if (!scene) throw new Error('Scene not found');
+
+    // Upsert story cast
+    const [existing] = await db
+      .select({ id: cast.id })
+      .from(cast)
+      .where(and(eq(cast.storyId, scene.storyId), eq(cast.userId, data.userId)));
+
+    let castId = existing?.id;
+    if (!castId) {
+      const [user] = await db
+        .select({ name: users.name })
+        .from(users)
+        .where(eq(users.id, data.userId));
+
+      castId = crypto.randomUUID();
+      await db.insert(cast).values({
+        id: castId,
+        storyId: scene.storyId,
+        userId: data.userId,
+        name: user?.name ?? 'Actor',
+      });
+    }
+
+    await db.insert(sceneCast).values({
+      id: crypto.randomUUID(),
+      sceneId: data.sceneId,
+      castId,
+    });
+  });
+
+export const assignSceneProp = createServerFn({ method: 'POST' })
+  .inputValidator((input: unknown) => input as { sceneCastId: string; propId: string | null })
+  .handler(async ({ data }) => {
+    await requireDirector();
+    if (data.propId) {
+      const [prop] = await db.select({ type: props.type }).from(props).where(eq(props.id, data.propId));
+      if (!prop || prop.type !== 'character') {
+        throw new Error('Only characters can be assigned to actors');
+      }
+    }
+    await db
+      .update(sceneCast)
+      .set({ propId: data.propId })
+      .where(eq(sceneCast.id, data.sceneCastId));
   });
 
 export const addSceneCast = createServerFn({ method: 'POST' })
@@ -158,7 +225,7 @@ export const getSceneStage = createServerFn({ method: 'GET' })
       })
       .from(sceneCast)
       .innerJoin(cast, eq(sceneCast.castId, cast.id))
-      .leftJoin(props, eq(cast.propId, props.id))
+      .leftJoin(props, eq(sceneCast.propId, props.id))
       .where(eq(sceneCast.sceneId, data.sceneId));
 
     const [sceneRow] = await db
@@ -200,7 +267,7 @@ export const getSceneStage = createServerFn({ method: 'GET' })
 
       if (bgProp) {
         backgroundCast = {
-          sceneCastId: `bg-${data.sceneId}`, // Synthetic ID
+          sceneCastId: `bg-${data.sceneId}`,
           castId: 'background',
           userId: storyRow.directorId,
           path: bgProp.imageUrl,
@@ -297,7 +364,6 @@ export const saveSceneCastPosition = createServerFn({ method: 'POST' })
     if (data.sceneCastId.startsWith('bg-')) {
       const sceneId = data.sceneCastId.replace('bg-', '');
 
-      // Verify director
       const [story] = await db
         .select({ directorId: stories.directorId })
         .from(stories)
@@ -320,7 +386,6 @@ export const saveSceneCastPosition = createServerFn({ method: 'POST' })
       return;
     }
 
-    // Verify caller owns this sceneCast row OR is a director
     const [row] = await db
       .select({ userId: cast.userId, userRole: users.role })
       .from(sceneCast)

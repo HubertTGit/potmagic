@@ -106,6 +106,13 @@
       "when": 1773607120452,
       "tag": "0014_clear_anthem",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1773658706788,
+      "tag": "0015_fat_spirit",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,5 @@
 import { createFileRoute, Link, ErrorComponent } from '@tanstack/react-router';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import {
   useSuspenseQuery,
   useQuery,
@@ -9,10 +9,11 @@ import {
 import {
   getSceneDetail,
   updateSceneTitle,
-  addSceneCast,
   removeSceneCast,
   getSceneNavigation,
   assignSceneBackground,
+  addActorToScene,
+  assignSceneProp,
 } from '@/lib/scenes.fns';
 import { Breadcrumb } from '@/components/breadcrumb.component';
 import { cn } from '@/lib/cn';
@@ -60,8 +61,19 @@ function SceneDetailPage() {
 
   const scene = data?.scene;
   const story = data?.story;
-  const storyCast: CastMember[] = (data?.storyCast ?? []) as CastMember[];
-  const sceneCastIds = new Set(data?.sceneCastIds ?? []);
+  const assignedCast: CastMember[] = (data?.assignedCast ?? []).map((c) => ({
+    id: c.id,
+    sceneCastId: c.sceneCastId,
+    userId: c.userId,
+    userName: c.userName,
+    propId: c.propId ?? null,
+    propName: c.propName ?? null,
+    propImageUrl: c.propImageUrl ?? null,
+    propType: c.propType ?? null,
+    userImage: c.userImage,
+  }));
+  const availableActors = data?.availableActors ?? [];
+  const availableProps = (data?.props ?? []).filter((p) => p.type === 'character');
   const background: BackgroundProp | null =
     data?.background as BackgroundProp | null;
   const storyProps = (data?.props ?? []) as BackgroundProp[];
@@ -81,8 +93,9 @@ function SceneDetailPage() {
     onSuccess: invalidate,
   });
 
-  const addCastMutation = useMutation({
-    mutationFn: (castId: string) => addSceneCast({ data: { sceneId, castId } }),
+  const addActorMutation = useMutation({
+    mutationFn: (userId: string) =>
+      addActorToScene({ data: { sceneId, userId } }),
     onSuccess: invalidate,
   });
 
@@ -93,6 +106,12 @@ function SceneDetailPage() {
       invalidate();
       setCastToDelete(null);
     },
+  });
+
+  const assignPropMutation = useMutation({
+    mutationFn: ({ sceneCastId, propId }: { sceneCastId: string; propId: string | null }) =>
+      assignSceneProp({ data: { sceneCastId, propId } }),
+    onSuccess: invalidate,
   });
 
   const assignBgMutation = useMutation({
@@ -111,17 +130,9 @@ function SceneDetailPage() {
     );
   }
 
-  const assignedCast = storyCast.filter((c) => sceneCastIds.has(c.id));
-  const availableCast = storyCast.filter(
-    (c) => !sceneCastIds.has(c.id) && c.propType === 'character',
-  );
   const availableBackgrounds = storyProps.filter(
     (p) => p.type === 'background',
   );
-
-  const handleAddCast = (castMember: CastMember) => {
-    addCastMutation.mutate(castMember.id);
-  };
 
   const handleAssignBackground = (bg: BackgroundProp | null) => {
     assignBgMutation.mutate(bg?.id ?? null);
@@ -182,10 +193,14 @@ function SceneDetailPage() {
         sceneId={sceneId}
         isDirector={isDirector}
         assignedCast={assignedCast}
-        availableCast={availableCast}
-        onAddCast={handleAddCast}
+        availableActors={availableActors}
+        availableProps={availableProps}
+        onAddCast={(userId) => addActorMutation.mutate(userId)}
         onRemoveCast={setCastToDelete}
-        isAddingCast={addCastMutation.isPending}
+        onAssignProp={(sceneCastId, propId) =>
+          assignPropMutation.mutate({ sceneCastId, propId })
+        }
+        isAddingCast={addActorMutation.isPending}
         isRemovingCast={removeCastMutation.isPending}
         sceneOrder={scene.order}
         totalScenes={story.totalScenes}

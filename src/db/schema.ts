@@ -157,8 +157,6 @@ export const cast = pgTable(
     userId: text('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    propId: text('prop_id')
-      .references(() => props.id, { onDelete: 'set null' }),
     name: text('name').notNull(),
     imageUrl: text('image_url'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -189,6 +187,8 @@ export const sceneCast = pgTable(
     castId: text('cast_id')
       .notNull()
       .references(() => cast.id, { onDelete: 'cascade' }),
+    propId: text('prop_id')
+      .references(() => props.id, { onDelete: 'set null' }),
     posX: real('pos_x'),
     posY: real('pos_y'),
     rotation: real('rotation'),
