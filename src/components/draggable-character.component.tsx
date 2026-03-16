@@ -68,6 +68,7 @@ export function DraggableCharacter({
 
   useEffect(() => {
     const img = new window.Image();
+    img.crossOrigin = 'anonymous';
     img.src = src;
     img.onload = () => {
       setImage(img);

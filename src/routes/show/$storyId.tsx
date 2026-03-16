@@ -4,18 +4,12 @@ import { useEffect, useRef, useState } from 'react';
 import {
   LiveKitRoom,
   RoomAudioRenderer,
-  useParticipants,
   useRoomContext,
+  useTracks,
+  type TrackReference,
 } from '@livekit/components-react';
-import { RoomEvent } from 'livekit-client';
-import type { Room } from 'livekit-client';
-import {
-  getPublicStory,
-  getPublicSceneStage,
-  getViewerToken,
-} from '@/lib/show.fns';
-import { StageComponent } from '@/components/stage.component';
-import type { StageCast } from '@/components/stage.component';
+import { RoomEvent, Track } from 'livekit-client';
+import { getPublicStory, getViewerToken } from '@/lib/show.fns';
 import { cn } from '@/lib/cn';
 
 export const Route = createFileRoute('/show/$storyId')({
@@ -37,29 +31,57 @@ type DataMessage = SceneNavigateMessage | StoryStatusMessage;
 const STAGE_WIDTH = 1280;
 const STAGE_HEIGHT = 720;
 
+function CanvasVideoPlayer() {
+  const tracks = useTracks([Track.Source.ScreenShare]);
+
+  // Take the first screen share track in the room (always the director's canvas)
+  const canvasTrack = tracks.find(
+    (t): t is TrackReference => t.publication != null,
+  );
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const track = canvasTrack?.publication.track;
+
+  useEffect(() => {
+    if (!track || !videoRef.current) return;
+    const el = videoRef.current;
+    track.attach(el);
+    return () => {
+      track.detach(el);
+    };
+  }, [track]);
+
+  if (!canvasTrack) {
+    return (
+      <div className="w-full h-full bg-base-200 flex flex-col items-center justify-center">
+        <span className="loading loading-spinner loading-lg text-primary" />
+        <span>The show will start shortly.</span>
+      </div>
+    );
+  }
+
+  return (
+    <video
+      ref={videoRef}
+      autoPlay
+      playsInline
+      muted
+      className="w-full h-full object-contain"
+    />
+  );
+}
+
 // Rendered inside LiveKitRoom
 function ShowContent({
   storyTitle,
-  casts,
-  onSceneNavigate,
   onShowEnded,
 }: {
   storyTitle: string;
-  casts: StageCast[];
-  onSceneNavigate: (sceneId: string) => void;
   onShowEnded: () => void;
 }) {
   const room = useRoomContext();
-  const participants = useParticipants();
-  const speakingIds = new Set(
-    participants.filter((p) => p.isSpeaking).map((p) => p.identity),
-  );
   const stageContainerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [stageDims, setStageDims] = useState({
-    width: STAGE_WIDTH,
-    height: STAGE_HEIGHT,
-  });
 
   // Listen to data channel messages
   useEffect(() => {
@@ -70,9 +92,7 @@ function ShowContent({
       } catch {
         return;
       }
-      if (msg.type === 'scene:navigate') {
-        onSceneNavigate(msg.sceneId);
-      } else if (msg.type === 'story:status' && msg.status !== 'active') {
+      if (msg.type === 'story:status' && msg.status !== 'active') {
         onShowEnded();
       }
     };
@@ -81,26 +101,11 @@ function ShowContent({
     return () => {
       room.off(RoomEvent.DataReceived, handler);
     };
-  }, [room, onSceneNavigate, onShowEnded]);
+  }, [room, onShowEnded]);
 
-  // Track fullscreen state and resize canvas to fill screen
+  // Track fullscreen state
   useEffect(() => {
-    const onChange = () => {
-      const isFull = !!document.fullscreenElement;
-      setIsFullscreen(isFull);
-      if (isFull) {
-        const scale = Math.min(
-          window.innerWidth / STAGE_WIDTH,
-          window.innerHeight / STAGE_HEIGHT,
-        );
-        setStageDims({
-          width: Math.round(STAGE_WIDTH * scale),
-          height: Math.round(STAGE_HEIGHT * scale),
-        });
-      } else {
-        setStageDims({ width: STAGE_WIDTH, height: STAGE_HEIGHT });
-      }
-    };
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
     document.addEventListener('fullscreenchange', onChange);
     return () => document.removeEventListener('fullscreenchange', onChange);
   }, []);
@@ -122,38 +127,38 @@ function ShowContent({
 
       {/* Top bar */}
       {!isFullscreen && (
-      <div className="flex items-center justify-between w-7xl py-4 px-2">
-        <div className="flex items-center gap-3">
-          <span className="font-display text-base-content font-semibold tracking-wide">
-            {storyTitle}
-          </span>
-          <span className="badge badge-error badge-sm font-display tracking-widest uppercase text-[10px]">
-            Live
-          </span>
-        </div>
+        <div className="flex items-center justify-between w-7xl py-4 px-2">
+          <div className="flex items-center gap-3">
+            <span className="font-display text-base-content font-semibold tracking-wide">
+              {storyTitle}
+            </span>
+            <span className="badge badge-error badge-sm font-display tracking-widest uppercase text-[10px]">
+              Live
+            </span>
+          </div>
 
-        <button
-          className="btn btn-ghost btn-sm gap-2"
-          onClick={toggleFullscreen}
-          title="Enter fullscreen"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="size-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+          <button
+            className="btn btn-ghost btn-sm gap-2"
+            onClick={toggleFullscreen}
+            title="Enter fullscreen"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
-            />
-          </svg>
-          <span className="text-xs">Enlarge</span>
-        </button>
-      </div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="size-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+              />
+            </svg>
+            <span className="text-xs">Enlarge</span>
+          </button>
+        </div>
       )}
 
       {/*
@@ -169,6 +174,11 @@ function ShowContent({
             ? 'flex items-center justify-center bg-black w-screen h-screen'
             : 'rounded-xl border-2 border-base-300 shadow-xl overflow-hidden',
         )}
+        style={
+          isFullscreen
+            ? undefined
+            : { width: STAGE_WIDTH, height: STAGE_HEIGHT }
+        }
       >
         {/* Exit button — must be inside the fullscreen element to be visible */}
         {isFullscreen && (
@@ -195,13 +205,7 @@ function ShowContent({
           </button>
         )}
 
-        <StageComponent
-          casts={casts}
-          room={room as Room}
-          speakingIds={speakingIds}
-          stageWidth={stageDims.width}
-          stageHeight={stageDims.height}
-        />
+        <CanvasVideoPlayer />
       </div>
     </div>
   );
@@ -209,7 +213,6 @@ function ShowContent({
 
 function ShowPage() {
   const { storyId } = Route.useParams();
-  const [currentSceneId, setCurrentSceneId] = useState<string | null>(null);
   const [forcedOffline, setForcedOffline] = useState(false);
 
   const { data: story, isPending: storyPending } = useQuery({
@@ -218,13 +221,6 @@ function ShowPage() {
     refetchInterval: 10_000,
   });
 
-  // Set initial scene once story loads
-  useEffect(() => {
-    if (story?.firstSceneId && !currentSceneId) {
-      setCurrentSceneId(story.firstSceneId);
-    }
-  }, [story?.firstSceneId, currentSceneId]);
-
   const isActive = !forcedOffline && story?.status === 'active';
 
   const { data: livekitData } = useQuery({
@@ -232,12 +228,6 @@ function ShowPage() {
     queryFn: () => getViewerToken({ data: { storyId } }),
     enabled: isActive,
     staleTime: Infinity,
-  });
-
-  const { data: casts = [] } = useQuery({
-    queryKey: ['public-scene-stage', currentSceneId],
-    queryFn: () => getPublicSceneStage({ data: { sceneId: currentSceneId! } }),
-    enabled: !!currentSceneId,
   });
 
   if (storyPending) {
@@ -295,8 +285,6 @@ function ShowPage() {
     >
       <ShowContent
         storyTitle={story.title}
-        casts={casts as StageCast[]}
-        onSceneNavigate={setCurrentSceneId}
         onShowEnded={() => setForcedOffline(true)}
       />
     </LiveKitRoom>

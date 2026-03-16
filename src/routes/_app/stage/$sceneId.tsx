@@ -1,12 +1,14 @@
 import { createFileRoute, ErrorComponent } from '@tanstack/react-router';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   LiveKitRoom,
   RoomAudioRenderer,
+  useConnectionState,
   useParticipants,
   useRoomContext,
 } from '@livekit/components-react';
+import { ConnectionState, LocalVideoTrack, Track } from 'livekit-client';
 import type { Room } from 'livekit-client';
 import { getSceneStage } from '@/lib/scenes.fns';
 import { getLiveKitToken } from '@/lib/livekit.fns';
@@ -18,6 +20,7 @@ import {
   type StoryStatus,
 } from '@/components/story-status-button.component';
 import type { StageCast } from '@/components/stage.component';
+import type Konva from 'konva';
 
 export const Route = createFileRoute('/_app/stage/$sceneId')({
   component: SceneStagePage,
@@ -51,10 +54,16 @@ function LiveStageContent({
 }: StageContentProps) {
   const participants = useParticipants();
   const room = useRoomContext();
+  const connectionState = useConnectionState();
   const onlineIds = new Set(participants.map((p) => p.identity));
   const speakingIds = new Set(
     participants.filter((p) => p.isSpeaking).map((p) => p.identity),
   );
+  // Compute isDirector only once room is connected — localParticipant.identity
+  // is empty string before connection so checking it too early always fails
+  const isDirector =
+    connectionState === ConnectionState.Connected &&
+    room.localParticipant.identity === directorId;
 
   return (
     <>
@@ -70,6 +79,7 @@ function LiveStageContent({
         speakingIds={speakingIds}
         isSwitching={isSwitching}
         room={room}
+        isDirector={isDirector}
       />
     </>
   );
@@ -97,6 +107,7 @@ function OfflineStageContent({
       speakingIds={new Set()}
       isSwitching={isSwitching}
       room={null}
+      isDirector={false}
     />
   );
 }
@@ -105,6 +116,7 @@ interface StageShellProps extends StageContentProps {
   onlineIds: Set<string>;
   speakingIds: Set<string>;
   room: Room | null;
+  isDirector: boolean;
 }
 
 function StageShell({
@@ -118,7 +130,46 @@ function StageShell({
   speakingIds,
   isSwitching,
   room,
+  isDirector,
 }: StageShellProps) {
+  const konvaStageRef = useRef<Konva.Stage>(null);
+  const stageWrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isDirector || !room) return;
+
+    let publishedTrack: LocalVideoTrack | null = null;
+
+    const publish = () => {
+      // Query canvas from the wrapper div — more reliable than Konva internals
+      const canvas = stageWrapperRef.current?.querySelector('canvas');
+      if (!canvas) return;
+
+      const stream = (canvas as HTMLCanvasElement).captureStream(30);
+      const [mediaTrack] = stream.getVideoTracks();
+      if (!mediaTrack) return;
+
+      // userProvidedTrack=true: LiveKit won't call stop() on the canvas MediaStreamTrack
+      publishedTrack = new LocalVideoTrack(mediaTrack, undefined, true);
+      room.localParticipant
+        .publishTrack(publishedTrack, {
+          source: Track.Source.ScreenShare,
+          name: 'canvas-stream',
+          simulcast: false,
+        })
+        .catch(console.error);
+    };
+
+    // isDirector is only true when ConnectionState.Connected, so room is ready
+    publish();
+
+    return () => {
+      if (publishedTrack) {
+        room.localParticipant.unpublishTrack(publishedTrack);
+      }
+    };
+  }, [isDirector, room]);
+
   return (
     <div className="min-h-screen flex flex-col items-center gap-4 p-6">
       {isSwitching && (
@@ -143,8 +194,16 @@ function StageShell({
           speakingIds={speakingIds}
         />
       </div>
-      <div className="rounded-xl border-2 border-base-300 shadow-xl overflow-hidden">
-        <StageComponent casts={casts} room={room} speakingIds={speakingIds} />
+      <div
+        ref={stageWrapperRef}
+        className="rounded-xl border-2 border-base-300 shadow-xl overflow-hidden"
+      >
+        <StageComponent
+          ref={konvaStageRef}
+          casts={casts}
+          room={room}
+          speakingIds={speakingIds}
+        />
       </div>
       <div></div>
     </div>
