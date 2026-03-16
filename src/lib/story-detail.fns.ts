@@ -152,3 +152,12 @@ export const removeScene = createServerFn({ method: 'POST' })
     await requireDirector()
     await db.delete(scenes).where(eq(scenes.id, data.sceneId))
   })
+
+export const reorderScenes = createServerFn({ method: 'POST' })
+  .inputValidator((input: unknown) => input as { scenes: { id: string; order: number }[] })
+  .handler(async ({ data }) => {
+    await requireDirector()
+    for (const { id, order } of data.scenes) {
+      await db.update(scenes).set({ order }).where(eq(scenes.id, id))
+    }
+  })
