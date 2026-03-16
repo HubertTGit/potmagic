@@ -1,9 +1,9 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
-import { eq, sql, isNull, and } from 'drizzle-orm'
+import { eq, sql, isNull, isNotNull, and } from 'drizzle-orm'
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { stories, scenes, cast, props, users, sceneCast } from '@/db/schema'
+import { stories, scenes, cast, props, users, sceneCast, invitedActors } from '@/db/schema'
 
 async function getSessionOrThrow() {
   const session = await auth.api.getSession({ headers: getRequest().headers })
@@ -60,13 +60,14 @@ export const getStoryDetail = createServerFn({ method: 'GET' })
       .where(isNull(props.storyId))
       .orderBy(props.name)
 
-    // All actors (role = 'actor') not yet assigned to this story
+    // Accepted actors (have logged in) not yet assigned to this story
     const availableActors = await db
       .select({ id: users.id, name: users.name, email: users.email })
       .from(users)
+      .innerJoin(invitedActors, eq(invitedActors.email, users.email))
       .where(
         and(
-          eq(users.role, 'actor'),
+          isNotNull(invitedActors.userId),
           sql`${users.id} not in (select user_id from "cast" where story_id = ${data.storyId})`
         )
       )
