@@ -82,8 +82,7 @@ export function DraggableCharacter({
     node.rotation(initialRotation);
     node.scaleX(initialScaleX);
     if (type === 'background') {
-      const stageHeight = node.getStage()?.height() ?? 0;
-      node.y(stageHeight - image.height / 2);
+      node.y(initialY);
       node.moveToBottom();
     } else {
       node.moveToTop();
@@ -182,7 +181,7 @@ export function DraggableCharacter({
   };
 
   const handleTouchMove = (e: Konva.KonvaEventObject<TouchEvent>) => {
-    if (!canDrag || type === 'background') return;
+    if (!canDrag) return;
     const touches = e.evt.touches;
     if (touches.length !== 2) return;
     e.evt.preventDefault();
@@ -232,10 +231,7 @@ export function DraggableCharacter({
       shadowOpacity={1}
       strokeEnabled={isSpeaking && type !== 'background'}
       strokeWidth={4}
-      dragBoundFunc={
-        type === 'background'
-          ? (pos) => ({ x: pos.x, y: imageRef.current?.y() ?? pos.y })
-          : undefined
+      dragBoundFunc={undefined
       }
       onDragMove={() => {
         const node = imageRef.current;
