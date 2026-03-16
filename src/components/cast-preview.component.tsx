@@ -60,8 +60,6 @@ export function CastPreview({
           const isOnline = onlineIds.has(cast.userId);
           const isSpeaking = speakingIds.has(cast.userId);
 
-          console.log(isSpeaking, cast.userId);
-
           let ringClass = 'ring-1 ring-base-300';
           if (isMe) {
             ringClass =
