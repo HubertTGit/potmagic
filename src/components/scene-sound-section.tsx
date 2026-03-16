@@ -1,4 +1,3 @@
-import { useState, useRef, useEffect } from 'react';
 import { TrashIcon, MusicalNoteIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/cn';
 
@@ -106,42 +105,35 @@ function SoundDropdown({
   currentId?: string;
   isLoading?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node))
-        setOpen(false);
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
-
   return (
-    <div ref={ref} className="relative w-64">
-      <button
-        onClick={() => setOpen((o) => !o)}
-        disabled={isLoading}
-        className="btn btn-sm btn-outline btn-info font-display w-full justify-start"
+    <div className="dropdown w-64">
+      <div
+        tabIndex={0}
+        role="button"
+        className={cn(
+          'btn btn-sm btn-outline btn-info font-display w-full justify-start',
+          isLoading && 'btn-disabled',
+        )}
       >
-        {isLoading && <span className="loading loading-spinner loading-xs" />}
-        {!isLoading && (
+        {isLoading ? (
+          <span className="loading loading-spinner loading-xs" />
+        ) : (
           <span>{currentId ? 'Change sound' : '+ Assign sound'}</span>
         )}
-      </button>
-      {open && (
-        <div className="absolute top-full mt-1 w-full bg-base-200 border border-base-300 rounded-lg shadow-xl z-50 overflow-hidden">
-          {availableSounds.map((s) => (
+      </div>
+      <ul
+        tabIndex={0}
+        className="dropdown-content menu bg-base-200 border border-base-300 rounded-lg shadow-xl z-50 w-full p-1 mt-1"
+      >
+        {availableSounds.map((s) => (
+          <li key={s.id}>
             <button
-              key={s.id}
-              onMouseDown={(e) => {
-                e.preventDefault();
+              onClick={() => {
                 onAssign(s);
-                setOpen(false);
+                (document.activeElement as HTMLElement)?.blur();
               }}
               className={cn(
-                'w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-base-300 transition-colors',
+                'flex items-center gap-3 px-3 py-2 text-sm rounded-md',
                 s.id === currentId && 'bg-base-300',
               )}
             >
@@ -152,9 +144,9 @@ function SoundDropdown({
                 {s.name}
               </span>
             </button>
-          ))}
-        </div>
-      )}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

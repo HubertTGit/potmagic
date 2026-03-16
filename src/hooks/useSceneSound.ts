@@ -30,11 +30,15 @@ export function useSceneSound({
   soundAutoplay,
 }: UseSceneSoundOptions): UseSceneSoundResult {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const volumeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [playing, setPlayingState] = useState(soundAutoplay);
   const [volume, setVolumeState] = useState(1);
 
-  // Create/destroy audio element when soundUrl changes
+  // Create/destroy audio element when soundUrl changes; reset play state for the new scene
   useEffect(() => {
+    // Reset play state to match the new scene's autoplay setting
+    setPlayingState(soundAutoplay);
+
     if (!soundUrl) {
       if (audioRef.current) {
         audioRef.current.pause();
@@ -137,20 +141,26 @@ export function useSceneSound({
   const setVolume = (newVolume: number) => {
     if (!isDirector) return;
     const audio = audioRef.current;
+
+    // Apply to audio immediately for local feedback
     if (audio) {
       audio.volume = newVolume;
     }
     setVolumeState(newVolume);
 
+    // Debounce the LiveKit publish — volume drag fires many events per second
+    if (volumeDebounceRef.current) clearTimeout(volumeDebounceRef.current);
     if (room && soundUrl) {
-      const msg: SoundStateMessage = {
-        type: 'sound:state',
-        url: soundUrl,
-        playing: audio ? !audio.paused : playing,
-        volume: newVolume,
-      };
-      const encoded = new TextEncoder().encode(JSON.stringify(msg));
-      room.localParticipant.publishData(encoded, { reliable: true });
+      volumeDebounceRef.current = setTimeout(() => {
+        const msg: SoundStateMessage = {
+          type: 'sound:state',
+          url: soundUrl,
+          playing: audio ? !audio.paused : playing,
+          volume: newVolume,
+        };
+        const encoded = new TextEncoder().encode(JSON.stringify(msg));
+        room.localParticipant.publishData(encoded, { reliable: false });
+      }, 100);
     }
   };
 
