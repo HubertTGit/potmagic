@@ -59,7 +59,13 @@ function DirectorPage() {
     enabled: tab === 'library',
   });
 
-const { data: invitedActors = [], isLoading: loadingActors } = useQuery({
+  const { data: sounds = [], isLoading: loadingSounds } = useQuery({
+    queryKey: ['props', 'sound'],
+    queryFn: () => listProps({ data: { type: 'sound' } }),
+    enabled: tab === 'library',
+  });
+
+  const { data: invitedActors = [], isLoading: loadingActors } = useQuery({
     queryKey: ['invitedActors'],
     queryFn: () => listInvitedActors(),
     enabled: tab === 'actors',
@@ -67,13 +73,16 @@ const { data: invitedActors = [], isLoading: loadingActors } = useQuery({
 
   const addActorMutation = useMutation({
     mutationFn: (email: string) => addInvitedActor({ data: { email } }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['invitedActors'] }),
-    onError: (err: any) => toast.error(err?.message ?? 'Failed to invite actor'),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ['invitedActors'] }),
+    onError: (err: any) =>
+      toast.error(err?.message ?? 'Failed to invite actor'),
   });
 
   const removeActorMutation = useMutation({
     mutationFn: (id: string) => removeInvitedActor({ data: { id } }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['invitedActors'] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ['invitedActors'] }),
   });
 
   const active = stories.filter((s) => s.status === 'active');
@@ -111,7 +120,7 @@ const { data: invitedActors = [], isLoading: loadingActors } = useQuery({
       queryClient.invalidateQueries({ queryKey: ['props', type] });
     } catch (error: any) {
       toast.error(
-        `File size is too big. It should not be larger than 3MB.\n${error.message}`,
+        `File size is too big. It should not be larger than 5MB.\n${error.message}`,
       );
       throw error;
     }
@@ -233,7 +242,7 @@ const { data: invitedActors = [], isLoading: loadingActors } = useQuery({
       {tab === 'library' && (
         <>
           <p className="text-sm text-base-content/40 mb-6">
-            Upload characters, backgrounds, and animations available across stories.
+            Upload characters, backgrounds, and sounds available across stories.
           </p>
           <div className="flex flex-col gap-8">
             <LibrarySection
@@ -251,6 +260,14 @@ const { data: invitedActors = [], isLoading: loadingActors } = useQuery({
               isLoading={loadingBgs}
               onAdd={(file, name) => handleAddProp('background', file, name)}
               onRemove={(id) => handleRemoveProp('background', id)}
+            />
+            <LibrarySection
+              label="Sounds"
+              type="sound"
+              items={sounds}
+              isLoading={loadingSounds}
+              onAdd={(file, name) => handleAddProp('sound', file, name)}
+              onRemove={(id) => handleRemoveProp('sound', id)}
             />
             {/* Animations section hidden until feature is ready */}
             {/* <LibrarySection
@@ -348,13 +365,18 @@ function ActorsTab({
             </thead>
             <tbody>
               {actors.map((actor) => (
-                <tr key={actor.id} className="hover:bg-base-200 transition-colors">
+                <tr
+                  key={actor.id}
+                  className="hover:bg-base-200 transition-colors"
+                >
                   <td className="font-medium">{actor.email}</td>
                   <td>
                     <span
                       className={cn(
                         'text-xs font-medium uppercase tracking-wider',
-                        actor.accepted ? 'text-success' : 'text-base-content/40',
+                        actor.accepted
+                          ? 'text-success'
+                          : 'text-base-content/40',
                       )}
                     >
                       {actor.accepted ? 'Accepted' : 'Pending'}

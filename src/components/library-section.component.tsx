@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
+import { cn } from '@/lib/cn';
 import {
   PhotoIcon,
   XMarkIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  MusicalNoteIcon,
 } from '@heroicons/react/24/outline';
 import { toast } from '@/lib/toast';
 import type { PropType } from '@/db/schema';
@@ -21,13 +23,36 @@ function MediaPreview({
   name,
   className,
   isAnimation,
+  isSound,
 }: {
   src?: string | null;
   buffer?: ArrayBuffer;
   name?: string;
   className?: string;
   isAnimation?: boolean;
+  isSound?: boolean;
 }) {
+  if (isSound) {
+    return (
+      <div
+        className={cn(
+          'flex flex-col items-center justify-center gap-4 bg-base-300 p-6',
+          className,
+        )}
+      >
+        <MusicalNoteIcon className="size-8 text-base-content/40" />
+        {src && (
+          // eslint-disable-next-line jsx-a11y/media-has-caption
+          <audio
+            controls
+            src={src}
+            className="w-50"
+            onClick={(e) => e.stopPropagation()}
+          />
+        )}
+      </div>
+    );
+  }
   if (isAnimation) {
     if (!src && !buffer) return null;
     return (
@@ -91,7 +116,12 @@ export function LibrarySection({
   }, [selectedIndex, items.length]);
 
   const isAnimation = type === 'animation';
-  const acceptMime = isAnimation ? 'application/octet-stream,.riv' : 'image/*';
+  const isSound = type === 'sound';
+  const acceptMime = isAnimation
+    ? 'application/octet-stream,.riv'
+    : isSound
+      ? 'audio/mp4,.mp4,audio/*'
+      : 'image/*';
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -180,6 +210,7 @@ export function LibrarySection({
             src={pending.preview}
             buffer={pending.buffer}
             isAnimation={isAnimation}
+            isSound={isSound}
             className="size-14 rounded-lg object-cover shrink-0 bg-base-300 overflow-hidden"
           />
           <input
@@ -232,7 +263,11 @@ export function LibrarySection({
           onClick={() => fileInputRef.current?.click()}
           className="flex flex-col items-center justify-center gap-2 border border-dashed border-base-300 rounded-xl py-8 text-base-content/25 cursor-pointer hover:border-gold/30 hover:text-base-content/40 transition-colors"
         >
-          <PhotoIcon className="size-7" />
+          {isSound ? (
+            <MusicalNoteIcon className="size-7" />
+          ) : (
+            <PhotoIcon className="size-7" />
+          )}
           <span className="text-xs">
             Upload your first {label.toLowerCase().slice(0, -1)}
           </span>
@@ -245,14 +280,13 @@ export function LibrarySection({
               onClick={() => setSelectedIndex(index)}
               className="group relative rounded-xl overflow-hidden bg-base-200 border border-base-300 aspect-square cursor-pointer"
             >
-              {item.imageUrl && (
-                <MediaPreview
-                  src={item.imageUrl}
-                  name={item.name}
-                  isAnimation={isAnimation}
-                  className="w-full h-full object-cover"
-                />
-              )}
+              <MediaPreview
+                src={item.imageUrl}
+                name={item.name}
+                isAnimation={isAnimation}
+                isSound={isSound}
+                className="w-full h-full object-cover"
+              />
               <div className="absolute inset-0 bg-base-100/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 p-2">
                 <span className="text-xs font-medium text-center leading-tight line-clamp-2">
                   {item.name}
@@ -328,6 +362,7 @@ export function LibrarySection({
                 src={items[selectedIndex].imageUrl!}
                 name={items[selectedIndex].name}
                 isAnimation={isAnimation}
+                isSound={isSound}
                 className="max-h-[80vh] w-auto max-w-full object-contain rounded-xl shadow-2xl bg-base-100/80 overflow-hidden"
               />
             </div>

@@ -3,8 +3,8 @@ import { sql } from 'drizzle-orm'
 
 export const roleEnum = pgEnum('role', ['actor', 'director'])
 export const storyStatusEnum = pgEnum('story_status', ['draft', 'active', 'ended'])
-export const propTypeEnum = pgEnum('prop_type', ['background', 'character', 'animation'])
-export type PropType = 'character' | 'background' | 'animation';
+export const propTypeEnum = pgEnum('prop_type', ['background', 'character', 'animation', 'sound'])
+export type PropType = 'character' | 'background' | 'animation' | 'sound';
 
 export const users = pgTable('users', {
   id: text('id').primaryKey(),
