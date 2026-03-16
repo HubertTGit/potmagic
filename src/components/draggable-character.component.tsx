@@ -193,7 +193,9 @@ export function DraggableCharacter({
 
     node.rotation(node.rotation() + (angle - lastAngle.current));
     node.x(node.x() + (midpoint.x - lastMidpoint.current.x));
-    node.y(node.y() + (midpoint.y - lastMidpoint.current.y));
+    if (type !== 'background') {
+      node.y(node.y() + (midpoint.y - lastMidpoint.current.y));
+    }
 
     lastAngle.current = angle;
     lastMidpoint.current = midpoint;
@@ -231,7 +233,10 @@ export function DraggableCharacter({
       shadowOpacity={1}
       strokeEnabled={isSpeaking && type !== 'background'}
       strokeWidth={4}
-      dragBoundFunc={undefined
+      dragBoundFunc={
+        type === 'background'
+          ? (pos) => ({ x: pos.x, y: imageRef.current?.y() ?? pos.y })
+          : undefined
       }
       onDragMove={() => {
         const node = imageRef.current;

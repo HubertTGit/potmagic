@@ -45,7 +45,7 @@ export function StageComponent({
   });
 
   return (
-    <div className="w-7xl h-[720px]">
+    <div className="w-7xl h-[720px] overflow-hidden">
       <Stage width={stageWidth} height={stageHeight}>
         <Layer>
           {sortedCasts.map((cast, i) => {
