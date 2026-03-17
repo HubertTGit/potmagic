@@ -19,7 +19,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/cn';
-import { DataList, DataListItem } from './data-list';
+import { DataList, DataListItem } from '@/components/data-list';
 
 interface Scene {
   id: string;

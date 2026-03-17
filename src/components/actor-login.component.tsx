@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Spotlight, Star } from 'lucide-react';
+import { Spotlight } from 'lucide-react';
 import { useRouter } from '@tanstack/react-router';
 import { actorSignIn } from '@/lib/actor-auth.fns';
 import { authClient } from '@/lib/auth-client';

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { deleteStory } from '@/lib/stories.fns';
 import { StatusBadge } from '@/components/status-badge.component';
 import { ConfirmModal } from '@/components/confirm-modal';
-import { Layers, Theater, Trash2 } from 'lucide-react';
+import { Theater, Trash2 } from 'lucide-react';
 
 type Story = {
   id: string;

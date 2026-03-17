@@ -1,5 +1,5 @@
 import { Trash2, Music } from 'lucide-react';
-import { PropPicker } from './prop-picker';
+import { PropPicker } from '@/components/prop-picker';
 
 export type SoundProp = {
   id: string;

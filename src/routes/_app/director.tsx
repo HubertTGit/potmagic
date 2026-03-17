@@ -108,7 +108,7 @@ function DirectorPage() {
       if (!uploadResponse.ok) {
         try {
           await deleteProp({ data: { id: prop.id } });
-        } catch (e) {
+        } catch {
           // Swallow rollback errors
         }
 

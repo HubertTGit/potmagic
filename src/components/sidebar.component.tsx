@@ -7,7 +7,6 @@ import {
   Sun,
   Moon,
   LogOut,
-  GraduationCap,
   Layers3,
   ChevronLeft,
   ChevronRight,

@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { Layers, Film, Layers3, Scroll } from 'lucide-react';
+import { Layers3, Scroll } from 'lucide-react';
 
 interface Crumb {
   label: string;

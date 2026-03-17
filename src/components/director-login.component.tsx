@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Film, Megaphone } from 'lucide-react';
+import { Megaphone } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 import { cn } from '@/lib/cn';
 

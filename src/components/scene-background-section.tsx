@@ -1,4 +1,4 @@
-import { PropPicker } from './prop-picker';
+import { PropPicker } from '@/components/prop-picker';
 import { Trash2 } from 'lucide-react';
 
 export type BackgroundProp = {

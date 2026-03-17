@@ -35,8 +35,8 @@ function MediaPreview({
         )}
       >
         <Music className="size-8 text-base-content/40" />
+        {/* audio preview — captions not required for a short preview clip */}
         {src && (
-          // eslint-disable-next-line jsx-a11y/media-has-caption
           <audio
             controls
             src={src}

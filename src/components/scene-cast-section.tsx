@@ -1,8 +1,8 @@
 import { Link } from '@tanstack/react-router';
 import { Trash2, CircleHelp } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { DataList, DataListItem } from './data-list';
-import { PropPicker } from './prop-picker';
+import { DataList, DataListItem } from '@/components/data-list';
+import { PropPicker } from '@/components/prop-picker';
 import type { PropType } from '@/db/schema';
 
 export type CastMember = {

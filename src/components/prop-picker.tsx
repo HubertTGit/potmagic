@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { cn } from '@/lib/cn';
-import { PropTypePill } from './prop-type-pill';
+import { PropTypePill } from '@/components/prop-type-pill';
 import type { PropType } from '@/db/schema';
 
 export type PickableProp = {
