@@ -76,18 +76,18 @@ export function PropPicker({
               <img
                 src={propImageUrl}
                 alt={propName ?? ''}
-                className="size-10 rounded object-cover bg-base-300 shrink-0"
+                className="size-12 rounded object-cover bg-base-300 shrink-0"
               />
             ) : (
-              <div className="size-10 rounded bg-base-300 shrink-0" />
+              <div className="size-12 rounded bg-base-300 shrink-0" />
             )}
             <span className="text-sm">{propName}</span>
             {propType && <PropTypePill type={propType} />}
           </>
         ) : (
-          <span className="text-sm text-base-content/30 italic">
+          <button className="btn btn-sm btn-outline btn-info font-display w-full justify-start">
             {placeholder}
-          </span>
+          </button>
         )}
       </button>
 

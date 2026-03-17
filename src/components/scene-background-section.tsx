@@ -1,5 +1,5 @@
-import { PropTypePill } from './prop-type-pill';
 import { PropPicker } from './prop-picker';
+import { TrashIcon } from '@heroicons/react/24/outline';
 
 export type BackgroundProp = {
   id: string;
@@ -44,19 +44,19 @@ export function SceneBackgroundSection({
         Background
       </h2>
 
-      {!background ? (
-        <div className="py-2">
-          {picker || (
-            <p className="text-base-content/30 text-sm italic">
-              No background assigned.
-            </p>
-          )}
-        </div>
-      ) : (
-        <div className="flex items-center justify-between bg-base-200 rounded-lg px-4 py-3 border border-base-300">
-          {picker}
-        </div>
-      )}
+      <div className="flex items-center justify-between bg-base-200 rounded-lg px-4 py-3 border border-base-300">
+        {picker}
+
+        {isDirector && background && (
+          <button
+            onClick={() => onAssignBackground(null)}
+            className="text-xs text-error/60 hover:text-error transition-colors flex items-center gap-1 p-2 hover:bg-error/10 rounded-lg"
+            title="Remove background"
+          >
+            <TrashIcon className="size-4" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
