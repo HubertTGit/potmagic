@@ -44,7 +44,7 @@ export function DirectorLogin({ token = '' }: { token?: string }) {
   };
 
   return (
-    <div className="card bg-base-100 rounded-box overflow-hidden border border-primary/30 w-full min-w-87.5 mx-4 h-full hover:border-primary/50 transition-colors duration-300">
+    <div className="card bg-base-100 rounded-box overflow-hidden border border-primary/60 w-full min-w-87.5 mx-4 h-full ring-2 ring-transparent ring-offset-2 ring-offset-base-100 hover:ring-primary transition-all duration-300">
       <div className="card-body gap-0 p-0">
         {/* Role icon header */}
         <div className="flex flex-col items-center px-8 pt-8 pb-6">
