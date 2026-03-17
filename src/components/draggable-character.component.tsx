@@ -20,6 +20,7 @@ interface DraggableCharacterProps {
   room?: Room | null;
   isSpeaking?: boolean;
   stageWidth?: number;
+  stageHeight?: number;
 }
 
 interface PropMoveMessage {
@@ -56,6 +57,7 @@ export function DraggableCharacter({
   room,
   isSpeaking,
   stageWidth = 1280,
+  stageHeight = 720,
 }: DraggableCharacterProps) {
   const { data: session } = authClient.useSession();
   const canDrag =
@@ -238,17 +240,20 @@ export function DraggableCharacter({
       shadowOpacity={1}
       strokeEnabled={isSpeaking && type !== 'background'}
       strokeWidth={4}
-      dragBoundFunc={
-        type === 'background'
-          ? (pos) => {
-              const halfW = (image?.width ?? 0) / 2;
-              const minX = stageWidth - halfW;
-              const maxX = halfW;
-              const clampedX = maxX > minX ? Math.min(Math.max(pos.x, minX), maxX) : pos.x;
-              return { x: clampedX, y: imageRef.current?.y() ?? pos.y };
-            }
-          : undefined
-      }
+      dragBoundFunc={(pos) => {
+        const halfW = (image?.width ?? 0) / 2;
+        const halfH = (image?.height ?? 0) / 2;
+        if (type === 'background') {
+          const minX = stageWidth - halfW;
+          const maxX = halfW;
+          const clampedX = maxX > minX ? Math.min(Math.max(pos.x, minX), maxX) : pos.x;
+          return { x: clampedX, y: imageRef.current?.y() ?? pos.y };
+        }
+        return {
+          x: Math.min(Math.max(pos.x, halfW), stageWidth - halfW),
+          y: Math.min(Math.max(pos.y, halfH), stageHeight - halfH),
+        };
+      }}
       onDragMove={() => {
         const node = imageRef.current;
         if (node) publishMove(node);
