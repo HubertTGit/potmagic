@@ -78,8 +78,24 @@ export function StoryGrid({
                   >
                     {story.title}
                   </Link>
-                  <div onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center gap-2">
                     <StatusBadge status={story.status} />
+                    {isDirector && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setStoryToDelete({
+                            id: story.id,
+                            title: story.title,
+                          });
+                        }}
+                        disabled={deleteMutation.isPending}
+                        className="text-xs text-error/60 hover:text-error transition-colors"
+                        title="Delete Story"
+                      >
+                        <TrashIcon className="size-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -110,32 +126,6 @@ export function StoryGrid({
                     >
                       Enter Stage <RectangleStackIcon className="size-4" />
                     </Link>
-                  )}
-
-                  {isDirector && (
-                    <div className="flex gap-2 w-full">
-                      <Link
-                        to="/stories/$storyId"
-                        params={{ storyId: story.id }}
-                        className="btn btn-secondary btn-xs flex-1"
-                      >
-                        Edit
-                      </Link>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setStoryToDelete({
-                            id: story.id,
-                            title: story.title,
-                          });
-                        }}
-                        disabled={deleteMutation.isPending}
-                        className="text-xs text-error/60 hover:text-error transition-colors"
-                        title="Delete Story"
-                      >
-                        <TrashIcon className="size-4" />
-                      </button>
-                    </div>
                   )}
                 </div>
               </div>

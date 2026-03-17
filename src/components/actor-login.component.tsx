@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useRouter } from '@tanstack/react-router';
+import { useRouter } from '@tanstack/react-router';
 import { actorSignIn } from '@/lib/actor-auth.fns';
 import { authClient } from '@/lib/auth-client';
 import { cn } from '@/lib/cn';
@@ -29,17 +29,15 @@ export default function ActorLogin() {
   };
 
   return (
-    <div className="card bg-base-100 rounded-box overflow-hidden border border-primary/25 w-full max-w-sm mx-4">
+    <div className="card bg-base-100 rounded-box overflow-hidden border border-primary/25 w-full min-w-[350px] mx-4 h-full">
       <div className="card-body gap-0 p-0">
-        <div className="px-8 pt-6">
-          <Link to="/" className="text-xs text-base-content/40 hover:text-base-content transition-colors">
-            ← Home
-          </Link>
-        </div>
-
         <div className="px-8 pt-4 pb-6 text-center">
-          <h1 className={cn('card-title justify-center font-display italic font-semibold text-5xl leading-none mb-2 text-primary tracking-[-0.01em]')}>
-            potmagic
+          <h1
+            className={cn(
+              'card-title justify-center font-display italic font-semibold text-2xl leading-none mb-2 text-secondary tracking-[-0.01em]',
+            )}
+          >
+            I am an Actor
           </h1>
           <p className="font-display text-sm tracking-[0.25em] uppercase text-base-content/40">
             Enter the stage

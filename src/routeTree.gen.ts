@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as ActorAccessRouteImport } from './routes/actor-access'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ShowStoryIdRouteImport } from './routes/show/$storyId'
@@ -26,11 +25,6 @@ import { Route as AppStoriesStoryIdScenesSceneIdRouteImport } from './routes/_ap
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ActorAccessRoute = ActorAccessRouteImport.update({
-  id: '/actor-access',
-  path: '/actor-access',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppRoute = AppRouteImport.update({
@@ -91,7 +85,6 @@ const AppStoriesStoryIdScenesSceneIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/actor-access': typeof ActorAccessRoute
   '/auth': typeof AuthRouteWithChildren
   '/director': typeof AppDirectorRoute
   '/profile': typeof AppProfileRoute
@@ -105,7 +98,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/actor-access': typeof ActorAccessRoute
   '/auth': typeof AuthRouteWithChildren
   '/director': typeof AppDirectorRoute
   '/profile': typeof AppProfileRoute
@@ -121,7 +113,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
-  '/actor-access': typeof ActorAccessRoute
   '/auth': typeof AuthRouteWithChildren
   '/_app/director': typeof AppDirectorRoute
   '/_app/profile': typeof AppProfileRoute
@@ -137,7 +128,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/actor-access'
     | '/auth'
     | '/director'
     | '/profile'
@@ -151,7 +141,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/actor-access'
     | '/auth'
     | '/director'
     | '/profile'
@@ -166,7 +155,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_app'
-    | '/actor-access'
     | '/auth'
     | '/_app/director'
     | '/_app/profile'
@@ -182,7 +170,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
-  ActorAccessRoute: typeof ActorAccessRoute
   AuthRoute: typeof AuthRouteWithChildren
   ShowStoryIdRoute: typeof ShowStoryIdRoute
 }
@@ -194,13 +181,6 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/actor-access': {
-      id: '/actor-access'
-      path: '/actor-access'
-      fullPath: '/actor-access'
-      preLoaderRoute: typeof ActorAccessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app': {
@@ -318,7 +298,6 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
-  ActorAccessRoute: ActorAccessRoute,
   AuthRoute: AuthRouteWithChildren,
   ShowStoryIdRoute: ShowStoryIdRoute,
 }
