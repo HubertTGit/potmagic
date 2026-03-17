@@ -26,6 +26,7 @@ import type { StageCast } from '@/components/stage.component';
 import type Konva from 'konva';
 
 export const Route = createFileRoute('/_app/stage/$sceneId')({
+  head: () => ({ meta: [{ title: 'Stage — potmagic' }] }),
   component: SceneStagePage,
   pendingComponent: () => (
     <div className="fixed inset-0 flex items-center justify-center bg-base-100">

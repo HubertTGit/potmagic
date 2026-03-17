@@ -6,6 +6,7 @@ import { listStories, createStory } from '@/lib/stories.fns';
 import { StoryGrid } from '@/components/story-grid';
 
 export const Route = createFileRoute('/_app/stories/')({
+  head: () => ({ meta: [{ title: 'Stories — potmagic' }] }),
   component: StoriesPage,
 });
 

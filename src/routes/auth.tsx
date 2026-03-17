@@ -4,6 +4,7 @@ import { ActorLogin } from '@/components/actor-login.component';
 import { Home } from 'lucide-react';
 
 export const Route = createFileRoute('/auth')({
+  head: () => ({ meta: [{ title: 'Sign In — potmagic' }] }),
   validateSearch: (search: Record<string, unknown>) => ({
     token: typeof search.token === 'string' && search.token ? search.token : undefined,
   }),

@@ -17,6 +17,7 @@ import { authClient } from '@/lib/auth-client';
 import { StoryScenesTab } from '@/components/story-scenes-tab';
 
 export const Route = createFileRoute('/_app/stories/$storyId/')({
+  head: () => ({ meta: [{ title: 'Story — potmagic' }] }),
   component: StoryDetailPage,
 });
 
@@ -41,6 +42,13 @@ function StoryDetailPage() {
 
   useEffect(() => {
     if (data?.story) setTitle(data.story.title);
+  }, [data?.story?.title]);
+
+  useEffect(() => {
+    if (data?.story?.title) {
+      document.title = `${data.story.title} — potmagic`;
+      return () => { document.title = 'potmagic'; };
+    }
   }, [data?.story?.title]);
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: qk });

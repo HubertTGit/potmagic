@@ -17,6 +17,7 @@ import type { PropType } from '@/db/schema';
 import { toast } from '@/lib/toast';
 
 export const Route = createFileRoute('/_app/director')({
+  head: () => ({ meta: [{ title: 'Director — potmagic' }] }),
   component: DirectorPage,
 });
 

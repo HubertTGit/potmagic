@@ -14,6 +14,7 @@ import { cn } from '@/lib/cn';
 import { Home } from 'lucide-react';
 
 export const Route = createFileRoute('/show/$storyId')({
+  head: () => ({ meta: [{ title: 'Watch — potmagic' }] }),
   component: ShowPage,
 });
 
@@ -256,6 +257,13 @@ function ShowPage() {
     queryFn: () => getPublicStory({ data: { storyId } }),
     refetchInterval: 10_000,
   });
+
+  useEffect(() => {
+    if (story?.title) {
+      document.title = `${story.title} — potmagic`;
+      return () => { document.title = 'potmagic'; };
+    }
+  }, [story?.title]);
 
   const isActive = !forcedOffline && story?.status === 'active';
 

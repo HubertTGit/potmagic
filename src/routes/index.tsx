@@ -6,6 +6,7 @@ import { PublicStoryCard } from '@/components/public-story-card.component';
 import { Sun, Moon } from 'lucide-react';
 
 export const Route = createFileRoute('/')({
+  head: () => ({ meta: [{ title: 'potmagic' }] }),
   component: LandingPage,
 });
 
