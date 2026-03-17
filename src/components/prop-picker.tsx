@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 import { PropTypePill } from './prop-type-pill';
 import type { PropType } from '@/db/schema';
@@ -19,6 +19,8 @@ interface PropPickerProps {
   usedPropIds?: Set<string>;
   onAssign: (propId: string | null) => void;
   placeholder?: string;
+  /** Icon shown in image placeholder when imageUrl is null (e.g. MusicalNoteIcon for sounds) */
+  fallbackIcon?: ReactNode;
 }
 
 export function PropPicker({
@@ -30,6 +32,7 @@ export function PropPicker({
   usedPropIds,
   onAssign,
   placeholder = 'Assign prop…',
+  fallbackIcon,
 }: PropPickerProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -79,7 +82,9 @@ export function PropPicker({
                 className="size-12 rounded object-cover bg-base-300 shrink-0"
               />
             ) : (
-              <div className="size-12 rounded bg-base-300 shrink-0" />
+              <div className="size-12 rounded bg-base-300 shrink-0 flex items-center justify-center">
+                {fallbackIcon}
+              </div>
             )}
             <span className="text-sm">{propName}</span>
             {propType && <PropTypePill type={propType} />}
@@ -133,7 +138,9 @@ export function PropPicker({
                       className="size-8 rounded object-cover bg-base-300 shrink-0"
                     />
                   ) : (
-                    <div className="size-8 rounded bg-base-300 shrink-0" />
+                    <div className="size-8 rounded bg-base-300 shrink-0 flex items-center justify-center">
+                      {fallbackIcon}
+                    </div>
                   )}
                   <span className="flex-1 text-left truncate">{p.name}</span>
                   <PropTypePill type={p.type} />

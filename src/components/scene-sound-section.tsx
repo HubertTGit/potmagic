@@ -1,5 +1,5 @@
 import { TrashIcon, MusicalNoteIcon } from '@heroicons/react/24/outline';
-import { cn } from '@/lib/cn';
+import { PropPicker } from './prop-picker';
 
 export type SoundProp = {
   id: string;
@@ -18,6 +18,8 @@ interface SceneSoundSectionProps {
   onToggleAutoplay: (autoplay: boolean) => void;
 }
 
+const soundIcon = <MusicalNoteIcon className="size-4 text-base-content/40" />;
+
 export function SceneSoundSection({
   isDirector,
   sound,
@@ -27,33 +29,45 @@ export function SceneSoundSection({
   autoplay,
   onToggleAutoplay,
 }: SceneSoundSectionProps) {
+  const picker = isDirector && availableSounds.length > 0 && (
+    <PropPicker
+      propId={sound?.id ?? null}
+      propName={sound?.name ?? null}
+      propImageUrl={null}
+      propType={sound ? 'sound' : null}
+      availableProps={availableSounds}
+      placeholder={sound ? 'Change sound…' : 'Assign sound…'}
+      fallbackIcon={soundIcon}
+      onAssign={(propId) => {
+        const s = propId
+          ? (availableSounds.find((s) => s.id === propId) ?? null)
+          : null;
+        onAssignSound(s);
+      }}
+    />
+  );
+
   return (
     <div className="mb-8">
       <h2 className="text-xs font-semibold uppercase tracking-widest text-base-content/40 mb-3">
         Sound
       </h2>
 
-      <div className="flex flex-col gap-2 mb-3">
-        {!sound ? (
-          <p className="text-base-content/30 text-sm italic py-2">
-            No sound assigned.
-          </p>
-        ) : (
-          <div className="flex items-center justify-between bg-base-200 rounded-lg px-4 py-3 border border-base-300">
-            <div className="flex items-center gap-3">
-              <div className="size-16 rounded bg-base-300 shrink-0 flex items-center justify-center">
-                <MusicalNoteIcon className="size-6 text-base-content/40" />
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-sm font-medium">{sound.name}</span>
-                {sound.imageUrl && (
-                  // eslint-disable-next-line jsx-a11y/media-has-caption
-                  <audio controls src={sound.imageUrl} className="w-50 h-8" />
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-3 shrink-0">
-              {isDirector && (
+      {!sound ? (
+        <div className="py-2">
+          {picker || (
+            <p className="text-base-content/30 text-sm italic">
+              No sound assigned.
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="flex items-center justify-between bg-base-200 rounded-lg px-4 py-3 border border-base-300">
+          {picker}
+
+          <div className="flex items-center gap-3 shrink-0">
+            {isDirector && (
+              <>
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <span className="text-xs text-base-content/50">Autoplay</span>
                   <input
@@ -63,8 +77,6 @@ export function SceneSoundSection({
                     onChange={(e) => onToggleAutoplay(e.target.checked)}
                   />
                 </label>
-              )}
-              {isDirector && (
                 <button
                   onClick={() => onAssignSound(null)}
                   disabled={isAssigning}
@@ -76,77 +88,11 @@ export function SceneSoundSection({
                   )}
                   <TrashIcon className="size-4" />
                 </button>
-              )}
-            </div>
+              </>
+            )}
           </div>
-        )}
-      </div>
-
-      {isDirector && availableSounds.length > 0 && (
-        <SoundDropdown
-          availableSounds={availableSounds}
-          onAssign={onAssignSound}
-          currentId={sound?.id}
-          isLoading={isAssigning}
-        />
+        </div>
       )}
-    </div>
-  );
-}
-
-function SoundDropdown({
-  availableSounds,
-  onAssign,
-  currentId,
-  isLoading,
-}: {
-  availableSounds: SoundProp[];
-  onAssign: (sound: SoundProp) => void;
-  currentId?: string;
-  isLoading?: boolean;
-}) {
-  return (
-    <div className="dropdown w-64">
-      <div
-        tabIndex={0}
-        role="button"
-        className={cn(
-          'btn btn-sm btn-outline btn-info font-display w-full justify-start',
-          isLoading && 'btn-disabled',
-        )}
-      >
-        {isLoading ? (
-          <span className="loading loading-spinner loading-xs" />
-        ) : (
-          <span>{currentId ? 'Change sound' : '+ Assign sound'}</span>
-        )}
-      </div>
-      <ul
-        tabIndex={0}
-        className="dropdown-content menu bg-base-200 border border-base-300 rounded-lg shadow-xl z-50 w-full p-1 mt-1"
-      >
-        {availableSounds.map((s) => (
-          <li key={s.id}>
-            <button
-              onClick={() => {
-                onAssign(s);
-                (document.activeElement as HTMLElement)?.blur();
-              }}
-              className={cn(
-                'flex items-center gap-3 px-3 py-2 text-sm rounded-md',
-                s.id === currentId && 'bg-base-300',
-              )}
-            >
-              <div className="size-8 rounded bg-base-300 shrink-0 flex items-center justify-center">
-                <MusicalNoteIcon className="size-4 text-base-content/40" />
-              </div>
-              <span className="font-medium text-xs text-left flex-1 truncate">
-                {s.name}
-              </span>
-            </button>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
