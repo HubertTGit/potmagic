@@ -2,12 +2,16 @@ import React, { useState } from 'react';
 import { authClient } from '@/lib/auth-client';
 import { cn } from '@/lib/cn';
 
-export default function DirectorLogin() {
+export default function DirectorLogin({ token = '' }: { token?: string }) {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [sentEmail, setSentEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  const callbackURL = token
+    ? `/auth/director-setup?token=${encodeURIComponent(token)}`
+    : '/stories';
 
   const handleSend = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -16,7 +20,7 @@ export default function DirectorLogin() {
     const email = new FormData(e.currentTarget).get('email') as string;
     const { error } = await authClient.signIn.magicLink({
       email,
-      callbackURL: '/auth/director-setup',
+      callbackURL,
     });
     setLoading(false);
     if (error) {
@@ -32,7 +36,7 @@ export default function DirectorLogin() {
     setGoogleLoading(true);
     const { error } = await authClient.signIn.social({
       provider: 'google',
-      callbackURL: '/auth/director-setup',
+      callbackURL,
     });
     if (error) {
       setError(error.message ?? 'Google sign-in failed');

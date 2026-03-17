@@ -2,10 +2,14 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import DirectorLogin from '@/components/director-login.component';
 
 export const Route = createFileRoute('/auth')({
+  validateSearch: (search: Record<string, unknown>) => ({
+    token: typeof search.token === 'string' ? search.token : '',
+  }),
   component: LoginPage,
 });
 
 function LoginPage() {
+  const { token } = Route.useSearch();
   return (
     <div className="min-h-screen flex items-center justify-center login-bg">
       <div className="relative w-full max-w-sm mx-4">
@@ -23,7 +27,7 @@ function LoginPage() {
               Enter the stage
             </p>
           </div>
-          <DirectorLogin />
+          <DirectorLogin token={token} />
         </div>
       </div>
     </div>

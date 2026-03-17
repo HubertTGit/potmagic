@@ -11,12 +11,12 @@ const promoteToDirector = createServerFn({ method: 'POST' })
   .inputValidator((input) => z.object({ token: z.string() }).parse(input))
   .handler(async ({ data }) => {
     const session = await auth.api.getSession({ headers: getRequest().headers });
-    if (!session) throw redirect({ to: '/auth' });
+    if (!session) throw redirect({ to: '/auth', search: { token: '' } });
 
     // Require a valid invite token stored in the environment to prevent self-promotion
     const validToken = process.env.DIRECTOR_INVITE_TOKEN;
     if (!validToken || data.token !== validToken) {
-      throw new Error('Invalid or missing director invite token');
+      throw redirect({ to: '/stories' });
     }
 
     await db.update(users).set({ role: 'director' }).where(eq(users.id, session.user.id));
