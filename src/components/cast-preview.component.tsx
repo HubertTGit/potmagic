@@ -45,7 +45,7 @@ export function CastPreview({
           className={cn(
             'size-8 rounded-full bg-base-300 flex items-center justify-center transition-all duration-300',
             isCurrentUserDirector &&
-              'ring-2 ring-gold ring-offset-2 ring-offset-base-200 scale-110',
+              'ring-2 ring-primary ring-offset-2 ring-offset-base-200 scale-110',
           )}
           title={directorName}
         >
@@ -63,7 +63,7 @@ export function CastPreview({
           let ringClass = 'ring-1 ring-base-300';
           if (isMe) {
             ringClass =
-              'ring-2 ring-gold ring-offset-2 ring-offset-base-200 scale-110';
+              'ring-2 ring-primary ring-offset-2 ring-offset-base-200 scale-110';
           }
 
           const avatar = cast.path ? (

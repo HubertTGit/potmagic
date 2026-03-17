@@ -114,7 +114,7 @@ export default function DirectorLogin({ token = '' }: { token?: string }) {
               onClick={handleGoogle}
               disabled={loading || googleLoading}
               className={cn(
-                'btn btn-block bg-white text-gray-800 border border-base-content/20 hover:bg-gray-50 gap-2',
+                'btn btn-block bg-base-100 text-base-content border border-base-content/20 hover:bg-base-200 gap-2',
                 (loading || googleLoading) && 'opacity-60 cursor-not-allowed',
               )}
             >

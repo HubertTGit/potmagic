@@ -7,7 +7,7 @@ import { QuestionMarkCircleIcon } from '@heroicons/react/24/solid';
 import type { PropType } from '@/db/schema';
 
 export type CastMember = {
-  id: string;          // cast.id
+  id: string; // cast.id
   sceneCastId: string; // sceneCast.id — needed for prop assignment
   userId: string;
   userName: string | null;
@@ -111,7 +111,7 @@ export function SceneCastSection({
                     className={cn(
                       'relative size-9 rounded-full flex items-center justify-center bg-base-300 shrink-0',
                       c.userId === currentUserId &&
-                        'ring-2 ring-gold ring-offset-2 ring-offset-base-100 shadow-[0_0_10px_rgba(212,175,55,0.3)]',
+                        'ring-2 ring-primary ring-offset-2 ring-offset-base-100',
                     )}
                   >
                     {c.userImage ? (
@@ -169,7 +169,9 @@ export function SceneCastSection({
                       ) : null}
                       {c.propName ? (
                         <div className="flex items-center gap-1.5">
-                          <span className="text-sm font-medium">{c.propName}</span>
+                          <span className="text-sm font-medium">
+                            {c.propName}
+                          </span>
                           {c.userId === currentUserId && (
                             <div
                               className="tooltip tooltip-right flex items-center"
@@ -216,7 +218,6 @@ export function SceneCastSection({
   );
 }
 
-
 function ActorDropdown({
   availableActors,
   onAdd,
@@ -231,7 +232,7 @@ function ActorDropdown({
       <div
         tabIndex={0}
         role="button"
-        className="btn btn-sm btn-outline btn-primary font-display w-64 justify-start"
+        className="btn btn-sm btn-primary font-display w-64 justify-start"
         aria-disabled={isLoading}
       >
         {isLoading ? (
