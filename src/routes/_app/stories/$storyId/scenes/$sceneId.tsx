@@ -228,6 +228,7 @@ function SceneDetailPage() {
         }
         isAddingCast={addActorMutation.isPending}
         isRemovingCast={removeCastMutation.isPending}
+        isAssigningProp={assignPropMutation.isPending}
         sceneOrder={scene.order}
         totalScenes={story.totalScenes}
         nav={nav}
@@ -239,6 +240,7 @@ function SceneDetailPage() {
         background={background}
         availableBackgrounds={availableBackgrounds}
         onAssignBackground={handleAssignBackground}
+        isAssigning={assignBgMutation.isPending}
       />
 
       <SceneSoundSection

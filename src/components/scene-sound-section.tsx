@@ -31,6 +31,7 @@ export function SceneSoundSection({
 }: SceneSoundSectionProps) {
   const picker = isDirector && availableSounds.length > 0 && (
     <PropPicker
+      isLoading={isAssigning}
       propId={sound?.id ?? null}
       propName={sound?.name ?? null}
       propImageUrl={null}
@@ -56,32 +57,30 @@ export function SceneSoundSection({
       <div className="flex items-center justify-between bg-base-200 rounded-lg px-4 py-3 border border-base-300">
         {picker}
 
-        <div className="flex items-center gap-3 shrink-0">
-          {isDirector && (
-            <>
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <span className="text-xs text-base-content/50">Autoplay</span>
-                <input
-                  type="checkbox"
-                  className="toggle toggle-sm toggle-success"
-                  checked={autoplay}
-                  onChange={(e) => onToggleAutoplay(e.target.checked)}
-                />
-              </label>
-              <button
-                onClick={() => onAssignSound(null)}
-                disabled={isAssigning}
-                className="text-xs text-error/60 hover:text-error transition-colors flex items-center gap-1 p-2 hover:bg-error/10 rounded-lg"
-                title="Remove sound"
-              >
-                {isAssigning && (
-                  <span className="loading loading-spinner loading-xs" />
-                )}
-                <TrashIcon className="size-4" />
-              </button>
-            </>
-          )}
-        </div>
+        {isDirector && sound && (
+          <div className="flex items-center gap-3 shrink-0">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <span className="text-xs text-base-content/50">Autoplay</span>
+              <input
+                type="checkbox"
+                className="toggle toggle-sm toggle-success"
+                checked={autoplay}
+                onChange={(e) => onToggleAutoplay(e.target.checked)}
+              />
+            </label>
+            <button
+              onClick={() => onAssignSound(null)}
+              disabled={isAssigning}
+              className="text-xs text-error/60 hover:text-error transition-colors flex items-center gap-1 p-2 hover:bg-error/10 rounded-lg"
+              title="Remove sound"
+            >
+              {isAssigning && (
+                <span className="loading loading-spinner loading-xs" />
+              )}
+              <TrashIcon className="size-4" />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

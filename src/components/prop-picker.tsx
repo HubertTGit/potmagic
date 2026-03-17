@@ -18,6 +18,7 @@ interface PropPickerProps {
   availableProps: PickableProp[];
   usedPropIds?: Set<string>;
   onAssign: (propId: string | null) => void;
+  isLoading?: boolean;
   placeholder?: string;
   /** Icon shown in image placeholder when imageUrl is null (e.g. MusicalNoteIcon for sounds) */
   fallbackIcon?: ReactNode;
@@ -31,6 +32,7 @@ export function PropPicker({
   availableProps,
   usedPropIds,
   onAssign,
+  isLoading = false,
   placeholder = 'Assign prop…',
   fallbackIcon,
 }: PropPickerProps) {
@@ -70,10 +72,13 @@ export function PropPicker({
     <div ref={ref} className="relative">
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 hover:opacity-75 transition-opacity cursor-pointer"
+        onClick={() => !isLoading && setOpen((o) => !o)}
+        disabled={isLoading}
+        className="flex items-center gap-2 hover:opacity-75 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {propId ? (
+        {isLoading ? (
+          <span className="loading loading-spinner loading-sm" />
+        ) : propId ? (
           <>
             {propImageUrl ? (
               <img

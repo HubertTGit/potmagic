@@ -13,6 +13,7 @@ interface SceneBackgroundSectionProps {
   background: BackgroundProp | null;
   availableBackgrounds: BackgroundProp[];
   onAssignBackground: (bg: BackgroundProp | null) => void;
+  isAssigning?: boolean;
 }
 
 export function SceneBackgroundSection({
@@ -20,9 +21,11 @@ export function SceneBackgroundSection({
   background,
   availableBackgrounds,
   onAssignBackground,
+  isAssigning,
 }: SceneBackgroundSectionProps) {
   const picker = isDirector && availableBackgrounds.length > 0 && (
     <PropPicker
+      isLoading={isAssigning}
       propId={background?.id ?? null}
       propName={background?.name ?? null}
       propImageUrl={background?.imageUrl ?? null}
