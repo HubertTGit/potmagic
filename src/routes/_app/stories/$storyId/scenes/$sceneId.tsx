@@ -228,7 +228,7 @@ function SceneDetailPage() {
         }
         isAddingCast={addActorMutation.isPending}
         isRemovingCast={removeCastMutation.isPending}
-        isAssigningProp={assignPropMutation.isPending}
+        assigningPropCastId={assignPropMutation.isPending ? assignPropMutation.variables?.sceneCastId : undefined}
         sceneOrder={scene.order}
         totalScenes={story.totalScenes}
         nav={nav}

@@ -44,7 +44,7 @@ interface SceneCastSectionProps {
   onAssignProp: (sceneCastId: string, propId: string | null) => void; // sceneCastId bound at call site
   isAddingCast: boolean;
   isRemovingCast: boolean;
-  isAssigningProp?: boolean;
+  assigningPropCastId?: string;
   sceneOrder: number;
   totalScenes: number;
   nav?: {
@@ -67,7 +67,7 @@ export function SceneCastSection({
   onAssignProp,
   isAddingCast,
   isRemovingCast,
-  isAssigningProp,
+  assigningPropCastId,
   sceneOrder,
   totalScenes,
   nav,
@@ -148,7 +148,7 @@ export function SceneCastSection({
                 <div className="list-col-grow">
                   {isDirector ? (
                     <PropPicker
-                      isLoading={isAssigningProp}
+                      isLoading={assigningPropCastId === c.sceneCastId}
                       propId={c.propId ?? null}
                       propName={c.propName ?? null}
                       propImageUrl={c.propImageUrl ?? null}
