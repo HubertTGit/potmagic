@@ -1,4 +1,4 @@
-import { FilmIcon } from '@heroicons/react/24/outline';
+import { FilmIcon, MicrophoneIcon } from '@heroicons/react/24/outline';
 import { authClient } from '@/lib/auth-client';
 import { cn } from '@/lib/cn';
 import type { StageCast } from '@/components/stage.component';
@@ -9,6 +9,9 @@ interface CastPreviewProps {
   directorName: string;
   onlineIds?: Set<string>;
   speakingIds?: Set<string>;
+  isMuted?: boolean;
+  onToggleMute?: () => void;
+  canMute?: boolean;
 }
 
 export function CastPreview({
@@ -17,6 +20,9 @@ export function CastPreview({
   directorName,
   onlineIds = new Set(),
   speakingIds = new Set(),
+  isMuted = false,
+  onToggleMute,
+  canMute = false,
 }: CastPreviewProps) {
   const { data: session } = authClient.useSession();
   const currentUserId = session?.user?.id;
@@ -26,6 +32,7 @@ export function CastPreview({
   const isCurrentUserDirector = currentUserId === directorId;
   const isDirectorOnline = onlineIds.has(directorId);
   const isDirectorSpeaking = speakingIds.has(directorId);
+  const canClickMute = canMute && !!onToggleMute;
 
   return (
     <div className="flex items-center gap-2 bg-base-200 border border-base-300 rounded-xl px-3 py-2 shadow-lg">
@@ -41,13 +48,26 @@ export function CastPreview({
             )}
           />
         )}
+        {isCurrentUserDirector && isMuted && (
+          <span className="indicator-item indicator-bottom indicator-end rounded-full bg-error size-4 flex items-center justify-center">
+            <MicrophoneIcon className="size-2.5 text-error-content" />
+          </span>
+        )}
         <div
           className={cn(
             'size-8 rounded-full bg-base-300 flex items-center justify-center transition-all duration-300',
             isCurrentUserDirector &&
               'ring-2 ring-primary ring-offset-2 ring-offset-base-200 scale-110',
+            isCurrentUserDirector && canClickMute && 'cursor-pointer',
           )}
-          title={directorName}
+          title={
+            isCurrentUserDirector && canClickMute
+              ? isMuted
+                ? 'Unmute mic'
+                : 'Mute mic'
+              : directorName
+          }
+          onClick={isCurrentUserDirector && canClickMute ? onToggleMute : undefined}
         >
           <FilmIcon className="size-4 text-primary" />
         </div>
@@ -66,7 +86,7 @@ export function CastPreview({
               'ring-2 ring-primary ring-offset-2 ring-offset-base-200 scale-110';
           }
 
-          const avatar = cast.path ? (
+          const avatarContent = cast.path ? (
             <img
               src={cast.path}
               alt=""
@@ -96,7 +116,23 @@ export function CastPreview({
                   )}
                 />
               )}
-              {avatar}
+              {isMe && isMuted && (
+                <span className="indicator-item indicator-bottom indicator-end rounded-full bg-error size-4 flex items-center justify-center">
+                  <MicrophoneIcon className="size-2.5 text-error-content" />
+                </span>
+              )}
+              {isMe && canClickMute ? (
+                <button
+                  type="button"
+                  onClick={onToggleMute}
+                  title={isMuted ? 'Unmute mic' : 'Mute mic'}
+                  className="cursor-pointer"
+                >
+                  {avatarContent}
+                </button>
+              ) : (
+                avatarContent
+              )}
             </div>
           );
         })}

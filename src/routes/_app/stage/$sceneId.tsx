@@ -5,6 +5,7 @@ import {
   LiveKitRoom,
   RoomAudioRenderer,
   useConnectionState,
+  useLocalParticipant,
   useParticipants,
   useRoomContext,
 } from '@livekit/components-react';
@@ -63,6 +64,7 @@ function LiveStageContent({
   const participants = useParticipants();
   const room = useRoomContext();
   const connectionState = useConnectionState();
+  const { localParticipant, isMicrophoneEnabled } = useLocalParticipant();
   const onlineIds = new Set(participants.map((p) => p.identity));
   const speakingIds = new Set(
     participants.filter((p) => p.isSpeaking).map((p) => p.identity),
@@ -72,6 +74,11 @@ function LiveStageContent({
   const isDirector =
     connectionState === ConnectionState.Connected &&
     room.localParticipant.identity === directorId;
+
+  const isMuted = !isMicrophoneEnabled;
+  const onToggleMute = () => {
+    localParticipant.setMicrophoneEnabled(!isMicrophoneEnabled);
+  };
 
   return (
     <>
@@ -91,6 +98,8 @@ function LiveStageContent({
         soundUrl={soundUrl}
         soundName={soundName}
         soundAutoplay={soundAutoplay}
+        isMuted={isMuted}
+        onToggleMute={onToggleMute}
       />
     </>
   );
@@ -125,6 +134,8 @@ function OfflineStageContent({
       soundUrl={soundUrl}
       soundName={soundName}
       soundAutoplay={soundAutoplay}
+      isMuted={false}
+      onToggleMute={() => {}}
     />
   );
 }
@@ -134,6 +145,8 @@ interface StageShellProps extends StageContentProps {
   speakingIds: Set<string>;
   room: Room | null;
   isDirector: boolean;
+  isMuted: boolean;
+  onToggleMute: () => void;
 }
 
 function StageShell({
@@ -151,6 +164,8 @@ function StageShell({
   soundUrl,
   soundName,
   soundAutoplay,
+  isMuted,
+  onToggleMute,
 }: StageShellProps) {
   const konvaStageRef = useRef<Konva.Stage>(null);
   const stageWrapperRef = useRef<HTMLDivElement>(null);
@@ -230,6 +245,9 @@ function StageShell({
           directorName={directorName}
           onlineIds={onlineIds}
           speakingIds={speakingIds}
+          isMuted={isMuted}
+          onToggleMute={onToggleMute}
+          canMute={status === 'draft' || status === 'active'}
         />
       </div>
       <div
