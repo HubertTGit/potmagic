@@ -41,7 +41,7 @@ interface SceneCastSectionProps {
   availableProps: AvailableProp[];
   onAddCast: (userId: string) => void;
   onRemoveCast: (castMember: CastMember) => void;
-  onAssignProp: (sceneCastId: string, propId: string | null) => void;
+  onAssignProp: (sceneCastId: string, propId: string | null) => void; // sceneCastId bound at call site
   isAddingCast: boolean;
   isRemovingCast: boolean;
   sceneOrder: number;
@@ -146,14 +146,13 @@ export function SceneCastSection({
                 <div className="list-col-grow">
                   {isDirector ? (
                     <PropPicker
-                      sceneCastId={c.sceneCastId}
                       propId={c.propId ?? null}
                       propName={c.propName ?? null}
                       propImageUrl={c.propImageUrl ?? null}
                       propType={c.propType ?? null}
                       availableProps={availableProps}
                       usedPropIds={usedPropIds}
-                      onAssign={onAssignProp}
+                      onAssign={(propId) => onAssignProp(c.sceneCastId, propId)}
                     />
                   ) : (
                     <div className="flex items-center gap-2">

@@ -239,7 +239,6 @@ function SceneDetailPage() {
         background={background}
         availableBackgrounds={availableBackgrounds}
         onAssignBackground={handleAssignBackground}
-        isAssigning={assignBgMutation.isPending}
       />
 
       <SceneSoundSection

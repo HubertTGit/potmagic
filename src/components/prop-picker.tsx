@@ -3,7 +3,7 @@ import { cn } from '@/lib/cn';
 import { PropTypePill } from './prop-type-pill';
 import type { PropType } from '@/db/schema';
 
-type AvailableProp = {
+export type PickableProp = {
   id: string;
   name: string;
   type: PropType;
@@ -11,18 +11,17 @@ type AvailableProp = {
 };
 
 interface PropPickerProps {
-  sceneCastId: string;
   propId: string | null;
   propName: string | null;
   propImageUrl: string | null;
   propType: PropType | null;
-  availableProps: AvailableProp[];
-  usedPropIds: Set<string>;
-  onAssign: (sceneCastId: string, propId: string | null) => void;
+  availableProps: PickableProp[];
+  usedPropIds?: Set<string>;
+  onAssign: (propId: string | null) => void;
+  placeholder?: string;
 }
 
 export function PropPicker({
-  sceneCastId,
   propId,
   propName,
   propImageUrl,
@@ -30,6 +29,7 @@ export function PropPicker({
   availableProps,
   usedPropIds,
   onAssign,
+  placeholder = 'Assign prop…',
 }: PropPickerProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -46,9 +46,10 @@ export function PropPicker({
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
+  const usedIds = usedPropIds ?? new Set<string>();
+
   const selectableProps = availableProps.filter(
-    (p) =>
-      p.type === 'character' && (!usedPropIds.has(p.id) || p.id === propId),
+    (p) => !usedIds.has(p.id) || p.id === propId,
   );
 
   const filtered = search.trim()
@@ -75,17 +76,17 @@ export function PropPicker({
               <img
                 src={propImageUrl}
                 alt={propName ?? ''}
-                className="size-7 rounded object-cover bg-base-300 shrink-0"
+                className="size-10 rounded object-cover bg-base-300 shrink-0"
               />
             ) : (
-              <div className="size-7 rounded bg-base-300 shrink-0" />
+              <div className="size-10 rounded bg-base-300 shrink-0" />
             )}
             <span className="text-sm">{propName}</span>
             {propType && <PropTypePill type={propType} />}
           </>
         ) : (
           <span className="text-sm text-base-content/30 italic">
-            Assign prop…
+            {placeholder}
           </span>
         )}
       </button>
@@ -98,7 +99,7 @@ export function PropPicker({
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search props…"
+              placeholder="Search…"
               className="input input-sm w-full"
               autoFocus
             />
@@ -117,7 +118,7 @@ export function PropPicker({
                   type="button"
                   onMouseDown={(e) => {
                     e.preventDefault();
-                    onAssign(sceneCastId, p.id);
+                    onAssign(p.id);
                     close();
                   }}
                   className={cn(
@@ -148,7 +149,7 @@ export function PropPicker({
                 type="button"
                 onMouseDown={(e) => {
                   e.preventDefault();
-                  onAssign(sceneCastId, null);
+                  onAssign(null);
                   close();
                 }}
                 className="btn btn-xs btn-primary self-end m-3"
