@@ -15,7 +15,7 @@ import {
 } from '@/lib/actor-auth.fns';
 import { StatusBadge } from '@/components/status-badge.component';
 import { cn } from '@/lib/cn';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { X } from 'lucide-react';
 import { LibrarySection } from '@/components/library-section.component';
 import { updateStoryStatus } from '@/lib/story-detail.fns';
 import type { PropType } from '@/db/schema';
@@ -391,7 +391,7 @@ function ActorsTab({
                       onClick={() => onRemove(actor.id)}
                       className="btn btn-ghost btn-xs text-base-content/40 hover:text-error"
                     >
-                      <XMarkIcon className="size-4" />
+                      <X className="size-4" />
                     </button>
                   </td>
                 </tr>

@@ -1,12 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/cn';
-import {
-  PhotoIcon,
-  XMarkIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  MusicalNoteIcon,
-} from '@heroicons/react/24/outline';
+import { Image, X, ChevronLeft, ChevronRight, Music } from 'lucide-react';
 import { toast } from '@/lib/toast';
 import type { PropType } from '@/db/schema';
 import { RiveCanvas } from '@/components/rive-canvas.component';
@@ -40,7 +34,7 @@ function MediaPreview({
           className,
         )}
       >
-        <MusicalNoteIcon className="size-8 text-base-content/40" />
+        <Music className="size-8 text-base-content/40" />
         {src && (
           // eslint-disable-next-line jsx-a11y/media-has-caption
           <audio
@@ -264,9 +258,9 @@ export function LibrarySection({
           className="flex flex-col items-center justify-center gap-2 border border-dashed border-base-300 rounded-xl py-8 text-base-content/25 cursor-pointer hover:border-primary/30 hover:text-base-content/40 transition-colors"
         >
           {isSound ? (
-            <MusicalNoteIcon className="size-7" />
+            <Music className="size-7" />
           ) : (
-            <PhotoIcon className="size-7" />
+            <Image className="size-7" />
           )}
           <span className="text-xs">
             Upload your first {label.toLowerCase().slice(0, -1)}
@@ -299,7 +293,7 @@ export function LibrarySection({
                   disabled={!!deletingId}
                   className="text-error/70 hover:text-error transition-colors disabled:opacity-50"
                 >
-                  <XMarkIcon className="size-4" />
+                  <X className="size-4" />
                 </button>
               </div>
 
@@ -326,7 +320,7 @@ export function LibrarySection({
               className="btn btn-circle btn-sm btn-ghost bg-base-100/50 hover:bg-base-100 backdrop-blur-md absolute -top-12 right-0 md:-top-4 md:-right-12 xl:-right-16 z-50 text-base-content/80"
               title="Close (Esc)"
             >
-              <XMarkIcon className="size-5" />
+              <X className="size-5" />
             </button>
 
             {/* Prev button */}
@@ -339,7 +333,7 @@ export function LibrarySection({
                 className="btn btn-circle btn-ghost bg-base-100/50 hover:bg-base-100 backdrop-blur-md absolute top-1/2 -translate-y-1/2 left-2 md:-left-12 xl:-left-16 z-50 shadow-md text-base-content/80"
                 title="Previous (Left Arrow)"
               >
-                <ChevronLeftIcon className="size-6" />
+                <ChevronLeft className="size-6" />
               </button>
             )}
 
@@ -353,7 +347,7 @@ export function LibrarySection({
                 className="btn btn-circle btn-ghost bg-base-100/50 hover:bg-base-100 backdrop-blur-md absolute top-1/2 -translate-y-1/2 right-2 md:-right-12 xl:-right-16 z-50 shadow-md text-base-content/80"
                 title="Next (Right Arrow)"
               >
-                <ChevronRightIcon className="size-6" />
+                <ChevronRight className="size-6" />
               </button>
             )}
 

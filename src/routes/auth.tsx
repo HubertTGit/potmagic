@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { DirectorLogin } from '@/components/director-login.component';
 import { ActorLogin } from '@/components/actor-login.component';
-import { HomeIcon } from '@heroicons/react/24/outline';
+import { Home } from 'lucide-react';
 
 export const Route = createFileRoute('/auth')({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -15,7 +15,7 @@ function LoginPage() {
   return (
     <div className="min-h-screen flex items-center flex-col justify-center bg-base-200 px-4 gap-10">
       <Link to="/" className="fixed top-4 left-4 btn btn-ghost btn-sm gap-2 text-base-content/60 hover:text-base-content">
-        <HomeIcon className="size-4" />
+        <Home className="size-4" />
         Home
       </Link>
       <div className="text-center flex flex-col gap-10">

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { TrashIcon, Bars3Icon } from '@heroicons/react/24/outline';
+import { Trash2, Menu } from 'lucide-react';
 import {
   DndContext,
   DragEndEvent,
@@ -100,7 +100,7 @@ function SortableSceneRow({
               {...attributes}
               {...listeners}
             >
-              <Bars3Icon className="size-4" />
+              <Menu className="size-4" />
             </button>
           )}
           <div className="text-base-content/40 text-sm tabular-nums font-medium w-6 shrink-0">
@@ -123,7 +123,7 @@ function SortableSceneRow({
               className="text-xs text-error/60 hover:text-error transition-colors p-2 hover:bg-error/10 rounded-lg"
               title="Remove scene"
             >
-              <TrashIcon className="size-4" />
+              <Trash2 className="size-4" />
             </button>
           )}
         </div>

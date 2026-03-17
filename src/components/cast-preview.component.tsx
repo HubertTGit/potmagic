@@ -1,8 +1,4 @@
-import {
-  FilmIcon,
-  MicrophoneIcon,
-  UserGroupIcon,
-} from '@heroicons/react/24/outline';
+import { Film, Mic, Users } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 import { cn } from '@/lib/cn';
 import { VIEWER_PREFIX } from '@/lib/livekit.fns';
@@ -62,7 +58,7 @@ export function CastPreview({
         )}
         {isCurrentUserDirector && isMuted && (
           <span className="indicator-item indicator-bottom indicator-end rounded-full bg-error size-4 flex items-center justify-center">
-            <MicrophoneIcon className="size-2.5 text-error-content" />
+            <Mic className="size-2.5 text-error-content" />
           </span>
         )}
         <div
@@ -83,7 +79,7 @@ export function CastPreview({
             isCurrentUserDirector && canClickMute ? onToggleMute : undefined
           }
         >
-          <FilmIcon className="size-4 text-primary" />
+          <Film className="size-4 text-primary" />
         </div>
       </div>
 
@@ -132,7 +128,7 @@ export function CastPreview({
               )}
               {isMe && isMuted && (
                 <span className="indicator-item indicator-bottom indicator-end rounded-full bg-error size-4 flex items-center justify-center">
-                  <MicrophoneIcon className="size-2.5 text-error-content" />
+                  <Mic className="size-2.5 text-error-content" />
                 </span>
               )}
               {isMe && canClickMute ? (
@@ -163,7 +159,7 @@ export function CastPreview({
           {/* Muted mic — bottom-right (matches per-user style) */}
           {viewersMuted && (
             <span className="indicator-item indicator-bottom indicator-end rounded-full bg-error size-4 flex items-center justify-center">
-              <MicrophoneIcon className="size-2.5 text-error-content" />
+              <Mic className="size-2.5 text-error-content" />
             </span>
           )}
           {isCurrentUserDirector && canMute && onMuteViewers ? (
@@ -179,7 +175,7 @@ export function CastPreview({
                   'ring-2 ring-success ring-offset-2 ring-offset-base-200',
                 )}
               >
-                <UserGroupIcon className="size-4 text-base-content/50" />
+                <Users className="size-4 text-base-content/50" />
               </div>
             </button>
           ) : (
@@ -189,7 +185,7 @@ export function CastPreview({
                 'ring-2 ring-success ring-offset-2 ring-offset-base-200',
               )}
             >
-              <UserGroupIcon className="size-4 text-base-content/50" />
+              <Users className="size-4 text-base-content/50" />
             </div>
           )}
         </div>

@@ -1,9 +1,8 @@
 import { Link } from '@tanstack/react-router';
-import { TrashIcon } from '@heroicons/react/24/outline';
+import { Trash2, CircleHelp } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { DataList, DataListItem } from './data-list';
 import { PropPicker } from './prop-picker';
-import { QuestionMarkCircleIcon } from '@heroicons/react/24/solid';
 import type { PropType } from '@/db/schema';
 
 export type CastMember = {
@@ -130,7 +129,7 @@ export function SceneCastSection({
                         className="absolute -top-2 -right-2 size-5 flex items-center justify-center tooltip tooltip-top"
                         data-tip="This is you"
                       >
-                        <QuestionMarkCircleIcon className="size-4 text-primary bg-base-100 rounded-full" />
+                        <CircleHelp className="size-4 text-primary bg-base-100 rounded-full" />
                       </div>
                     )}
                   </div>
@@ -177,7 +176,7 @@ export function SceneCastSection({
                               className="tooltip tooltip-right flex items-center"
                               data-tip="Your character is assigned by the director and cannot be changed."
                             >
-                              <QuestionMarkCircleIcon className="size-3.5 text-base-content/20 hover:text-base-content/40 transition-colors cursor-help" />
+                              <CircleHelp className="size-3.5 text-base-content/20 hover:text-base-content/40 transition-colors cursor-help" />
                             </div>
                           )}
                         </div>
@@ -198,7 +197,7 @@ export function SceneCastSection({
                       className="text-xs text-error/60 hover:text-error transition-colors p-2 hover:bg-error/10 rounded-lg"
                       title="Remove from scene"
                     >
-                      <TrashIcon className="size-4" />
+                      <Trash2 className="size-4" />
                     </button>
                   </div>
                 )}

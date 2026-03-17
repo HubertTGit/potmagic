@@ -3,7 +3,7 @@ import { useState, useRef } from 'react'
 import { authClient } from '@/lib/auth-client'
 import { cn } from '@/lib/cn'
 import { uploadAvatar } from '@/lib/avatar.fns'
-import { CameraIcon } from '@heroicons/react/24/outline'
+import { Camera } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/profile')({
   component: ProfilePage,
@@ -99,7 +99,7 @@ function ProfilePage() {
             {uploading ? (
               <span className="loading loading-spinner loading-sm text-base-100" />
             ) : (
-              <CameraIcon className="size-5 text-base-100" />
+              <Camera className="size-5 text-base-100" />
             )}
           </div>
         </button>

@@ -1,4 +1,4 @@
-import { TrashIcon, MusicalNoteIcon } from '@heroicons/react/24/outline';
+import { Trash2, Music } from 'lucide-react';
 import { PropPicker } from './prop-picker';
 
 export type SoundProp = {
@@ -18,7 +18,7 @@ interface SceneSoundSectionProps {
   onToggleAutoplay: (autoplay: boolean) => void;
 }
 
-const soundIcon = <MusicalNoteIcon className="size-4 text-base-content/40" />;
+const soundIcon = <Music className="size-4 text-base-content/40" />;
 
 export function SceneSoundSection({
   isDirector,
@@ -78,7 +78,7 @@ export function SceneSoundSection({
               {isAssigning && (
                 <span className="loading loading-spinner loading-xs" />
               )}
-              <TrashIcon className="size-4" />
+              <Trash2 className="size-4" />
             </button>
           </div>
         )}

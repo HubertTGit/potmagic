@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router';
-import { Bars3Icon } from '@heroicons/react/24/outline';
+import { Menu } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import { Sidebar } from '@/components/sidebar.component';
 import { requireAuth } from '@/lib/auth-guard';
@@ -29,7 +29,7 @@ function AppLayout() {
         {/* Mobile header */}
         <div className="navbar bg-base-200 border-b border-base-300 lg:hidden px-2 min-h-[52px]">
           <label htmlFor="app-drawer" className="btn btn-square btn-ghost btn-sm">
-            <Bars3Icon className="size-5" />
+            <Menu className="size-5" />
           </label>
           <Link
             to="/"

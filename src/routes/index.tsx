@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { listPublicStories } from '@/lib/stories.fns';
 import { useTheme, Theme } from '@/hooks/useTheme';
 import { PublicStoryCard } from '@/components/public-story-card.component';
-import { SunIcon, MoonIcon } from '@heroicons/react/24/outline';
+import { Sun, Moon } from 'lucide-react';
 
 export const Route = createFileRoute('/')({
   component: LandingPage,
@@ -33,9 +33,9 @@ function LandingPage() {
             aria-label="Toggle theme"
           >
             {theme === Theme.dark ? (
-              <SunIcon className="size-4" />
+              <Sun className="size-4" />
             ) : (
-              <MoonIcon className="size-4" />
+              <Moon className="size-4" />
             )}
           </button>
           <Link

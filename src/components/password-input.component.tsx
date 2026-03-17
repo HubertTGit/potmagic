@@ -1,4 +1,4 @@
-import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 
 export default function PasswordInput({
@@ -28,9 +28,9 @@ export default function PasswordInput({
         aria-label={show ? 'Hide password' : 'Show password'}
       >
         {show ? (
-          <EyeSlashIcon className="size-4" />
+          <EyeOff className="size-4" />
         ) : (
-          <EyeIcon className="size-4" />
+          <Eye className="size-4" />
         )}
       </button>
     </div>

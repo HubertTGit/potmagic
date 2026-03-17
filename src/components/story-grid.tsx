@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { deleteStory } from '@/lib/stories.fns';
 import { StatusBadge } from '@/components/status-badge.component';
 import { ConfirmModal } from '@/components/confirm-modal';
-import { RectangleStackIcon, TrashIcon } from '@heroicons/react/24/solid';
+import { Layers, Trash2 } from 'lucide-react';
 
 type Story = {
   id: string;
@@ -93,7 +93,7 @@ export function StoryGrid({
                         className="text-xs text-error/60 hover:text-error transition-colors"
                         title="Delete Story"
                       >
-                        <TrashIcon className="size-4" />
+                        <Trash2 className="size-4" />
                       </button>
                     )}
                   </div>
@@ -124,7 +124,7 @@ export function StoryGrid({
                       params={{ sceneId: firstScene.id }}
                       className="btn btn-sm btn-primary w-full gap-2"
                     >
-                      Enter Stage <RectangleStackIcon className="size-4" />
+                      Enter Stage <Layers className="size-4" />
                     </Link>
                   )}
                 </div>

@@ -3,15 +3,7 @@ import { useState, useEffect } from 'react';
 import { authClient } from '@/lib/auth-client';
 import { useTheme, Theme } from '@/hooks/useTheme';
 import { cn } from '@/lib/cn';
-import {
-  SunIcon,
-  MoonIcon,
-  ArrowRightEndOnRectangleIcon,
-  AcademicCapIcon,
-  Square3Stack3DIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-} from '@heroicons/react/24/outline';
+import { Sun, Moon, LogOut, GraduationCap, Layers3, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export function Sidebar() {
   const { data: session } = authClient.useSession();
@@ -95,9 +87,9 @@ export function Sidebar() {
           )}
         >
           {collapsed ? (
-            <ChevronRightIcon className="size-3.5" />
+            <ChevronRight className="size-3.5" />
           ) : (
-            <ChevronLeftIcon className="size-3.5" />
+            <ChevronLeft className="size-3.5" />
           )}
         </button>
       </div>
@@ -106,7 +98,7 @@ export function Sidebar() {
       <nav className="flex flex-col gap-1 p-2 flex-1">
         <SidebarLink
           to="/stories/"
-          icon={<Square3Stack3DIcon className="size-4" />}
+          icon={<Layers3 className="size-4" />}
           collapsed={collapsed}
           onExpand={expandOnDesktop}
         >
@@ -115,7 +107,7 @@ export function Sidebar() {
         {isDirector && (
           <SidebarLink
             to="/director"
-            icon={<AcademicCapIcon className="size-4" />}
+            icon={<GraduationCap className="size-4" />}
             collapsed={collapsed}
             onExpand={expandOnDesktop}
           >
@@ -175,9 +167,9 @@ export function Sidebar() {
           >
             <button onClick={toggle} className={btnBase}>
               {theme === Theme.dark ? (
-                <SunIcon className="size-4 shrink-0" />
+                <Sun className="size-4 shrink-0" />
               ) : (
-                <MoonIcon className="size-4 shrink-0" />
+                <Moon className="size-4 shrink-0" />
               )}
               {!collapsed &&
                 (theme === Theme.dark ? 'Light mode' : 'Dark mode')}
@@ -193,7 +185,7 @@ export function Sidebar() {
                 onClick={handleLogout}
                 className={cn(btnBase, 'hover:text-error hover:btn-error')}
               >
-                <ArrowRightEndOnRectangleIcon className="size-4 shrink-0" />
+                <LogOut className="size-4 shrink-0" />
                 {!collapsed && 'Logout'}
               </button>
             </div>

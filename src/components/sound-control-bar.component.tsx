@@ -1,4 +1,4 @@
-import { MusicalNoteIcon, PlayIcon, PauseIcon } from '@heroicons/react/24/outline';
+import { Music, Play, Pause } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
 interface SoundControlBarProps {
@@ -18,7 +18,7 @@ export function SoundControlBar({
 }: SoundControlBarProps) {
   return (
     <div className="flex items-center gap-2 bg-base-200 border border-base-300 rounded-lg px-3 py-1.5">
-      <MusicalNoteIcon className="size-4 text-base-content/50 shrink-0" />
+      <Music className="size-4 text-base-content/50 shrink-0" />
       <span className="text-xs text-base-content/70 font-display tracking-wide max-w-[120px] truncate">
         {soundName}
       </span>
@@ -28,9 +28,9 @@ export function SoundControlBar({
         title={playing ? 'Pause' : 'Play'}
       >
         {playing ? (
-          <PauseIcon className="size-4" />
+          <Pause className="size-4" />
         ) : (
-          <PlayIcon className="size-4" />
+          <Play className="size-4" />
         )}
       </button>
       <input

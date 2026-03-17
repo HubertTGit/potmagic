@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FilmIcon } from '@heroicons/react/24/outline';
+import { Film } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 import { cn } from '@/lib/cn';
 
@@ -49,7 +49,7 @@ export function DirectorLogin({ token = '' }: { token?: string }) {
         {/* Role icon header */}
         <div className="flex flex-col items-center px-8 pt-8 pb-6">
           <div className="size-20 flex items-center justify-center">
-            <FilmIcon className="size-10 text-primary" />
+            <Film className="size-10 text-primary" />
           </div>
           <h2 className="card-title justify-center font-display italic font-semibold text-2xl leading-none mb-1 text-primary tracking-[-0.01em]">
             I am a Director

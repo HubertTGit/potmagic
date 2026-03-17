@@ -1,9 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import {
-  RectangleStackIcon,
-  FilmIcon,
-  Square3Stack3DIcon,
-} from '@heroicons/react/24/outline';
+import { Layers, Film, Layers3 } from 'lucide-react';
 
 interface Crumb {
   label: string;
@@ -22,9 +18,9 @@ export function Breadcrumb({ crumbs }: { crumbs: Crumb[] }) {
             <li key={i}>
               <div className="flex items-center gap-2">
                 {crumb.type === 'story' && (
-                  <Square3Stack3DIcon className="w-4 h-4" />
+                  <Layers3 className="w-4 h-4" />
                 )}
-                {crumb.type === 'scene' && <FilmIcon className="w-4 h-4" />}
+                {crumb.type === 'scene' && <Film className="w-4 h-4" />}
                 {crumb.to && !isLast ? (
                   <Link
                     to={crumb.to}

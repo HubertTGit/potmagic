@@ -1,5 +1,5 @@
 import { PropPicker } from './prop-picker';
-import { TrashIcon } from '@heroicons/react/24/outline';
+import { Trash2 } from 'lucide-react';
 
 export type BackgroundProp = {
   id: string;
@@ -57,7 +57,7 @@ export function SceneBackgroundSection({
             className="text-xs text-error/60 hover:text-error transition-colors flex items-center gap-1 p-2 hover:bg-error/10 rounded-lg"
             title="Remove background"
           >
-            <TrashIcon className="size-4" />
+            <Trash2 className="size-4" />
           </button>
         )}
       </div>

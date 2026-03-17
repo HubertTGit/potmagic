@@ -264,10 +264,10 @@ These rules define how to translate Figma inputs into code for this project. Fol
 
 ### Icon System
 
-- Icons come from `@heroicons/react/24/outline` (outline style, 24px grid)
-- Import named icon components: `import { BookOpenIcon } from '@heroicons/react/24/outline'`
-- Render with size utility: `<BookOpenIcon className="size-4" />` (use `size-*` not `w-* h-*`)
-- **IMPORTANT: Do NOT install new icon packages** — use HeroIcons exclusively; inline SVG only as a last resort for custom shapes not available in HeroIcons
+- Icons come from `lucide-react`
+- Import named icon components: `import { BookOpen } from 'lucide-react'`
+- Render with size utility: `<BookOpen className="size-4" />` (use `size-*` not `w-* h-*`)
+- **IMPORTANT: Do NOT install new icon packages** — use Lucide exclusively; inline SVG only as a last resort for custom shapes not available in Lucide
 
 ### Asset Handling
 
@@ -336,9 +336,9 @@ import { cn } from '@/lib/cn'
   Stories
 </Link>
 
-// HeroIcon usage
-import { XMarkIcon } from '@heroicons/react/24/outline'
-<XMarkIcon className="size-4" />
+// Lucide icon usage
+import { X } from 'lucide-react'
+<X className="size-4" />
 
 // Muted/dimmed text hierarchy
 <p className="text-base-content">Primary text</p>

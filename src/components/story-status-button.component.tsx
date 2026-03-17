@@ -4,7 +4,7 @@ import { RoomEvent } from 'livekit-client';
 import type { Room } from 'livekit-client';
 import { authClient } from '@/lib/auth-client';
 import { updateStoryStatus } from '@/lib/story-detail.fns';
-import { PlayIcon, PauseIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
+import { Play, Pause, RefreshCw } from 'lucide-react';
 
 export type StoryStatus = 'draft' | 'active' | 'ended';
 
@@ -86,7 +86,7 @@ export function StoryStatusButton({
         {mutation.isPending ? (
           <span className="loading loading-spinner loading-xs" />
         ) : (
-          <PlayIcon className="w-4 h-4" />
+          <Play className="w-4 h-4" />
         )}
       </button>
     );
@@ -103,7 +103,7 @@ export function StoryStatusButton({
         {mutation.isPending ? (
           <span className="loading loading-spinner loading-xs" />
         ) : (
-          <PauseIcon className="w-4 h-4" />
+          <Pause className="w-4 h-4" />
         )}
       </button>
     );
@@ -119,7 +119,7 @@ export function StoryStatusButton({
       {mutation.isPending ? (
         <span className="loading loading-spinner loading-xs" />
       ) : (
-        <ArrowPathIcon className="w-4 h-4" />
+        <RefreshCw className="w-4 h-4" />
       )}
     </button>
   );
