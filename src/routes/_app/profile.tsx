@@ -1,7 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { authClient } from '@/lib/auth-client'
 import { cn } from '@/lib/cn'
+import { uploadAvatar } from '@/lib/avatar.fns'
+import { CameraIcon } from '@heroicons/react/24/outline'
 
 export const Route = createFileRoute('/_app/profile')({
   component: ProfilePage,
@@ -12,6 +14,8 @@ function ProfilePage() {
   const user = session?.user
   const [name, setName] = useState(user?.name ?? '')
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const isDirty = name !== (user?.name ?? '')
 
   async function handleSave() {
@@ -21,15 +25,85 @@ function ProfilePage() {
     setSaving(false)
   }
 
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploading(true)
+    try {
+      const buffer = await file.arrayBuffer()
+      const bytes = new Uint8Array(buffer)
+      let binary = ''
+      for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i])
+      const base64 = btoa(binary)
+      await uploadAvatar({
+        data: {
+          base64,
+          mimeType: file.type as 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif',
+          fileName: file.name,
+        },
+      })
+      await refetch()
+    } finally {
+      setUploading(false)
+      // reset so the same file can be re-picked
+      e.target.value = ''
+    }
+  }
+
+  const initials = (user?.name ?? user?.email ?? '?')[0].toUpperCase()
+
   return (
     <div className="p-8 max-w-lg">
       <h1 className="text-2xl font-semibold mb-6">Profile</h1>
 
       {/* Avatar */}
       <div className="flex items-center gap-4 mb-8">
-        <div className="size-16 rounded-full bg-base-300 flex items-center justify-center text-2xl font-semibold text-base-content/60 select-none">
-          {(user?.name ?? user?.email ?? '?')[0].toUpperCase()}
-        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          className="hidden"
+          onChange={handleAvatarChange}
+        />
+
+        <button
+          type="button"
+          onClick={() => !uploading && fileInputRef.current?.click()}
+          className="relative group cursor-pointer"
+          title="Upload avatar"
+        >
+          <div className="avatar">
+            <div className="size-16 rounded-full bg-base-300 overflow-hidden">
+              {user?.image ? (
+                <img
+                  src={user.image}
+                  alt={user.name ?? ''}
+                  className="size-full object-cover"
+                />
+              ) : (
+                <div className="size-full flex items-center justify-center text-2xl font-semibold text-base-content/60 select-none">
+                  {initials}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Overlay */}
+          <div
+            className={cn(
+              'absolute inset-0 rounded-full flex items-center justify-center bg-base-content/40 transition-opacity',
+              uploading ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
+            )}
+          >
+            {uploading ? (
+              <span className="loading loading-spinner loading-sm text-base-100" />
+            ) : (
+              <CameraIcon className="size-5 text-base-100" />
+            )}
+          </div>
+        </button>
+
         <div>
           <p className="font-medium">{user?.name ?? '—'}</p>
           <p className="text-sm text-base-content/50">{user?.email}</p>

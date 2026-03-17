@@ -4,7 +4,6 @@ import { authClient } from '@/lib/auth-client';
 import { useTheme, Theme } from '@/hooks/useTheme';
 import { cn } from '@/lib/cn';
 import {
-  UserCircleIcon,
   SunIcon,
   MoonIcon,
   ArrowRightEndOnRectangleIcon,
@@ -126,41 +125,80 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom */}
-      <div className="p-2 border-t border-base-300 flex flex-col gap-1">
-        <SidebarLink
+      <div className="flex flex-col">
+        {/* User identity — links to profile */}
+        <Link
           to="/profile"
-          icon={<UserCircleIcon className="size-4" />}
-          collapsed={collapsed}
-          onExpand={expandOnDesktop}
+          onClick={expandOnDesktop}
+          className={cn(
+            'flex items-center gap-3 px-3 py-3 border-b border-base-300 hover:bg-base-300/50 transition-colors',
+            collapsed && 'justify-center px-0 tooltip tooltip-right',
+          )}
+          data-tip={collapsed ? (session?.user?.name ?? session?.user?.email ?? 'Profile') : undefined}
         >
-          Profile
-        </SidebarLink>
+          <div className="avatar shrink-0">
+            <div className="size-7 rounded-full bg-base-300 overflow-hidden">
+              {session?.user?.image ? (
+                <img
+                  src={session.user.image}
+                  alt={session.user.name ?? ''}
+                  className="size-full object-cover"
+                />
+              ) : (
+                <div className="size-full flex items-center justify-center text-xs font-semibold text-base-content/50 select-none">
+                  {(session?.user?.name ??
+                    session?.user?.email ??
+                    '?')[0].toUpperCase()}
+                </div>
+              )}
+            </div>
+          </div>
+          {!collapsed && (
+            <div className="min-w-0">
+              <p className="text-sm font-medium leading-tight truncate">
+                {session?.user?.name ?? session?.user?.email ?? '—'}
+              </p>
+            </div>
+          )}
+        </Link>
 
-        <div
-          className={cn(collapsed && 'tooltip tooltip-right')}
-          data-tip={collapsed ? (theme === Theme.dark ? 'Light mode' : 'Dark mode') : undefined}
-        >
-          <button onClick={toggle} className={btnBase}>
-            {theme === Theme.dark ? (
-              <SunIcon className="size-4 shrink-0" />
-            ) : (
-              <MoonIcon className="size-4 shrink-0" />
-            )}
-            {!collapsed && (theme === Theme.dark ? 'Light mode' : 'Dark mode')}
-          </button>
-        </div>
-
-        {session && (
+        <div className="p-2 flex flex-col gap-1">
           <div
             className={cn(collapsed && 'tooltip tooltip-right')}
-            data-tip={collapsed ? 'Logout' : undefined}
+            data-tip={
+              collapsed
+                ? theme === Theme.dark
+                  ? 'Light mode'
+                  : 'Dark mode'
+                : undefined
+            }
           >
-            <button onClick={handleLogout} className={cn(btnBase, 'hover:text-error hover:btn-error')}>
-              <ArrowRightEndOnRectangleIcon className="size-4 shrink-0" />
-              {!collapsed && 'Logout'}
+            <button onClick={toggle} className={btnBase}>
+              {theme === Theme.dark ? (
+                <SunIcon className="size-4 shrink-0" />
+              ) : (
+                <MoonIcon className="size-4 shrink-0" />
+              )}
+              {!collapsed &&
+                (theme === Theme.dark ? 'Light mode' : 'Dark mode')}
             </button>
           </div>
-        )}
+
+          {session && (
+            <div
+              className={cn(collapsed && 'tooltip tooltip-right')}
+              data-tip={collapsed ? 'Logout' : undefined}
+            >
+              <button
+                onClick={handleLogout}
+                className={cn(btnBase, 'hover:text-error hover:btn-error')}
+              >
+                <ArrowRightEndOnRectangleIcon className="size-4 shrink-0" />
+                {!collapsed && 'Logout'}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </aside>
   );
