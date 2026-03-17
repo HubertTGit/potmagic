@@ -84,3 +84,8 @@
   --font-display: 'Lexend', Georgia, serif;
 }
 
+/* ─── Allow sidebar tooltips to escape drawer-side overflow clipping ─── */
+.lg\:drawer-open > .drawer-side {
+  overflow: visible;
+}
+

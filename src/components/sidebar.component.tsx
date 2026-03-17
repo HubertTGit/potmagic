@@ -4,16 +4,14 @@ import { authClient } from '@/lib/auth-client';
 import { useTheme, Theme } from '@/hooks/useTheme';
 import { cn } from '@/lib/cn';
 import {
-  BookOpenIcon,
-  Cog6ToothIcon,
   UserCircleIcon,
   SunIcon,
   MoonIcon,
   ArrowRightEndOnRectangleIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
   AcademicCapIcon,
   Square3Stack3DIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from '@heroicons/react/24/outline';
 
 export function Sidebar() {
@@ -46,49 +44,45 @@ export function Sidebar() {
     }
   };
 
-  const expandSidebar = () => {
-    if (collapsed) {
-      setCollapsed(false);
-      if (!isStage) {
-        try {
-          localStorage.setItem('sidebar-collapsed', 'false');
-        } catch {}
-      }
-    }
-  };
-
   const handleLogout = async () => {
     await authClient.signOut();
-    router.navigate({ to: '/auth' });
+    router.navigate({ to: '/auth', search: { token: '' } });
   };
+
+  const btnBase = cn(
+    'btn btn-ghost btn-sm font-normal text-base-content/60',
+    collapsed ? 'btn-square' : 'w-full justify-start gap-3',
+  );
 
   return (
     <aside
       className={cn(
-        'shrink-0 flex flex-col bg-base-200 border-r border-base-300 min-h-screen transition-[width] duration-200 ease-in-out overflow-hidden',
+        'flex flex-col bg-base-200 border-r border-base-300 min-h-full transition-[width] duration-200 ease-in-out',
         collapsed ? 'w-14' : 'w-52',
       )}
     >
-      {/* Brand */}
+      {/* Brand + collapse toggle */}
       <div
         className={cn(
-          'flex items-center border-b border-base-300 h-[52px]',
+          'flex items-center border-b border-base-300 h-13',
           collapsed ? 'justify-center px-0' : 'px-4',
         )}
       >
-        <Link
-          to="/"
-          className="font-display italic font-semibold text-primary text-lg leading-none select-none hover:opacity-75 transition-opacity"
-        >
-          {collapsed ? 'p' : 'potmagic'}
-        </Link>
+        {!collapsed && (
+          <Link
+            to="/"
+            className="font-display italic font-semibold text-primary text-lg leading-none select-none hover:opacity-75 transition-opacity"
+          >
+            potmagic
+          </Link>
+        )}
         <button
           onClick={handleCollapseToggle}
-          className={cn(
-            'ml-auto flex items-center justify-center size-6 rounded text-base-content/30 hover:text-base-content/70 hover:bg-base-300 transition-colors shrink-0',
-            collapsed && 'ml-0',
-          )}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className={cn(
+            'btn btn-ghost btn-xs btn-square text-base-content/30',
+            collapsed ? '' : 'ml-auto',
+          )}
         >
           {collapsed ? (
             <ChevronRightIcon className="size-3.5" />
@@ -104,7 +98,6 @@ export function Sidebar() {
           to="/stories/"
           icon={<Square3Stack3DIcon className="size-4" />}
           collapsed={collapsed}
-          onClick={expandSidebar}
         >
           Stories
         </SidebarLink>
@@ -113,7 +106,6 @@ export function Sidebar() {
             to="/director"
             icon={<AcademicCapIcon className="size-4" />}
             collapsed={collapsed}
-            onClick={expandSidebar}
           >
             Director
           </SidebarLink>
@@ -126,37 +118,34 @@ export function Sidebar() {
           to="/profile"
           icon={<UserCircleIcon className="size-4" />}
           collapsed={collapsed}
-          onClick={expandSidebar}
         >
           Profile
         </SidebarLink>
-        <button
-          onClick={toggle}
-          title={theme === Theme.light ? 'Light mode' : 'Dark mode'}
-          className={cn(
-            'flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-base-content/60 hover:text-base-content hover:bg-base-300 transition-colors w-full',
-            collapsed ? 'justify-center px-0' : 'text-left',
-          )}
+
+        <div
+          className={cn(collapsed && 'tooltip tooltip-right')}
+          data-tip={collapsed ? (theme === Theme.dark ? 'Light mode' : 'Dark mode') : undefined}
         >
-          {theme === Theme.dark ? (
-            <SunIcon className="size-4 shrink-0" />
-          ) : (
-            <MoonIcon className="size-4 shrink-0" />
-          )}
-          {!collapsed && (theme === Theme.dark ? 'Light mode' : 'Dark mode')}
-        </button>
-        {session && (
-          <button
-            onClick={handleLogout}
-            title="Logout"
-            className={cn(
-              'flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-base-content/60 hover:text-error hover:bg-base-300 transition-colors w-full',
-              collapsed ? 'justify-center px-0' : 'text-left',
+          <button onClick={toggle} className={btnBase}>
+            {theme === Theme.dark ? (
+              <SunIcon className="size-4 shrink-0" />
+            ) : (
+              <MoonIcon className="size-4 shrink-0" />
             )}
-          >
-            <ArrowRightEndOnRectangleIcon className="size-4 shrink-0" />
-            {!collapsed && 'Logout'}
+            {!collapsed && (theme === Theme.dark ? 'Light mode' : 'Dark mode')}
           </button>
+        </div>
+
+        {session && (
+          <div
+            className={cn(collapsed && 'tooltip tooltip-right')}
+            data-tip={collapsed ? 'Logout' : undefined}
+          >
+            <button onClick={handleLogout} className={cn(btnBase, 'hover:text-error hover:btn-error')}>
+              <ArrowRightEndOnRectangleIcon className="size-4 shrink-0" />
+              {!collapsed && 'Logout'}
+            </button>
+          </div>
         )}
       </div>
     </aside>
@@ -167,30 +156,29 @@ function SidebarLink({
   to,
   icon,
   collapsed,
-  onClick,
   children,
 }: {
   to: string;
   icon: React.ReactNode;
   collapsed: boolean;
-  onClick?: () => void;
   children: React.ReactNode;
 }) {
   return (
-    <Link
-      to={to}
-      onClick={onClick}
-      title={collapsed ? String(children) : undefined}
-      className={cn(
-        'flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-base-content/60',
-        'hover:text-base-content hover:bg-base-300 transition-colors',
-        '[&.active]:text-base-content [&.active]:bg-base-300 [&.active]:border-l-2 [&.active]:border-primary [&.active]:pl-2.5',
-        collapsed &&
-          'justify-center px-0 [&.active]:border-l-0 [&.active]:pl-0',
-      )}
+    <div
+      className={cn(collapsed && 'tooltip tooltip-right')}
+      data-tip={collapsed ? String(children) : undefined}
     >
-      {icon}
-      {!collapsed && children}
-    </Link>
+      <Link
+        to={to}
+        className={cn(
+          'btn btn-ghost btn-sm font-normal text-base-content/60',
+          collapsed ? 'btn-square' : 'w-full justify-start gap-3',
+          '[&.active]:bg-primary/10 [&.active]:text-primary',
+        )}
+      >
+        {icon}
+        {!collapsed && children}
+      </Link>
+    </div>
   );
 }
