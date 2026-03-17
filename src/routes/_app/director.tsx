@@ -139,15 +139,16 @@ function DirectorPage() {
       </p>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-base-300 mb-8">
+      <div role="tablist" className="flex border-b border-base-300 mb-8">
         {(['dashboard', 'library', 'actors'] as Tab[]).map((t) => (
           <button
             key={t}
+            role="tab"
             onClick={() => setTab(t)}
             className={cn(
-              'px-4 py-2 text-sm font-medium capitalize tracking-wide border-b-2 -mb-px transition-colors',
+              'px-4 py-2 text-sm capitalize -mb-px border-b-2 transition-colors',
               tab === t
-                ? 'border-primary text-base-content'
+                ? 'border-primary font-semibold text-base-content'
                 : 'border-transparent text-base-content/40 hover:text-base-content/70',
             )}
           >
