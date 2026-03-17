@@ -245,15 +245,6 @@ function StageShell({
       <div className="flex items-center justify-between w-7xl">
         <StoryStatusButton storyId={storyId} status={status} room={room} />
         <div className="flex items-center gap-3">
-          {isDirector && soundName && (
-            <SoundControlBar
-              soundName={soundName}
-              playing={playing}
-              volume={volume}
-              onTogglePlay={() => setPlaying(!playing)}
-              onVolumeChange={setVolume}
-            />
-          )}
           <SceneNavigator sceneId={sceneId} room={room} />
         </div>
         <CastPreview
@@ -280,7 +271,17 @@ function StageShell({
           speakingIds={speakingIds}
         />
       </div>
-      <div></div>
+      <div>
+        {isDirector && soundName && (
+          <SoundControlBar
+            soundName={soundName}
+            playing={playing}
+            volume={volume}
+            onTogglePlay={() => setPlaying(!playing)}
+            onVolumeChange={setVolume}
+          />
+        )}
+      </div>
     </div>
   );
 }
