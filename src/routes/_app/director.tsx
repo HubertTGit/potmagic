@@ -87,9 +87,13 @@ function DirectorPage() {
   const handleAddProp = async (type: PropType, file: File, name: string) => {
     try {
       const arrayBuffer = await file.arrayBuffer();
-      const base64 = btoa(
-        String.fromCharCode(...new Uint8Array(arrayBuffer)),
-      );
+      const bytes = new Uint8Array(arrayBuffer);
+      let binary = '';
+      const CHUNK = 8192;
+      for (let i = 0; i < bytes.length; i += CHUNK) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+      }
+      const base64 = btoa(binary);
 
       await uploadProp({
         data: {

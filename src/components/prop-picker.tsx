@@ -119,9 +119,9 @@ export function PropPicker({
             {propType && <PropTypePill type={propType} />}
           </>
         ) : (
-          <button className="btn btn-sm btn-outline btn-info font-display w-full justify-start">
+          <span className="btn btn-sm btn-outline btn-info font-display w-full justify-start">
             {placeholder}
-          </button>
+          </span>
         )}
       </button>
 
