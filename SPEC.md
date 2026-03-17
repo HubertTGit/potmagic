@@ -178,6 +178,7 @@ The backend server runs alongside (or proxied through) the Vite dev server.
 | Authentication | better-auth (email/password) |
 | Real-time session | LiveKit |
 | Database | PostgreSQL via Drizzle ORM |
+| File storage | Vercel Blob (`props/` for assets, `avatars/` for user images) |
 | Build tool | Vite 7 |
 
 ---

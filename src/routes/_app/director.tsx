@@ -2,12 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { listStories } from '@/lib/stories.fns';
-import {
-  getSignedUploadUrl,
-  createProp,
-  listProps,
-  deleteProp,
-} from '@/lib/props.fns';
+import { uploadProp, listProps, deleteProp } from '@/lib/props.fns';
 import {
   listInvitedActors,
   addInvitedActor,
@@ -91,37 +86,25 @@ function DirectorPage() {
 
   const handleAddProp = async (type: PropType, file: File, name: string) => {
     try {
-      const { signedUrl, publicUrl } = await getSignedUploadUrl({
-        data: { filename: file.name, contentType: file.type },
+      const arrayBuffer = await file.arrayBuffer();
+      const base64 = btoa(
+        String.fromCharCode(...new Uint8Array(arrayBuffer)),
+      );
+
+      await uploadProp({
+        data: {
+          name,
+          type,
+          fileName: file.name,
+          contentType: file.type,
+          base64,
+          size: file.size,
+        },
       });
-
-      const prop = await createProp({
-        data: { name, type, imageUrl: publicUrl, size: file.size },
-      });
-
-      const uploadResponse = await fetch(signedUrl, {
-        method: 'PUT',
-        body: file,
-        headers: { 'Content-Type': file.type },
-      });
-
-      if (!uploadResponse.ok) {
-        try {
-          await deleteProp({ data: { id: prop.id } });
-        } catch {
-          // Swallow rollback errors
-        }
-
-        throw new Error(
-          `Upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`,
-        );
-      }
 
       queryClient.invalidateQueries({ queryKey: ['props', type] });
     } catch (error: any) {
-      toast.error(
-        `File size is too big. It should not be larger than 5MB.\n${error.message}`,
-      );
+      toast.error(error.message ?? 'Upload failed');
       throw error;
     }
   };

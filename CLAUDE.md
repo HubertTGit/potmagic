@@ -35,7 +35,7 @@ pnpm preview      # Preview production build
 - **@dnd-kit/core + @dnd-kit/sortable + @dnd-kit/utilities** — drag-and-drop (scene reordering)
 - **LiveKit** (`livekit-client`, `@livekit/components-react`) — real-time multi-user sessions
 - **Rive** (`@rive-app/canvas`, `@rive-app/react-webgl2`) — animated prop support
-- **Supabase Storage** — file storage for prop images (bucket: `props`)
+- **Vercel Blob** (`@vercel/blob`) — file storage for prop assets (`props/` prefix) and user avatars (`avatars/` prefix)
 - **Resend** — transactional email (magic links, password reset)
 - **PostgreSQL** — database via Drizzle ORM
 
@@ -126,7 +126,8 @@ Auth is still mounted at `/api/auth/*` via better-auth's handler in the server e
 
 - `src/lib/cn.ts` — `cn()` helper wrapping `clsx` + `tailwind-merge`
 - `src/lib/toast.ts` — toast notification helpers
-- `src/lib/supabase.server.ts` — Supabase client (server-only) for signed upload URLs and storage ops
+- `src/lib/props.fns.ts` — uses `@vercel/blob` `put`/`del` for prop asset storage (`props/` prefix)
+- `src/lib/avatar.fns.ts` — uses `@vercel/blob` `put` for user avatar storage (`avatars/` prefix)
 - `src/db/schema.ts` — full Drizzle schema (users, sessions, stories, scenes, props, cast, sceneCast)
 - `src/db/migrations/` — Drizzle migration files
 
@@ -271,7 +272,7 @@ These rules define how to translate Figma inputs into code for this project. Fol
 
 ### Asset Handling
 
-- Prop images (characters, backgrounds, animations) are stored in **Supabase Storage**, bucket `props`, and referenced via public URLs on the `props` table (`imageUrl` column)
+- Prop assets (characters, backgrounds, sounds, animations) are stored in **Vercel Blob** under the `props/` path prefix; user avatars under `avatars/{userId}/`. Both are referenced via public Vercel Blob URLs on the `props.imageUrl` / `users.image` columns
 - Static app assets live in `public/`
 - **IMPORTANT:** If the Figma MCP server returns a `localhost` source for an image or SVG, use that source directly — do not create placeholders
 - Rive animations (`.riv` files) are rendered via `<RiveCanvas>` component (`src/components/rive-canvas.component.tsx`)
