@@ -131,7 +131,7 @@ export function PropPicker({
                     p.id === propId && 'bg-base-300',
                   )}
                 >
-                  {p.imageUrl ? (
+                  {p.imageUrl && p.type !== 'sound' ? (
                     <img
                       src={p.imageUrl}
                       alt={p.name}
