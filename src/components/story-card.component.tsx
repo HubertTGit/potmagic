@@ -1,4 +1,5 @@
 import { useRouter, Link } from '@tanstack/react-router';
+import { Theater } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateStoryStatus } from '@/lib/story-detail.fns';
 import { cn } from '@/lib/cn';
@@ -131,7 +132,7 @@ export function StoryCard({ story, isDirector }: StoryCardProps) {
               className="btn btn-sm btn-primary w-full font-display tracking-wide"
               onClick={() => router.navigate({ to: '/stage/$sceneId', params: { sceneId: firstScene.id } })}
             >
-              Enter Stage
+              Enter Stage <Theater className="size-4" />
             </button>
           ) : (
             <button className="btn btn-sm btn-ghost w-full" disabled>

@@ -1,4 +1,5 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router';
+import { Theater } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -135,7 +136,7 @@ function StoryDetailPage() {
               })
             }
           >
-            Enter Stage →
+            Enter Stage <Theater className="size-4" />
           </button>
         )}
       </div>

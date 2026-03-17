@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Star } from 'lucide-react';
+import { Spotlight, Star } from 'lucide-react';
 import { useRouter } from '@tanstack/react-router';
 import { actorSignIn } from '@/lib/actor-auth.fns';
 import { authClient } from '@/lib/auth-client';
@@ -35,7 +35,7 @@ export function ActorLogin() {
         {/* Role icon header */}
         <div className="flex flex-col items-center px-8 pt-8 pb-6">
           <div className="size-20 flex items-center justify-center">
-            <Star className="size-10 text-secondary" />
+            <Spotlight className="size-10 text-secondary" />
           </div>
           <h2 className="card-title justify-center font-display italic font-semibold text-2xl leading-none mb-1 text-secondary tracking-[-0.01em]">
             I am an Actor

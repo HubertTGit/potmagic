@@ -1,4 +1,5 @@
 import { createFileRoute, Link, ErrorComponent } from '@tanstack/react-router';
+import { Theater } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import {
   useSuspenseQuery,
@@ -217,7 +218,7 @@ function SceneDetailPage() {
           params={{ sceneId }}
           className="btn btn-primary font-display tracking-[0.05em]"
         >
-          Enter Stage
+          Enter Stage <Theater className="size-4" />
         </Link>
       </div>
 

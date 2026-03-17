@@ -3,7 +3,16 @@ import { useState, useEffect } from 'react';
 import { authClient } from '@/lib/auth-client';
 import { useTheme, Theme } from '@/hooks/useTheme';
 import { cn } from '@/lib/cn';
-import { Sun, Moon, LogOut, GraduationCap, Layers3, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Sun,
+  Moon,
+  LogOut,
+  GraduationCap,
+  Layers3,
+  ChevronLeft,
+  ChevronRight,
+  Megaphone,
+} from 'lucide-react';
 
 export function Sidebar() {
   const { data: session } = authClient.useSession();
@@ -107,7 +116,7 @@ export function Sidebar() {
         {isDirector && (
           <SidebarLink
             to="/director"
-            icon={<GraduationCap className="size-4" />}
+            icon={<Megaphone className="size-4" />}
             collapsed={collapsed}
             onExpand={expandOnDesktop}
           >
@@ -126,7 +135,11 @@ export function Sidebar() {
             'flex items-center gap-3 px-3 py-3 border-b border-base-300 hover:bg-base-300/50 transition-colors',
             collapsed && 'justify-center px-0 tooltip tooltip-right',
           )}
-          data-tip={collapsed ? (session?.user?.name ?? session?.user?.email ?? 'Profile') : undefined}
+          data-tip={
+            collapsed
+              ? (session?.user?.name ?? session?.user?.email ?? 'Profile')
+              : undefined
+          }
         >
           <div className="avatar shrink-0">
             <div className="size-7 rounded-full bg-base-300 overflow-hidden">

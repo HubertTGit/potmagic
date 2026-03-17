@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { deleteStory } from '@/lib/stories.fns';
 import { StatusBadge } from '@/components/status-badge.component';
 import { ConfirmModal } from '@/components/confirm-modal';
-import { Layers, Trash2 } from 'lucide-react';
+import { Layers, Theater, Trash2 } from 'lucide-react';
 
 type Story = {
   id: string;
@@ -124,7 +124,7 @@ export function StoryGrid({
                       params={{ sceneId: firstScene.id }}
                       className="btn btn-sm btn-primary w-full gap-2"
                     >
-                      Enter Stage <Layers className="size-4" />
+                      Enter Stage <Theater className="size-4" />
                     </Link>
                   )}
                 </div>

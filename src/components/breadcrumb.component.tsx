@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { Layers, Film, Layers3 } from 'lucide-react';
+import { Layers, Film, Layers3, Scroll } from 'lucide-react';
 
 interface Crumb {
   label: string;
@@ -17,10 +17,8 @@ export function Breadcrumb({ crumbs }: { crumbs: Crumb[] }) {
           return (
             <li key={i}>
               <div className="flex items-center gap-2">
-                {crumb.type === 'story' && (
-                  <Layers3 className="w-4 h-4" />
-                )}
-                {crumb.type === 'scene' && <Film className="w-4 h-4" />}
+                {crumb.type === 'story' && <Layers3 className="w-4 h-4" />}
+                {crumb.type === 'scene' && <Scroll className="w-4 h-4" />}
                 {crumb.to && !isLast ? (
                   <Link
                     to={crumb.to}
