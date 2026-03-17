@@ -79,7 +79,9 @@ function SceneDetailPage() {
     userImage: c.userImage,
   }));
   const availableActors = data?.availableActors ?? [];
-  const availableProps = (data?.props ?? []).filter((p) => p.type === 'character');
+  const availableProps = (data?.props ?? []).filter(
+    (p) => p.type === 'character',
+  );
   const background: BackgroundProp | null =
     data?.background as BackgroundProp | null;
   const sound: SoundProp | null = data?.sound as SoundProp | null;
@@ -116,8 +118,13 @@ function SceneDetailPage() {
   });
 
   const assignPropMutation = useMutation({
-    mutationFn: ({ sceneCastId, propId }: { sceneCastId: string; propId: string | null }) =>
-      assignSceneProp({ data: { sceneCastId, propId } }),
+    mutationFn: ({
+      sceneCastId,
+      propId,
+    }: {
+      sceneCastId: string;
+      propId: string | null;
+    }) => assignSceneProp({ data: { sceneCastId, propId } }),
     onSuccess: invalidate,
   });
 
@@ -197,7 +204,7 @@ function SceneDetailPage() {
             disabled={!isTitleDirty || saveMutation.isPending}
             onClick={() => saveMutation.mutate(title)}
             className={cn(
-              'btn btn-accent font-display tracking-[0.05em]',
+              'btn btn-secondary font-display tracking-[0.05em]',
               (!isTitleDirty || saveMutation.isPending) &&
                 'opacity-40 cursor-not-allowed',
             )}
@@ -228,7 +235,11 @@ function SceneDetailPage() {
         }
         isAddingCast={addActorMutation.isPending}
         isRemovingCast={removeCastMutation.isPending}
-        assigningPropCastId={assignPropMutation.isPending ? assignPropMutation.variables?.sceneCastId : undefined}
+        assigningPropCastId={
+          assignPropMutation.isPending
+            ? assignPropMutation.variables?.sceneCastId
+            : undefined
+        }
         sceneOrder={scene.order}
         totalScenes={story.totalScenes}
         nav={nav}

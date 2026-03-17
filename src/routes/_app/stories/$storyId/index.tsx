@@ -117,7 +117,7 @@ function StoryDetailPage() {
             disabled={!isTitleDirty || saveTitleMutation.isPending}
             onClick={() => saveTitleMutation.mutate(title)}
             className={cn(
-              'btn btn-accent font-display tracking-[0.05em]',
+              'btn btn-secondary font-display tracking-[0.05em]',
               (!isTitleDirty || saveTitleMutation.isPending) &&
                 'opacity-40 cursor-not-allowed',
             )}

@@ -1,4 +1,3 @@
-import { useState, useRef, useEffect } from 'react';
 import { Link } from '@tanstack/react-router';
 import { TrashIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/cn';
@@ -227,48 +226,39 @@ function ActorDropdown({
   onAdd: (userId: string) => void;
   isLoading?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node))
-        setOpen(false);
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
-
   return (
-    <div ref={ref} className="relative w-64">
-      <button
-        onClick={() => setOpen((o) => !o)}
-        disabled={isLoading}
-        className="btn btn-sm btn-outline btn-primary font-display w-full justify-start"
+    <div className="dropdown">
+      <div
+        tabIndex={0}
+        role="button"
+        className="btn btn-sm btn-outline btn-primary font-display w-64 justify-start"
+        aria-disabled={isLoading}
       >
-        {isLoading && <span className="loading loading-spinner loading-xs" />}
-        {!isLoading && <span>+ Add cast member</span>}
-      </button>
-      {open && (
-        <div className="absolute top-full mt-1 w-72 bg-base-200 border border-base-300 rounded-lg shadow-xl z-50 overflow-hidden">
-          {availableActors.map((a) => (
+        {isLoading ? (
+          <span className="loading loading-spinner loading-xs" />
+        ) : (
+          <span>+ Add cast member</span>
+        )}
+      </div>
+      <ul
+        tabIndex={0}
+        className="dropdown-content menu bg-base-200 border border-base-300 rounded-box z-50 w-72 p-0 shadow-xl mt-1 overflow-hidden"
+      >
+        {availableActors.map((a) => (
+          <li key={a.id}>
             <button
-              key={a.id}
-              onMouseDown={(e) => {
-                e.preventDefault();
+              className="flex flex-col items-start gap-0 px-3 py-2 rounded-none"
+              onClick={() => {
                 onAdd(a.id);
-                setOpen(false);
+                (document.activeElement as HTMLElement)?.blur();
               }}
-              className="w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-base-300 transition-colors"
             >
-              <div className="flex flex-col text-left flex-1">
-                <span className="font-medium">{a.name}</span>
-                <span className="text-xs text-base-content/40">{a.email}</span>
-              </div>
+              <span className="font-medium text-sm">{a.name}</span>
+              <span className="text-xs text-base-content/40">{a.email}</span>
             </button>
-          ))}
-        </div>
-      )}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

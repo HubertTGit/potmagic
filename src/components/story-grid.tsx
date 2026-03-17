@@ -117,7 +117,7 @@ export function StoryGrid({
                       <Link
                         to="/stories/$storyId"
                         params={{ storyId: story.id }}
-                        className="btn btn-accent btn-xs flex-1"
+                        className="btn btn-secondary btn-xs flex-1"
                       >
                         Edit
                       </Link>
