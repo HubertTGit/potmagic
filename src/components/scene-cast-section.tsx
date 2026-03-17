@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { TrashIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/cn';
 import { DataList, DataListItem } from './data-list';
-import { PropTypePill } from './prop-type-pill';
+import { PropPicker } from './prop-picker';
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/solid';
 import type { PropType } from '@/db/schema';
 
@@ -215,120 +215,6 @@ export function SceneCastSection({
   );
 }
 
-function PropPicker({
-  sceneCastId,
-  propId,
-  propName,
-  propImageUrl,
-  propType,
-  availableProps,
-  usedPropIds,
-  onAssign,
-}: {
-  sceneCastId: string;
-  propId: string | null;
-  propName: string | null;
-  propImageUrl: string | null;
-  propType: PropType | null;
-  availableProps: AvailableProp[];
-  usedPropIds: Set<string>;
-  onAssign: (sceneCastId: string, propId: string | null) => void;
-}) {
-  const selectableProps = availableProps.filter(
-    (p) =>
-      p.type === 'character' && (!usedPropIds.has(p.id) || p.id === propId),
-  );
-
-  const closeDropdown = () => {
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
-  };
-
-  return (
-    <div className="dropdown dropdown-bottom dropdown-start">
-      <div
-        tabIndex={0}
-        role="button"
-        className="flex items-center gap-2 hover:opacity-75 transition-opacity cursor-pointer"
-      >
-        {propId ? (
-          <>
-            {propImageUrl ? (
-              <img
-                src={propImageUrl}
-                alt={propName ?? ''}
-                className="size-7 rounded object-cover bg-base-300 shrink-0"
-              />
-            ) : (
-              <div className="size-7 rounded bg-base-300 shrink-0" />
-            )}
-            <span className="text-sm">{propName}</span>
-            {propType && <PropTypePill type={propType} />}
-          </>
-        ) : (
-          <span className="text-sm text-base-content/30 italic">
-            Assign prop…
-          </span>
-        )}
-      </div>
-
-      <div
-        tabIndex={0}
-        className="dropdown-content mt-1 w-64 bg-base-200 border border-base-300 rounded-lg shadow-xl z-50 overflow-hidden"
-      >
-        {selectableProps.length === 0 ? (
-          <p className="text-xs text-base-content/40 px-3 py-2">
-            No props available
-          </p>
-        ) : (
-          <div className="flex flex-col">
-            {selectableProps.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => {
-                  onAssign(sceneCastId, p.id);
-                  closeDropdown();
-                }}
-                className={cn(
-                  'w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-base-300/50 transition-colors cursor-pointer',
-                  p.id === propId && 'bg-base-300',
-                )}
-              >
-                {p.imageUrl ? (
-                  <img
-                    src={p.imageUrl}
-                    alt={p.name}
-                    className="size-8 rounded object-cover bg-base-300 shrink-0"
-                  />
-                ) : (
-                  <div className="size-8 rounded bg-base-300 shrink-0" />
-                )}
-                <span className="flex-1 text-left truncate">{p.name}</span>
-                <PropTypePill type={p.type} />
-              </button>
-            ))}
-          </div>
-        )}
-
-        {propId && (
-          <>
-            <div className="border-t border-base-300" />
-            <button
-              onClick={() => {
-                onAssign(sceneCastId, null);
-                closeDropdown();
-              }}
-              className="btn btn-xs btn-primary float-end m-3"
-            >
-              Unassign
-            </button>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
 
 function ActorDropdown({
   availableActors,
