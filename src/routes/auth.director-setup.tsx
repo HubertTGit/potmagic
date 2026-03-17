@@ -11,7 +11,7 @@ const promoteToDirector = createServerFn({ method: 'POST' })
   .inputValidator((input) => z.object({ token: z.string() }).parse(input))
   .handler(async ({ data }) => {
     const session = await auth.api.getSession({ headers: getRequest().headers });
-    if (!session) throw redirect({ to: '/auth', search: { token: '' } });
+    if (!session) throw redirect({ to: '/auth', search: { token: undefined } });
 
     // Require a valid invite token stored in the environment to prevent self-promotion
     const validToken = process.env.DIRECTOR_INVITE_TOKEN;

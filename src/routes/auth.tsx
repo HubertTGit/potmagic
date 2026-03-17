@@ -1,10 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
-import DirectorLogin from '@/components/director-login.component';
-import ActorLogin from '@/components/actor-login.component';
+import { DirectorLogin } from '@/components/director-login.component';
+import { ActorLogin } from '@/components/actor-login.component';
 
 export const Route = createFileRoute('/auth')({
   validateSearch: (search: Record<string, unknown>) => ({
-    token: typeof search.token === 'string' ? search.token : '',
+    token: typeof search.token === 'string' && search.token ? search.token : undefined,
   }),
   component: LoginPage,
 });
@@ -12,10 +12,16 @@ export const Route = createFileRoute('/auth')({
 function LoginPage() {
   const { token } = Route.useSearch();
   return (
-    <div className="min-h-screen flex items-center flex-col justify-center bg-base-200 px-4 gap-6">
-      <h1 className="justify-center font-display italic font-semibold text-7xl text-secondary">
-        potmagic
-      </h1>
+    <div className="min-h-screen flex items-center flex-col justify-center bg-base-200 px-4 gap-10">
+      <div className="text-center flex flex-col gap-10">
+        <h1 className="font-display italic font-semibold text-7xl text-primary leading-none">
+          potmagic
+        </h1>
+        <p className="text-base-content/40 text-base mt-2 max-w-96">
+          Step into the digital spotlight. Join our online community theater and
+          perform live from anywhere.
+        </p>
+      </div>
       <div className="flex flex-col md:flex-row items-center md:items-stretch gap-6 md:gap-0">
         <DirectorLogin token={token} />
         <div className="flex md:flex-col items-center gap-3 md:px-8">
