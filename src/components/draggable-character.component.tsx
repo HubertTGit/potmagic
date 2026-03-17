@@ -87,13 +87,13 @@ export function DraggableCharacter({
     node.rotation(initialRotation);
     node.scaleX(initialScaleX);
     if (type === 'background') {
-      node.y(initialY);
+      node.y(stageHeight - image.height / 2);
       node.moveToBottom();
     } else {
       node.moveToTop();
     }
     node.getLayer()?.batchDraw();
-  }, [image, type]);
+  }, [image, type, stageHeight]);
 
   useEffect(() => {
     return () => {
