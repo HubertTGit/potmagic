@@ -10,7 +10,7 @@ export default defineConfig({
     tsconfigPaths({ projects: [path.resolve(__dirname, 'tsconfig.json')] }),
     tailwindcss(),
     tanstackStart(),
-    nitro(),
+    nitro({ preset: 'vercel' }),
   ],
   server: {
     host: true,
