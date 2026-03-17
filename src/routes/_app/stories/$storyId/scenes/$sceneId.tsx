@@ -39,8 +39,46 @@ export const Route = createFileRoute('/_app/stories/$storyId/scenes/$sceneId')({
   head: () => ({ meta: [{ title: 'Scene — potmagic' }] }),
   component: SceneDetailPage,
   pendingComponent: () => (
-    <div className="p-8">
-      <p className="text-base-content/40 text-sm">Loading…</p>
+    <div className="p-8 max-w-3xl">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 mb-8">
+        <div className="skeleton h-3 w-12 rounded" />
+        <div className="skeleton h-3 w-2 rounded-full" />
+        <div className="skeleton h-3 w-24 rounded" />
+        <div className="skeleton h-3 w-2 rounded-full" />
+        <div className="skeleton h-3 w-20 rounded" />
+      </div>
+
+      {/* Header: title + buttons */}
+      <div className="flex items-center gap-3 mb-3">
+        <div className="skeleton h-10 flex-1 rounded" />
+        <div className="skeleton h-10 w-20 rounded" />
+        <div className="skeleton h-10 w-32 rounded" />
+      </div>
+
+      {/* Cast section */}
+      <div className="mt-8 flex flex-col gap-3">
+        <div className="skeleton h-4 w-16 rounded" />
+        {(['a', 'b', 'c'] as const).map((k) => (
+          <div key={k} className="flex items-center gap-3">
+            <div className="skeleton size-8 rounded-full shrink-0" />
+            <div className="skeleton h-4 flex-1 rounded" />
+            <div className="skeleton h-8 w-24 rounded" />
+          </div>
+        ))}
+      </div>
+
+      {/* Background section */}
+      <div className="mt-8 flex flex-col gap-3">
+        <div className="skeleton h-4 w-24 rounded" />
+        <div className="skeleton h-24 w-full rounded-lg" />
+      </div>
+
+      {/* Sound section */}
+      <div className="mt-8 flex flex-col gap-3">
+        <div className="skeleton h-4 w-12 rounded" />
+        <div className="skeleton h-12 w-full rounded" />
+      </div>
     </div>
   ),
   errorComponent: ({ error }) => <ErrorComponent error={error} />,
