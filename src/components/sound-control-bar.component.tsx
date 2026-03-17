@@ -23,7 +23,7 @@ export function SoundControlBar({
         {soundName}
       </span>
       <button
-        className={cn('btn btn-ghost btn-xs btn-circle', playing && 'text-gold')}
+        className={cn('btn btn-ghost btn-xs btn-circle', playing && 'text-primary')}
         onClick={onTogglePlay}
         title={playing ? 'Pause' : 'Play'}
       >

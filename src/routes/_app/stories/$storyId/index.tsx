@@ -106,7 +106,7 @@ function StoryDetailPage() {
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="input flex-1 bg-base-200 border-base-300 text-lg font-semibold focus:border-gold/60 focus:ring-2 focus:ring-gold/10"
+            className="input flex-1 bg-base-200 border-base-300 text-lg font-semibold focus:border-primary/60 focus:ring-2 focus:ring-primary/10"
           />
         ) : (
           <h1 className="flex-1 text-lg font-semibold">{story.title}</h1>

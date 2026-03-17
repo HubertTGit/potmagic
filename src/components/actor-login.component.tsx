@@ -29,7 +29,7 @@ export default function ActorLogin() {
   };
 
   return (
-    <div className="card login-card rounded-box overflow-hidden border border-gold/25 w-full max-w-sm mx-4">
+    <div className="card bg-base-100 rounded-box overflow-hidden border border-primary/25 w-full max-w-sm mx-4">
       <div className="card-body gap-0 p-0">
         <div className="px-8 pt-6">
           <Link to="/" className="text-xs text-base-content/40 hover:text-base-content transition-colors">
@@ -38,7 +38,7 @@ export default function ActorLogin() {
         </div>
 
         <div className="px-8 pt-4 pb-6 text-center">
-          <h1 className={cn('card-title justify-center font-display italic font-semibold text-5xl leading-none mb-2 text-gold gold-glow tracking-[-0.01em]')}>
+          <h1 className={cn('card-title justify-center font-display italic font-semibold text-5xl leading-none mb-2 text-primary tracking-[-0.01em]')}>
             potmagic
           </h1>
           <p className="font-display text-sm tracking-[0.25em] uppercase text-base-content/40">

@@ -19,7 +19,7 @@ export default function PasswordInput({
         autoComplete={autoComplete}
         placeholder={placeholder}
         required
-        className="input w-full bg-base-200 border-base-300 text-sm focus:border-gold/60 focus:ring-2 focus:ring-gold/10 pr-10"
+        className="input w-full bg-base-200 border-base-300 text-sm focus:border-primary/60 focus:ring-2 focus:ring-primary/10 pr-10"
       />
       <button
         type="button"

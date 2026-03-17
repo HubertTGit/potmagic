@@ -190,7 +190,7 @@ export function LibrarySection({
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="btn btn-xs btn-gold font-display tracking-wide"
+          className="btn btn-xs btn-primary font-display tracking-wide"
         >
           + Upload
         </button>
@@ -205,7 +205,7 @@ export function LibrarySection({
 
       {/* Pending upload — name confirmation */}
       {pending && (
-        <div className="flex items-center gap-3 bg-base-200 border border-gold/30 rounded-xl p-3 mb-4">
+        <div className="flex items-center gap-3 bg-base-200 border border-primary/30 rounded-xl p-3 mb-4">
           <MediaPreview
             src={pending.preview}
             buffer={pending.buffer}
@@ -225,13 +225,13 @@ export function LibrarySection({
               if (e.key === 'Escape') handleCancel();
             }}
             placeholder="Name…"
-            className="input input-sm flex-1 bg-base-300 border-base-300 text-sm focus:border-gold/60"
+            className="input input-sm flex-1 bg-base-300 border-base-300 text-sm focus:border-primary/60"
             disabled={uploading}
           />
           <button
             onClick={handleConfirm}
             disabled={uploading}
-            className="btn btn-sm btn-gold font-display"
+            className="btn btn-sm btn-primary font-display"
           >
             {uploading ? (
               <>
@@ -261,7 +261,7 @@ export function LibrarySection({
       {!isLoading && items.length === 0 && !pending ? (
         <div
           onClick={() => fileInputRef.current?.click()}
-          className="flex flex-col items-center justify-center gap-2 border border-dashed border-base-300 rounded-xl py-8 text-base-content/25 cursor-pointer hover:border-gold/30 hover:text-base-content/40 transition-colors"
+          className="flex flex-col items-center justify-center gap-2 border border-dashed border-base-300 rounded-xl py-8 text-base-content/25 cursor-pointer hover:border-primary/30 hover:text-base-content/40 transition-colors"
         >
           {isSound ? (
             <MusicalNoteIcon className="size-7" />
@@ -305,7 +305,7 @@ export function LibrarySection({
 
               {deletingId === item.id && (
                 <div className="absolute inset-0 bg-base-100/60 backdrop-blur-[1px] flex items-center justify-center z-10 transition-all">
-                  <span className="loading loading-spinner loading-md text-gold" />
+                  <span className="loading loading-spinner loading-md text-primary" />
                 </div>
               )}
               <p className="absolute bottom-0 inset-x-0 text-xs text-center bg-base-300/80 px-1 py-0.5 truncate group-hover:opacity-0 transition-opacity">

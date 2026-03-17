@@ -63,12 +63,12 @@ function StoriesPage() {
               if (e.key === 'Escape') setAdding(false);
             }}
             placeholder="Story title…"
-            className="input input-sm bg-base-200 border-base-300 text-sm focus:border-gold/60 focus:ring-2 focus:ring-gold/10 w-64"
+            className="input input-sm bg-base-200 border-base-300 text-sm focus:border-primary/60 focus:ring-2 focus:ring-primary/10 w-64"
           />
           <button
             onClick={handleAdd}
             disabled={addMutation.isPending}
-            className="btn btn-sm btn-gold font-display"
+            className="btn btn-sm btn-primary font-display"
           >
             Add
           </button>

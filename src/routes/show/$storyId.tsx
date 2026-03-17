@@ -322,7 +322,7 @@ function ShowPage() {
     </LiveKitRoom>
   ) : (
     <div className="fixed inset-0 flex items-center justify-center bg-base-100">
-      <span className="loading loading-dots loading-md text-gold" />
+      <span className="loading loading-dots loading-md text-primary" />
     </div>
   );
 }

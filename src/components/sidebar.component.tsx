@@ -78,7 +78,7 @@ export function Sidebar() {
       >
         <Link
           to="/"
-          className="font-display italic font-semibold text-gold text-lg leading-none select-none hover:opacity-75 transition-opacity"
+          className="font-display italic font-semibold text-primary text-lg leading-none select-none hover:opacity-75 transition-opacity"
         >
           {collapsed ? 'p' : 'potmagic'}
         </Link>
@@ -138,12 +138,12 @@ export function Sidebar() {
             collapsed ? 'justify-center px-0' : 'text-left',
           )}
         >
-          {theme === 'dracula' ? (
+          {theme === Theme.dark ? (
             <SunIcon className="size-4 shrink-0" />
           ) : (
             <MoonIcon className="size-4 shrink-0" />
           )}
-          {!collapsed && (theme === 'dracula' ? 'Light mode' : 'Dark mode')}
+          {!collapsed && (theme === Theme.dark ? 'Light mode' : 'Dark mode')}
         </button>
         {session && (
           <button
@@ -184,7 +184,7 @@ function SidebarLink({
       className={cn(
         'flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-base-content/60',
         'hover:text-base-content hover:bg-base-300 transition-colors',
-        '[&.active]:text-base-content [&.active]:bg-base-300 [&.active]:border-l-2 [&.active]:border-gold [&.active]:pl-2.5',
+        '[&.active]:text-base-content [&.active]:bg-base-300 [&.active]:border-l-2 [&.active]:border-primary [&.active]:pl-2.5',
         collapsed &&
           'justify-center px-0 [&.active]:border-l-0 [&.active]:pl-0',
       )}

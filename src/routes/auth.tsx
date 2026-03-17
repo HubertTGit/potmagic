@@ -11,7 +11,7 @@ export const Route = createFileRoute('/auth')({
 function LoginPage() {
   const { token } = Route.useSearch();
   return (
-    <div className="min-h-screen flex items-center justify-center login-bg">
+    <div className="min-h-screen flex items-center justify-center bg-base-200">
       <DirectorLogin token={token} />
     </div>
   );

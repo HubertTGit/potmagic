@@ -39,7 +39,7 @@ export function StoryCard({ story, isDirector }: StoryCardProps) {
           <Link
             to="/stories/$storyId"
             params={{ storyId: story.id }}
-            className="card-title font-display text-base leading-snug line-clamp-2 hover:text-gold transition-colors"
+            className="card-title font-display text-base leading-snug line-clamp-2 hover:text-primary transition-colors"
           >
             {story.title}
           </Link>
@@ -128,7 +128,7 @@ export function StoryCard({ story, isDirector }: StoryCardProps) {
         <div className="card-actions mt-auto pt-2">
           {firstScene ? (
             <button
-              className="btn btn-sm btn-gold w-full font-display tracking-wide"
+              className="btn btn-sm btn-primary w-full font-display tracking-wide"
               onClick={() => router.navigate({ to: '/stage/$sceneId', params: { sceneId: firstScene.id } })}
             >
               Enter Stage

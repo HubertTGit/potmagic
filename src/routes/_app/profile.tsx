@@ -47,7 +47,7 @@ function ProfilePage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name"
-            className="input w-full bg-base-200 border-base-300 text-sm focus:border-gold/60 focus:ring-2 focus:ring-gold/10"
+            className="input w-full bg-base-200 border-base-300 text-sm focus:border-primary/60 focus:ring-2 focus:ring-primary/10"
           />
         </fieldset>
 
@@ -67,7 +67,7 @@ function ProfilePage() {
           disabled={!isDirty || saving}
           onClick={handleSave}
           className={cn(
-            'btn btn-gold w-fit mt-2 font-display tracking-[0.08em]',
+            'btn btn-primary w-fit mt-2 font-display tracking-[0.08em]',
             (!isDirty || saving) && 'opacity-40 cursor-not-allowed',
           )}
         >

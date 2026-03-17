@@ -73,7 +73,7 @@ export function StoryGrid({
                   <Link
                     to="/stories/$storyId"
                     params={{ storyId: story.id }}
-                    className="card-title font-medium hover:text-gold transition-colors text-lg"
+                    className="card-title font-medium hover:text-primary transition-colors text-lg"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {story.title}

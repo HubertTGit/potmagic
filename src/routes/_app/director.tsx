@@ -147,7 +147,7 @@ function DirectorPage() {
             className={cn(
               'px-4 py-2 text-sm font-medium capitalize tracking-wide border-b-2 -mb-px transition-colors',
               tab === t
-                ? 'border-gold text-base-content'
+                ? 'border-primary text-base-content'
                 : 'border-transparent text-base-content/40 hover:text-base-content/70',
             )}
           >
@@ -211,7 +211,7 @@ function DirectorPage() {
                         <Link
                           to="/stories/$storyId"
                           params={{ storyId: story.id }}
-                          className="font-medium hover:text-gold transition-colors"
+                          className="font-medium hover:text-primary transition-colors"
                         >
                           {story.title}
                         </Link>
@@ -331,13 +331,13 @@ function ActorsTab({
           onChange={(e) => setEmail(e.target.value)}
           placeholder="actor@example.com"
           required
-          className="input flex-1 bg-base-200 border-base-300 text-sm focus:border-gold/60 focus:ring-2 focus:ring-gold/10"
+          className="input flex-1 bg-base-200 border-base-300 text-sm focus:border-primary/60 focus:ring-2 focus:ring-primary/10"
         />
         <button
           type="submit"
           disabled={isInviting || !email.trim()}
           className={cn(
-            'btn btn-gold font-display tracking-[0.05em]',
+            'btn btn-primary font-display tracking-[0.05em]',
             (isInviting || !email.trim()) && 'opacity-50',
           )}
         >

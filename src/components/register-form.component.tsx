@@ -31,7 +31,7 @@ export default function RegisterForm({
           autoComplete="email"
           placeholder="you@example.com"
           required
-          className="input w-full bg-base-200 border-base-300 text-sm focus:border-gold/60 focus:ring-2 focus:ring-gold/10"
+          className="input w-full bg-base-200 border-base-300 text-sm focus:border-primary/60 focus:ring-2 focus:ring-primary/10"
         />
       </fieldset>
 
@@ -61,7 +61,7 @@ export default function RegisterForm({
         type="submit"
         disabled={loading}
         className={cn(
-          'btn btn-block mt-1 font-display text-base tracking-[0.08em] btn-gold',
+          'btn btn-block mt-1 font-display text-base tracking-[0.08em] btn-primary',
           loading && 'opacity-60 cursor-not-allowed',
         )}
       >
@@ -73,7 +73,7 @@ export default function RegisterForm({
         <button
           type="button"
           onClick={onSwitchToLogin}
-          className="text-gold cursor-pointer font-inherit text-xs"
+          className="text-primary cursor-pointer font-inherit text-xs"
         >
           Sign in →
         </button>

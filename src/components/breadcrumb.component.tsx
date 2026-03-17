@@ -29,7 +29,7 @@ export function Breadcrumb({ crumbs }: { crumbs: Crumb[] }) {
                   <Link
                     to={crumb.to}
                     params={crumb.params}
-                    className="hover:text-gold transition-colors"
+                    className="hover:text-primary transition-colors"
                   >
                     {crumb.label}
                   </Link>

@@ -7,7 +7,7 @@ export const Route = createFileRoute('/actor-access')({
 
 function ActorAccessPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center login-bg">
+    <div className="min-h-screen flex items-center justify-center bg-base-200">
       <ActorLogin />
     </div>
   )

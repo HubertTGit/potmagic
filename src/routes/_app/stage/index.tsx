@@ -13,7 +13,7 @@ function StagePage() {
       </p>
       <Link
         to="/stories"
-        className="btn btn-sm btn-gold font-display tracking-[0.05em]"
+        className="btn btn-sm btn-primary font-display tracking-[0.05em]"
       >
         Go to Stories
       </Link>

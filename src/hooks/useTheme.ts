@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 
 export enum Theme {
-  dark = 'dracula',
-  light = 'emerald',
+  dark = 'potmagic-dark',
+  light = 'potmagic-light',
 }
 
 export function useTheme() {

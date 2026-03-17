@@ -217,7 +217,7 @@ export function StoryScenesTab({
               if (e.key === 'Enter') handleAddScene();
             }}
             placeholder="Scene title…"
-            className="input input-sm bg-base-200 border-base-300 text-sm focus:border-gold/60 focus:ring-2 focus:ring-gold/10 w-56"
+            className="input input-sm bg-base-200 border-base-300 text-sm focus:border-primary/60 focus:ring-2 focus:ring-primary/10 w-56"
           />
           <button
             onClick={handleAddScene}

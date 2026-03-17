@@ -34,7 +34,7 @@ function LandingPage() {
     <div className="min-h-screen bg-base-100 text-base-content">
       {/* Top bar */}
       <div className="flex items-center justify-between px-8 py-5">
-        <span className="font-display italic font-semibold text-2xl text-gold gold-glow tracking-[-0.01em]">
+        <span className="font-display italic font-semibold text-2xl text-primary tracking-[-0.01em]">
           potmagic
         </span>
         <div className="flex items-center gap-2">
@@ -112,7 +112,7 @@ function LandingPage() {
                         <Link
                           to="/show/$storyId"
                           params={{ storyId: story.id }}
-                          className="btn btn-sm btn-gold w-full font-display tracking-wide"
+                          className="btn btn-sm btn-primary w-full font-display tracking-wide"
                         >
                           View Show
                         </Link>

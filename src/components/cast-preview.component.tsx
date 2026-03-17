@@ -49,7 +49,7 @@ export function CastPreview({
           )}
           title={directorName}
         >
-          <FilmIcon className="size-4 text-gold" />
+          <FilmIcon className="size-4 text-primary" />
         </div>
       </div>
 

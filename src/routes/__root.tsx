@@ -42,7 +42,7 @@ export const Route = createRootRoute({
     scripts: [
       {
         children: `document.documentElement.setAttribute('data-theme',
-          localStorage.getItem('theme') || 'dracula');`,
+          localStorage.getItem('theme') || 'potmagic-dark');`,
       },
     ],
   }),

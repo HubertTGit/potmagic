@@ -202,7 +202,7 @@ function StageShell({
       {isSwitching && (
         <div className="fixed inset-x-0 top-6 z-50 flex justify-center pointer-events-none">
           <div className="flex items-center gap-2.5 bg-base-100/75 backdrop-blur-md px-5 py-2 rounded-full border border-base-300 shadow-lg">
-            <span className="loading loading-dots loading-xs text-gold" />
+            <span className="loading loading-dots loading-xs text-primary" />
             <span className="text-[11px] font-display tracking-[0.18em] uppercase text-base-content/50">
               Changing scene
             </span>
