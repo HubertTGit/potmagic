@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import { useRouter } from '@tanstack/react-router';
 import { actorSignIn } from '@/lib/actor-auth.fns';
+import { authClient } from '@/lib/auth-client';
 import { cn } from '@/lib/cn';
+
 
 export default function ActorLogin() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  // refetch() updates the shared useSession() atom — getSession() does not
+  const { refetch } = authClient.useSession();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -15,6 +19,8 @@ export default function ActorLogin() {
     const form = new FormData(e.currentTarget);
     try {
       await actorSignIn({ data: { email: form.get('email') as string } });
+      // Hydrate the shared session atom so _app.tsx sees a non-null session
+      await refetch();
       await router.navigate({ to: '/stories' });
     } catch (err: any) {
       setError(err?.message ?? 'Login failed');

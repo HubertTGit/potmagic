@@ -59,12 +59,21 @@ export const getSceneDetail = createServerFn({ method: 'GET' })
   .handler(async ({ data }) => {
     const session = await getSessionOrThrow();
 
-    // Only the story director may access scene detail management
     const [story] = await db
       .select({ directorId: stories.directorId })
       .from(stories)
       .where(eq(stories.id, data.storyId));
-    if (!story || story.directorId !== session.user.id) throw new Error('Forbidden');
+    if (!story) throw new Error('Story not found');
+
+    const isDirector = story.directorId === session.user.id;
+    if (!isDirector) {
+      // Allow cast members of this story to view scene detail (read-only)
+      const [castRecord] = await db
+        .select({ id: cast.id })
+        .from(cast)
+        .where(and(eq(cast.storyId, data.storyId), eq(cast.userId, session.user.id)));
+      if (!castRecord) throw new Error('Forbidden');
+    }
 
     const [scene] = await db
       .select({
