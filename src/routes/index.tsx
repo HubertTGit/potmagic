@@ -1,34 +1,34 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
-import { listPublicStories } from '@/lib/stories.fns'
-import { cn } from '@/lib/cn'
-import { useTheme, Theme } from '@/hooks/useTheme'
-import { SunIcon, MoonIcon } from '@heroicons/react/24/outline'
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
+import { listPublicStories } from '@/lib/stories.fns';
+import { cn } from '@/lib/cn';
+import { useTheme, Theme } from '@/hooks/useTheme';
+import { SunIcon, MoonIcon } from '@heroicons/react/24/outline';
 
 export const Route = createFileRoute('/')({
   component: LandingPage,
-})
+});
 
-type StoryStatus = 'draft' | 'active' | 'ended'
+type StoryStatus = 'draft' | 'active' | 'ended';
 
 const STATUS_BADGE: Record<StoryStatus, string> = {
   draft: 'badge-warning',
   active: 'badge-success',
   ended: 'badge-neutral',
-}
+};
 
 const STATUS_LABEL: Record<StoryStatus, string> = {
   draft: 'Draft',
   active: 'Live',
   ended: 'Ended',
-}
+};
 
 function LandingPage() {
-  const { theme, toggle } = useTheme()
+  const { theme, toggle } = useTheme();
   const { data: stories = [], isLoading } = useQuery({
     queryKey: ['public-stories'],
     queryFn: () => listPublicStories(),
-  })
+  });
 
   return (
     <div className="min-h-screen bg-base-100 text-base-content">
@@ -50,12 +50,6 @@ function LandingPage() {
               <MoonIcon className="size-4" />
             )}
           </button>
-          <Link to="/auth" className="btn btn-sm btn-outline">
-            Director login
-          </Link>
-          <Link to="/actor-access" className="btn btn-sm btn-outline">
-            Actor login
-          </Link>
         </div>
       </div>
 
@@ -86,7 +80,7 @@ function LandingPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {stories.map((story) => {
-              const status = story.status as StoryStatus
+              const status = story.status as StoryStatus;
               return (
                 <div
                   key={story.id}
@@ -120,11 +114,11 @@ function LandingPage() {
                     )}
                   </div>
                 </div>
-              )
+              );
             })}
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import { FilmIcon } from '@heroicons/react/24/outline';
 import { authClient } from '@/lib/auth-client';
 import { cn } from '@/lib/cn';
 
-export default function DirectorLogin({ token = '' }: { token?: string }) {
+export function DirectorLogin({ token = '' }: { token?: string }) {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -43,16 +44,16 @@ export default function DirectorLogin({ token = '' }: { token?: string }) {
   };
 
   return (
-    <div className="card bg-base-100 rounded-box overflow-hidden border border-primary/25 w-full min-w-[350px] mx-4 h-full">
+    <div className="card bg-base-100 rounded-box overflow-hidden border border-primary/30 w-full min-w-87.5 mx-4 h-full hover:border-primary/50 transition-colors duration-300">
       <div className="card-body gap-0 p-0">
-        <div className="px-8 pt-4 pb-6 text-center">
-          <h1
-            className={cn(
-              'card-title justify-center font-display italic font-semibold text-2xl leading-none mb-2 text-secondary tracking-[-0.01em]',
-            )}
-          >
+        {/* Role icon header */}
+        <div className="flex flex-col items-center px-8 pt-8 pb-6">
+          <div className="size-20 flex items-center justify-center">
+            <FilmIcon className="size-10 text-primary" />
+          </div>
+          <h2 className="card-title justify-center font-display italic font-semibold text-2xl leading-none mb-1 text-primary tracking-[-0.01em]">
             I am a Director
-          </h1>
+          </h2>
           <p className="font-display text-sm tracking-[0.25em] uppercase text-base-content/40">
             Enter the stage
           </p>

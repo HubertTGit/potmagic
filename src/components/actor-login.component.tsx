@@ -1,10 +1,11 @@
 import { useState } from 'react';
+import { StarIcon } from '@heroicons/react/24/outline';
 import { useRouter } from '@tanstack/react-router';
 import { actorSignIn } from '@/lib/actor-auth.fns';
 import { authClient } from '@/lib/auth-client';
 import { cn } from '@/lib/cn';
 
-export default function ActorLogin() {
+export function ActorLogin() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -29,16 +30,16 @@ export default function ActorLogin() {
   };
 
   return (
-    <div className="card bg-base-100 rounded-box overflow-hidden border border-primary/25 w-full min-w-[350px] mx-4 h-full">
+    <div className="card bg-base-100 rounded-box overflow-hidden border border-secondary/30 w-full min-w-87.5 mx-4 h-full hover:border-secondary/50 transition-colors duration-300">
       <div className="card-body gap-0 p-0">
-        <div className="px-8 pt-4 pb-6 text-center">
-          <h1
-            className={cn(
-              'card-title justify-center font-display italic font-semibold text-2xl leading-none mb-2 text-secondary tracking-[-0.01em]',
-            )}
-          >
+        {/* Role icon header */}
+        <div className="flex flex-col items-center px-8 pt-8 pb-6">
+          <div className="size-20 flex items-center justify-center">
+            <StarIcon className="size-10 text-secondary" />
+          </div>
+          <h2 className="card-title justify-center font-display italic font-semibold text-2xl leading-none mb-1 text-secondary tracking-[-0.01em]">
             I am an Actor
-          </h1>
+          </h2>
           <p className="font-display text-sm tracking-[0.25em] uppercase text-base-content/40">
             Enter the stage
           </p>
@@ -66,13 +67,21 @@ export default function ActorLogin() {
               type="submit"
               disabled={loading}
               className={cn(
-                'btn btn-primary btn-block mt-1 font-display text-base tracking-[0.08em]',
+                'btn btn-secondary btn-block mt-1 font-display text-base tracking-[0.08em]',
                 loading && 'opacity-60 cursor-not-allowed',
               )}
             >
               {loading ? 'Entering…' : 'Enter →'}
             </button>
           </form>
+
+          <div className="mt-8 text-center">
+            <p className="text-base-content/30 text-sm">
+              Ready to showcase your talent?
+              <br />
+              <span className="text-secondary/70">Your next role awaits!</span>
+            </p>
+          </div>
         </div>
       </div>
     </div>

@@ -212,14 +212,14 @@ These rules define how to translate Figma inputs into code for this project. Fol
 ### Component Organization
 
 - All UI components live in `src/components/`; file names use `.component.tsx` suffix for named components (e.g. `sidebar.component.tsx`) and plain `.tsx` for simpler primitives (e.g. `confirm-modal.tsx`, `data-list.tsx`)
-- IMPORTANT: Before creating a new component, search `src/components/` for an existing one that can be reused or extended
+- **IMPORTANT:** Before creating a new component, search `src/components/` for an existing one that can be reused or extended
 - Export components as named exports (not default exports): `export function MyComponent(...)`
 - No Storybook — validate visually against the running app and Figma screenshots
 
 ### Styling Rules
 
 - **IMPORTANT: Never use the `style` prop** — use Tailwind utility classes only
-- **IMPORTANT: Never hardcode colors** — use DaisyUI semantic color classes (`text-base-content`, `bg-base-200`, `text-gold`, `text-success`, `text-error`, etc.) or Tailwind utilities mapped to theme tokens
+- **IMPORTANT: Never hardcode colors** — use DaisyUI semantic color classes (`text-base-content`, `bg-base-200`, `text-primary`, `text-accent`, `text-success`, `text-error`, etc.) or Tailwind utilities mapped to theme tokens
 - Conditional/merged class names must always use `cn()` from `src/lib/cn.ts` (wraps `clsx` + `tailwind-merge`)
 - DaisyUI v5 is the primary component library — use its component classes (`btn`, `card`, `modal`, `badge`, `input`, `table`, `dropdown`, `loading`, etc.) before writing custom markup
 - Tailwind CSS v4 is used via `@import "tailwindcss"` in `src/index.css`; no `tailwind.config.js` — extend via `@theme` in CSS
@@ -227,23 +227,47 @@ These rules define how to translate Figma inputs into code for this project. Fol
 
 ### Design Tokens
 
-- **Themes:** DaisyUI themes set via `data-theme` attribute on `<html>`. Active themes are `dracula` (dark) and `emerald` (light), toggled by `useTheme` hook in `src/hooks/useTheme.ts`
-- **Gold accent:** `text-gold` / `bg-gold` / `border-gold` / `btn-gold` — the primary brand accent color defined as a CSS custom property
-- **Semantic colors:** use DaisyUI CSS variables (`--base-100`, `--base-200`, `--base-300`, `--base-content`, `--gold`) — never raw hex values
+- **Themes:** DaisyUI custom themes set via `data-theme` attribute on `<html>`. The two project themes are:
+  - `potmagic-dark` — deep velvet stage, dark color-scheme (default)
+  - `potmagic-light` — warm ivory parchment, light color-scheme
+  - Toggled by `useTheme` hook in `src/hooks/useTheme.ts`
+- **Dark mode variant:** `@custom-variant dark` targets `[data-theme=potmagic-dark]` — use `dark:` Tailwind prefix to target the dark theme specifically
+- **DaisyUI v5 semantic color tokens** (defined via `--color-*` CSS vars in `src/index.css`; use Tailwind class equivalents):
+
+  | Purpose | Tailwind class | Example use |
+  |---|---|---|
+  | Surface base | `bg-base-100` | page background |
+  | Sunken surface | `bg-base-200` | sidebar, input background |
+  | Deeply sunken | `bg-base-300` | dividers, avatar placeholder |
+  | Body text | `text-base-content` | default text |
+  | Muted text | `text-base-content/60` | secondary labels |
+  | Faint text | `text-base-content/30` | placeholders, hints |
+  | Primary action | `bg-primary` / `text-primary` | buttons, active nav links |
+  | Primary muted bg | `bg-primary/10` | active nav highlight |
+  | Accent / brand | `bg-accent` / `text-accent` | warm orange/gold accent |
+  | Success | `text-success` / `badge-success` | active/live states |
+  | Warning | `text-warning` / `badge-warning` | draft states |
+  | Error | `text-error` / `badge-error` | destructive actions |
+  | Neutral | `bg-neutral` / `text-neutral-content` | muted surfaces |
+  | Info | `text-info` | informational states |
+
+- **IMPORTANT: No `--gold` token** — use `text-accent` / `bg-accent` / `border-accent` for the warm accent color; there is no separate `--gold` variable
+- **Borders:** standard divider is `border border-base-300`; use `border-base-300` not hardcoded colors
 - **Opacity modifiers:** use Tailwind opacity syntax (`text-base-content/60`, `bg-base-100/80`) for muted variants — never hardcode rgba
 
 ### Typography
 
 - Primary font: **Lexend** (variable weight 100–900), loaded from Google Fonts in `src/index.css`
-- Display/heading text uses `font-display` class (maps to Lexend with appropriate weight)
-- Label/tracking patterns: `uppercase tracking-wider` for section labels, `tracking-wide` for buttons
+- Display/heading text uses `font-display` class (maps to Lexend via `--font-display` in `@theme`)
+- Label/tracking patterns: `uppercase tracking-wider` for section labels (badges, status), `tracking-wide` for buttons
+- Link hover pattern: `hover:text-primary transition-colors` — do not use underlines for navigation links
 
 ### Icon System
 
 - Icons come from `@heroicons/react/24/outline` (outline style, 24px grid)
 - Import named icon components: `import { BookOpenIcon } from '@heroicons/react/24/outline'`
 - Render with size utility: `<BookOpenIcon className="size-4" />` (use `size-*` not `w-* h-*`)
-- **IMPORTANT: Do NOT install new icon packages** — use HeroIcons exclusively; inline SVG only as a last resort for custom shapes
+- **IMPORTANT: Do NOT install new icon packages** — use HeroIcons exclusively; inline SVG only as a last resort for custom shapes not available in HeroIcons
 
 ### Asset Handling
 
@@ -270,7 +294,7 @@ src/
   lib/              # Server functions (*.fns.ts), utilities, auth config
   db/               # Drizzle schema + migrations
   hooks/            # React hooks (useTheme, useWindowSize)
-  index.css         # Global styles, Tailwind + DaisyUI config
+  index.css         # Global styles, Tailwind + DaisyUI config, theme tokens
 ```
 
 ### Key Patterns
@@ -278,7 +302,7 @@ src/
 ```tsx
 // Class composition
 import { cn } from '@/lib/cn'
-<div className={cn('btn btn-sm', isActive && 'btn-gold', className)} />
+<div className={cn('btn btn-sm btn-primary', isActive && 'btn-accent', className)} />
 
 // DaisyUI modal
 <dialog className="modal modal-open">
@@ -291,7 +315,36 @@ import { cn } from '@/lib/cn'
   Active
 </span>
 
+// DaisyUI dropdown
+<div className="dropdown dropdown-end">
+  <button tabIndex={0} className="btn btn-sm">Trigger</button>
+  <ul tabIndex={0} className="dropdown-content menu bg-base-200 rounded-box border border-base-300 shadow-lg z-10 p-1 w-32 mt-1">
+    <li><button className="text-xs">Action</button></li>
+  </ul>
+</div>
+
+// DaisyUI card
+<div className="card bg-base-100 border border-base-300 shadow-sm hover:shadow-md transition-shadow duration-200">
+  <div className="card-body gap-3">
+    <h2 className="card-title font-display text-base">Title</h2>
+    <div className="card-actions"><button className="btn btn-sm btn-primary w-full">Action</button></div>
+  </div>
+</div>
+
+// Active nav link (TanStack Router adds .active class)
+<Link className="btn btn-ghost btn-sm [&.active]:bg-primary/10 [&.active]:text-primary" to="/stories/">
+  Stories
+</Link>
+
 // HeroIcon usage
 import { XMarkIcon } from '@heroicons/react/24/outline'
 <XMarkIcon className="size-4" />
+
+// Muted/dimmed text hierarchy
+<p className="text-base-content">Primary text</p>
+<p className="text-base-content/60">Secondary text</p>
+<p className="text-base-content/30">Hint / placeholder text</p>
+
+// Standard border divider
+<div className="border-b border-base-300" />
 ```
