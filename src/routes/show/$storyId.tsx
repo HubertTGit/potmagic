@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -11,6 +11,7 @@ import {
 import { RoomEvent, Track } from 'livekit-client';
 import { getPublicStory, getViewerToken } from '@/lib/show.fns';
 import { cn } from '@/lib/cn';
+import { HomeIcon } from '@heroicons/react/24/outline';
 
 export const Route = createFileRoute('/show/$storyId')({
   component: ShowPage,
@@ -161,6 +162,9 @@ function ShowContent({
       {!isFullscreen && (
         <div className="flex items-center justify-between w-7xl py-4 px-2">
           <div className="flex items-center gap-3">
+            <Link to="/" className="btn btn-ghost btn-sm btn-square" title="Home">
+              <HomeIcon className="size-4" />
+            </Link>
             <span className="font-display text-base-content font-semibold tracking-wide">
               {storyTitle}
             </span>
