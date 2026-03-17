@@ -29,7 +29,7 @@ export function SceneSoundSection({
   autoplay,
   onToggleAutoplay,
 }: SceneSoundSectionProps) {
-  const picker = isDirector && availableSounds.length > 0 && (
+  const picker = (isDirector && availableSounds.length > 0) || sound ? (
     <PropPicker
       isLoading={isAssigning}
       propId={sound?.id ?? null}
@@ -39,6 +39,7 @@ export function SceneSoundSection({
       availableProps={availableSounds}
       placeholder={sound ? 'Change sound…' : 'Assign sound…'}
       fallbackIcon={soundIcon}
+      readOnly={!isDirector}
       onAssign={(propId) => {
         const s = propId
           ? (availableSounds.find((s) => s.id === propId) ?? null)
@@ -46,7 +47,7 @@ export function SceneSoundSection({
         onAssignSound(s);
       }}
     />
-  );
+  ) : null;
 
   return (
     <div className="mb-8">

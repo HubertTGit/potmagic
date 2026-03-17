@@ -22,6 +22,8 @@ interface PropPickerProps {
   placeholder?: string;
   /** Icon shown in image placeholder when imageUrl is null (e.g. MusicalNoteIcon for sounds) */
   fallbackIcon?: ReactNode;
+  /** When true, renders only the selected prop image/name with no dropdown */
+  readOnly?: boolean;
 }
 
 export function PropPicker({
@@ -35,6 +37,7 @@ export function PropPicker({
   isLoading = false,
   placeholder = 'Assign prop…',
   fallbackIcon,
+  readOnly = false,
 }: PropPickerProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -67,6 +70,27 @@ export function PropPicker({
     setOpen(false);
     setSearch('');
   };
+
+  if (readOnly) {
+    if (!propId) return null;
+    return (
+      <div className="flex items-center gap-2">
+        {propImageUrl ? (
+          <img
+            src={propImageUrl}
+            alt={propName ?? ''}
+            className="size-12 rounded object-cover bg-base-300 shrink-0"
+          />
+        ) : (
+          <div className="size-12 rounded bg-base-300 shrink-0 flex items-center justify-center">
+            {fallbackIcon}
+          </div>
+        )}
+        <span className="text-sm">{propName}</span>
+        {propType && <PropTypePill type={propType} />}
+      </div>
+    );
+  }
 
   return (
     <div ref={ref} className="relative">

@@ -23,7 +23,7 @@ export function SceneBackgroundSection({
   onAssignBackground,
   isAssigning,
 }: SceneBackgroundSectionProps) {
-  const picker = isDirector && availableBackgrounds.length > 0 && (
+  const picker = (isDirector && availableBackgrounds.length > 0) || background ? (
     <PropPicker
       isLoading={isAssigning}
       propId={background?.id ?? null}
@@ -32,6 +32,7 @@ export function SceneBackgroundSection({
       propType={background ? 'background' : null}
       availableProps={availableBackgrounds}
       placeholder={background ? 'Change background…' : 'Assign background…'}
+      readOnly={!isDirector}
       onAssign={(propId) => {
         const bg = propId
           ? (availableBackgrounds.find((b) => b.id === propId) ?? null)
@@ -39,7 +40,7 @@ export function SceneBackgroundSection({
         onAssignBackground(bg);
       }}
     />
-  );
+  ) : null;
 
   return (
     <div className="mb-8">

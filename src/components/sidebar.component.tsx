@@ -44,6 +44,17 @@ export function Sidebar() {
     }
   };
 
+  const expandOnDesktop = () => {
+    if (collapsed && window.matchMedia('(min-width: 1024px)').matches) {
+      setCollapsed(false);
+      if (!isStage) {
+        try {
+          localStorage.setItem('sidebar-collapsed', 'false');
+        } catch {}
+      }
+    }
+  };
+
   const handleLogout = async () => {
     await authClient.signOut();
     router.navigate({ to: '/auth', search: { token: '' } });
@@ -98,6 +109,7 @@ export function Sidebar() {
           to="/stories/"
           icon={<Square3Stack3DIcon className="size-4" />}
           collapsed={collapsed}
+          onExpand={expandOnDesktop}
         >
           Stories
         </SidebarLink>
@@ -106,6 +118,7 @@ export function Sidebar() {
             to="/director"
             icon={<AcademicCapIcon className="size-4" />}
             collapsed={collapsed}
+            onExpand={expandOnDesktop}
           >
             Director
           </SidebarLink>
@@ -118,6 +131,7 @@ export function Sidebar() {
           to="/profile"
           icon={<UserCircleIcon className="size-4" />}
           collapsed={collapsed}
+          onExpand={expandOnDesktop}
         >
           Profile
         </SidebarLink>
@@ -156,11 +170,13 @@ function SidebarLink({
   to,
   icon,
   collapsed,
+  onExpand,
   children,
 }: {
   to: string;
   icon: React.ReactNode;
   collapsed: boolean;
+  onExpand?: () => void;
   children: React.ReactNode;
 }) {
   return (
@@ -170,6 +186,7 @@ function SidebarLink({
     >
       <Link
         to={to}
+        onClick={onExpand}
         className={cn(
           'btn btn-ghost btn-sm font-normal text-base-content/60',
           collapsed ? 'btn-square' : 'w-full justify-start gap-3',
