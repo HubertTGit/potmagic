@@ -130,7 +130,7 @@ export const getViewerToken = createServerFn({ method: 'GET' })
     at.addGrant({
       room: data.storyId,
       roomJoin: true,
-      canPublish: false, // viewers are subscribe-only; they do not broadcast
+      canPublish: true, // viewers may publish audio (director can mute them remotely)
       canSubscribe: true,
       canPublishData: false,
     });

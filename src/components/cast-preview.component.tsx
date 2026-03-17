@@ -1,6 +1,11 @@
-import { FilmIcon, MicrophoneIcon } from '@heroicons/react/24/outline';
+import {
+  FilmIcon,
+  MicrophoneIcon,
+  UserGroupIcon,
+} from '@heroicons/react/24/outline';
 import { authClient } from '@/lib/auth-client';
 import { cn } from '@/lib/cn';
+import { VIEWER_PREFIX } from '@/lib/livekit.fns';
 import type { StageCast } from '@/components/stage.component';
 
 interface CastPreviewProps {
@@ -12,6 +17,8 @@ interface CastPreviewProps {
   isMuted?: boolean;
   onToggleMute?: () => void;
   canMute?: boolean;
+  viewersMuted?: boolean;
+  onMuteViewers?: (muted: boolean) => void;
 }
 
 export function CastPreview({
@@ -23,6 +30,8 @@ export function CastPreview({
   isMuted = false,
   onToggleMute,
   canMute = false,
+  viewersMuted = false,
+  onMuteViewers,
 }: CastPreviewProps) {
   const { data: session } = authClient.useSession();
   const currentUserId = session?.user?.id;
@@ -33,6 +42,9 @@ export function CastPreview({
   const isDirectorOnline = onlineIds.has(directorId);
   const isDirectorSpeaking = speakingIds.has(directorId);
   const canClickMute = canMute && !!onToggleMute;
+  const viewerCount = [...onlineIds].filter((id) =>
+    id.startsWith(VIEWER_PREFIX),
+  ).length;
 
   return (
     <div className="flex items-center gap-2 bg-base-200 border border-base-300 rounded-xl px-3 py-2 shadow-lg">
@@ -67,7 +79,9 @@ export function CastPreview({
                 : 'Mute mic'
               : directorName
           }
-          onClick={isCurrentUserDirector && canClickMute ? onToggleMute : undefined}
+          onClick={
+            isCurrentUserDirector && canClickMute ? onToggleMute : undefined
+          }
         >
           <FilmIcon className="size-4 text-primary" />
         </div>
@@ -136,6 +150,50 @@ export function CastPreview({
             </div>
           );
         })}
+
+      {/* Viewer group — shown when at least one viewer is online */}
+      {viewerCount > 0 && (
+        <div className="indicator">
+          {/* Online dot — top-right */}
+          <span className="indicator-item badge min-w-0 p-0 rounded-full badge-success size-2" />
+          {/* Viewer count — top-left */}
+          <span className="indicator-item indicator-start badge badge-sm badge-neutral min-w-0 px-1 text-[7px]">
+            {viewerCount}
+          </span>
+          {/* Muted mic — bottom-right (matches per-user style) */}
+          {viewersMuted && (
+            <span className="indicator-item indicator-bottom indicator-end rounded-full bg-error size-4 flex items-center justify-center">
+              <MicrophoneIcon className="size-2.5 text-error-content" />
+            </span>
+          )}
+          {isCurrentUserDirector && canMute && onMuteViewers ? (
+            <button
+              type="button"
+              onClick={() => onMuteViewers(!viewersMuted)}
+              title={viewersMuted ? 'Unmute all viewers' : 'Mute all viewers'}
+              className="cursor-pointer"
+            >
+              <div
+                className={cn(
+                  'size-8 rounded-full bg-base-300 flex items-center justify-center transition-all duration-300',
+                  'ring-2 ring-success ring-offset-2 ring-offset-base-200',
+                )}
+              >
+                <UserGroupIcon className="size-4 text-base-content/50" />
+              </div>
+            </button>
+          ) : (
+            <div
+              className={cn(
+                'size-8 rounded-full bg-base-300 flex items-center justify-center transition-all duration-300',
+                'ring-2 ring-success ring-offset-2 ring-offset-base-200',
+              )}
+            >
+              <UserGroupIcon className="size-4 text-base-content/50" />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
