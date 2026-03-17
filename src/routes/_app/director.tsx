@@ -177,7 +177,16 @@ function DirectorPage() {
 
           {/* Stories table */}
           {isLoading ? (
-            <p className="text-sm text-base-content/40">Loading…</p>
+            <div className="flex flex-col gap-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex gap-4 items-center py-2">
+                  <div className="skeleton h-4 flex-1 rounded" />
+                  <div className="skeleton h-4 w-8 rounded" />
+                  <div className="skeleton h-5 w-16 rounded-full" />
+                  <div className="skeleton h-7 w-24 rounded" />
+                </div>
+              ))}
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="table table-sm w-full">
@@ -335,7 +344,16 @@ function ActorsTab({
 
       {/* Actors list */}
       {isLoading ? (
-        <p className="text-sm text-base-content/40">Loading…</p>
+        <div className="flex flex-col gap-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex gap-4 items-center py-2">
+              <div className="skeleton h-4 flex-1 rounded" />
+              <div className="skeleton h-4 w-16 rounded" />
+              <div className="skeleton h-4 w-20 rounded" />
+              <div className="skeleton h-6 w-6 rounded" />
+            </div>
+          ))}
+        </div>
       ) : actors.length === 0 ? (
         <p className="text-sm text-base-content/30 text-center py-8">
           No actors invited yet.

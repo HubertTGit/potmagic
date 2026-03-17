@@ -82,7 +82,23 @@ function StoriesPage() {
       )}
 
       {isLoading ? (
-        <p className="text-base-content/40 text-sm">Loading…</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="card bg-base-200">
+              <div className="card-body p-6 gap-3">
+                <div className="flex justify-between items-start">
+                  <div className="skeleton h-5 w-3/4 rounded" />
+                  <div className="skeleton h-5 w-12 rounded-full" />
+                </div>
+                <div className="flex gap-4">
+                  <div className="skeleton h-3 w-16 rounded" />
+                  <div className="skeleton h-3 w-16 rounded" />
+                </div>
+                <div className="skeleton h-8 w-full rounded mt-2" />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
         <StoryGrid stories={stories} isDirector={isDirector} />
       )}

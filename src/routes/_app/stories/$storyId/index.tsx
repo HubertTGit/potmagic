@@ -73,8 +73,21 @@ function StoryDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="p-8">
-        <p className="text-base-content/40 text-sm">Loading…</p>
+      <div className="p-8 max-w-3xl">
+        <div className="skeleton h-4 w-48 rounded mb-8" />
+        <div className="flex items-center gap-3 mb-8">
+          <div className="skeleton h-10 flex-1 rounded" />
+          <div className="skeleton h-10 w-20 rounded" />
+          <div className="skeleton h-10 w-32 rounded" />
+        </div>
+        <div className="flex justify-end mb-6">
+          <div className="skeleton h-5 w-16 rounded-full" />
+        </div>
+        <div className="flex flex-col gap-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="skeleton h-12 w-full rounded" />
+          ))}
+        </div>
       </div>
     );
   }

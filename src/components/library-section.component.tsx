@@ -248,7 +248,14 @@ export function LibrarySection({
 
       {/* Loading state */}
       {isLoading && (
-        <p className="text-sm text-base-content/40 py-4">Loading…</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex flex-col gap-2">
+              <div className="skeleton aspect-square w-full rounded-lg" />
+              <div className="skeleton h-3 w-3/4 rounded" />
+            </div>
+          ))}
+        </div>
       )}
 
       {/* Grid */}
