@@ -8,6 +8,6 @@ export default defineConfig({
   out: "./src/db/migrations",
   dialect: "postgresql",
   dbCredentials: {
-    url: env.POSTGRES_URL_DEV,
+    url: env.POSTGRES_URL_DEV, //TODO: change this to POSTGRES_URL in prop (main branch)
   },
 });
