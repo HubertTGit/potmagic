@@ -22,9 +22,7 @@ function LandingPage() {
       {/* Navbar */}
       <div className="navbar bg-base-100 border-b border-base-300 px-4">
         <div className="navbar-start">
-          <span className="font-display italic font-semibold text-2xl text-primary tracking-[-0.01em]">
-            potmagic
-          </span>
+          <img src="logo-text.svg" />
         </div>
         <div className="navbar-end gap-1">
           <button

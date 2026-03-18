@@ -1,13 +1,23 @@
-import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
-import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query'
-import type { ReactNode } from 'react'
-import appCss from '@/index.css?url'
-import { toast } from '@/lib/toast'
-import { Toaster } from '@/components/toaster.component'
+import {
+  createRootRoute,
+  HeadContent,
+  Outlet,
+  Scripts,
+} from '@tanstack/react-router';
+import {
+  QueryClient,
+  QueryClientProvider,
+  QueryCache,
+  MutationCache,
+} from '@tanstack/react-query';
+import type { ReactNode } from 'react';
+import appCss from '@/index.css?url';
+import { toast } from '@/lib/toast';
+import { Toaster } from '@/components/toaster.component';
 
 function errorMessage(error: unknown) {
-  if (error instanceof Error) return error.message
-  return 'Something went wrong'
+  if (error instanceof Error) return error.message;
+  return 'Something went wrong';
 }
 
 const queryClient = new QueryClient({
@@ -17,14 +27,14 @@ const queryClient = new QueryClient({
   mutationCache: new MutationCache({
     onError: (error) => toast.error(errorMessage(error)),
   }),
-})
+});
 
 function NotFound() {
   return (
     <div className="flex h-screen items-center justify-center">
       <p className="text-base-content/60">Page not found</p>
     </div>
-  )
+  );
 }
 
 export const Route = createRootRoute({
@@ -37,7 +47,7 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: 'stylesheet', href: appCss },
-      { rel: 'icon', type: 'image/svg+xml', href: '/vite.svg' },
+      { rel: 'icon', type: 'image/svg+xml', href: '/potmagic.svg' },
     ],
     scripts: [
       {
@@ -48,7 +58,7 @@ export const Route = createRootRoute({
   }),
   shellComponent: RootDocument,
   component: RootLayout,
-})
+});
 
 function RootDocument({ children }: { children: ReactNode }) {
   return (
@@ -61,7 +71,7 @@ function RootDocument({ children }: { children: ReactNode }) {
         <Scripts />
       </body>
     </html>
-  )
+  );
 }
 
 function RootLayout() {
@@ -70,5 +80,5 @@ function RootLayout() {
       <Outlet />
       <Toaster />
     </QueryClientProvider>
-  )
+  );
 }
