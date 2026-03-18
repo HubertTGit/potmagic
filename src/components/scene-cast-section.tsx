@@ -1,9 +1,9 @@
-import { Link } from '@tanstack/react-router';
-import { Trash2, CircleHelp } from 'lucide-react';
-import { cn } from '@/lib/cn';
-import { DataList, DataListItem } from '@/components/data-list';
-import { PropPicker } from '@/components/prop-picker';
-import type { PropType } from '@/db/schema';
+import { Link } from "@tanstack/react-router";
+import { Trash2, CircleHelp } from "lucide-react";
+import { cn } from "@/lib/cn";
+import { DataList, DataListItem } from "@/components/data-list";
+import { PropPicker } from "@/components/prop-picker";
+import type { PropType } from "@/db/schema";
 
 export type CastMember = {
   id: string; // cast.id
@@ -77,8 +77,8 @@ export function SceneCastSection({
 
   return (
     <div className="mb-8">
-      <div className="flex justify-between items-center my-3">
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-base-content/40">
+      <div className="my-3 flex items-center justify-between">
+        <h2 className="text-base-content/40 text-xs font-semibold tracking-widest uppercase">
           Cast
         </h2>
 
@@ -93,8 +93,8 @@ export function SceneCastSection({
 
       <DataList>
         {assignedCast.length === 0 ? (
-          <DataListItem className="p-4 text-base-content/40 text-sm italic">
-            No cast assigned yet.
+          <DataListItem className="text-base-content/40 p-4 text-sm italic">
+            No Actor to cast, can't assign yet.
           </DataListItem>
         ) : (
           [...assignedCast]
@@ -105,38 +105,38 @@ export function SceneCastSection({
             })
             .map((c) => (
               <DataListItem key={c.id}>
-                <div className="flex items-center gap-3 w-48 shrink-0">
+                <div className="flex w-48 shrink-0 items-center gap-3">
                   <div
                     className={cn(
-                      'relative size-9 rounded-full flex items-center justify-center bg-base-300 shrink-0',
+                      "bg-base-300 relative flex size-9 shrink-0 items-center justify-center rounded-full",
                       c.userId === currentUserId &&
-                        'ring-2 ring-primary ring-offset-2 ring-offset-base-100',
+                        "ring-primary ring-offset-base-100 ring-2 ring-offset-2",
                     )}
                   >
                     {c.userImage ? (
                       <img
                         src={c.userImage}
-                        alt={c.userName ?? ''}
+                        alt={c.userName ?? ""}
                         className="size-full rounded-full object-cover"
                       />
                     ) : (
-                      <span className="text-xs font-bold uppercase text-base-content/30">
+                      <span className="text-base-content/30 text-xs font-bold uppercase">
                         {c.userName?.slice(0, 2)}
                       </span>
                     )}
                     {c.userId === currentUserId && (
                       <div
-                        className="absolute -top-2 -right-2 size-5 flex items-center justify-center tooltip tooltip-top"
+                        className="tooltip tooltip-top absolute -top-2 -right-2 flex size-5 items-center justify-center"
                         data-tip="This is you"
                       >
-                        <CircleHelp className="size-4 text-primary bg-base-100 rounded-full" />
+                        <CircleHelp className="text-primary bg-base-100 size-4 rounded-full" />
                       </div>
                     )}
                   </div>
                   <div className="flex flex-col gap-0.5">
                     <span className="text-sm font-semibold">{c.userName}</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-base-content/40 uppercase tracking-widest font-bold">
+                      <span className="text-base-content/40 text-[10px] font-bold tracking-widest uppercase">
                         Actor
                       </span>
                     </div>
@@ -160,11 +160,11 @@ export function SceneCastSection({
                       {c.propImageUrl ? (
                         <img
                           src={c.propImageUrl}
-                          alt={c.propName ?? ''}
-                          className="size-7 rounded object-cover bg-base-300 shrink-0"
+                          alt={c.propName ?? ""}
+                          className="bg-base-300 size-7 shrink-0 rounded object-cover"
                         />
                       ) : c.propId ? (
-                        <div className="size-7 rounded bg-base-300 shrink-0" />
+                        <div className="bg-base-300 size-7 shrink-0 rounded" />
                       ) : null}
                       {c.propName ? (
                         <div className="flex items-center gap-1.5">
@@ -176,12 +176,12 @@ export function SceneCastSection({
                               className="tooltip tooltip-right flex items-center"
                               data-tip="Your character is assigned by the director and cannot be changed."
                             >
-                              <CircleHelp className="size-3.5 text-base-content/20 hover:text-base-content/40 transition-colors cursor-help" />
+                              <CircleHelp className="text-base-content/20 hover:text-base-content/40 size-3.5 cursor-help transition-colors" />
                             </div>
                           )}
                         </div>
                       ) : (
-                        <span className="text-sm text-base-content/30 italic">
+                        <span className="text-base-content/30 text-sm italic">
                           No character assigned
                         </span>
                       )}
@@ -190,11 +190,11 @@ export function SceneCastSection({
                 </div>
 
                 {isDirector && (
-                  <div className="flex justify-end shrink-0">
+                  <div className="flex shrink-0 justify-end">
                     <button
                       onClick={() => onRemoveCast(c)}
                       disabled={isRemovingCast}
-                      className="text-xs text-error/60 hover:text-error transition-colors p-2 hover:bg-error/10 rounded-lg"
+                      className="text-error/60 hover:text-error hover:bg-error/10 rounded-lg p-2 text-xs transition-colors"
                       title="Remove from scene"
                     >
                       <Trash2 className="size-4" />
@@ -242,19 +242,19 @@ function ActorDropdown({
       </div>
       <ul
         tabIndex={0}
-        className="dropdown-content menu bg-base-200 border border-base-300 rounded-box z-50 w-72 p-0 shadow-xl mt-1 overflow-hidden"
+        className="dropdown-content menu bg-base-200 border-base-300 rounded-box z-50 mt-1 w-72 overflow-hidden border p-0 shadow-xl"
       >
         {availableActors.map((a) => (
           <li key={a.id}>
             <button
-              className="flex flex-col items-start gap-0 px-3 py-2 rounded-none"
+              className="flex flex-col items-start gap-0 rounded-none px-3 py-2"
               onClick={() => {
                 onAdd(a.id);
                 (document.activeElement as HTMLElement)?.blur();
               }}
             >
-              <span className="font-medium text-sm">{a.name}</span>
-              <span className="text-xs text-base-content/40">{a.email}</span>
+              <span className="text-sm font-medium">{a.name}</span>
+              <span className="text-base-content/40 text-xs">{a.email}</span>
             </button>
           </li>
         ))}
@@ -278,7 +278,7 @@ function SceneNavigator({
   } | null;
 }) {
   return (
-    <div className="join border border-base-300 rounded-2xl">
+    <div className="join border-base-300 rounded-2xl border">
       {nav?.all ? (
         nav.all.map((s, idx) => (
           <Link
@@ -286,8 +286,8 @@ function SceneNavigator({
             to="/stories/$storyId/scenes/$sceneId"
             params={{ storyId, sceneId: s.id }}
             className={cn(
-              'join-item btn btn-xs',
-              s.id === sceneId ? 'btn-primary' : 'btn-ghost',
+              "join-item btn btn-xs",
+              s.id === sceneId ? "btn-primary" : "btn-ghost",
             )}
           >
             {idx + 1}
