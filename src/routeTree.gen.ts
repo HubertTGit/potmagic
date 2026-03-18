@@ -9,6 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as ConceptRouteImport } from './routes/concept'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
@@ -23,6 +25,16 @@ import { Route as AppStageSceneIdRouteImport } from './routes/_app/stage/$sceneI
 import { Route as AppStoriesStoryIdIndexRouteImport } from './routes/_app/stories/$storyId/index'
 import { Route as AppStoriesStoryIdScenesSceneIdRouteImport } from './routes/_app/stories/$storyId/scenes/$sceneId'
 
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConceptRoute = ConceptRouteImport.update({
+  id: '/concept',
+  path: '/concept',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -92,6 +104,8 @@ const AppStoriesStoryIdScenesSceneIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
+  '/concept': typeof ConceptRoute
+  '/pricing': typeof PricingRoute
   '/director': typeof AppDirectorRoute
   '/profile': typeof AppProfileRoute
   '/auth/director-setup': typeof AuthDirectorSetupRoute
@@ -106,6 +120,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
+  '/concept': typeof ConceptRoute
+  '/pricing': typeof PricingRoute
   '/director': typeof AppDirectorRoute
   '/profile': typeof AppProfileRoute
   '/auth/director-setup': typeof AuthDirectorSetupRoute
@@ -122,6 +138,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
+  '/concept': typeof ConceptRoute
+  '/pricing': typeof PricingRoute
   '/_app/director': typeof AppDirectorRoute
   '/_app/profile': typeof AppProfileRoute
   '/auth/director-setup': typeof AuthDirectorSetupRoute
@@ -138,6 +156,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/concept'
+    | '/pricing'
     | '/director'
     | '/profile'
     | '/auth/director-setup'
@@ -152,6 +172,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/concept'
+    | '/pricing'
     | '/director'
     | '/profile'
     | '/auth/director-setup'
@@ -167,6 +189,8 @@ export interface FileRouteTypes {
     | '/'
     | '/_app'
     | '/auth'
+    | '/concept'
+    | '/pricing'
     | '/_app/director'
     | '/_app/profile'
     | '/auth/director-setup'
@@ -183,12 +207,28 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
+  ConceptRoute: typeof ConceptRoute
+  PricingRoute: typeof PricingRoute
   ShowStoryIdRoute: typeof ShowStoryIdRoute
   ShowIndexRoute: typeof ShowIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/concept': {
+      id: '/concept'
+      path: '/concept'
+      fullPath: '/concept'
+      preLoaderRoute: typeof ConceptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -319,6 +359,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
+  ConceptRoute: ConceptRoute,
+  PricingRoute: PricingRoute,
   ShowStoryIdRoute: ShowStoryIdRoute,
   ShowIndexRoute: ShowIndexRoute,
 }
