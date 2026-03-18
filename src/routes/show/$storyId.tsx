@@ -11,7 +11,7 @@ import {
 import { RoomEvent, Track } from 'livekit-client';
 import { getPublicStory, getViewerToken } from '@/lib/show.fns';
 import { cn } from '@/lib/cn';
-import { Home } from 'lucide-react';
+import { useTheme, Theme } from '@/hooks/useTheme';
 
 export const Route = createFileRoute('/show/$storyId')({
   head: () => ({ meta: [{ title: 'Watch — potmagic' }] }),
@@ -92,6 +92,7 @@ function ShowContent({
   const stageContainerRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const { theme } = useTheme();
 
   // Create audio element on mount
   useEffect(() => {
@@ -164,7 +165,11 @@ function ShowContent({
         <div className="flex items-center justify-between w-7xl py-4 px-2">
           <div className="flex items-center gap-3">
             <Link to="/" className="btn btn-ghost btn-sm btn-square" title="Home">
-              <Home className="size-4" />
+              <img
+                src={theme === Theme.dark ? '/icon-white.svg' : '/icon-red.svg'}
+                alt="potmagic"
+                className="size-5"
+              />
             </Link>
             <span className="font-display text-base-content font-semibold tracking-wide">
               {storyTitle}

@@ -38,8 +38,7 @@ export function LandingNavbar() {
           </Link>
 
           <Link
-            to="/auth"
-            search={{ token: undefined }}
+            to="/show"
             className="btn btn-sm btn-accent font-display tracking-wide px-5"
           >
             Watch Live

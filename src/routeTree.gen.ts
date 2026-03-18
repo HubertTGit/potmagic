@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ShowIndexRouteImport } from './routes/show/index'
 import { Route as ShowStoryIdRouteImport } from './routes/show/$storyId'
 import { Route as AuthDirectorSetupRouteImport } from './routes/auth.director-setup'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
@@ -34,6 +35,11 @@ const AppRoute = AppRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShowIndexRoute = ShowIndexRouteImport.update({
+  id: '/show/',
+  path: '/show/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShowStoryIdRoute = ShowStoryIdRouteImport.update({
@@ -90,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AppProfileRoute
   '/auth/director-setup': typeof AuthDirectorSetupRoute
   '/show/$storyId': typeof ShowStoryIdRoute
+  '/show/': typeof ShowIndexRoute
   '/stage/$sceneId': typeof AppStageSceneIdRoute
   '/stage/': typeof AppStageIndexRoute
   '/stories/': typeof AppStoriesIndexRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AppProfileRoute
   '/auth/director-setup': typeof AuthDirectorSetupRoute
   '/show/$storyId': typeof ShowStoryIdRoute
+  '/show': typeof ShowIndexRoute
   '/stage/$sceneId': typeof AppStageSceneIdRoute
   '/stage': typeof AppStageIndexRoute
   '/stories': typeof AppStoriesIndexRoute
@@ -118,6 +126,7 @@ export interface FileRoutesById {
   '/_app/profile': typeof AppProfileRoute
   '/auth/director-setup': typeof AuthDirectorSetupRoute
   '/show/$storyId': typeof ShowStoryIdRoute
+  '/show/': typeof ShowIndexRoute
   '/_app/stage/$sceneId': typeof AppStageSceneIdRoute
   '/_app/stage/': typeof AppStageIndexRoute
   '/_app/stories/': typeof AppStoriesIndexRoute
@@ -133,6 +142,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/auth/director-setup'
     | '/show/$storyId'
+    | '/show/'
     | '/stage/$sceneId'
     | '/stage/'
     | '/stories/'
@@ -146,6 +156,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/auth/director-setup'
     | '/show/$storyId'
+    | '/show'
     | '/stage/$sceneId'
     | '/stage'
     | '/stories'
@@ -160,6 +171,7 @@ export interface FileRouteTypes {
     | '/_app/profile'
     | '/auth/director-setup'
     | '/show/$storyId'
+    | '/show/'
     | '/_app/stage/$sceneId'
     | '/_app/stage/'
     | '/_app/stories/'
@@ -172,6 +184,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   ShowStoryIdRoute: typeof ShowStoryIdRoute
+  ShowIndexRoute: typeof ShowIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -195,6 +208,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/show/': {
+      id: '/show/'
+      path: '/show'
+      fullPath: '/show/'
+      preLoaderRoute: typeof ShowIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/show/$storyId': {
@@ -300,6 +320,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   ShowStoryIdRoute: ShowStoryIdRoute,
+  ShowIndexRoute: ShowIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

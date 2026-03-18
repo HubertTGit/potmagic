@@ -1,8 +1,8 @@
-import { Link, useRouter, useRouterState } from '@tanstack/react-router';
-import { useState, useEffect } from 'react';
-import { authClient } from '@/lib/auth-client';
-import { useTheme, Theme } from '@/hooks/useTheme';
-import { cn } from '@/lib/cn';
+import { Link, useRouter, useRouterState } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+import { authClient } from "@/lib/auth-client";
+import { useTheme, Theme } from "@/hooks/useTheme";
+import { cn } from "@/lib/cn";
 import {
   Sun,
   Moon,
@@ -11,19 +11,19 @@ import {
   ChevronLeft,
   ChevronRight,
   Megaphone,
-} from 'lucide-react';
+} from "lucide-react";
 
 export function Sidebar() {
   const { data: session } = authClient.useSession();
   const { theme, toggle } = useTheme();
   const router = useRouter();
-  const isDirector = session?.user?.role === 'director';
+  const isDirector = session?.user?.role === "director";
   const location = useRouterState({ select: (s) => s.location.pathname });
-  const isStage = location.startsWith('/stage/');
+  const isStage = location.startsWith("/stage/");
 
   const [collapsed, setCollapsed] = useState(() => {
     try {
-      return localStorage.getItem('sidebar-collapsed') === 'true';
+      return localStorage.getItem("sidebar-collapsed") === "true";
     } catch {
       return false;
     }
@@ -38,17 +38,17 @@ export function Sidebar() {
     setCollapsed(next);
     if (!isStage) {
       try {
-        localStorage.setItem('sidebar-collapsed', String(next));
+        localStorage.setItem("sidebar-collapsed", String(next));
       } catch {}
     }
   };
 
   const expandOnDesktop = () => {
-    if (collapsed && window.matchMedia('(min-width: 1024px)').matches) {
+    if (collapsed && window.matchMedia("(min-width: 1024px)").matches) {
       setCollapsed(false);
       if (!isStage) {
         try {
-          localStorage.setItem('sidebar-collapsed', 'false');
+          localStorage.setItem("sidebar-collapsed", "false");
         } catch {}
       }
     }
@@ -56,54 +56,68 @@ export function Sidebar() {
 
   const handleLogout = async () => {
     await authClient.signOut();
-    router.navigate({ to: '/auth', search: { token: '' } });
+    router.navigate({ to: "/auth", search: { token: "" } });
   };
 
   const btnBase = cn(
-    'btn btn-ghost btn-sm font-normal text-base-content/60',
-    collapsed ? 'btn-square' : 'w-full justify-start gap-3',
+    "btn btn-ghost btn-sm font-normal text-base-content/60",
+    collapsed ? "btn-square" : "w-full justify-start gap-3",
   );
 
   return (
     <aside
       className={cn(
-        'flex flex-col bg-base-200 border-r border-base-300 min-h-full transition-[width] duration-200 ease-in-out',
-        collapsed ? 'w-14' : 'w-52',
+        "bg-base-200 border-base-300 relative flex min-h-full flex-col overflow-visible border-r transition-[width] duration-200 ease-in-out",
+        collapsed ? "w-14" : "w-52",
       )}
     >
+      {collapsed && (
+        <button
+          onClick={handleCollapseToggle}
+          aria-label="Expand sidebar"
+          className="btn btn-xs btn-square absolute top-3 left-full z-50"
+        >
+          <ChevronRight className="size-4" />
+        </button>
+      )}
       {/* Brand + collapse toggle */}
       <div
         className={cn(
-          'flex items-center border-b border-base-300 h-13',
-          collapsed ? 'justify-center px-0' : 'px-4',
+          "border-base-300 flex h-13 items-center border-b",
+          collapsed ? "justify-center px-0" : "px-4",
         )}
       >
-        {!collapsed && (
-          <Link
-            to="/"
-            className="font-display italic font-semibold text-primary text-lg leading-none select-none hover:opacity-75 transition-opacity"
-          >
-            potmagic
+        {collapsed ? (
+          <Link to="/" className="transition-opacity hover:opacity-75">
+            <img
+              src={theme === Theme.dark ? "/icon-white.svg" : "/icon-red.svg"}
+              alt="potmagic"
+              className="size-6"
+            />
+          </Link>
+        ) : (
+          <Link to="/" className="transition-opacity hover:opacity-75">
+            <img
+              src={theme === Theme.dark ? "/logo-white.svg" : "/logo-color.svg"}
+              alt="potmagic"
+              className="h-6"
+            />
           </Link>
         )}
         <button
           onClick={handleCollapseToggle}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           className={cn(
-            'btn btn-ghost btn-xs btn-square text-base-content/30',
-            collapsed ? '' : 'ml-auto',
+            "btn btn-ghost btn-xs btn-square",
+            collapsed ? "hidden" : "ml-auto",
           )}
         >
-          {collapsed ? (
-            <ChevronRight className="size-3.5" />
-          ) : (
-            <ChevronLeft className="size-3.5" />
-          )}
+          <ChevronLeft className="size-4" />
         </button>
       </div>
 
       {/* Nav */}
-      <nav className="flex flex-col gap-1 p-2 flex-1">
+      <nav className="flex flex-1 flex-col gap-1 p-2">
         <SidebarLink
           to="/stories/"
           icon={<Layers3 className="size-4" />}
@@ -131,49 +145,49 @@ export function Sidebar() {
           to="/profile"
           onClick={expandOnDesktop}
           className={cn(
-            'flex items-center gap-3 px-3 py-3 border-b border-base-300 hover:bg-base-300/50 transition-colors',
-            collapsed && 'justify-center px-0 tooltip tooltip-right',
+            "border-base-300 hover:bg-base-300/50 flex items-center gap-3 border-b px-3 py-3 transition-colors",
+            collapsed && "tooltip tooltip-right justify-center px-0",
           )}
           data-tip={
             collapsed
-              ? (session?.user?.name ?? session?.user?.email ?? 'Profile')
+              ? (session?.user?.name ?? session?.user?.email ?? "Profile")
               : undefined
           }
         >
           <div className="avatar shrink-0">
-            <div className="size-7 rounded-full bg-base-300 overflow-hidden">
+            <div className="bg-base-300 size-7 overflow-hidden rounded-full">
               {session?.user?.image ? (
                 <img
                   src={session.user.image}
-                  alt={session.user.name ?? ''}
+                  alt={session.user.name ?? ""}
                   className="size-full object-cover"
                 />
               ) : (
-                <div className="size-full flex items-center justify-center text-xs font-semibold text-base-content/50 select-none">
+                <div className="text-base-content/50 flex size-full items-center justify-center text-xs font-semibold select-none">
                   {(session?.user?.name ??
                     session?.user?.email ??
-                    '?')[0].toUpperCase()}
+                    "?")[0].toUpperCase()}
                 </div>
               )}
             </div>
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <p className="text-sm font-medium leading-tight truncate">
-                {session?.user?.name ?? session?.user?.email ?? '—'}
+              <p className="truncate text-sm leading-tight font-medium">
+                {session?.user?.name ?? session?.user?.email ?? "—"}
               </p>
             </div>
           )}
         </Link>
 
-        <div className="p-2 flex flex-col gap-1">
+        <div className="flex flex-col gap-1 p-2">
           <div
-            className={cn(collapsed && 'tooltip tooltip-right')}
+            className={cn(collapsed && "tooltip tooltip-right")}
             data-tip={
               collapsed
                 ? theme === Theme.dark
-                  ? 'Light mode'
-                  : 'Dark mode'
+                  ? "Light mode"
+                  : "Dark mode"
                 : undefined
             }
           >
@@ -184,21 +198,21 @@ export function Sidebar() {
                 <Moon className="size-4 shrink-0" />
               )}
               {!collapsed &&
-                (theme === Theme.dark ? 'Light mode' : 'Dark mode')}
+                (theme === Theme.dark ? "Light mode" : "Dark mode")}
             </button>
           </div>
 
           {session && (
             <div
-              className={cn(collapsed && 'tooltip tooltip-right')}
-              data-tip={collapsed ? 'Logout' : undefined}
+              className={cn(collapsed && "tooltip tooltip-right")}
+              data-tip={collapsed ? "Logout" : undefined}
             >
               <button
                 onClick={handleLogout}
-                className={cn(btnBase, 'hover:text-error hover:btn-error')}
+                className={cn(btnBase, "hover:text-error hover:btn-error")}
               >
                 <LogOut className="size-4 shrink-0" />
-                {!collapsed && 'Logout'}
+                {!collapsed && "Logout"}
               </button>
             </div>
           )}
@@ -223,16 +237,16 @@ function SidebarLink({
 }) {
   return (
     <div
-      className={cn(collapsed && 'tooltip tooltip-right')}
+      className={cn(collapsed && "tooltip tooltip-right")}
       data-tip={collapsed ? String(children) : undefined}
     >
       <Link
         to={to}
         onClick={onExpand}
         className={cn(
-          'btn btn-ghost btn-sm font-normal text-base-content/60',
-          collapsed ? 'btn-square' : 'w-full justify-start gap-3',
-          '[&.active]:bg-primary/10 [&.active]:text-primary',
+          "btn btn-sm btn-primary font-normal",
+          collapsed ? "btn-square" : "w-full justify-start gap-3",
+          "[&.active]:bg-primary/10 [&.active]:text-primary",
         )}
       >
         {icon}
