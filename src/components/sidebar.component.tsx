@@ -164,8 +164,8 @@ export function Sidebar() {
                 />
               ) : (
                 <div className="text-base-content/50 flex size-full items-center justify-center text-xs font-semibold select-none">
-                  {(session?.user?.name ??
-                    session?.user?.email ??
+                  {(session?.user?.name ||
+                    session?.user?.email ||
                     "?")[0].toUpperCase()}
                 </div>
               )}
