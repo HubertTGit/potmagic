@@ -64,7 +64,9 @@ export function DirectorLogin({ token = '' }: { token?: string }) {
             <p className="text-base-content/60 text-sm">
               Check your inbox — we sent a sign-in link to
             </p>
-            <p className="text-base-content font-medium text-sm">{sentEmail}</p>
+            <p className="text-base-content bg-primary/10 border-primary p-3 font-medium text-sm rounded-2xl">
+              {sentEmail}
+            </p>
             <button
               type="button"
               onClick={() => setSent(false)}
@@ -75,7 +77,11 @@ export function DirectorLogin({ token = '' }: { token?: string }) {
           </div>
         ) : (
           <div className="px-8 pb-8 flex flex-col gap-4">
-            {error && <p className="text-error text-xs text-center">{error}</p>}
+            {error && (
+              <p className="text-error text-xs text-center p-3 border border-error-content bg-error/10 rounded-2xl">
+                {error}
+              </p>
+            )}
 
             <form onSubmit={handleSend} className="flex flex-col gap-4">
               <fieldset className="fieldset gap-1">

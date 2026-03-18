@@ -47,7 +47,11 @@ export function ActorLogin() {
 
         <div className="px-8 pb-8">
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            {error && <p className="text-error text-xs text-center">{error}</p>}
+            {error && (
+              <p className="text-error text-xs text-center p-3 border border-error-content bg-error/10 rounded-2xl">
+                {error}
+              </p>
+            )}
 
             <fieldset className="fieldset gap-1">
               <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
