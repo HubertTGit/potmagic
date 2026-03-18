@@ -201,6 +201,12 @@ Specialized reference agents for documentation lookup:
 
 These rules define how to translate Figma inputs into code for this project. Follow them for every Figma-driven change.
 
+### Figma Account Constraints
+
+- The authenticated Figma account (`hubert.talib@gmail.com`) is on a **Starter plan / View seat** — **6 MCP tool calls per month**. Use calls sparingly.
+- **IMPORTANT:** Only `figma.com/design/` URLs are supported. `figma.com/site/` (Figma Sites) and `figma.com/board/` URLs will fail — ask the user for the underlying design file link.
+- Call order to minimize wasted calls: `get_design_context` (returns both code + screenshot by default) → `get_metadata` only if context is too large → never call `get_screenshot` separately unless `get_design_context` explicitly failed to include one.
+
 ### Required Flow (do not skip)
 
 1. Call `get_design_context` first to fetch the structured representation for the exact node(s)
@@ -348,4 +354,39 @@ import { X } from 'lucide-react'
 
 // Standard border divider
 <div className="border-b border-base-300" />
+
+// TanStack Router navigation (never use <a> tags)
+import { Link } from '@tanstack/react-router'
+<Link to="/stories/$storyId" params={{ storyId: id }} className="hover:text-primary transition-colors">
+  Title
+</Link>
 ```
+
+### Figma → DaisyUI Translation Guide
+
+When Figma MCP returns raw HTML + Tailwind, map common patterns to DaisyUI equivalents before writing code:
+
+| Figma pattern | DaisyUI equivalent | Notes |
+|---|---|---|
+| Button with bg color | `btn btn-primary` / `btn btn-ghost` | Never build raw `<button>` with bg classes |
+| Pill / tag / chip | `badge badge-sm` | Add `badge-success`, `badge-warning`, etc. for color variants |
+| Input field | `input` | Add `bg-base-200 border-base-300` |
+| Table | `table table-sm` | Wrap in `overflow-x-auto` |
+| Dropdown menu | `dropdown` + `dropdown-content menu` | Use `dropdown-end` for right-aligned |
+| Modal / dialog | `modal modal-open` + `modal-box` + `modal-backdrop` | See key patterns above |
+| Card / panel | `card` + `card-body` or `bg-base-200 border border-base-300 rounded-xl` | |
+| Spinner / loading | `loading loading-spinner loading-xs/sm/md` | Never use a custom SVG spinner |
+| Avatar / user image | `avatar` + inner `div` with `rounded-full` | Match existing `cast-preview.component.tsx` pattern |
+| Navbar / top bar | `navbar bg-base-100 border-b border-base-300` | |
+| Tabs | Manual `role="tablist"` + border-b pattern | See `director.tsx` for the tab pattern used here |
+| Toast / alert | `toast` via `src/lib/toast.ts` helpers — `toast.error()` / `toast.success()` | Never build inline alerts |
+
+### Border Radius Tokens
+
+DaisyUI v5 exposes radius tokens — use Tailwind's `rounded-*` utilities that map to them:
+
+| Token | Tailwind class | Usage |
+|---|---|---|
+| `--radius-selector` | `rounded` / `rounded-md` | Buttons, badges, selectors |
+| `--radius-field` | `rounded-xl` | Inputs, textareas |
+| `--radius-box` | `rounded-xl` / `rounded-2xl` | Cards, modals, panels |

@@ -1,7 +1,9 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useEffect } from 'react';
 import { DirectorLogin } from '@/components/director-login.component';
 import { ActorLogin } from '@/components/actor-login.component';
-import { Home } from 'lucide-react';
+import { LandingNavbar } from '@/components/landing-navbar.component';
+import { authClient } from '@/lib/auth-client';
 
 export const Route = createFileRoute('/auth')({
   head: () => ({ meta: [{ title: 'Sign In — potmagic' }] }),
@@ -13,29 +15,28 @@ export const Route = createFileRoute('/auth')({
 
 function LoginPage() {
   const { token } = Route.useSearch();
+  const navigate = useNavigate();
+  const { data: session } = authClient.useSession();
+
+  useEffect(() => {
+    if (session) {
+      navigate({ to: '/stories' });
+    }
+  }, [session, navigate]);
+
   return (
-    <div className="min-h-screen flex items-center flex-col justify-center bg-base-200 px-4 gap-10">
-      <Link to="/" className="fixed top-4 left-4 btn btn-ghost btn-sm gap-2 text-base-content/60 hover:text-base-content">
-        <Home className="size-4" />
-        Home
-      </Link>
-      <div className="text-center flex flex-col gap-10">
-        <h1 className="font-display italic font-semibold text-7xl text-primary leading-none">
-          potmagic
-        </h1>
-        <p className="text-base-content/40 text-base mt-2 max-w-96">
-          Step into the digital spotlight. Join our online community theater and
-          perform live from anywhere.
-        </p>
-      </div>
-      <div className="flex flex-col md:flex-row items-center md:items-stretch gap-6 md:gap-0">
-        <DirectorLogin token={token} />
-        <div className="flex md:flex-col items-center gap-3 md:px-8">
-          <div className="flex-1 h-px md:h-16 md:w-px w-16 bg-base-content/10" />
-          <span className="text-2xl text-base-content/30">or</span>
-          <div className="flex-1 h-px md:h-16 md:w-px w-16 bg-base-content/10" />
+    <div className="min-h-screen flex flex-col bg-base-200">
+      <LandingNavbar />
+      <div className="flex flex-1 items-center justify-center px-4 py-12">
+        <div className="flex flex-col md:flex-row items-center md:items-stretch gap-6 md:gap-0">
+          <DirectorLogin token={token} />
+          <div className="flex md:flex-col items-center gap-3 md:px-8">
+            <div className="flex-1 h-px md:h-16 md:w-px w-16 bg-base-content/10" />
+            <span className="text-2xl text-base-content/30">or</span>
+            <div className="flex-1 h-px md:h-16 md:w-px w-16 bg-base-content/10" />
+          </div>
+          <ActorLogin />
         </div>
-        <ActorLogin />
       </div>
     </div>
   );

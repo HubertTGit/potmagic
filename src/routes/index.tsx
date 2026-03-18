@@ -1,9 +1,8 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { listPublicStories } from '@/lib/stories.fns';
-import { useTheme, Theme } from '@/hooks/useTheme';
 import { PublicStoryCard } from '@/components/public-story-card.component';
-import { Sun, Moon } from 'lucide-react';
+import { LandingNavbar } from '@/components/landing-navbar.component';
 
 export const Route = createFileRoute('/')({
   head: () => ({ meta: [{ title: 'potmagic' }] }),
@@ -11,7 +10,6 @@ export const Route = createFileRoute('/')({
 });
 
 function LandingPage() {
-  const { theme, toggle } = useTheme();
   const { data: stories = [], isLoading } = useQuery({
     queryKey: ['public-stories'],
     queryFn: () => listPublicStories(),
@@ -19,36 +17,10 @@ function LandingPage() {
 
   return (
     <div className="min-h-screen bg-base-200 text-base-content">
-      {/* Navbar */}
-      <div className="navbar bg-base-100 border-b border-base-300 px-4">
-        <div className="navbar-start">
-          <img src="logo-text.svg" />
-        </div>
-        <div className="navbar-end gap-1">
-          <button
-            type="button"
-            onClick={toggle}
-            className="btn btn-sm btn-ghost btn-square"
-            aria-label="Toggle theme"
-          >
-            {theme === Theme.dark ? (
-              <Sun className="size-4" />
-            ) : (
-              <Moon className="size-4" />
-            )}
-          </button>
-          <Link
-            to="/auth"
-            search={{ token: undefined }}
-            className="btn btn-sm btn-primary font-display tracking-wide"
-          >
-            Sign in
-          </Link>
-        </div>
-      </div>
+      <LandingNavbar />
 
       {/* Stories grid */}
-      <div className="p-12">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {isLoading ? (
           <div className="flex items-center gap-2 text-base-content/40 text-sm mt-16 justify-center">
             <span className="loading loading-spinner loading-xs" />
