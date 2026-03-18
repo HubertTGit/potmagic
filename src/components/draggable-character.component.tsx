@@ -242,7 +242,6 @@ export function DraggableCharacter({
       strokeWidth={4}
       dragBoundFunc={(pos) => {
         const halfW = (image?.width ?? 0) / 2;
-        const halfH = (image?.height ?? 0) / 2;
         if (type === 'background') {
           const minX = stageWidth - halfW;
           const maxX = halfW;
@@ -250,8 +249,8 @@ export function DraggableCharacter({
           return { x: clampedX, y: imageRef.current?.y() ?? pos.y };
         }
         return {
-          x: Math.min(Math.max(pos.x, halfW), stageWidth - halfW),
-          y: Math.min(Math.max(pos.y, halfH), stageHeight - halfH),
+          x: Math.min(Math.max(pos.x, 0), stageWidth),
+          y: Math.min(Math.max(pos.y, 0), stageHeight),
         };
       }}
       onDragMove={() => {
