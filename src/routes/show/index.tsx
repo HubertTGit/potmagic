@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { listPublicStories } from '@/lib/stories.fns';
 import { LandingNavbar } from '@/components/landing-navbar.component';
+import { LandingFooter } from '@/components/landing-footer.component';
 import { PublicStoryCard } from '@/components/public-story-card.component';
 
 export const Route = createFileRoute('/show/')({
@@ -18,7 +19,7 @@ function ShowsPage() {
   return (
     <div className="min-h-screen flex flex-col bg-base-200 text-base-content">
       <LandingNavbar />
-      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div className="flex-1 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {isLoading ? (
           <div className="flex items-center gap-2 text-base-content/40 text-sm mt-16 justify-center">
             <span className="loading loading-spinner loading-xs" />
@@ -54,6 +55,7 @@ function ShowsPage() {
           </div>
         )}
       </div>
+      <LandingFooter />
     </div>
   );
 }

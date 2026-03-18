@@ -12,7 +12,7 @@ export function LandingNavbar() {
 
   return (
     <div className="navbar bg-base-100 px-4 py-3 sm:px-6 lg:px-8">
-      <div className="mx-auto flex w-full max-w-7xl items-center">
+      <div className="mx-auto flex w-full max-w-7xl items-center px-12">
         <div className="navbar-start">
           <Link to="/" className="flex items-center gap-2">
             <img
@@ -43,7 +43,7 @@ export function LandingNavbar() {
               isAuthPage && "btn-active",
             )}
           >
-            {session ? "Manage Theatre" : "Join Theatre"}
+            {session ? "Start Curating" : "Join Theatre"}
           </Link>
 
           <Link

@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { DirectorLogin } from '@/components/director-login.component';
 import { ActorLogin } from '@/components/actor-login.component';
 import { LandingNavbar } from '@/components/landing-navbar.component';
+import { LandingFooter } from '@/components/landing-footer.component';
 import { authClient } from '@/lib/auth-client';
 
 export const Route = createFileRoute('/auth')({
@@ -38,6 +39,7 @@ function LoginPage() {
           <ActorLogin />
         </div>
       </div>
+      <LandingFooter />
     </div>
   );
 }
