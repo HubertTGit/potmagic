@@ -103,6 +103,23 @@ export const listProps = createServerFn({ method: 'GET' })
       .orderBy(props.createdAt);
   });
 
+export const listAllProps = createServerFn({ method: 'GET' }).handler(async () => {
+  const session = await requireDirector();
+
+  const rows = await db
+    .select()
+    .from(props)
+    .where(eq(props.createdBy, session.user.id))
+    .orderBy(props.createdAt);
+
+  return {
+    character: rows.filter((r) => r.type === 'character'),
+    background: rows.filter((r) => r.type === 'background'),
+    sound: rows.filter((r) => r.type === 'sound'),
+    animation: rows.filter((r) => r.type === 'animation'),
+  };
+});
+
 export const deleteProp = createServerFn({ method: 'POST' })
   .inputValidator((input) => z.object({ id: z.string() }).parse(input))
   .handler(async ({ data }) => {

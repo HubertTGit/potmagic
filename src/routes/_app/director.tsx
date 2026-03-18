@@ -2,7 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { listStories } from '@/lib/stories.fns';
-import { uploadProp, listProps, deleteProp } from '@/lib/props.fns';
+import { uploadProp, listAllProps, deleteProp } from '@/lib/props.fns';
 import {
   listInvitedActors,
   addInvitedActor,
@@ -43,23 +43,18 @@ function DirectorPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['stories'] }),
   });
 
-  const { data: characters = [], isLoading: loadingChars } = useQuery({
-    queryKey: ['props', 'character'],
-    queryFn: () => listProps({ data: { type: 'character' } }),
+  const { data: allProps, isLoading: loadingProps } = useQuery({
+    queryKey: ['props'],
+    queryFn: () => listAllProps(),
     enabled: tab === 'library',
   });
 
-  const { data: backgrounds = [], isLoading: loadingBgs } = useQuery({
-    queryKey: ['props', 'background'],
-    queryFn: () => listProps({ data: { type: 'background' } }),
-    enabled: tab === 'library',
-  });
-
-  const { data: sounds = [], isLoading: loadingSounds } = useQuery({
-    queryKey: ['props', 'sound'],
-    queryFn: () => listProps({ data: { type: 'sound' } }),
-    enabled: tab === 'library',
-  });
+  const characters = allProps?.character ?? [];
+  const backgrounds = allProps?.background ?? [];
+  const sounds = allProps?.sound ?? [];
+  const loadingChars = loadingProps;
+  const loadingBgs = loadingProps;
+  const loadingSounds = loadingProps;
 
   const { data: invitedActors = [], isLoading: loadingActors } = useQuery({
     queryKey: ['invitedActors'],
@@ -107,16 +102,16 @@ function DirectorPage() {
         },
       });
 
-      queryClient.invalidateQueries({ queryKey: ['props', type] });
+      queryClient.invalidateQueries({ queryKey: ['props'] });
     } catch (error: any) {
       toast.error(error.message ?? 'Upload failed');
       throw error;
     }
   };
 
-  const handleRemoveProp = async (type: PropType, id: string) => {
+  const handleRemoveProp = async (_type: PropType, id: string) => {
     await deleteProp({ data: { id } });
-    queryClient.invalidateQueries({ queryKey: ['props', type] });
+    queryClient.invalidateQueries({ queryKey: ['props'] });
   };
 
   return (
