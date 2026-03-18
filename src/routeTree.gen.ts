@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UnderConstructionRouteImport } from './routes/under-construction'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as ConceptRouteImport } from './routes/concept'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -25,6 +26,11 @@ import { Route as AppStageSceneIdRouteImport } from './routes/_app/stage/$sceneI
 import { Route as AppStoriesStoryIdIndexRouteImport } from './routes/_app/stories/$storyId/index'
 import { Route as AppStoriesStoryIdScenesSceneIdRouteImport } from './routes/_app/stories/$storyId/scenes/$sceneId'
 
+const UnderConstructionRoute = UnderConstructionRouteImport.update({
+  id: '/under-construction',
+  path: '/under-construction',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteWithChildren
   '/concept': typeof ConceptRoute
   '/pricing': typeof PricingRoute
+  '/under-construction': typeof UnderConstructionRoute
   '/director': typeof AppDirectorRoute
   '/profile': typeof AppProfileRoute
   '/auth/director-setup': typeof AuthDirectorSetupRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/concept': typeof ConceptRoute
   '/pricing': typeof PricingRoute
+  '/under-construction': typeof UnderConstructionRoute
   '/director': typeof AppDirectorRoute
   '/profile': typeof AppProfileRoute
   '/auth/director-setup': typeof AuthDirectorSetupRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/concept': typeof ConceptRoute
   '/pricing': typeof PricingRoute
+  '/under-construction': typeof UnderConstructionRoute
   '/_app/director': typeof AppDirectorRoute
   '/_app/profile': typeof AppProfileRoute
   '/auth/director-setup': typeof AuthDirectorSetupRoute
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/concept'
     | '/pricing'
+    | '/under-construction'
     | '/director'
     | '/profile'
     | '/auth/director-setup'
@@ -174,6 +184,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/concept'
     | '/pricing'
+    | '/under-construction'
     | '/director'
     | '/profile'
     | '/auth/director-setup'
@@ -191,6 +202,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/concept'
     | '/pricing'
+    | '/under-construction'
     | '/_app/director'
     | '/_app/profile'
     | '/auth/director-setup'
@@ -209,12 +221,20 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   ConceptRoute: typeof ConceptRoute
   PricingRoute: typeof PricingRoute
+  UnderConstructionRoute: typeof UnderConstructionRoute
   ShowStoryIdRoute: typeof ShowStoryIdRoute
   ShowIndexRoute: typeof ShowIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/under-construction': {
+      id: '/under-construction'
+      path: '/under-construction'
+      fullPath: '/under-construction'
+      preLoaderRoute: typeof UnderConstructionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pricing': {
       id: '/pricing'
       path: '/pricing'
@@ -361,6 +381,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   ConceptRoute: ConceptRoute,
   PricingRoute: PricingRoute,
+  UnderConstructionRoute: UnderConstructionRoute,
   ShowStoryIdRoute: ShowStoryIdRoute,
   ShowIndexRoute: ShowIndexRoute,
 }
