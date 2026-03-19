@@ -26,12 +26,12 @@ importers:
       '@livekit/components-styles':
         specifier: ^1.2.0
         version: 1.2.0
-      '@rive-app/canvas':
-        specifier: ^2.35.2
-        version: 2.35.2
       '@rive-app/react-webgl2':
         specifier: ^4.27.1
         version: 4.27.1(react@19.2.4)
+      '@rive-app/webgl2':
+        specifier: ^2.35.3
+        version: 2.35.3
       '@tanstack/react-query':
         specifier: ^5.90.21
         version: 5.90.21(react@19.2.4)
@@ -775,9 +775,6 @@ packages:
     resolution: {integrity: sha512-tmmZ3lQxAe/k/+rNnXQRawJ4NjxO2hqiOLTHvWchtGZULp4RyFeh6aU4XdOYBFe2KE1oShQTv4AblOs2iOrNnQ==}
     engines: {node: '>= 10.0.0'}
 
-  '@rive-app/canvas@2.35.2':
-    resolution: {integrity: sha512-RkVSoonCmaB0ciQR5H8RF9ofEpxEftby4mj31jGCJ45vGP55FSS3kVia5wDXBI7SMqwxG1ZuBsptQkmvC7xeDA==}
-
   '@rive-app/react-webgl2@4.27.1':
     resolution: {integrity: sha512-QAiUJKU+VdtaRG4jzgj2dzs3He3TsF314S/jtjxbpVbmMtVbvepMk+gb4wl7UbPlzi18t+6hPZQcRX1A+OxXxQ==}
     peerDependencies:
@@ -785,6 +782,9 @@ packages:
 
   '@rive-app/webgl2@2.35.2':
     resolution: {integrity: sha512-Xe6g+lPicggYpdffdi9eN4X0hDEK2aWU+G8fUQsR3FCH2SIAVd7jmNUEIB5mksd09KywWtcFd6vZKkQDPKNbNw==}
+
+  '@rive-app/webgl2@2.35.3':
+    resolution: {integrity: sha512-gsiP030uKLCTXoma5kJ7OG7Fpjwqx63RpFxc5/wFEvSuEHdTgOYOmIa6/MEXbC3obxnp8TJIj1XMKRYIpJHD7w==}
 
   '@rolldown/binding-android-arm64@1.0.0-rc.9':
     resolution: {integrity: sha512-lcJL0bN5hpgJfSIz/8PIf02irmyL43P+j1pTCfbD1DbLkmGRuFIA4DD3B3ZOvGqG0XiVvRznbKtN0COQVaKUTg==}
@@ -3874,14 +3874,14 @@ snapshots:
       '@parcel/watcher-win32-x64': 2.5.6
     optional: true
 
-  '@rive-app/canvas@2.35.2': {}
-
   '@rive-app/react-webgl2@4.27.1(react@19.2.4)':
     dependencies:
       '@rive-app/webgl2': 2.35.2
       react: 19.2.4
 
   '@rive-app/webgl2@2.35.2': {}
+
+  '@rive-app/webgl2@2.35.3': {}
 
   '@rolldown/binding-android-arm64@1.0.0-rc.9':
     optional: true

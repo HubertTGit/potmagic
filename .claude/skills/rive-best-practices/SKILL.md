@@ -1,6 +1,6 @@
 ---
 name: rive-best-practices
-description: Use when working with Rive animations — @rive-app/react-webgl2, @rive-app/canvas, useRive hook, state machines, layouts, asset loading, and the RiveCanvas wrapper pattern used in this project.
+description: Use when working with Rive animations — @rive-app/react-webgl2, @rive-app/webgl2, useRive hook, state machines, layouts, asset loading, and the RiveCanvas wrapper pattern used in this project.
 ---
 
 # Rive Best Practices
@@ -13,11 +13,10 @@ Apply these patterns when adding, modifying, or debugging Rive animations in thi
 
 This project uses **`@rive-app/react-webgl2`** (WebGL2 renderer — hardware-accelerated, best for interactive animations on canvas).
 
-| Package | Renderer | Use when |
-|---------|----------|----------|
-| `@rive-app/react-webgl2` | WebGL2 | ✅ This project — best performance, GPU-accelerated |
-| `@rive-app/canvas` | Canvas 2D | Fallback for environments without WebGL2 |
-| `@rive-app/react-canvas` | Canvas 2D | React wrapper for canvas renderer |
+| Package                  | Renderer   | Use when                                            |
+| ------------------------ | ---------- | --------------------------------------------------- |
+| `@rive-app/react-webgl2` | WebGL2     | ✅ This project — best performance, GPU-accelerated |
+| `@rive-app/webgl2`       | Typescript | for environments with WebGL2                        |
 
 ---
 
@@ -28,11 +27,11 @@ This project uses **`@rive-app/react-webgl2`** (WebGL2 renderer — hardware-acc
 ```tsx
 // ✅ Correct — avoids Vite CJS/ESM mismatch
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-import pkg from '@rive-app/react-webgl2';
+import pkg from "@rive-app/react-webgl2";
 const { useRive, Layout, Fit, Alignment, RiveEventType } = pkg as any;
 
 // ❌ Wrong — Vite will error on named imports from CJS package
-import { useRive, Layout, Fit } from '@rive-app/react-webgl2';
+import { useRive, Layout, Fit } from "@rive-app/react-webgl2";
 ```
 
 ---
@@ -43,42 +42,52 @@ Rive requires a browser canvas — it **cannot render server-side**. Always wrap
 
 ```tsx
 // src/components/rive-canvas.component.tsx — project standard
-import pkg from '@rive-app/react-webgl2';
+import pkg from "@rive-app/react-webgl2";
 const { useRive, Layout, Fit } = pkg as any;
-import { useState, useEffect } from 'react';
-import { cn } from '@/lib/cn';
+import { useState, useEffect } from "react";
+import { cn } from "@/lib/cn";
 
-function RivePlayer({ src, buffer, className }: {
+function RivePlayer({
+  src,
+  buffer,
+  className,
+}: {
   src?: string;
   buffer?: ArrayBuffer;
   className?: string;
 }) {
-  const isCover = className?.includes('object-cover');
+  const isCover = className?.includes("object-cover");
   const fit = isCover ? Fit.Cover : Fit.Contain;
 
   const { RiveComponent } = useRive({
     src,
     buffer,
-    artboard: 'potmagicArtboard',
-    stateMachines: 'potmagicStateMachine',
+    artboard: "potmagicArtboard",
+    stateMachines: "potmagicStateMachine",
     layout: new Layout({ fit }),
     autoplay: true,
   });
 
   return (
-    <div className={cn(className, 'overflow-hidden')}>
-      <RiveComponent className="w-full h-full" />
+    <div className={cn(className, "overflow-hidden")}>
+      <RiveComponent className="h-full w-full" />
     </div>
   );
 }
 
-export function RiveCanvas({ src, buffer, className }: {
+export function RiveCanvas({
+  src,
+  buffer,
+  className,
+}: {
   src?: string;
   buffer?: ArrayBuffer;
   className?: string;
 }) {
   const [isClient, setIsClient] = useState(false);
-  useEffect(() => { setIsClient(true); }, []);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   if (!isClient) return <div className={className} />;
   return <RivePlayer src={src} buffer={buffer} className={className} />;
@@ -86,6 +95,7 @@ export function RiveCanvas({ src, buffer, className }: {
 ```
 
 **Key rules:**
+
 - Always split into `RivePlayer` (inner) + `RiveCanvas` (outer with SSR guard)
 - The `isClient` guard prevents SSR/hydration crashes in TanStack Start
 - Pass `className` through to control sizing — never hardcode dimensions
@@ -114,6 +124,8 @@ const { rive, RiveComponent } = useRive({
 
   autoplay: true,                     // start playing immediately
 
+  autoBind: true                     // connect to viewModel
+
   // Lifecycle callbacks
   onLoad: () => console.log('loaded'),
   onStateChange: (event) => console.log(event),
@@ -123,18 +135,18 @@ const { rive, RiveComponent } = useRive({
 
 ### Return values
 
-| Value | Type | Description |
-|-------|------|-------------|
-| `rive` | `Rive \| null` | Raw Rive instance — null until loaded |
-| `RiveComponent` | `React.FC` | Drop-in canvas component — use this to render |
-| `canvas` | `HTMLCanvasElement \| null` | The underlying canvas element |
+| Value           | Type                        | Description                                   |
+| --------------- | --------------------------- | --------------------------------------------- |
+| `rive`          | `Rive \| null`              | Raw Rive instance — null until loaded         |
+| `RiveComponent` | `React.FC`                  | Drop-in canvas component — use this to render |
+| `canvas`        | `HTMLCanvasElement \| null` | The underlying canvas element                 |
 
 ---
 
 ## 5. Fit Options
 
 ```tsx
-import pkg from '@rive-app/react-webgl2';
+import pkg from "@rive-app/react-webgl2";
 const { Fit, Layout, Alignment } = pkg as any;
 
 // Fit.Contain  — maintains aspect ratio, fits within bounds (default)
@@ -147,7 +159,7 @@ const { Fit, Layout, Alignment } = pkg as any;
 
 const layout = new Layout({
   fit: Fit.Cover,
-  alignment: Alignment.Center,  // Center, TopLeft, TopRight, BottomLeft, BottomRight, etc.
+  alignment: Alignment.Center, // Center, TopLeft, TopRight, BottomLeft, BottomRight, etc.
 });
 ```
 
@@ -159,17 +171,18 @@ Interact with state machine inputs to control animation state:
 
 ```tsx
 const { rive, RiveComponent } = useRive({
-  src: '/character.riv',
-  artboard: 'potmagicArtboard',
-  stateMachines: 'potmagicStateMachine',
+  src: "/character.riv",
+  artboard: "potmagicArtboard",
+  stateMachines: "potmagicStateMachine",
   autoplay: true,
+  autoBind: true,
 });
 
 // Get inputs after rive loads
-const inputs = rive?.stateMachineInputs('potmagicStateMachine');
-const hoverInput = inputs?.find(i => i.name === 'isHover');
-const triggerInput = inputs?.find(i => i.name === 'onClick');
-const speedInput = inputs?.find(i => i.name === 'speed');
+const inputs = rive?.stateMachineInputs("potmagicStateMachine");
+const hoverInput = inputs?.find((i) => i.name === "isHover");
+const triggerInput = inputs?.find((i) => i.name === "onClick");
+const speedInput = inputs?.find((i) => i.name === "speed");
 
 // Boolean input
 hoverInput?.value = true;
@@ -189,14 +202,15 @@ Listen to custom events fired from Rive state machines:
 
 ```tsx
 const { rive, RiveComponent } = useRive({
-  src: '/character.riv',
-  artboard: 'potmagicArtboard',
-  stateMachines: 'potmagicStateMachine',
+  src: "/character.riv",
+  artboard: "potmagicArtboard",
+  stateMachines: "potmagicStateMachine",
   autoplay: true,
+  autoBind: true,
   onRiveEventReceived: (riveEvent) => {
-    const eventName = riveEvent.data.name;       // event name from Rive editor
+    const eventName = riveEvent.data.name; // event name from Rive editor
     const eventProperties = riveEvent.data.properties; // custom key-value pairs
-    console.log('Rive event:', eventName, eventProperties);
+    console.log("Rive event:", eventName, eventProperties);
   },
 });
 ```
@@ -206,27 +220,30 @@ const { rive, RiveComponent } = useRive({
 ## 8. Asset Loading
 
 ### From `public/` folder (static assets)
+
 ```tsx
-<RiveCanvas src="/duck.riv" className="w-32 h-32" />
+<RiveCanvas src="/duck.riv" className="h-32 w-32" />
 ```
 
 ### From Vercel Blob URL (dynamic prop assets)
+
 ```tsx
 // Props are stored in Vercel Blob under props/ prefix
-<RiveCanvas src={prop.imageUrl} className="w-full h-full object-cover" />
+<RiveCanvas src={prop.imageUrl} className="h-full w-full object-cover" />
 ```
 
 ### From ArrayBuffer (fetched dynamically)
+
 ```tsx
 const [buffer, setBuffer] = useState<ArrayBuffer>();
 
 useEffect(() => {
   fetch(url)
-    .then(r => r.arrayBuffer())
+    .then((r) => r.arrayBuffer())
     .then(setBuffer);
 }, [url]);
 
-if (buffer) <RiveCanvas buffer={buffer} className="w-32 h-32" />;
+if (buffer) <RiveCanvas buffer={buffer} className="h-32 w-32" />;
 ```
 
 ---
@@ -264,20 +281,21 @@ useEffect(() => {
 
 ---
 
-## 11. Low-Level WASM API (rive-wasm / @rive-app/canvas)
+## 11. Low-Level WASM API (rive-wasm / @rive-app/webgl2)
 
 Use this only when you need multiple artboards or a custom render loop. Not needed for standard prop animations.
 
 ```typescript
-import Rive, { Layout, Fit } from '@rive-app/canvas';
+import Rive, { Layout, Fit } from "@rive-app/webgl2";
 
 const r = new Rive({
-  src: '/animation.riv',
-  canvas: document.getElementById('canvas') as HTMLCanvasElement,
+  src: "/animation.riv",
+  canvas: document.getElementById("canvas") as HTMLCanvasElement,
   layout: new Layout({ fit: Fit.Contain }),
   autoplay: true,
-  artboard: 'potmagicArtboard',
-  stateMachines: 'potmagicStateMachine',
+  autoBind: true,
+  artboard: "potmagicArtboard",
+  stateMachines: "potmagicStateMachine",
   onLoad: () => {
     r.resizeDrawingSurfaceToCanvas();
   },
@@ -291,13 +309,14 @@ r.cleanup();
 
 ## 12. Common Mistakes
 
-| Mistake | Fix |
-|---------|-----|
-| Named imports from `@rive-app/react-webgl2` | Use `import pkg from '...'` + destructure — it's CJS |
-| Rendering Rive without `isClient` guard in SSR | Always wrap with `useState(false)` + `useEffect` guard |
-| No explicit size on the container | Rive canvas needs a sized parent — use Tailwind `w-*`/`h-*` |
-| Forgetting `autoplay: true` | Without it, the animation won't start |
-| Using `stateMachines` and `animations` together | Use one or the other — state machines are preferred |
-| Not calling `rive.cleanup()` on manual instances | WASM memory leak — always cleanup in `useEffect` return |
-| Using `src` with a relative path that doesn't start with `/` | Use absolute paths from `public/` or full Vercel Blob URLs |
-| Accessing state machine inputs before `rive` is loaded | `rive` is null until `EventType.Load` fires — check for null |
+| Mistake                                                      | Fix                                                          |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Named imports from `@rive-app/react-webgl2`                  | Use `import pkg from '...'` + destructure — it's CJS         |
+| Rendering Rive without `isClient` guard in SSR               | Always wrap with `useState(false)` + `useEffect` guard       |
+| No explicit size on the container                            | Rive canvas needs a sized parent — use Tailwind `w-*`/`h-*`  |
+| Forgetting `autoplay: true`                                  | Without it, the animation won't start                        |
+| make sure to add `autoBind: true`                            | to connect with viewModel                                    |
+| Using `stateMachines` and `animations` together              | Use one or the other — state machines are preferred          |
+| Not calling `rive.cleanup()` on manual instances             | WASM memory leak — always cleanup in `useEffect` return      |
+| Using `src` with a relative path that doesn't start with `/` | Use absolute paths from `public/` or full Vercel Blob URLs   |
+| Accessing state machine inputs before `rive` is loaded       | `rive` is null until `EventType.Load` fires — check for null |
