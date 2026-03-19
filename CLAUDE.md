@@ -162,6 +162,7 @@ Available skills to invoke with the `Skill` tool during development:
 - `livekit-best-practices` — LiveKit rooms, tokens, multi-user video/voice/data exchange patterns
 - `react-best-practices` — Function components, Context API over prop drilling
 - `tailwind-dark-mode` — Dark/light mode with Tailwind v4, `data-theme` attribute
+- `rive-best-practices` — Rive animations: `@rive-app/react-webgl2`, CJS import workaround, `useRive` hook, state machines, layout/fit, asset loading, `RiveCanvas` wrapper pattern
 
 ### Agents (`.claude/agents/`)
 Specialized reference agents for documentation lookup:

@@ -9,10 +9,12 @@ import { cn } from '@/lib/cn';
 function RivePlayer({
   src,
   buffer,
+  artboard,
   className,
 }: {
   src?: string;
   buffer?: ArrayBuffer;
+  artboard?: string;
   className?: string;
 }) {
   const isCover = className?.includes('object-cover');
@@ -21,7 +23,8 @@ function RivePlayer({
   const { RiveComponent } = useRive({
     src,
     buffer,
-    stateMachines: 'State Machine 1',
+    artboard: artboard ?? 'potmagicArtboard',
+    stateMachines: 'potmagicStateMachine',
     layout: new Layout({ fit }),
     autoplay: true,
   });
@@ -36,10 +39,12 @@ function RivePlayer({
 export function RiveCanvas({
   src,
   buffer,
+  artboard,
   className,
 }: {
   src?: string;
   buffer?: ArrayBuffer;
+  artboard?: string;
   className?: string;
 }) {
   const [isClient, setIsClient] = useState(false);
@@ -52,5 +57,5 @@ export function RiveCanvas({
     return <div className={className} />;
   }
 
-  return <RivePlayer src={src} buffer={buffer} className={className} />;
+  return <RivePlayer src={src} buffer={buffer} artboard={artboard} className={className} />;
 }
