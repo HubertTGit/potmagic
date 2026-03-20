@@ -7,7 +7,13 @@ import { LandingFooter } from '@/components/landing-footer.component';
 import { authClient } from '@/lib/auth-client';
 
 export const Route = createFileRoute('/auth')({
-  head: () => ({ meta: [{ title: 'Sign In — potmagic' }] }),
+  head: () => ({
+    meta: [
+      { title: 'Sign In — potmagic: Live Story Theater' },
+      { name: 'description', content: 'Sign in or join potmagic to start directing, acting, or watching live interactive story performances.' },
+      { name: 'robots', content: 'noindex' },
+    ],
+  }),
   validateSearch: (search: Record<string, unknown>) => ({
     token: typeof search.token === 'string' && search.token ? search.token : undefined,
   }),

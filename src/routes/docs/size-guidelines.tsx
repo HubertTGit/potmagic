@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { Ruler } from 'lucide-react';
 
 export const Route = createFileRoute('/docs/size-guidelines')({
-  head: () => ({ meta: [{ title: 'Size Guidelines — potmagic Docs' }] }),
+  head: () => ({ meta: [{ title: 'Size Guidelines — potmagic: Live Story Theater' }, { name: 'description', content: 'Recommended sizes and dimensions for character, background, and prop assets on the potmagic stage.' }] }),
   component: SizeGuidelinesPage,
 });
 

@@ -25,7 +25,7 @@ import { useSceneSound } from '@/hooks/useSceneSound';
 import type { StageCast } from '@/components/stage.component';
 
 export const Route = createFileRoute('/_app/stage/$sceneId')({
-  head: () => ({ meta: [{ title: 'Stage — potmagic' }] }),
+  head: () => ({ meta: [{ title: 'Stage — potmagic: Live Story Theater' }] }),
   component: SceneStagePage,
   pendingComponent: () => (
     <div className="fixed inset-0 flex items-center justify-center bg-base-100">

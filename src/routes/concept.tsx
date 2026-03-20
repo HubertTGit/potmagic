@@ -21,7 +21,17 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/concept")({
-  head: () => ({ meta: [{ title: "Concept — potmagic" }] }),
+  head: () => ({
+    meta: [
+      { title: 'Concept — potmagic: Live Story Theater' },
+      { name: 'description', content: 'Learn about the vision behind potmagic — a live story theater platform built for Directors, Actors, and Communities to create and share interactive stories in real-time.' },
+      { property: 'og:title', content: 'The Concept Behind potmagic' },
+      { property: 'og:description', content: 'A deliberate antidote to passive screen consumption. potmagic brings people together through live, collaborative storytelling.' },
+      { property: 'og:type', content: 'website' },
+      { name: 'twitter:title', content: 'The Concept Behind potmagic' },
+      { name: 'twitter:description', content: 'A deliberate antidote to passive screen consumption. potmagic brings people together through live, collaborative storytelling.' },
+    ],
+  }),
   component: ConceptPage,
 });
 

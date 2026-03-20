@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { FilePlus, Clapperboard } from 'lucide-react';
 
 export const Route = createFileRoute('/docs/create-story')({
-  head: () => ({ meta: [{ title: 'Create a Story — potmagic Docs' }] }),
+  head: () => ({ meta: [{ title: 'Create a Story — potmagic: Live Story Theater' }, { name: 'description', content: 'Learn how to create a new story as a Director on potmagic — set scenes, assign props, and invite your cast.' }] }),
   component: CreateStoryPage,
 });
 

@@ -61,7 +61,11 @@ export const Route = createRootRoute({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'potmagic' },
+      { title: 'potmagic: Live Story Theater' },
+      { name: 'description', content: 'potmagic is a live collaborative storytelling platform. Directors, actors, and audiences come together to perform and watch interactive stories in real-time from anywhere.' },
+      { property: 'og:site_name', content: 'potmagic' },
+      { property: 'og:type', content: 'website' },
+      { name: 'twitter:card', content: 'summary_large_image' },
     ],
     links: [
       { rel: 'stylesheet', href: appCss },

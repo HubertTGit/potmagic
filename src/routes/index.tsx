@@ -3,7 +3,17 @@ import { LandingNavbar } from "@/components/landing-navbar.component";
 import { LandingFooter } from "@/components/landing-footer.component";
 
 export const Route = createFileRoute("/")({
-  head: () => ({ meta: [{ title: "potmagic" }] }),
+  head: () => ({
+    meta: [
+      { title: 'potmagic: Live Story Theater' },
+      { name: 'description', content: 'Step into the digital spotlight. potmagic is a live collaborative storytelling platform for families, friends, and creators to perform interactive stories from anywhere.' },
+      { property: 'og:title', content: 'potmagic: Live Story Theater' },
+      { property: 'og:description', content: 'Perform live interactive stories with your community from anywhere in the world. Directors, actors, and audiences connect in real-time.' },
+      { property: 'og:type', content: 'website' },
+      { name: 'twitter:title', content: 'potmagic: Live Story Theater' },
+      { name: 'twitter:description', content: 'Perform live interactive stories with your community from anywhere in the world.' },
+    ],
+  }),
   component: LandingPage,
 });
 

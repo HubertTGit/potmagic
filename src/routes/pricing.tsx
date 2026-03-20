@@ -4,7 +4,17 @@ import { LandingFooter } from "@/components/landing-footer.component";
 import { Check, Wand2, Sparkles, Building2 } from "lucide-react";
 
 export const Route = createFileRoute("/pricing")({
-  head: () => ({ meta: [{ title: "Pricing — potmagic" }] }),
+  head: () => ({
+    meta: [
+      { title: 'Pricing — potmagic: Live Story Theater' },
+      { name: 'description', content: 'Simple, honest plans for every stage. From free family shows to full professional productions — potmagic has a plan for every storyteller.' },
+      { property: 'og:title', content: 'Pricing — potmagic' },
+      { property: 'og:description', content: 'Simple, honest plans for every stage. From free family shows to full professional productions.' },
+      { property: 'og:type', content: 'website' },
+      { name: 'twitter:title', content: 'Pricing — potmagic' },
+      { name: 'twitter:description', content: 'Simple, honest plans for every stage. From free family shows to full professional productions.' },
+    ],
+  }),
   component: PricingPage,
 });
 

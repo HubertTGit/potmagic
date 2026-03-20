@@ -14,7 +14,17 @@ import { cn } from '@/lib/cn';
 import { useTheme, Theme } from '@/hooks/useTheme';
 
 export const Route = createFileRoute('/show/$storyId')({
-  head: () => ({ meta: [{ title: 'Watch — potmagic' }] }),
+  head: () => ({
+    meta: [
+      { title: 'Watch Live — potmagic: Live Story Theater' },
+      { name: 'description', content: 'Watch a live interactive story performance on potmagic and interact directly with the actors in real-time.' },
+      { property: 'og:title', content: 'Watch Live — potmagic' },
+      { property: 'og:description', content: 'A live interactive story is happening now. Join the audience and interact directly with the actors.' },
+      { property: 'og:type', content: 'video.other' },
+      { name: 'twitter:title', content: 'Watch Live — potmagic' },
+      { name: 'twitter:description', content: 'A live interactive story is happening now. Join the audience and interact directly with the actors.' },
+    ],
+  }),
   component: ShowPage,
 });
 
@@ -265,8 +275,8 @@ function ShowPage() {
 
   useEffect(() => {
     if (story?.title) {
-      document.title = `${story.title} — potmagic`;
-      return () => { document.title = 'potmagic'; };
+      document.title = `${story.title} — potmagic: Live Story Theater`;
+      return () => { document.title = 'potmagic: Live Story Theater'; };
     }
   }, [story?.title]);
 

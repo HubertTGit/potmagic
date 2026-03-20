@@ -17,7 +17,7 @@ import { authClient } from '@/lib/auth-client';
 import { StoryScenesTab } from '@/components/story-scenes-tab';
 
 export const Route = createFileRoute('/_app/stories/$storyId/')({
-  head: () => ({ meta: [{ title: 'Story — potmagic' }] }),
+  head: () => ({ meta: [{ title: 'Story — potmagic: Live Story Theater' }] }),
   component: StoryDetailPage,
 });
 
@@ -46,8 +46,8 @@ function StoryDetailPage() {
 
   useEffect(() => {
     if (data?.story?.title) {
-      document.title = `${data.story.title} — potmagic`;
-      return () => { document.title = 'potmagic'; };
+      document.title = `${data.story.title} — potmagic: Live Story Theater`;
+      return () => { document.title = 'potmagic: Live Story Theater'; };
     }
   }, [data?.story?.title]);
 

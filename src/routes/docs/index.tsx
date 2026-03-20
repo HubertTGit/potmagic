@@ -12,7 +12,15 @@ import {
 } from 'lucide-react';
 
 export const Route = createFileRoute('/docs/')({
-  head: () => ({ meta: [{ title: 'Docs — potmagic' }] }),
+  head: () => ({
+    meta: [
+      { title: 'Docs — potmagic: Live Story Theater' },
+      { name: 'description', content: 'Learn how to use potmagic — guides for Directors, Actors, and Viewers to get the most out of the live story theater platform.' },
+      { property: 'og:title', content: 'Documentation — potmagic' },
+      { property: 'og:description', content: 'Guides for Directors, Actors, and Viewers to get the most out of the potmagic live story theater platform.' },
+      { property: 'og:type', content: 'website' },
+    ],
+  }),
   component: DocsOverviewPage,
 });
 

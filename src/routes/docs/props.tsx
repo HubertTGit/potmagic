@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { Library, ImageIcon, Music, Sparkles } from 'lucide-react';
 
 export const Route = createFileRoute('/docs/props')({
-  head: () => ({ meta: [{ title: 'Props Library — potmagic Docs' }] }),
+  head: () => ({ meta: [{ title: 'Props Library — potmagic: Live Story Theater' }, { name: 'description', content: 'Manage your props library on potmagic — upload characters, backgrounds, sounds, and Rive animations for your productions.' }] }),
   component: PropsPage,
 });
 

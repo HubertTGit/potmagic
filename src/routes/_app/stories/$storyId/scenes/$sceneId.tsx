@@ -36,7 +36,7 @@ import {
 } from '@/components/scene-sound-section';
 
 export const Route = createFileRoute('/_app/stories/$storyId/scenes/$sceneId')({
-  head: () => ({ meta: [{ title: 'Scene — potmagic' }] }),
+  head: () => ({ meta: [{ title: 'Scene — potmagic: Live Story Theater' }] }),
   component: SceneDetailPage,
   pendingComponent: () => (
     <div className="p-8 max-w-3xl">
@@ -110,8 +110,8 @@ function SceneDetailPage() {
 
   useEffect(() => {
     if (scene?.title && story?.title) {
-      document.title = `${scene.title} — ${story.title} — potmagic`;
-      return () => { document.title = 'potmagic'; };
+      document.title = `${scene.title} — ${story.title} — potmagic: Live Story Theater`;
+      return () => { document.title = 'potmagic: Live Story Theater'; };
     }
   }, [scene?.title, story?.title]);
   const assignedCast: CastMember[] = (data?.assignedCast ?? []).map((c) => ({

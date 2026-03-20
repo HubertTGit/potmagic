@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { Layers } from 'lucide-react';
 
 export const Route = createFileRoute('/docs/add-scenes')({
-  head: () => ({ meta: [{ title: 'Add Scenes — potmagic Docs' }] }),
+  head: () => ({ meta: [{ title: 'Add Scenes — potmagic: Live Story Theater' }, { name: 'description', content: 'Learn how to add and sequence scenes within a story on potmagic to build your narrative flow.' }] }),
   component: AddScenesPage,
 });
 
