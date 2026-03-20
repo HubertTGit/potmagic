@@ -209,7 +209,7 @@ export function Sidebar() {
             >
               <button
                 onClick={handleLogout}
-                className={cn(btnBase, "hover:text-error hover:btn-error")}
+                className={cn(btnBase, "hover:btn-error hover:text-white")}
               >
                 <LogOut className="size-4 shrink-0" />
                 {!collapsed && "Logout"}
