@@ -1,46 +1,72 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { useQuery } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
 import {
   LiveKitRoom,
   RoomAudioRenderer,
   useRoomContext,
   useTracks,
   type TrackReference,
-} from '@livekit/components-react';
-import { RoomEvent, Track } from 'livekit-client';
-import { getPublicStory, getViewerToken } from '@/lib/show.fns';
-import { cn } from '@/lib/cn';
-import { useTheme, Theme } from '@/hooks/useTheme';
+} from "@livekit/components-react";
+import { RoomEvent, Track } from "livekit-client";
+import { getPublicStory, getViewerToken } from "@/lib/show.fns";
+import { cn } from "@/lib/cn";
+import { useTheme, Theme } from "@/hooks/useTheme";
 
-export const Route = createFileRoute('/show/$storyId')({
-  head: () => ({ meta: [{ title: 'Watch — potmagic' }] }),
+export const Route = createFileRoute("/show/$storyId")({
+  head: () => ({
+    meta: [
+      { title: "Watch Live — potmagic: Live Story Theater" },
+      {
+        name: "description",
+        content:
+          "Watch a live interactive story performance on potmagic and interact directly with the actors in real-time.",
+      },
+      { property: "og:title", content: "Watch Live — potmagic" },
+      {
+        property: "og:description",
+        content:
+          "A live interactive story is happening now. Join the audience and interact directly with the actors.",
+      },
+      { property: "og:type", content: "video.other" },
+      { name: "twitter:title", content: "Watch Live — potmagic" },
+      {
+        name: "twitter:description",
+        content:
+          "A live interactive story is happening now. Join the audience and interact directly with the actors.",
+      },
+    ],
+  }),
   component: ShowPage,
 });
 
 interface SceneNavigateMessage {
-  type: 'scene:navigate';
+  type: "scene:navigate";
   sceneId: string;
 }
 
 interface StoryStatusMessage {
-  type: 'story:status';
+  type: "story:status";
   status: string;
 }
 
 interface SoundStateMessage {
-  type: 'sound:state';
+  type: "sound:state";
   url: string;
   playing: boolean;
   volume: number;
 }
 
-type DataMessage = SceneNavigateMessage | StoryStatusMessage | SoundStateMessage;
+type DataMessage =
+  | SceneNavigateMessage
+  | StoryStatusMessage
+  | SoundStateMessage;
 
 const STAGE_WIDTH = 1280;
 const STAGE_HEIGHT = 720;
 
 function CanvasVideoPlayer() {
+  const { theme } = useTheme();
   const tracks = useTracks([Track.Source.ScreenShare]);
 
   // Take the first screen share track in the room (always the director's canvas)
@@ -62,8 +88,12 @@ function CanvasVideoPlayer() {
 
   if (!canvasTrack) {
     return (
-      <div className="w-full h-full bg-base-200 flex flex-col items-center justify-center">
-        <span className="loading loading-spinner loading-lg text-primary" />
+      <div className="bg-base-200 flex h-full w-full flex-col items-center justify-center">
+        <img
+          src={theme === Theme.dark ? "/icon-white.svg" : "/icon-red.svg"}
+          alt="potmagic"
+          className="size-12 animate-bounce"
+        />
         <span>The show will start shortly.</span>
       </div>
     );
@@ -75,7 +105,7 @@ function CanvasVideoPlayer() {
       autoPlay
       playsInline
       muted
-      className="w-full h-full object-contain"
+      className="h-full w-full object-contain"
     />
   );
 }
@@ -101,7 +131,7 @@ function ShowContent({
     audioRef.current = audio;
     return () => {
       audio.pause();
-      audio.src = '';
+      audio.src = "";
       audioRef.current = null;
     };
   }, []);
@@ -115,9 +145,9 @@ function ShowContent({
       } catch {
         return;
       }
-      if (msg.type === 'story:status' && msg.status !== 'active') {
+      if (msg.type === "story:status" && msg.status !== "active") {
         onShowEnded();
-      } else if (msg.type === 'sound:state') {
+      } else if (msg.type === "sound:state") {
         const audio = audioRef.current;
         if (!audio) return;
         if (audio.src !== msg.url) {
@@ -141,8 +171,8 @@ function ShowContent({
   // Track fullscreen state
   useEffect(() => {
     const onChange = () => setIsFullscreen(!!document.fullscreenElement);
-    document.addEventListener('fullscreenchange', onChange);
-    return () => document.removeEventListener('fullscreenchange', onChange);
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
   }, []);
 
   const toggleFullscreen = () => {
@@ -156,17 +186,21 @@ function ShowContent({
   return (
     <div
       ref={stageContainerRef}
-      className="min-h-screen flex flex-col items-center bg-base-100"
+      className="bg-base-100 flex min-h-screen flex-col items-center"
     >
       <RoomAudioRenderer />
 
       {/* Top bar */}
       {!isFullscreen && (
-        <div className="flex items-center justify-between w-7xl py-4 px-2">
+        <div className="flex w-7xl items-center justify-between px-2 py-4">
           <div className="flex items-center gap-3">
-            <Link to="/" className="btn btn-ghost btn-sm btn-square" title="Home">
+            <Link
+              to="/"
+              className="btn btn-ghost btn-sm btn-square"
+              title="Home"
+            >
               <img
-                src={theme === Theme.dark ? '/icon-white.svg' : '/icon-red.svg'}
+                src={theme === Theme.dark ? "/icon-white.svg" : "/icon-red.svg"}
                 alt="potmagic"
                 className="size-5"
               />
@@ -174,7 +208,7 @@ function ShowContent({
             <span className="font-display text-base-content font-semibold tracking-wide">
               {storyTitle}
             </span>
-            <span className="badge badge-error badge-sm font-display tracking-widest uppercase text-[10px]">
+            <span className="badge badge-error badge-sm font-display text-[10px] tracking-widest uppercase">
               Live
             </span>
           </div>
@@ -211,10 +245,10 @@ function ShowContent({
       */}
       <div
         className={cn(
-          'relative',
+          "relative",
           isFullscreen
-            ? 'flex items-center justify-center bg-black w-screen h-screen'
-            : 'rounded-xl border-2 border-base-300 shadow-xl overflow-hidden',
+            ? "flex h-screen w-screen items-center justify-center bg-black"
+            : "border-base-300 overflow-hidden rounded-xl border-2 shadow-xl",
         )}
         style={
           isFullscreen
@@ -225,7 +259,7 @@ function ShowContent({
         {/* Exit button — must be inside the fullscreen element to be visible */}
         {isFullscreen && (
           <button
-            className="absolute top-4 right-4 z-50 btn btn-ghost btn-sm gap-2 bg-black/40 hover:bg-black/60 backdrop-blur-sm text-white"
+            className="btn btn-ghost btn-sm absolute top-4 right-4 z-50 gap-2 bg-black/40 text-white backdrop-blur-sm hover:bg-black/60"
             onClick={toggleFullscreen}
             title="Exit fullscreen"
           >
@@ -256,24 +290,27 @@ function ShowContent({
 function ShowPage() {
   const { storyId } = Route.useParams();
   const [forcedOffline, setForcedOffline] = useState(false);
+  const { theme } = useTheme();
 
   const { data: story, isPending: storyPending } = useQuery({
-    queryKey: ['public-story', storyId],
+    queryKey: ["public-story", storyId],
     queryFn: () => getPublicStory({ data: { storyId } }),
     refetchInterval: 10_000,
   });
 
   useEffect(() => {
     if (story?.title) {
-      document.title = `${story.title} — potmagic`;
-      return () => { document.title = 'potmagic'; };
+      document.title = `${story.title} — potmagic: Live Story Theater`;
+      return () => {
+        document.title = "potmagic: Live Story Theater";
+      };
     }
   }, [story?.title]);
 
-  const isActive = !forcedOffline && story?.status === 'active';
+  const isActive = !forcedOffline && story?.status === "active";
 
   const { data: livekitData } = useQuery({
-    queryKey: ['viewer-token', storyId],
+    queryKey: ["viewer-token", storyId],
     queryFn: () => getViewerToken({ data: { storyId } }),
     enabled: isActive,
     staleTime: Infinity,
@@ -281,39 +318,48 @@ function ShowPage() {
 
   if (storyPending) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-base-100">
-        <p className="text-base-content/40 text-sm">Loading…</p>
+      <div className="bg-base-100 fixed inset-0 flex items-center justify-center">
+        <img
+          src={theme === Theme.dark ? "/icon-white.svg" : "/icon-red.svg"}
+          alt="potmagic"
+          className="size-12 animate-bounce"
+        />
       </div>
     );
   }
 
   if (!story) {
     return (
-      <div className="fixed inset-0 flex flex-col items-center justify-center gap-3 bg-base-100">
-        <p className="text-2xl font-display text-base-content/60">
+      <div className="bg-base-100 fixed inset-0 flex flex-col items-center justify-center gap-3">
+        <img
+          src={theme === Theme.dark ? "/icon-white.svg" : "/icon-red.svg"}
+          alt="potmagic"
+        />
+        <p className="font-display text-base-content/60 text-2xl">
           Show not found
         </p>
       </div>
     );
   }
 
-  if (forcedOffline || story.status === 'ended') {
+  if (forcedOffline || story.status === "ended") {
     return (
-      <div className="fixed inset-0 flex flex-col items-center justify-center gap-3 bg-base-100">
-        <span className="text-4xl">🎭</span>
-        <p className="text-2xl font-display text-base-content">
-          The show has ended
-        </p>
-        <p className="text-base-content/50 text-sm">{story.title}</p>
+      <div className="bg-base-100 fixed inset-0 flex flex-col items-center justify-center gap-3">
+        <img
+          src={theme === Theme.dark ? "/icon-white.svg" : "/icon-red.svg"}
+          alt="potmagic"
+        />
+        <p className="font-display text-base-content text-2xl">{story.title}</p>
+        <p className="text-base-content/50 text-sm">The show has ended</p>
       </div>
     );
   }
 
   if (!isActive) {
     return (
-      <div className="fixed inset-0 flex flex-col items-center justify-center gap-3 bg-base-100">
+      <div className="bg-base-100 fixed inset-0 flex flex-col items-center justify-center gap-3">
         <span className="text-4xl">🎭</span>
-        <p className="text-2xl font-display text-base-content/60">
+        <p className="font-display text-base-content/60 text-2xl">
           Not live yet
         </p>
         <p className="text-base-content/40 text-sm">
@@ -338,7 +384,7 @@ function ShowPage() {
       />
     </LiveKitRoom>
   ) : (
-    <div className="fixed inset-0 flex items-center justify-center bg-base-100">
+    <div className="bg-base-100 fixed inset-0 flex items-center justify-center">
       <span className="loading loading-dots loading-md text-primary" />
     </div>
   );

@@ -1,11 +1,12 @@
-import { Trash2, Music } from 'lucide-react';
-import { PropPicker } from '@/components/prop-picker';
+import { Trash2, Music } from "lucide-react";
+import { PropPicker } from "@/components/prop-picker";
+import { Link } from "@tanstack/react-router";
 
 export type SoundProp = {
   id: string;
   name: string;
   imageUrl: string | null;
-  type: 'sound';
+  type: "sound";
 };
 
 interface SceneSoundSectionProps {
@@ -18,7 +19,7 @@ interface SceneSoundSectionProps {
   onToggleAutoplay: (autoplay: boolean) => void;
 }
 
-const soundIcon = <Music className="size-4 text-base-content/40" />;
+const soundIcon = <Music className="text-base-content/40 size-4" />;
 
 export function SceneSoundSection({
   isDirector,
@@ -29,39 +30,48 @@ export function SceneSoundSection({
   autoplay,
   onToggleAutoplay,
 }: SceneSoundSectionProps) {
-  const picker = (isDirector && availableSounds.length > 0) || sound ? (
-    <PropPicker
-      isLoading={isAssigning}
-      propId={sound?.id ?? null}
-      propName={sound?.name ?? null}
-      propImageUrl={null}
-      propType={sound ? 'sound' : null}
-      availableProps={availableSounds}
-      placeholder={sound ? 'Change sound…' : 'Assign sound…'}
-      fallbackIcon={soundIcon}
-      readOnly={!isDirector}
-      onAssign={(propId) => {
-        const s = propId
-          ? (availableSounds.find((s) => s.id === propId) ?? null)
-          : null;
-        onAssignSound(s);
-      }}
-    />
-  ) : null;
+  const picker =
+    (isDirector && availableSounds.length > 0) || sound ? (
+      <PropPicker
+        isLoading={isAssigning}
+        propId={sound?.id ?? null}
+        propName={sound?.name ?? null}
+        propImageUrl={null}
+        propType={sound ? "sound" : null}
+        availableProps={availableSounds}
+        placeholder={sound ? "Change sound…" : "Assign sound…"}
+        fallbackIcon={soundIcon}
+        readOnly={!isDirector}
+        onAssign={(propId) => {
+          const s = propId
+            ? (availableSounds.find((s) => s.id === propId) ?? null)
+            : null;
+          onAssignSound(s);
+        }}
+      />
+    ) : null;
 
   return (
     <div className="mb-8">
-      <h2 className="text-xs font-semibold uppercase tracking-widest text-base-content/40 mb-3">
+      <h2 className="text-base-content/40 mb-3 text-xs font-semibold tracking-widest uppercase">
         Sound
       </h2>
 
-      <div className="flex items-center justify-between bg-base-200 rounded-lg px-4 py-3 border border-base-300">
-        {picker}
+      <div className="bg-base-200 border-base-300 flex items-center justify-between rounded-lg border px-4 py-3">
+        {picker ?? (
+          <span className="text-base-content/40 text-sm">
+            No sound in
+            <Link to="/director" className="text-primary hover:underline">
+              library
+            </Link>{" "}
+            to assigned yet
+          </span>
+        )}
 
         {isDirector && sound && (
-          <div className="flex items-center gap-3 shrink-0">
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <span className="text-xs text-base-content/50">Autoplay</span>
+          <div className="flex shrink-0 items-center gap-3">
+            <label className="flex cursor-pointer items-center gap-2 select-none">
+              <span className="text-base-content/50 text-xs">Autoplay</span>
               <input
                 type="checkbox"
                 className="toggle toggle-sm toggle-success"
@@ -72,7 +82,7 @@ export function SceneSoundSection({
             <button
               onClick={() => onAssignSound(null)}
               disabled={isAssigning}
-              className="text-xs text-error/60 hover:text-error transition-colors flex items-center gap-1 p-2 hover:bg-error/10 rounded-lg"
+              className="text-error/60 hover:text-error hover:bg-error/10 flex items-center gap-1 rounded-lg p-2 text-xs transition-colors"
               title="Remove sound"
             >
               {isAssigning && (

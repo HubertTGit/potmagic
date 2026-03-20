@@ -22,7 +22,7 @@ export const auth = betterAuth({
     additionalFields: {
       role: {
         type: 'string',
-        defaultValue: 'actor',
+        defaultValue: 'director',
       },
     },
   },
@@ -35,23 +35,6 @@ export const auth = betterAuth({
   account: {
     accountLinking: {
       trustedProviders: ['google'],
-    },
-  },
-  emailAndPassword: {
-    enabled: true,
-    sendResetPassword: async ({ user, url }) => {
-      const resend = new Resend(process.env.RESEND_API_KEY)
-      const { error } = await resend.emails.send({
-        from: process.env.FROM_EMAIL!,
-        to: user.email,
-        subject: 'Reset your potmagic password',
-        html: `
-          <p>You requested a password reset.</p>
-          <p><a href="${url}">Click here to reset your password</a></p>
-          <p>This link expires in 1 hour. If you didn't request this, ignore this email.</p>
-        `,
-      })
-      if (error) throw new Error(error.message)
     },
   },
   plugins: [

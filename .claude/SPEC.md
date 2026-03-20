@@ -22,7 +22,7 @@ Two access modes:
 - Must be authenticated (email/password)
 - Has exactly one character assigned per story
 - Can only join a stage if they have been assigned a character for that story
-- Manipulates their character on the Konva canvas (drag, rotate, mirror)
+- Manipulates their character on the canvas (drag, rotate, mirror)
 
 ### Viewer (Public)
 - No authentication required
@@ -149,19 +149,26 @@ The backend server runs alongside (or proxied through) the Vite dev server.
 
 - **React 19** + **TypeScript**
 - **TanStack Router** — file-based routing with `beforeLoad` auth guards
-- **Konva / react-konva** — interactive canvas for character manipulation
+- **PixiJS v8** — WebGL/WebGPU-accelerated canvas for character manipulation
 - **@livekit/components-react** — LiveKit room/participant UI components
 - **Tailwind CSS v4** + **DaisyUI v5** — styling with semantic tokens and dark/light mode support
 - **clsx + tailwind-merge** — conditional class composition via `cn()` (`src/lib/cn.ts`)
 - **Drizzle ORM** — type-safe PostgreSQL schema and queries
 
-### Character Interaction (existing)
+### Canvas Components
+
+| Component | File | Spec |
+|-----------|------|------|
+| `StageComponent` | `src/components/stage.component.tsx` | [SPEC_STAGE_COMPONENT.md](./SPEC_STAGE_COMPONENT.md) |
+| `PixiCharacter` | `src/components/draggable-character.component.tsx` | [SPEC_DRAGGABLE_COMPONENT.md](./SPEC_DRAGGABLE_COMPONENT.md) |
+
+### Character Interaction
 - **Drag** — move character around canvas
 - **Double-click / double-tap** — horizontal mirror (flip `scaleX`)
 - **Two-finger touch** — rotate + pan simultaneously
 - **Mouse down** — brings character to top (z-index)
 
-### Canvas Sync (new)
+### Canvas Sync
 - On each character state change, the actor publishes a data message via LiveKit
 - All participants (including viewers) receive and apply remote character states
 
@@ -173,7 +180,7 @@ The backend server runs alongside (or proxied through) the Vite dev server.
 |---|---|
 | Frontend framework | React 19 + TypeScript |
 | Routing | TanStack Router |
-| Canvas | Konva + react-konva |
+| Canvas | PixiJS v8 (WebGL/WebGPU) |
 | Styling | Tailwind CSS v4 + DaisyUI v5 + clsx/tailwind-merge |
 | Authentication | better-auth (email/password) |
 | Real-time session | LiveKit |

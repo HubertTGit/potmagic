@@ -51,7 +51,7 @@ function ProfilePage() {
     }
   }
 
-  const initials = (user?.name ?? user?.email ?? '?')[0].toUpperCase()
+  const initials = (user?.name || user?.email || '?')[0].toUpperCase()
 
   return (
     <div className="p-8 max-w-lg">

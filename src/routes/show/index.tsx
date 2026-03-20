@@ -6,7 +6,17 @@ import { LandingFooter } from '@/components/landing-footer.component';
 import { PublicStoryCard } from '@/components/public-story-card.component';
 
 export const Route = createFileRoute('/show/')({
-  head: () => ({ meta: [{ title: 'Shows — potmagic' }] }),
+  head: () => ({
+    meta: [
+      { title: 'Live Shows — potmagic: Live Story Theater' },
+      { name: 'description', content: 'Watch live interactive story performances on potmagic. Join an audience and interact directly with actors in real-time from anywhere in the world.' },
+      { property: 'og:title', content: 'Live Shows — potmagic' },
+      { property: 'og:description', content: 'Watch live interactive story performances and interact directly with actors in real-time.' },
+      { property: 'og:type', content: 'website' },
+      { name: 'twitter:title', content: 'Live Shows — potmagic' },
+      { name: 'twitter:description', content: 'Watch live interactive story performances and interact directly with actors in real-time.' },
+    ],
+  }),
   component: ShowsPage,
 });
 

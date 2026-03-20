@@ -17,7 +17,7 @@ pnpm preview      # Preview production build
 
 ## Overview
 
-**potmagic** is an online collaborative theater platform for storytelling. Groups perform interactive stories together using animated Konva canvas characters, with a public LiveKit broadcast stream for audiences. See `SPEC.md` for full product specification and `SPEC_LIVE.md` specifically for LiveKit implementation.
+**potmagic** is an online collaborative theater platform for storytelling. Groups perform interactive stories together using animated Konva canvas characters, with a public LiveKit broadcast stream for audiences. See `.claude/SPEC.md` for full product specification and `.claude/SPEC_LIVEKIT.md` specifically for LiveKit implementation.
 
 ## Tech Stack
 
@@ -47,18 +47,18 @@ pnpm preview      # Preview production build
 
 ## Routes
 
-| Route | Auth | Description |
-|---|---|---|
-| `/login` | Public | Email/password login |
-| `/` | Auth required | Root; redirects to stories |
-| `/stories` | Auth required | Story list; directors can create/delete |
-| `/stories/$storyId` | Auth required | Story detail with Scenes / Cast tabs |
-| `/stories/$storyId/scenes/$sceneId` | Auth required | Scene detail; manage scene cast assignments |
-| `/stage` | Auth required | Empty state with navigation guide |
-| `/stage/$sceneId` | Assigned actors + Director | Theater canvas for a specific scene |
-| `/director` | Director only | Dashboard + Library tabs; manage stories and props |
-| `/profile` | Auth required | User profile page |
-| `/broadcast/:roomId` | Public | Watch-only LiveKit stream |
+| Route                               | Auth                       | Description                                        |
+| ----------------------------------- | -------------------------- | -------------------------------------------------- |
+| `/login`                            | Public                     | Email/password login                               |
+| `/`                                 | Auth required              | Root; redirects to stories                         |
+| `/stories`                          | Auth required              | Story list; directors can create/delete            |
+| `/stories/$storyId`                 | Auth required              | Story detail with Scenes / Cast tabs               |
+| `/stories/$storyId/scenes/$sceneId` | Auth required              | Scene detail; manage scene cast assignments        |
+| `/stage`                            | Auth required              | Empty state with navigation guide                  |
+| `/stage/$sceneId`                   | Assigned actors + Director | Theater canvas for a specific scene                |
+| `/director`                         | Director only              | Dashboard + Library tabs; manage stories and props |
+| `/profile`                          | Auth required              | User profile page                                  |
+| `/broadcast/:roomId`                | Public                     | Watch-only LiveKit stream                          |
 
 All authenticated routes are wrapped by `_app.tsx` which calls `requireAuth()` server function.
 
@@ -156,17 +156,21 @@ Auth is still mounted at `/api/auth/*` via better-auth's handler in the server e
 ## Skills & Agents (.claude/)
 
 ### Skills (`src/.claude/skills/`)
+
 Available skills to invoke with the `Skill` tool during development:
 
 - `tanstack-start-best-practices` — TanStack Start execution model, server functions, routing, middleware, SEO, import protection, hosting
 - `livekit-best-practices` — LiveKit rooms, tokens, multi-user video/voice/data exchange patterns
 - `react-best-practices` — Function components, Context API over prop drilling
 - `tailwind-dark-mode` — Dark/light mode with Tailwind v4, `data-theme` attribute
+- `rive-best-practices` — Rive animations: `@rive-app/react-webgl2`, CJS import workaround, `useRive` hook, state machines, layout/fit, asset loading, `RiveCanvas` wrapper pattern
 
 ### Agents (`.claude/agents/`)
+
 Specialized reference agents for documentation lookup:
 
 **TanStack Start** (model: sonnet):
+
 - `tanstack-start-routing` — File-based routing, loaders, route config
 - `tanstack-start-server-function` — `createServerFn` API, validation, error handling
 - `tanstack-start-server-routes` — HTTP endpoints alongside router routes
@@ -181,6 +185,7 @@ Specialized reference agents for documentation lookup:
 - `tanstack-start-server-entry-point` — Custom server bootstrap
 
 **better-auth** (reference agents):
+
 - `better-auth-docs` — General better-auth documentation
 - `better-auth-email-password` — Email/password plugin
 - `better-auth-email-service` — Email sending (Resend integration)
@@ -188,6 +193,7 @@ Specialized reference agents for documentation lookup:
 - `better-auth-postgres` — PostgreSQL setup
 
 **DaisyUI v5** (model: haiku):
+
 - `daisyui-use` — Core usage, component classes, combining with Tailwind utilities
 - `daisyui-config` — Plugin config options (themes, root, include/exclude, prefix, logs)
 - `daisyui-themes` — Built-in themes, custom themes, nesting, dark mode integration
@@ -241,22 +247,22 @@ These rules define how to translate Figma inputs into code for this project. Fol
 - **Dark mode variant:** `@custom-variant dark` targets `[data-theme=potmagic-dark]` — use `dark:` Tailwind prefix to target the dark theme specifically
 - **DaisyUI v5 semantic color tokens** (defined via `--color-*` CSS vars in `src/index.css`; use Tailwind class equivalents):
 
-  | Purpose | Tailwind class | Example use |
-  |---|---|---|
-  | Surface base | `bg-base-100` | page background |
-  | Sunken surface | `bg-base-200` | sidebar, input background |
-  | Deeply sunken | `bg-base-300` | dividers, avatar placeholder |
-  | Body text | `text-base-content` | default text |
-  | Muted text | `text-base-content/60` | secondary labels |
-  | Faint text | `text-base-content/30` | placeholders, hints |
-  | Primary action | `bg-primary` / `text-primary` | buttons, active nav links |
-  | Primary muted bg | `bg-primary/10` | active nav highlight |
-  | Accent / brand | `bg-accent` / `text-accent` | warm orange/gold accent |
-  | Success | `text-success` / `badge-success` | active/live states |
-  | Warning | `text-warning` / `badge-warning` | draft states |
-  | Error | `text-error` / `badge-error` | destructive actions |
-  | Neutral | `bg-neutral` / `text-neutral-content` | muted surfaces |
-  | Info | `text-info` | informational states |
+  | Purpose          | Tailwind class                        | Example use                  |
+  | ---------------- | ------------------------------------- | ---------------------------- |
+  | Surface base     | `bg-base-100`                         | page background              |
+  | Sunken surface   | `bg-base-200`                         | sidebar, input background    |
+  | Deeply sunken    | `bg-base-300`                         | dividers, avatar placeholder |
+  | Body text        | `text-base-content`                   | default text                 |
+  | Muted text       | `text-base-content/60`                | secondary labels             |
+  | Faint text       | `text-base-content/30`                | placeholders, hints          |
+  | Primary action   | `bg-primary` / `text-primary`         | buttons, active nav links    |
+  | Primary muted bg | `bg-primary/10`                       | active nav highlight         |
+  | Accent / brand   | `bg-accent` / `text-accent`           | warm orange/gold accent      |
+  | Success          | `text-success` / `badge-success`      | active/live states           |
+  | Warning          | `text-warning` / `badge-warning`      | draft states                 |
+  | Error            | `text-error` / `badge-error`          | destructive actions          |
+  | Neutral          | `bg-neutral` / `text-neutral-content` | muted surfaces               |
+  | Info             | `text-info`                           | informational states         |
 
 - **IMPORTANT: No `--gold` token** — use `text-accent` / `bg-accent` / `border-accent` for the warm accent color; there is no separate `--gold` variable
 - **Borders:** standard divider is `border border-base-300`; use `border-base-300` not hardcoded colors
@@ -366,27 +372,33 @@ import { Link } from '@tanstack/react-router'
 
 When Figma MCP returns raw HTML + Tailwind, map common patterns to DaisyUI equivalents before writing code:
 
-| Figma pattern | DaisyUI equivalent | Notes |
-|---|---|---|
-| Button with bg color | `btn btn-primary` / `btn btn-ghost` | Never build raw `<button>` with bg classes |
-| Pill / tag / chip | `badge badge-sm` | Add `badge-success`, `badge-warning`, etc. for color variants |
-| Input field | `input` | Add `bg-base-200 border-base-300` |
-| Table | `table table-sm` | Wrap in `overflow-x-auto` |
-| Dropdown menu | `dropdown` + `dropdown-content menu` | Use `dropdown-end` for right-aligned |
-| Modal / dialog | `modal modal-open` + `modal-box` + `modal-backdrop` | See key patterns above |
-| Card / panel | `card` + `card-body` or `bg-base-200 border border-base-300 rounded-xl` | |
-| Spinner / loading | `loading loading-spinner loading-xs/sm/md` | Never use a custom SVG spinner |
-| Avatar / user image | `avatar` + inner `div` with `rounded-full` | Match existing `cast-preview.component.tsx` pattern |
-| Navbar / top bar | `navbar bg-base-100 border-b border-base-300` | |
-| Tabs | Manual `role="tablist"` + border-b pattern | See `director.tsx` for the tab pattern used here |
-| Toast / alert | `toast` via `src/lib/toast.ts` helpers — `toast.error()` / `toast.success()` | Never build inline alerts |
+| Figma pattern        | DaisyUI equivalent                                                           | Notes                                                         |
+| -------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Button with bg color | `btn btn-primary` / `btn btn-ghost`                                          | Never build raw `<button>` with bg classes                    |
+| Pill / tag / chip    | `badge badge-sm`                                                             | Add `badge-success`, `badge-warning`, etc. for color variants |
+| Input field          | `input`                                                                      | Add `bg-base-200 border-base-300`                             |
+| Table                | `table table-sm`                                                             | Wrap in `overflow-x-auto`                                     |
+| Dropdown menu        | `dropdown` + `dropdown-content menu`                                         | Use `dropdown-end` for right-aligned                          |
+| Modal / dialog       | `modal modal-open` + `modal-box` + `modal-backdrop`                          | See key patterns above                                        |
+| Card / panel         | `card` + `card-body` or `bg-base-200 border border-base-300 rounded-xl`      |                                                               |
+| Spinner / loading    | `loading loading-spinner loading-xs/sm/md`                                   | Never use a custom SVG spinner                                |
+| Avatar / user image  | `avatar` + inner `div` with `rounded-full`                                   | Match existing `cast-preview.component.tsx` pattern           |
+| Navbar / top bar     | `navbar bg-base-100 border-b border-base-300`                                |                                                               |
+| Tabs                 | Manual `role="tablist"` + border-b pattern                                   | See `director.tsx` for the tab pattern used here              |
+| Toast / alert        | `toast` via `src/lib/toast.ts` helpers — `toast.error()` / `toast.success()` | Never build inline alerts                                     |
+
+# PixiJS Project
+
+## Documentation
+For PixiJS API reference, fetch:
+https://pixijs.com/llms.txt
 
 ### Border Radius Tokens
 
 DaisyUI v5 exposes radius tokens — use Tailwind's `rounded-*` utilities that map to them:
 
-| Token | Tailwind class | Usage |
-|---|---|---|
-| `--radius-selector` | `rounded` / `rounded-md` | Buttons, badges, selectors |
-| `--radius-field` | `rounded-xl` | Inputs, textareas |
-| `--radius-box` | `rounded-xl` / `rounded-2xl` | Cards, modals, panels |
+| Token               | Tailwind class               | Usage                      |
+| ------------------- | ---------------------------- | -------------------------- |
+| `--radius-selector` | `rounded` / `rounded-md`     | Buttons, badges, selectors |
+| `--radius-field`    | `rounded-xl`                 | Inputs, textareas          |
+| `--radius-box`      | `rounded-xl` / `rounded-2xl` | Cards, modals, panels      |

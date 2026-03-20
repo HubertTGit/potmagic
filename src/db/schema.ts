@@ -146,7 +146,7 @@ export const props = pgTable(
   },
   (table) => [
     index('props_story_id_idx').on(table.storyId),
-    check('props_size_limit', sql`${table.size} <= 1048576`),
+    check('props_size_limit', sql`${table.size} <= 5242880`),
   ],
 )
 
