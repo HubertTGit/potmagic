@@ -194,45 +194,38 @@ export class PixiCharacter {
   private onStagePointerMove(e: FederatedPointerEvent) {
     if (!this.props.canDrag) return;
 
-    const prevPos = this.activePointers.get(e.pointerId);
-    if (prevPos) {
-      this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    }
+    // Snapshot full previous state BEFORE updating the moved pointer so both
+    // oldAngle and oldMid are computed from a consistent pre-event baseline.
+    const prevStateMap = new Map(this.activePointers);
+    this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
     if (this.activePointers.size === 2) {
       // Two-finger: rotate + pan
-      const pointers = Array.from(this.activePointers.values());
-      if (pointers.length < 2) return;
-      const [p1, p2] = pointers;
-      const newAngle = getAngle(p1, p2);
-      const newMid = getMidpoint(p1, p2);
+      const currPointers = Array.from(this.activePointers.values());
+      const prevPointers = Array.from(prevStateMap.values());
 
-      if (prevPos && this.activePointers.size === 2) {
-        // Need previous state — stored per pointer above
-        // Compute old angle/mid from the other pointer's current value
-        const otherPointers = Array.from(this.activePointers.entries()).filter(
-          ([id]) => id !== e.pointerId,
-        );
-        if (otherPointers.length === 1) {
-          const [, otherPos] = otherPointers[0];
-          const oldAngle = getAngle(prevPos, otherPos);
-          const oldMid = getMidpoint(prevPos, otherPos);
+      // Need both previous positions; skip on the very first two-finger event
+      if (prevPointers.length < 2) return;
 
-          if (this.props.type !== 'background') {
-            const angleDelta = newAngle - oldAngle;
-            this.container.rotation += angleDelta * (Math.PI / 180);
-          }
+      const newAngle = getAngle(currPointers[0], currPointers[1]);
+      const newMid   = getMidpoint(currPointers[0], currPointers[1]);
+      const oldAngle = getAngle(prevPointers[0], prevPointers[1]);
+      const oldMid   = getMidpoint(prevPointers[0], prevPointers[1]);
 
-          const midDeltaX = newMid.x - oldMid.x;
-          this.container.x += midDeltaX;
-          if (this.props.type !== 'background') {
-            const midDeltaY = newMid.y - oldMid.y;
-            this.container.y += midDeltaY;
-          }
-
-          this.publishMove();
-        }
+      if (this.props.type !== 'background') {
+        // Normalize to [-180, 180] to prevent wrap-around flip at the ±180° boundary
+        let angleDelta = newAngle - oldAngle;
+        if (angleDelta >  180) angleDelta -= 360;
+        if (angleDelta < -180) angleDelta += 360;
+        this.container.rotation += angleDelta * (Math.PI / 180);
       }
+
+      this.container.x += newMid.x - oldMid.x;
+      if (this.props.type !== 'background') {
+        this.container.y += newMid.y - oldMid.y;
+      }
+
+      this.publishMove();
     } else if (this.isDragging && this.activePointers.size <= 1) {
       // Single finger drag
       const rawX = e.global.x + this.dragOffset.x;
