@@ -8,7 +8,13 @@ const LINKS = {
     { label: "Concept", to: "/concept" },
     { label: "Docs", to: "/docs" },
   ],
-  Company: [{ label: "Join Theatre", to: "/auth" }],
+  Company: [
+    { label: "About Us", to: "/about" },
+    { label: "Terms & Policy", to: "/terms" },
+    { label: "Privacy Policy", to: "/privacy" },
+    { label: "Careers", to: "/careers" },
+    { label: "Help", to: "/help" },
+  ],
 };
 
 const SOCIAL = [
@@ -30,12 +36,21 @@ export function LandingFooter() {
               to="/"
               className="inline-block transition-opacity hover:opacity-75"
             >
-              <img src="/icon-black.svg" alt="potmagic" className="h-5 opacity-50 dark:hidden" />
-              <img src="/icon-white.svg" alt="potmagic" className="h-5 hidden opacity-50 dark:block" />
+              <img
+                src="/icon-black.svg"
+                alt="potmagic"
+                className="h-5 opacity-50 dark:hidden"
+              />
+              <img
+                src="/icon-white.svg"
+                alt="potmagic"
+                className="hidden h-5 opacity-50 dark:block"
+              />
             </Link>
             <p className="text-base-content/60 max-w-xs text-sm leading-relaxed">
-              Step into the digital spotlight. Join our online community theatre
-              and perform live from anywhere.
+              A collaborative storytelling platform designed for families,
+              friends, and creators to perform live, interactive shows without
+              physical constraints.
             </p>
             <div className="flex flex-col gap-2">
               <span className="text-base-content/40 text-xs font-semibold tracking-widest uppercase">
