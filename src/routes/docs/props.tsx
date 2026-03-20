@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { Library, ImageIcon, Music, Sparkles } from 'lucide-react';
+import { Library, ImageIcon, Music, Sparkles, Clapperboard } from 'lucide-react';
 
 export const Route = createFileRoute('/docs/props')({
   head: () => ({ meta: [{ title: 'Props Library — potmagic: Live Story Theater' }, { name: 'description', content: 'Manage your props library on potmagic — upload characters, backgrounds, sounds, and Rive animations for your productions.' }] }),
@@ -20,6 +20,18 @@ function PropsPage() {
           sounds, and animations. Directors manage the props library and assign props to cast members.
         </p>
       </div>
+
+      <section>
+        <h2 className="font-display mb-2 text-lg font-semibold">Who can manage props?</h2>
+        <div className="bg-base-100 border-base-300 flex items-start gap-3 rounded-2xl border p-5">
+          <Clapperboard className="text-primary mt-0.5 size-5 shrink-0" />
+          <p className="text-base-content/70 text-sm leading-relaxed">
+            Only users with the <strong className="text-base-content">Director</strong> role can
+            upload, rename, and delete props. Actors can view props assigned to them but cannot
+            modify the library.
+          </p>
+        </div>
+      </section>
 
       <section>
         <h2 className="font-display mb-6 text-lg font-semibold">Prop Types</h2>
@@ -49,7 +61,7 @@ function PropsPage() {
 
       <section>
         <h2 className="font-display mb-6 text-lg font-semibold">Uploading a Prop</h2>
-        <ol className="space-y-5">
+        <ul className="timeline timeline-vertical timeline-compact">
           {[
             {
               step: '1',
@@ -71,18 +83,22 @@ function PropsPage() {
               title: 'Assign to a cast member',
               body: 'Open a story, go to the Cast tab, and assign the prop to an actor. Each actor can only hold one prop per story.',
             },
-          ].map(({ step, title, body }) => (
-            <li key={step} className="flex gap-4">
-              <span className="bg-primary/10 text-primary font-display flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold">
-                {step}
-              </span>
-              <div>
+          ].map(({ step, title, body }, index, arr) => (
+            <li key={step}>
+              {index > 0 && <hr className="bg-primary/30" />}
+              <div className="timeline-middle">
+                <span className="bg-primary/10 text-primary font-display flex size-7 items-center justify-center rounded-full text-sm font-semibold">
+                  {step}
+                </span>
+              </div>
+              <div className="timeline-end timeline-box mb-6 border-base-300 bg-base-100">
                 <p className="font-display mb-1 text-sm font-semibold">{title}</p>
                 <p className="text-base-content/60 text-sm leading-relaxed">{body}</p>
               </div>
+              {index < arr.length - 1 && <hr className="bg-primary/30" />}
             </li>
           ))}
-        </ol>
+        </ul>
       </section>
 
       <section>

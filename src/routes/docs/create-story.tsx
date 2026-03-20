@@ -34,7 +34,7 @@ function CreateStoryPage() {
 
       <section>
         <h2 className="font-display mb-6 text-lg font-semibold">Steps</h2>
-        <ol className="space-y-5">
+        <ul className="timeline timeline-vertical timeline-compact">
           {[
             {
               step: '1',
@@ -56,18 +56,22 @@ function CreateStoryPage() {
               title: 'Confirm creation',
               body: 'Click Create. The story is created in Draft status and you are taken to the story detail page where you can add scenes and assign cast.',
             },
-          ].map(({ step, title, body }) => (
-            <li key={step} className="flex gap-4">
-              <span className="bg-primary/10 text-primary font-display flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold">
-                {step}
-              </span>
-              <div>
+          ].map(({ step, title, body }, index, arr) => (
+            <li key={step}>
+              {index > 0 && <hr className="bg-primary/30" />}
+              <div className="timeline-middle">
+                <span className="bg-primary/10 text-primary font-display flex size-7 items-center justify-center rounded-full text-sm font-semibold">
+                  {step}
+                </span>
+              </div>
+              <div className="timeline-end timeline-box mb-6 border-base-300 bg-base-100">
                 <p className="font-display mb-1 text-sm font-semibold">{title}</p>
                 <p className="text-base-content/60 text-sm leading-relaxed">{body}</p>
               </div>
+              {index < arr.length - 1 && <hr className="bg-primary/30" />}
             </li>
           ))}
-        </ol>
+        </ul>
       </section>
 
       <section>

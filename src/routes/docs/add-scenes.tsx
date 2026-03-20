@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { Layers } from 'lucide-react';
+import { Layers, Clapperboard } from 'lucide-react';
 
 export const Route = createFileRoute('/docs/add-scenes')({
   head: () => ({ meta: [{ title: 'Add Scenes — potmagic: Live Story Theater' }, { name: 'description', content: 'Learn how to add and sequence scenes within a story on potmagic to build your narrative flow.' }] }),
@@ -22,8 +22,19 @@ function AddScenesPage() {
       </div>
 
       <section>
+        <h2 className="font-display mb-2 text-lg font-semibold">Who can add scenes?</h2>
+        <div className="bg-base-100 border-base-300 flex items-start gap-3 rounded-2xl border p-5">
+          <Clapperboard className="text-primary mt-0.5 size-5 shrink-0" />
+          <p className="text-base-content/70 text-sm leading-relaxed">
+            Only users with the <strong className="text-base-content">Director</strong> role can add
+            and manage scenes. Actors can view scenes they are cast in but cannot create or reorder them.
+          </p>
+        </div>
+      </section>
+
+      <section>
         <h2 className="font-display mb-6 text-lg font-semibold">Adding a Scene</h2>
-        <ol className="space-y-5">
+        <ul className="timeline timeline-vertical timeline-compact">
           {[
             {
               step: '1',
@@ -45,18 +56,22 @@ function AddScenesPage() {
               title: 'Reorder scenes',
               body: 'Drag scenes in the scene list to reorder them. The order determines the sequence during the live performance.',
             },
-          ].map(({ step, title, body }) => (
-            <li key={step} className="flex gap-4">
-              <span className="bg-primary/10 text-primary font-display flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold">
-                {step}
-              </span>
-              <div>
+          ].map(({ step, title, body }, index, arr) => (
+            <li key={step}>
+              {index > 0 && <hr className="bg-primary/30" />}
+              <div className="timeline-middle">
+                <span className="bg-primary/10 text-primary font-display flex size-7 items-center justify-center rounded-full text-sm font-semibold">
+                  {step}
+                </span>
+              </div>
+              <div className="timeline-end timeline-box mb-6 border-base-300 bg-base-100">
                 <p className="font-display mb-1 text-sm font-semibold">{title}</p>
                 <p className="text-base-content/60 text-sm leading-relaxed">{body}</p>
               </div>
+              {index < arr.length - 1 && <hr className="bg-primary/30" />}
             </li>
           ))}
-        </ol>
+        </ul>
       </section>
 
       <section>

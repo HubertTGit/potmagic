@@ -15,6 +15,7 @@ import {
   CalendarClock,
   Tv2,
   CircleOff,
+  Keyboard,
 } from 'lucide-react';
 
 export const Route = createFileRoute('/docs/')({
@@ -50,7 +51,7 @@ function DocsOverviewPage() {
         <h2 className="font-display mb-6 text-xl font-semibold">Roles</h2>
         <div className="grid gap-4 sm:grid-cols-3">
           <RoleCard
-            icon={<Clapperboard className="size-5" />}
+            icon={<Clapperboard className="size-8" />}
             title="Director"
             color="primary"
             description="The storyteller in charge. Creates the story, invites actors, assigns characters, curates scenes, and controls when the show goes live or ends."
@@ -64,7 +65,7 @@ function DocsOverviewPage() {
             ]}
           />
           <RoleCard
-            icon={<Drama className="size-5" />}
+            icon={<Drama className="size-8" />}
             title="Actor"
             color="accent"
             description="A performer with one assigned character per story. Joins the stage to move, rotate, mirror, and voice their character live in front of an audience."
@@ -77,7 +78,7 @@ function DocsOverviewPage() {
             ]}
           />
           <RoleCard
-            icon={<Eye className="size-5" />}
+            icon={<Eye className="size-8" />}
             title="Viewer"
             color="success"
             description="The audience. Receives a unique broadcast link and watches the live show — no account or login required."
@@ -89,6 +90,110 @@ function DocsOverviewPage() {
             ]}
           />
         </div>
+      </section>
+
+      {/* Session lifecycle */}
+      <section>
+        <h2 className="font-display mb-8 text-xl font-semibold">How a Show Works</h2>
+        <ul className="timeline timeline-vertical">
+
+          <li>
+            <div className="timeline-middle">
+              <Clapperboard className="text-primary size-5" />
+            </div>
+            <div className="timeline-end timeline-box border-base-300 bg-base-100 mb-10 max-w-md">
+              <p className="font-display text-sm font-semibold">Director creates the story</p>
+              <p className="text-base-content/60 mt-1 text-xs leading-relaxed">
+                A Director initializes a new story and invites participants to join as actors. Each actor is linked to the story and awaits a character assignment.
+              </p>
+            </div>
+            <hr className="bg-base-300" />
+          </li>
+
+          <li>
+            <hr className="bg-base-300" />
+            <div className="timeline-start timeline-box border-base-300 bg-base-100 mb-10 max-w-md">
+              <p className="font-display text-sm font-semibold">Characters are assigned</p>
+              <p className="text-base-content/60 mt-1 text-xs leading-relaxed">
+                The Director picks a character from the prop library for each actor. Every actor gets one unique character per story.
+              </p>
+            </div>
+            <div className="timeline-middle">
+              <Users className="text-primary size-5" />
+            </div>
+            <hr className="bg-base-300" />
+          </li>
+
+          <li>
+            <hr className="bg-base-300" />
+            <div className="timeline-middle">
+              <Layers className="text-primary size-5" />
+            </div>
+            <div className="timeline-end timeline-box border-base-300 bg-base-100 mb-10 max-w-md">
+              <p className="font-display text-sm font-semibold">Scenes are curated</p>
+              <p className="text-base-content/60 mt-1 text-xs leading-relaxed">
+                The Director builds out scenes and decides which characters appear in each one — setting the stage for every act of the story.
+              </p>
+            </div>
+            <hr className="bg-base-300" />
+          </li>
+
+          <li>
+            <hr className="bg-base-300" />
+            <div className="timeline-start timeline-box border-base-300 bg-base-100 mb-10 max-w-md">
+              <p className="font-display text-sm font-semibold">Rehearsal in draft mode</p>
+              <p className="text-base-content/60 mt-1 text-xs leading-relaxed">
+                Actors join the private stage while the story is in <span className="badge badge-warning badge-xs font-semibold uppercase tracking-wider align-middle">draft</span> status. The Director runs through the scenes until the story is performance-ready.
+              </p>
+            </div>
+            <div className="timeline-middle">
+              <FlaskConical className="text-primary size-5" />
+            </div>
+            <hr className="bg-base-300" />
+          </li>
+
+          <li>
+            <hr className="bg-base-300" />
+            <div className="timeline-middle">
+              <CalendarClock className="text-accent size-5" />
+            </div>
+            <div className="timeline-end timeline-box border-base-300 bg-base-100 mb-10 max-w-md">
+              <p className="font-display text-sm font-semibold">Show is announced</p>
+              <p className="text-base-content/60 mt-1 text-xs leading-relaxed">
+                The Director schedules a broadcast time. An email is sent to the audience with a unique URL — no account required to watch.
+              </p>
+            </div>
+            <hr className="bg-base-300" />
+          </li>
+
+          <li>
+            <hr className="bg-base-300" />
+            <div className="timeline-start timeline-box border-base-300 bg-base-100 mb-10 max-w-md">
+              <p className="font-display text-sm font-semibold">Live broadcast begins</p>
+              <p className="text-base-content/60 mt-1 text-xs leading-relaxed">
+                The story status changes to <span className="badge badge-success badge-xs font-semibold uppercase tracking-wider align-middle">active</span>. The public can watch via their unique URL. Actors perform in real time — voice and canvas are streamed live to every viewer.
+              </p>
+            </div>
+            <div className="timeline-middle">
+              <Tv2 className="text-success size-5" />
+            </div>
+            <hr className="bg-base-300" />
+          </li>
+
+          <li>
+            <hr className="bg-base-300" />
+            <div className="timeline-middle">
+              <CircleOff className="text-error size-5" />
+            </div>
+            <div className="timeline-end timeline-box border-base-300 bg-base-100 max-w-md">
+              <p className="font-display text-sm font-semibold">Show ends</p>
+              <p className="text-base-content/60 mt-1 text-xs leading-relaxed">
+                The Director sets the story to <span className="badge badge-xs font-semibold uppercase tracking-wider align-middle bg-black text-white border-black">ended</span>. All viewers are automatically disconnected and the broadcast URL becomes inactive.
+              </p>
+            </div>
+          </li>
+
+        </ul>
       </section>
 
       {/* Stage controls */}
@@ -115,111 +220,12 @@ function DocsOverviewPage() {
             label="Voice"
             description="Your microphone is live when you join the stage. Use the mute button in the cast overlay to toggle."
           />
+          <ControlRow
+            icon={<Keyboard className="size-4" />}
+            label="Keyboard Shortcuts"
+            description="Control your character's animation states via keyboard shortcuts while on stage."
+          />
         </div>
-      </section>
-
-      {/* Session lifecycle */}
-      <section>
-        <h2 className="font-display mb-8 text-xl font-semibold">How a Show Works</h2>
-        <ul className="timeline timeline-vertical">
-
-          <li>
-            <div className="timeline-middle">
-              <Clapperboard className="text-primary size-5" />
-            </div>
-            <div className="timeline-end timeline-box border-base-300 bg-base-100 mb-10 max-w-md">
-              <p className="font-display text-sm font-semibold">Director creates the story</p>
-              <p className="text-base-content/60 mt-1 text-xs leading-relaxed">
-                A Director initializes a new story and invites participants to join as actors. Each actor is linked to the story and awaits a character assignment.
-              </p>
-            </div>
-            <hr className="bg-base-300" />
-          </li>
-
-          <li>
-            <hr className="bg-base-300" />
-            <div className="timeline-middle">
-              <Users className="text-primary size-5" />
-            </div>
-            <div className="timeline-end timeline-box border-base-300 bg-base-100 mb-10 max-w-md">
-              <p className="font-display text-sm font-semibold">Characters are assigned</p>
-              <p className="text-base-content/60 mt-1 text-xs leading-relaxed">
-                The Director picks a character from the prop library for each actor. Every actor gets one unique character per story.
-              </p>
-            </div>
-            <hr className="bg-base-300" />
-          </li>
-
-          <li>
-            <hr className="bg-base-300" />
-            <div className="timeline-middle">
-              <Layers className="text-primary size-5" />
-            </div>
-            <div className="timeline-end timeline-box border-base-300 bg-base-100 mb-10 max-w-md">
-              <p className="font-display text-sm font-semibold">Scenes are curated</p>
-              <p className="text-base-content/60 mt-1 text-xs leading-relaxed">
-                The Director builds out scenes and decides which characters appear in each one — setting the stage for every act of the story.
-              </p>
-            </div>
-            <hr className="bg-base-300" />
-          </li>
-
-          <li>
-            <hr className="bg-base-300" />
-            <div className="timeline-middle">
-              <FlaskConical className="text-primary size-5" />
-            </div>
-            <div className="timeline-end timeline-box border-base-300 bg-base-100 mb-10 max-w-md">
-              <p className="font-display text-sm font-semibold">Rehearsal in draft mode</p>
-              <p className="text-base-content/60 mt-1 text-xs leading-relaxed">
-                Actors join the private stage while the story is in <span className="badge badge-warning badge-xs font-semibold uppercase tracking-wider align-middle">draft</span> status. The Director runs through the scenes until the story is performance-ready.
-              </p>
-            </div>
-            <hr className="bg-base-300" />
-          </li>
-
-          <li>
-            <hr className="bg-base-300" />
-            <div className="timeline-middle">
-              <CalendarClock className="text-accent size-5" />
-            </div>
-            <div className="timeline-end timeline-box border-base-300 bg-base-100 mb-10 max-w-md">
-              <p className="font-display text-sm font-semibold">Show is announced</p>
-              <p className="text-base-content/60 mt-1 text-xs leading-relaxed">
-                The Director schedules a broadcast time. An email is sent to the audience with a unique URL — no account required to watch.
-              </p>
-            </div>
-            <hr className="bg-base-300" />
-          </li>
-
-          <li>
-            <hr className="bg-base-300" />
-            <div className="timeline-middle">
-              <Tv2 className="text-success size-5" />
-            </div>
-            <div className="timeline-end timeline-box border-base-300 bg-base-100 mb-10 max-w-md">
-              <p className="font-display text-sm font-semibold">Live broadcast begins</p>
-              <p className="text-base-content/60 mt-1 text-xs leading-relaxed">
-                The story status changes to <span className="badge badge-success badge-xs font-semibold uppercase tracking-wider align-middle">active</span>. The public can watch via their unique URL. Actors perform in real time — voice and canvas are streamed live to every viewer.
-              </p>
-            </div>
-            <hr className="bg-base-300" />
-          </li>
-
-          <li>
-            <hr className="bg-base-300" />
-            <div className="timeline-middle">
-              <CircleOff className="text-error size-5" />
-            </div>
-            <div className="timeline-end timeline-box border-base-300 bg-base-100 max-w-md">
-              <p className="font-display text-sm font-semibold">Show ends</p>
-              <p className="text-base-content/60 mt-1 text-xs leading-relaxed">
-                The Director sets the story to <span className="badge badge-error badge-xs font-semibold uppercase tracking-wider align-middle">ended</span>. All viewers are automatically disconnected and the broadcast URL becomes inactive.
-              </p>
-            </div>
-          </li>
-
-        </ul>
       </section>
 
       {/* Broadcast */}
