@@ -9,6 +9,12 @@ import {
   FlipHorizontal,
   Volume2,
   Radio,
+  Users,
+  Layers,
+  FlaskConical,
+  CalendarClock,
+  Tv2,
+  CircleOff,
 } from 'lucide-react';
 
 export const Route = createFileRoute('/docs/')({
@@ -46,17 +52,41 @@ function DocsOverviewPage() {
           <RoleCard
             icon={<Clapperboard className="size-5" />}
             title="Director"
-            description="Creates stories, builds scenes, assigns characters to actors, and controls the live session."
+            color="primary"
+            description="The storyteller in charge. Creates the story, invites actors, assigns characters, curates scenes, and controls when the show goes live or ends."
+            bullets={[
+              'Initialize stories and invite actors',
+              'Assign characters from the prop library',
+              'Build and arrange scenes',
+              'Rehearse in draft mode',
+              'Broadcast to the public',
+              'End the session when done',
+            ]}
           />
           <RoleCard
             icon={<Drama className="size-5" />}
             title="Actor"
-            description="Assigned one character per story. Moves, rotates, and performs their character on the canvas."
+            color="accent"
+            description="A performer with one assigned character per story. Joins the stage to move, rotate, mirror, and voice their character live in front of an audience."
+            bullets={[
+              'Receives a character assignment',
+              'Joins rehearsal in draft mode',
+              'Performs on the live stage',
+              'Controls their character on canvas',
+              'Communicates via live voice',
+            ]}
           />
           <RoleCard
             icon={<Eye className="size-5" />}
             title="Viewer"
-            description="Watches the live broadcast via a public URL. No account required."
+            color="success"
+            description="The audience. Receives a unique broadcast link and watches the live show — no account or login required."
+            bullets={[
+              'No sign-up needed',
+              'Accesses show via unique URL',
+              'Watches canvas and hears voice',
+              'Automatically disconnected when show ends',
+            ]}
           />
         </div>
       </section>
@@ -90,24 +120,106 @@ function DocsOverviewPage() {
 
       {/* Session lifecycle */}
       <section>
-        <h2 className="font-display mb-6 text-xl font-semibold">Session Lifecycle</h2>
-        <ol className="space-y-4">
-          {[
-            { step: '1', text: 'Director creates a story and adds scenes.' },
-            { step: '2', text: 'Director assigns characters from the prop library to each actor.' },
-            { step: '3', text: 'Actors join the stage — voice and canvas sync start automatically.' },
-            { step: '4', text: 'Director sets status to Active to begin public broadcast.' },
-            { step: '5', text: 'Viewers watch via the public broadcast URL.' },
-            { step: '6', text: 'Director ends the session — all participants are disconnected.' },
-          ].map(({ step, text }) => (
-            <li key={step} className="flex items-start gap-4">
-              <span className="bg-primary/10 text-primary font-display flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold">
-                {step}
-              </span>
-              <p className="text-base-content/80 pt-0.5 text-sm leading-relaxed">{text}</p>
-            </li>
-          ))}
-        </ol>
+        <h2 className="font-display mb-8 text-xl font-semibold">How a Show Works</h2>
+        <ul className="timeline timeline-vertical">
+
+          <li>
+            <div className="timeline-middle">
+              <Clapperboard className="text-primary size-5" />
+            </div>
+            <div className="timeline-end timeline-box border-base-300 bg-base-100 mb-10 max-w-md">
+              <p className="font-display text-sm font-semibold">Director creates the story</p>
+              <p className="text-base-content/60 mt-1 text-xs leading-relaxed">
+                A Director initializes a new story and invites participants to join as actors. Each actor is linked to the story and awaits a character assignment.
+              </p>
+            </div>
+            <hr className="bg-base-300" />
+          </li>
+
+          <li>
+            <hr className="bg-base-300" />
+            <div className="timeline-middle">
+              <Users className="text-primary size-5" />
+            </div>
+            <div className="timeline-end timeline-box border-base-300 bg-base-100 mb-10 max-w-md">
+              <p className="font-display text-sm font-semibold">Characters are assigned</p>
+              <p className="text-base-content/60 mt-1 text-xs leading-relaxed">
+                The Director picks a character from the prop library for each actor. Every actor gets one unique character per story.
+              </p>
+            </div>
+            <hr className="bg-base-300" />
+          </li>
+
+          <li>
+            <hr className="bg-base-300" />
+            <div className="timeline-middle">
+              <Layers className="text-primary size-5" />
+            </div>
+            <div className="timeline-end timeline-box border-base-300 bg-base-100 mb-10 max-w-md">
+              <p className="font-display text-sm font-semibold">Scenes are curated</p>
+              <p className="text-base-content/60 mt-1 text-xs leading-relaxed">
+                The Director builds out scenes and decides which characters appear in each one — setting the stage for every act of the story.
+              </p>
+            </div>
+            <hr className="bg-base-300" />
+          </li>
+
+          <li>
+            <hr className="bg-base-300" />
+            <div className="timeline-middle">
+              <FlaskConical className="text-primary size-5" />
+            </div>
+            <div className="timeline-end timeline-box border-base-300 bg-base-100 mb-10 max-w-md">
+              <p className="font-display text-sm font-semibold">Rehearsal in draft mode</p>
+              <p className="text-base-content/60 mt-1 text-xs leading-relaxed">
+                Actors join the private stage while the story is in <span className="badge badge-warning badge-xs font-semibold uppercase tracking-wider align-middle">draft</span> status. The Director runs through the scenes until the story is performance-ready.
+              </p>
+            </div>
+            <hr className="bg-base-300" />
+          </li>
+
+          <li>
+            <hr className="bg-base-300" />
+            <div className="timeline-middle">
+              <CalendarClock className="text-accent size-5" />
+            </div>
+            <div className="timeline-end timeline-box border-base-300 bg-base-100 mb-10 max-w-md">
+              <p className="font-display text-sm font-semibold">Show is announced</p>
+              <p className="text-base-content/60 mt-1 text-xs leading-relaxed">
+                The Director schedules a broadcast time. An email is sent to the audience with a unique URL — no account required to watch.
+              </p>
+            </div>
+            <hr className="bg-base-300" />
+          </li>
+
+          <li>
+            <hr className="bg-base-300" />
+            <div className="timeline-middle">
+              <Tv2 className="text-success size-5" />
+            </div>
+            <div className="timeline-end timeline-box border-base-300 bg-base-100 mb-10 max-w-md">
+              <p className="font-display text-sm font-semibold">Live broadcast begins</p>
+              <p className="text-base-content/60 mt-1 text-xs leading-relaxed">
+                The story status changes to <span className="badge badge-success badge-xs font-semibold uppercase tracking-wider align-middle">active</span>. The public can watch via their unique URL. Actors perform in real time — voice and canvas are streamed live to every viewer.
+              </p>
+            </div>
+            <hr className="bg-base-300" />
+          </li>
+
+          <li>
+            <hr className="bg-base-300" />
+            <div className="timeline-middle">
+              <CircleOff className="text-error size-5" />
+            </div>
+            <div className="timeline-end timeline-box border-base-300 bg-base-100 max-w-md">
+              <p className="font-display text-sm font-semibold">Show ends</p>
+              <p className="text-base-content/60 mt-1 text-xs leading-relaxed">
+                The Director sets the story to <span className="badge badge-error badge-xs font-semibold uppercase tracking-wider align-middle">ended</span>. All viewers are automatically disconnected and the broadcast URL becomes inactive.
+              </p>
+            </div>
+          </li>
+
+        </ul>
       </section>
 
       {/* Broadcast */}
@@ -133,17 +245,33 @@ function DocsOverviewPage() {
 function RoleCard({
   icon,
   title,
+  color,
   description,
+  bullets,
 }: {
   icon: React.ReactNode;
   title: string;
+  color: 'primary' | 'accent' | 'success';
   description: string;
+  bullets: string[];
 }) {
+  const iconColor = { primary: 'text-primary', accent: 'text-accent', success: 'text-success' }[color];
+  const dotColor = { primary: 'bg-primary', accent: 'bg-accent', success: 'bg-success' }[color];
   return (
-    <div className="bg-base-100 border-base-300 rounded-2xl border p-5">
-      <div className="text-primary mb-3">{icon}</div>
-      <h3 className="font-display mb-1 text-sm font-semibold">{title}</h3>
-      <p className="text-base-content/60 text-sm leading-relaxed">{description}</p>
+    <div className="bg-base-100 border-base-300 rounded-2xl border p-5 flex flex-col gap-4">
+      <div>
+        <div className={`${iconColor} mb-3`}>{icon}</div>
+        <h3 className="font-display mb-1 text-sm font-semibold">{title}</h3>
+        <p className="text-base-content/60 text-sm leading-relaxed">{description}</p>
+      </div>
+      <ul className="space-y-1.5">
+        {bullets.map((b) => (
+          <li key={b} className="flex items-start gap-2">
+            <span className={`${dotColor} mt-1.5 size-1.5 shrink-0 rounded-full`} />
+            <span className="text-base-content/60 text-xs leading-relaxed">{b}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
