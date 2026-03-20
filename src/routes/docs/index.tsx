@@ -99,7 +99,9 @@ function DocsOverviewPage() {
 
           <li>
             <div className="timeline-middle">
-              <Clapperboard className="text-primary size-5" />
+              <div className="bg-primary/15 border-primary/30 flex items-center justify-center rounded-full border p-2">
+                <Clapperboard className="text-primary size-6" />
+              </div>
             </div>
             <div className="timeline-end timeline-box border-base-300 bg-base-100 mb-10 max-w-md">
               <p className="font-display text-sm font-semibold">Director creates the story</p>
@@ -119,7 +121,9 @@ function DocsOverviewPage() {
               </p>
             </div>
             <div className="timeline-middle">
-              <Users className="text-primary size-5" />
+              <div className="bg-primary/15 border-primary/30 flex items-center justify-center rounded-full border p-2">
+                <Users className="text-primary size-6" />
+              </div>
             </div>
             <hr className="bg-base-300" />
           </li>
@@ -127,7 +131,9 @@ function DocsOverviewPage() {
           <li>
             <hr className="bg-base-300" />
             <div className="timeline-middle">
-              <Layers className="text-primary size-5" />
+              <div className="bg-primary/15 border-primary/30 flex items-center justify-center rounded-full border p-2">
+                <Layers className="text-primary size-6" />
+              </div>
             </div>
             <div className="timeline-end timeline-box border-base-300 bg-base-100 mb-10 max-w-md">
               <p className="font-display text-sm font-semibold">Scenes are curated</p>
@@ -147,7 +153,9 @@ function DocsOverviewPage() {
               </p>
             </div>
             <div className="timeline-middle">
-              <FlaskConical className="text-primary size-5" />
+              <div className="bg-primary/15 border-primary/30 flex items-center justify-center rounded-full border p-2">
+                <FlaskConical className="text-primary size-6" />
+              </div>
             </div>
             <hr className="bg-base-300" />
           </li>
@@ -155,7 +163,9 @@ function DocsOverviewPage() {
           <li>
             <hr className="bg-base-300" />
             <div className="timeline-middle">
-              <CalendarClock className="text-accent size-5" />
+              <div className="bg-accent/15 border-accent/30 flex items-center justify-center rounded-full border p-2">
+                <CalendarClock className="text-accent size-6" />
+              </div>
             </div>
             <div className="timeline-end timeline-box border-base-300 bg-base-100 mb-10 max-w-md">
               <p className="font-display text-sm font-semibold">Show is announced</p>
@@ -175,7 +185,9 @@ function DocsOverviewPage() {
               </p>
             </div>
             <div className="timeline-middle">
-              <Tv2 className="text-success size-5" />
+              <div className="bg-success/15 border-success/30 flex items-center justify-center rounded-full border p-2">
+                <Tv2 className="text-success size-6" />
+              </div>
             </div>
             <hr className="bg-base-300" />
           </li>
@@ -183,7 +195,9 @@ function DocsOverviewPage() {
           <li>
             <hr className="bg-base-300" />
             <div className="timeline-middle">
-              <CircleOff className="text-error size-5" />
+              <div className="bg-error/15 border-error/30 flex items-center justify-center rounded-full border p-2">
+                <CircleOff className="text-error size-6" />
+              </div>
             </div>
             <div className="timeline-end timeline-box border-base-300 bg-base-100 max-w-md">
               <p className="font-display text-sm font-semibold">Show ends</p>
