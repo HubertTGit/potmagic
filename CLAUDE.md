@@ -17,7 +17,7 @@ pnpm preview      # Preview production build
 
 ## Overview
 
-**potmagic** is an online collaborative theater platform for storytelling. Groups perform interactive stories together using animated Konva canvas characters, with a public LiveKit broadcast stream for audiences. See `SPEC.md` for full product specification and `SPEC_LIVEKIT.md` specifically for LiveKit implementation.
+**potmagic** is an online collaborative theater platform for storytelling. Groups perform interactive stories together using animated Konva canvas characters, with a public LiveKit broadcast stream for audiences. See `.claude/SPEC.md` for full product specification and `.claude/SPEC_LIVEKIT.md` specifically for LiveKit implementation.
 
 ## Tech Stack
 
@@ -386,6 +386,12 @@ When Figma MCP returns raw HTML + Tailwind, map common patterns to DaisyUI equiv
 | Navbar / top bar     | `navbar bg-base-100 border-b border-base-300`                                |                                                               |
 | Tabs                 | Manual `role="tablist"` + border-b pattern                                   | See `director.tsx` for the tab pattern used here              |
 | Toast / alert        | `toast` via `src/lib/toast.ts` helpers — `toast.error()` / `toast.success()` | Never build inline alerts                                     |
+
+# PixiJS Project
+
+## Documentation
+For PixiJS API reference, fetch:
+https://pixijs.com/llms.txt
 
 ### Border Radius Tokens
 

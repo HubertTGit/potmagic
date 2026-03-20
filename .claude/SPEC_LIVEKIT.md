@@ -172,7 +172,7 @@ All of the above, plus:
 
 ## Public Broadcast Route (`/public`)
 
-This route **replaces** the `/broadcast/:roomId` route planned in the original SPEC.md. That route was never implemented; `/public` supersedes it.
+This route **replaces** the `/broadcast/:roomId` route planned in the original `.claude/SPEC.md`. That route was never implemented; `/public` supersedes it.
 
 ### Route
 

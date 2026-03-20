@@ -1,13 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
-import { Image } from 'react-konva';
-import type Konva from 'konva';
+import { Application, Assets, Container, Graphics, Sprite } from 'pixi.js';
+import type { FederatedPointerEvent, Texture } from 'pixi.js';
 import { RoomEvent } from 'livekit-client';
 import type { Room } from 'livekit-client';
-import { authClient } from '@/lib/auth-client';
 import { saveSceneCastPosition } from '@/lib/scenes.fns';
 import type { PropType } from '@/db/schema';
 
-interface DraggableCharacterProps {
+interface PixiCharacterProps {
   sceneCastId: string;
   castId: string;
   src: string;
@@ -18,9 +16,11 @@ interface DraggableCharacterProps {
   initialRotation?: number;
   initialScaleX?: number;
   room?: Room | null;
-  isSpeaking?: boolean;
+  canDrag: boolean;
   stageWidth?: number;
   stageHeight?: number;
+  app: Application;
+  onReady?: () => void;
 }
 
 interface PropMoveMessage {
@@ -33,242 +33,307 @@ interface PropMoveMessage {
   indexZ: number;
 }
 
-function getAngle(t1: Touch, t2: Touch) {
-  return (
-    Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX) *
-    (180 / Math.PI)
-  );
+function getAngle(a: { x: number; y: number }, b: { x: number; y: number }) {
+  return Math.atan2(b.y - a.y, b.x - a.x) * (180 / Math.PI);
 }
 
-function getMidpoint(t1: Touch, t2: Touch) {
-  return { x: (t1.clientX + t2.clientX) / 2, y: (t1.clientY + t2.clientY) / 2 };
+function getMidpoint(a: { x: number; y: number }, b: { x: number; y: number }) {
+  return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
 }
 
-export function DraggableCharacter({
-  sceneCastId,
-  castId,
-  src,
-  userId,
-  type,
-  initialX = 100,
-  initialY = 100,
-  initialRotation = 0,
-  initialScaleX = 1,
-  room,
-  isSpeaking,
-  stageWidth = 1280,
-  stageHeight = 720,
-}: DraggableCharacterProps) {
-  const { data: session } = authClient.useSession();
-  const canDrag =
-    session?.user?.id === userId || session?.user?.role === 'director';
-  const imageRef = useRef<Konva.Image>(null);
-  const [image, setImage] = useState<HTMLImageElement | undefined>(undefined);
-  const lastAngle = useRef(0);
-  const lastMidpoint = useRef({ x: 0, y: 0 });
-  const canDragRef = useRef(false);
-  canDragRef.current = canDrag;
-  const lastSendTimeRef = useRef(0);
+export class PixiCharacter {
+  readonly container: Container;
+  private sprite: Sprite;
+  private glowGraphics: Graphics;
+  private readonly props: PixiCharacterProps;
 
-  useEffect(() => {
-    const img = new window.Image();
-    img.crossOrigin = 'anonymous';
-    img.src = src;
-    img.onload = () => {
-      setImage(img);
-    };
-  }, [src]);
+  private isDragging = false;
+  private dragOffset = { x: 0, y: 0 };
+  private activePointers = new Map<number, { x: number; y: number }>();
+  private lastSendTime = 0;
+  private isSpeaking = false;
+  private textureLoaded = false;
 
-  useEffect(() => {
-    const node = imageRef.current;
-    if (!node || !image) return;
-    node.offsetX(image.width / 2);
-    node.offsetY(image.height / 2);
-    node.rotation(initialRotation);
-    node.scaleX(initialScaleX);
-    if (type === 'background') {
-      node.y(stageHeight - image.height / 2);
-      node.moveToBottom();
-    } else {
-      node.moveToTop();
-    }
-    node.getLayer()?.batchDraw();
-  }, [image, type, stageHeight]);
+  // Double-tap detection
+  private lastTapTime = 0;
 
-  useEffect(() => {
-    return () => {
-      const node = imageRef.current;
-      if (!canDragRef.current || !node) return;
-      saveSceneCastPosition({
-        data: {
-          sceneCastId,
-          x: node.x(),
-          y: node.y(),
-          rotation: node.rotation(),
-          scaleX: node.scaleX(),
-        },
-      });
-    };
-  }, [sceneCastId]);
+  private readonly onDataReceived: (payload: Uint8Array) => void;
 
-  // Subscribe to remote prop:move messages and apply imperatively
-  useEffect(() => {
-    if (!room) return;
+  constructor(props: PixiCharacterProps) {
+    this.props = props;
 
-    const handler = (payload: Uint8Array) => {
+    this.container = new Container();
+    this.container.label = props.sceneCastId;
+    this.container.zIndex = props.type === 'background' ? 0 : 1;
+    this.container.x = props.initialX ?? 100;
+    this.container.y = props.initialY ?? 100;
+
+    this.glowGraphics = new Graphics();
+    this.sprite = new Sprite();
+    this.sprite.anchor.set(0.5);
+
+    this.container.addChild(this.glowGraphics);
+    this.container.addChild(this.sprite);
+
+    // Listen for remote moves via LiveKit
+    this.onDataReceived = (payload: Uint8Array) => {
       let msg: PropMoveMessage;
       try {
         msg = JSON.parse(new TextDecoder().decode(payload)) as PropMoveMessage;
       } catch {
         return;
       }
-
-      if (msg.type !== 'prop:move' || msg.castId !== castId) return;
-
-      const node = imageRef.current;
-      if (!node) return;
-      node.x(msg.x);
-      node.y(msg.y);
-      node.rotation(msg.rotation);
-      node.scaleX(msg.scaleX);
-      node.getLayer()?.batchDraw();
+      if (msg.type !== 'prop:move' || msg.castId !== props.castId) return;
+      this.container.x = msg.x;
+      this.container.y = msg.y;
+      this.container.rotation = msg.rotation * (Math.PI / 180);
+      this.sprite.scale.x = msg.scaleX;
     };
 
-    room.on(RoomEvent.DataReceived, handler);
-    return () => {
-      room.off(RoomEvent.DataReceived, handler);
-    };
-  }, [room, castId]);
+    if (props.room) {
+      props.room.on(RoomEvent.DataReceived, this.onDataReceived);
+    }
 
-  function publishMove(node: Konva.Image, immediate = false) {
+    this.loadTexture();
+  }
+
+  private async loadTexture() {
+    const { src, type, initialRotation = 0, initialScaleX = 1, stageHeight = 720, app } = this.props;
+    let texture: Texture;
+    try {
+      texture = await Assets.load(src);
+    } catch {
+      this.props.onReady?.();
+      return;
+    }
+
+    this.sprite.texture = texture;
+    this.sprite.anchor.set(0.5);
+    this.sprite.scale.x = initialScaleX;
+    this.container.rotation = initialRotation * (Math.PI / 180);
+
+    if (type === 'background') {
+      this.container.y = stageHeight - texture.height / 2;
+      this.container.zIndex = 0;
+    } else {
+      this.container.zIndex = 1;
+    }
+
+    this.textureLoaded = true;
+    this.drawGlow();
+    this.setupInteraction();
+    this.props.onReady?.();
+
+    // Trigger re-sort after zIndex assignment
+    if (app.stage.sortableChildren) app.stage.sortChildren();
+  }
+
+  private drawGlow() {
+    this.glowGraphics.clear();
+    if (this.isSpeaking && this.props.type !== 'background' && this.textureLoaded) {
+      const w = this.sprite.width;
+      const h = this.sprite.height;
+      this.glowGraphics
+        .roundRect(-Math.abs(w) / 2 - 4, -h / 2 - 4, Math.abs(w) + 8, h + 8, 4)
+        .stroke({ color: 0xa855f7, width: 4 });
+    }
+  }
+
+  private setupInteraction() {
+    const { canDrag, type } = this.props;
+
+    this.sprite.eventMode = canDrag ? 'static' : 'none';
+    this.sprite.cursor = canDrag ? 'pointer' : 'default';
+
+    if (!canDrag) return;
+
+    this.sprite.on('pointerdown', this.onPointerDown.bind(this));
+    this.sprite.on('pointerup', this.onPointerUp.bind(this));
+    this.sprite.on('pointerupoutside', this.onPointerUp.bind(this));
+    this.sprite.on('globalpointermove', this.onStagePointerMove.bind(this));
+
+    if (type !== 'background') {
+      this.sprite.on('click', (e: FederatedPointerEvent) => {
+        if (e.detail === 2) this.handleDoubleClick();
+      });
+      this.sprite.on('tap', () => {
+        const now = Date.now();
+        if (now - this.lastTapTime < 300) this.handleDoubleClick();
+        this.lastTapTime = now;
+      });
+    }
+  }
+
+  private onPointerDown(e: FederatedPointerEvent) {
+    const { type } = this.props;
+
+    this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (this.activePointers.size === 1) {
+      // Single finger — start drag
+      this.isDragging = true;
+      this.dragOffset = {
+        x: this.container.x - e.global.x,
+        y: this.container.y - e.global.y,
+      };
+      if (type !== 'background') this.bringToTop();
+    } else {
+      // Multi-finger — stop drag, start gesture
+      this.isDragging = false;
+    }
+  }
+
+  private onPointerUp(e: FederatedPointerEvent) {
+    this.activePointers.delete(e.pointerId);
+    if (this.activePointers.size === 0) {
+      this.isDragging = false;
+      this.persistPosition();
+    }
+  }
+
+  private onStagePointerMove(e: FederatedPointerEvent) {
+    if (!this.props.canDrag) return;
+
+    const prevPos = this.activePointers.get(e.pointerId);
+    if (prevPos) {
+      this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    }
+
+    if (this.activePointers.size === 2) {
+      // Two-finger: rotate + pan
+      const pointers = Array.from(this.activePointers.values());
+      if (pointers.length < 2) return;
+      const [p1, p2] = pointers;
+      const newAngle = getAngle(p1, p2);
+      const newMid = getMidpoint(p1, p2);
+
+      if (prevPos && this.activePointers.size === 2) {
+        // Need previous state — stored per pointer above
+        // Compute old angle/mid from the other pointer's current value
+        const otherPointers = Array.from(this.activePointers.entries()).filter(
+          ([id]) => id !== e.pointerId,
+        );
+        if (otherPointers.length === 1) {
+          const [, otherPos] = otherPointers[0];
+          const oldAngle = getAngle(prevPos, otherPos);
+          const oldMid = getMidpoint(prevPos, otherPos);
+
+          if (this.props.type !== 'background') {
+            const angleDelta = newAngle - oldAngle;
+            this.container.rotation += angleDelta * (Math.PI / 180);
+          }
+
+          const midDeltaX = newMid.x - oldMid.x;
+          this.container.x += midDeltaX;
+          if (this.props.type !== 'background') {
+            const midDeltaY = newMid.y - oldMid.y;
+            this.container.y += midDeltaY;
+          }
+
+          this.publishMove();
+        }
+      }
+    } else if (this.isDragging && this.activePointers.size <= 1) {
+      // Single finger drag
+      const rawX = e.global.x + this.dragOffset.x;
+      const rawY = e.global.y + this.dragOffset.y;
+      this.container.x = this.clampX(rawX);
+      this.container.y = this.clampY(rawY);
+      this.publishMove();
+    }
+  }
+
+  private clampX(x: number): number {
+    const { type, stageWidth = 1280 } = this.props;
+    if (type === 'background') {
+      const halfW = this.sprite.width / 2;
+      const minX = stageWidth - halfW;
+      const maxX = halfW;
+      return maxX > minX ? Math.min(Math.max(x, minX), maxX) : x;
+    }
+    return Math.min(Math.max(x, 0), stageWidth);
+  }
+
+  private clampY(y: number): number {
+    const { type, stageHeight = 720 } = this.props;
+    if (type === 'background') {
+      // Locked to bottom
+      return stageHeight - this.sprite.height / 2;
+    }
+    return Math.min(Math.max(y, 0), stageHeight);
+  }
+
+  private handleDoubleClick() {
+    if (!this.props.canDrag || this.props.type === 'background') return;
+    this.sprite.scale.x *= -1;
+    this.drawGlow(); // redraw glow as width sign changed
+    this.publishMove(true);
+    this.persistPosition();
+  }
+
+  private publishMove(immediate = false) {
+    const { room, canDrag, castId } = this.props;
     if (!room || !canDrag) return;
     const now = Date.now();
-    if (!immediate && now - lastSendTimeRef.current < 30) return;
-    lastSendTimeRef.current = now;
+    if (!immediate && now - this.lastSendTime < 30) return;
+    this.lastSendTime = now;
 
     const msg: PropMoveMessage = {
       type: 'prop:move',
       castId,
-      x: node.x(),
-      y: node.y(),
-      rotation: node.rotation(),
-      scaleX: node.scaleX(),
+      x: this.container.x,
+      y: this.container.y,
+      rotation: this.container.rotation * (180 / Math.PI),
+      scaleX: this.sprite.scale.x,
       indexZ: 0,
     };
-    room.localParticipant.publishData(
+    this.props.room?.localParticipant.publishData(
       new TextEncoder().encode(JSON.stringify(msg)),
       { reliable: false },
     );
   }
 
-  function persistPosition(node: Konva.Image) {
-    if (!canDrag) return;
+  private persistPosition() {
+    if (!this.props.canDrag) return;
     saveSceneCastPosition({
       data: {
-        sceneCastId,
-        x: node.x(),
-        y: node.y(),
-        rotation: node.rotation(),
-        scaleX: node.scaleX(),
+        sceneCastId: this.props.sceneCastId,
+        x: this.container.x,
+        y: this.container.y,
+        rotation: this.container.rotation * (180 / Math.PI),
+        scaleX: this.sprite.scale.x,
       },
     });
   }
 
-  const handleTouchStart = (e: Konva.KonvaEventObject<TouchEvent>) => {
-    if (!canDrag) return;
-    if (type !== 'background') imageRef.current?.moveToTop();
-    const touches = e.evt.touches;
-    if (touches.length === 2 && type !== 'background') {
-      imageRef.current?.draggable(false);
-      lastAngle.current = getAngle(touches[0], touches[1]);
-      lastMidpoint.current = getMidpoint(touches[0], touches[1]);
+  private bringToTop() {
+    const stage = this.props.app.stage;
+    this.container.zIndex = stage.children.length + 1;
+    stage.sortChildren();
+  }
+
+  updateSpeaking(isSpeaking: boolean) {
+    if (this.isSpeaking === isSpeaking) return;
+    this.isSpeaking = isSpeaking;
+    this.drawGlow();
+  }
+
+  applyRemoteMove(msg: PropMoveMessage) {
+    this.container.x = msg.x;
+    this.container.y = msg.y;
+    this.container.rotation = msg.rotation * (Math.PI / 180);
+    this.sprite.scale.x = msg.scaleX;
+  }
+
+  saveCurrentPosition() {
+    if (!this.props.canDrag) return;
+    this.persistPosition();
+  }
+
+  destroy() {
+    if (this.props.room) {
+      this.props.room.off(RoomEvent.DataReceived, this.onDataReceived);
     }
-  };
-
-  const handleTouchMove = (e: Konva.KonvaEventObject<TouchEvent>) => {
-    if (!canDrag) return;
-    const touches = e.evt.touches;
-    if (touches.length !== 2) return;
-    e.evt.preventDefault();
-    const node = imageRef.current;
-    if (!node) return;
-
-    const angle = getAngle(touches[0], touches[1]);
-    const midpoint = getMidpoint(touches[0], touches[1]);
-
-    if (type !== 'background') {
-      node.rotation(node.rotation() + (angle - lastAngle.current));
-    }
-    node.x(node.x() + (midpoint.x - lastMidpoint.current.x));
-    if (type !== 'background') {
-      node.y(node.y() + (midpoint.y - lastMidpoint.current.y));
-    }
-
-    lastAngle.current = angle;
-    lastMidpoint.current = midpoint;
-    node.getLayer()?.batchDraw();
-    publishMove(node);
-  };
-
-  const handleTouchEnd = () => {
-    if (!canDrag) return;
-    imageRef.current?.draggable(true);
-    const node = imageRef.current;
-    if (node) persistPosition(node);
-  };
-
-  const handleDblClick = () => {
-    if (!canDrag || type === 'background') return;
-    const node = imageRef.current;
-    if (!node) return;
-    node.scaleX(node.scaleX() * -1);
-    node.getLayer()?.batchDraw();
-    publishMove(node, true); // immediate — discrete event, bypass throttle
-    persistPosition(node);
-  };
-
-  return (
-    <Image
-      ref={imageRef}
-      image={image}
-      x={initialX}
-      y={initialY}
-      draggable={canDrag}
-      shadowEnabled={isSpeaking && type !== 'background'}
-      shadowColor="#a855f7"
-      shadowBlur={15}
-      shadowOpacity={1}
-      strokeEnabled={isSpeaking && type !== 'background'}
-      strokeWidth={4}
-      dragBoundFunc={(pos) => {
-        const halfW = (image?.width ?? 0) / 2;
-        if (type === 'background') {
-          const minX = stageWidth - halfW;
-          const maxX = halfW;
-          const clampedX = maxX > minX ? Math.min(Math.max(pos.x, minX), maxX) : pos.x;
-          return { x: clampedX, y: imageRef.current?.y() ?? pos.y };
-        }
-        return {
-          x: Math.min(Math.max(pos.x, 0), stageWidth),
-          y: Math.min(Math.max(pos.y, 0), stageHeight),
-        };
-      }}
-      onDragMove={() => {
-        const node = imageRef.current;
-        if (node) publishMove(node);
-      }}
-      onDragEnd={() => {
-        const node = imageRef.current;
-        if (node) persistPosition(node);
-      }}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onMouseDown={() => {
-        if (canDrag && type !== 'background') imageRef.current?.moveToTop();
-      }}
-      onDblClick={handleDblClick}
-      onDblTap={handleDblClick}
-    />
-  );
+    this.container.destroy({ children: true });
+  }
 }

@@ -23,7 +23,6 @@ import {
 import { SoundControlBar } from '@/components/sound-control-bar.component';
 import { useSceneSound } from '@/hooks/useSceneSound';
 import type { StageCast } from '@/components/stage.component';
-import type Konva from 'konva';
 
 export const Route = createFileRoute('/_app/stage/$sceneId')({
   head: () => ({ meta: [{ title: 'Stage — potmagic' }] }),
@@ -185,7 +184,6 @@ function StageShell({
   viewersMuted,
   onMuteViewers,
 }: StageShellProps) {
-  const konvaStageRef = useRef<Konva.Stage>(null);
   const stageWrapperRef = useRef<HTMLDivElement>(null);
 
   const { playing, volume, setPlaying, setVolume } = useSceneSound({
@@ -266,7 +264,6 @@ function StageShell({
         className="rounded-xl border-2 border-base-300 shadow-xl overflow-hidden"
       >
         <StageComponent
-          ref={konvaStageRef}
           casts={casts}
           room={room}
           speakingIds={speakingIds}
