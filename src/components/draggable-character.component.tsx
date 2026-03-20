@@ -1,5 +1,6 @@
-import { Application, Assets, Container, Graphics, Sprite } from 'pixi.js';
+import { Application, Assets, Container, Sprite } from 'pixi.js';
 import type { FederatedPointerEvent, Texture } from 'pixi.js';
+import { GlowFilter } from 'pixi-filters/glow';
 import { RoomEvent } from 'livekit-client';
 import type { Room } from 'livekit-client';
 import { saveSceneCastPosition } from '@/lib/scenes.fns';
@@ -44,7 +45,7 @@ function getMidpoint(a: { x: number; y: number }, b: { x: number; y: number }) {
 export class PixiCharacter {
   readonly container: Container;
   private sprite: Sprite;
-  private glowGraphics: Graphics;
+  private glowFilter: GlowFilter;
   private readonly props: PixiCharacterProps;
 
   private isDragging = false;
@@ -52,7 +53,6 @@ export class PixiCharacter {
   private activePointers = new Map<number, { x: number; y: number }>();
   private lastSendTime = 0;
   private isSpeaking = false;
-  private textureLoaded = false;
 
   // Double-tap detection
   private lastTapTime = 0;
@@ -68,11 +68,19 @@ export class PixiCharacter {
     this.container.x = props.initialX ?? 100;
     this.container.y = props.initialY ?? 100;
 
-    this.glowGraphics = new Graphics();
+    this.glowFilter = new GlowFilter({
+      color: 0xa855f7,
+      outerStrength: 4,
+      innerStrength: 0,
+      distance: 15,
+      quality: 0.5,
+    });
+    this.glowFilter.enabled = false;
+
     this.sprite = new Sprite();
     this.sprite.anchor.set(0.5);
+    this.sprite.filters = [this.glowFilter];
 
-    this.container.addChild(this.glowGraphics);
     this.container.addChild(this.sprite);
 
     // Listen for remote moves via LiveKit
@@ -119,7 +127,6 @@ export class PixiCharacter {
       this.container.zIndex = 1;
     }
 
-    this.textureLoaded = true;
     this.drawGlow();
     this.setupInteraction();
     this.props.onReady?.();
@@ -129,14 +136,7 @@ export class PixiCharacter {
   }
 
   private drawGlow() {
-    this.glowGraphics.clear();
-    if (this.isSpeaking && this.props.type !== 'background' && this.textureLoaded) {
-      const w = this.sprite.width;
-      const h = this.sprite.height;
-      this.glowGraphics
-        .roundRect(-Math.abs(w) / 2 - 4, -h / 2 - 4, Math.abs(w) + 8, h + 8, 4)
-        .stroke({ color: 0xa855f7, width: 4 });
-    }
+    this.glowFilter.enabled = this.isSpeaking && this.props.type !== 'background';
   }
 
   private setupInteraction() {
