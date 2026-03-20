@@ -11,5 +11,9 @@ if (!POSTGRES_URL) {
   console.warn("POSTGRES_URL is not set. Database connection may fail.");
 }
 
-const client = postgres(POSTGRES_URL || "");
+const client = postgres(POSTGRES_URL || "", {
+  max: 1,
+  idle_timeout: 20,
+  connect_timeout: 10,
+});
 export const db = drizzle({ client, schema });
