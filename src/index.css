@@ -8,7 +8,6 @@
 /* ─── potmagic-dark: deep velvet stage, gold primary ─── */
 @plugin "daisyui/theme" {
   name: "potmagic-dark";
-  default: true;
   color-scheme: dark;
 
   --color-base-100: oklch(27.1% 0 0);
@@ -44,6 +43,7 @@
 /* ─── potmagic-light: warm ivory parchment, royal purple primary ─── */
 @plugin "daisyui/theme" {
   name: "potmagic-light";
+  default: true;
   color-scheme: light;
 
   --color-base-100: oklch(100% 0 0);

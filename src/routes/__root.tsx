@@ -74,7 +74,7 @@ export const Route = createRootRoute({
     scripts: [
       {
         children: `document.documentElement.setAttribute('data-theme',
-          localStorage.getItem('theme') || 'potmagic-dark');`,
+          localStorage.getItem('theme') || 'potmagic-light');`,
       },
     ],
   }),
