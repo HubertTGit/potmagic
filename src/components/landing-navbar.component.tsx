@@ -16,7 +16,7 @@ export function LandingNavbar() {
         <div className="navbar-start">
           <Link to="/" className="flex items-center gap-2">
             <img
-              src={theme === Theme.dark ? "logo-white.svg" : "logo-color.svg"}
+              src={theme === Theme.dark ? "/logo-white.svg" : "/logo-color.svg"}
               alt="potmagic"
               className="h-7"
             />
@@ -36,12 +36,62 @@ export function LandingNavbar() {
             >
               Concept
             </Link>
-            <Link
-              to="/docs"
-              className="decoration-primary hover:text-primary [&.active]:text-primary text-sm font-medium underline-offset-4 hover:underline hover:decoration-2 [&.active]:underline [&.active]:decoration-2"
-            >
-              Docs
-            </Link>
+            <div className="dropdown dropdown-hover">
+              <Link
+                tabIndex={0}
+                to="/docs"
+                activeOptions={{ exact: false }}
+                className="decoration-primary hover:text-primary [&.active]:text-primary text-sm font-medium underline-offset-4 hover:underline hover:decoration-2 [&.active]:underline [&.active]:decoration-2"
+              >
+                Docs
+              </Link>
+              <ul
+                tabIndex={0}
+                className="dropdown-content menu bg-base-100 border-base-300 z-50 w-48 rounded-xl border p-1.5 shadow-lg before:absolute before:content-[''] before:-top-2 before:left-0 before:right-0 before:h-2"
+              >
+                <li>
+                  <Link
+                    to="/docs"
+                    activeOptions={{ exact: true }}
+                    className="[&.active]:text-primary text-sm [&.active]:font-medium"
+                  >
+                    Overview
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/docs/create-story"
+                    className="[&.active]:text-primary text-sm [&.active]:font-medium"
+                  >
+                    Create a Story
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/docs/add-scenes"
+                    className="[&.active]:text-primary text-sm [&.active]:font-medium"
+                  >
+                    Add Scenes
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/docs/props"
+                    className="[&.active]:text-primary text-sm [&.active]:font-medium"
+                  >
+                    Props Library
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/docs/size-guidelines"
+                    className="[&.active]:text-primary text-sm [&.active]:font-medium"
+                  >
+                    Size Guidelines
+                  </Link>
+                </li>
+              </ul>
+            </div>
           </div>
           <div className="flex gap-2">
             <Link

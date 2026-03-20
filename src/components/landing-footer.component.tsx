@@ -6,6 +6,7 @@ const LINKS = {
     { label: "Watch Live", to: "/show" },
     { label: "Pricing", to: "/pricing" },
     { label: "Concept", to: "/concept" },
+    { label: "Docs", to: "/docs" },
   ],
   Company: [{ label: "Join Theatre", to: "/auth" }],
 };

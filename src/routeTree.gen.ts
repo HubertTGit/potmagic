@@ -17,7 +17,12 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ShowIndexRouteImport } from './routes/show/index'
+import { Route as DocsIndexRouteImport } from './routes/docs/index'
 import { Route as ShowStoryIdRouteImport } from './routes/show/$storyId'
+import { Route as DocsSizeGuidelinesRouteImport } from './routes/docs/size-guidelines'
+import { Route as DocsPropsRouteImport } from './routes/docs/props'
+import { Route as DocsCreateStoryRouteImport } from './routes/docs/create-story'
+import { Route as DocsAddScenesRouteImport } from './routes/docs/add-scenes'
 import { Route as AuthDirectorSetupRouteImport } from './routes/auth.director-setup'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
 import { Route as AppDirectorRouteImport } from './routes/_app/director'
@@ -66,10 +71,35 @@ const ShowIndexRoute = ShowIndexRouteImport.update({
   path: '/show/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocsIndexRoute = DocsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DocsRoute,
+} as any)
 const ShowStoryIdRoute = ShowStoryIdRouteImport.update({
   id: '/show/$storyId',
   path: '/show/$storyId',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DocsSizeGuidelinesRoute = DocsSizeGuidelinesRouteImport.update({
+  id: '/size-guidelines',
+  path: '/size-guidelines',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsPropsRoute = DocsPropsRouteImport.update({
+  id: '/props',
+  path: '/props',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsCreateStoryRoute = DocsCreateStoryRouteImport.update({
+  id: '/create-story',
+  path: '/create-story',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsAddScenesRoute = DocsAddScenesRouteImport.update({
+  id: '/add-scenes',
+  path: '/add-scenes',
+  getParentRoute: () => DocsRoute,
 } as any)
 const AuthDirectorSetupRoute = AuthDirectorSetupRouteImport.update({
   id: '/director-setup',
@@ -117,13 +147,18 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/concept': typeof ConceptRoute
-  '/docs': typeof DocsRoute
+  '/docs': typeof DocsRouteWithChildren
   '/pricing': typeof PricingRoute
   '/under-construction': typeof UnderConstructionRoute
   '/director': typeof AppDirectorRoute
   '/profile': typeof AppProfileRoute
   '/auth/director-setup': typeof AuthDirectorSetupRoute
+  '/docs/add-scenes': typeof DocsAddScenesRoute
+  '/docs/create-story': typeof DocsCreateStoryRoute
+  '/docs/props': typeof DocsPropsRoute
+  '/docs/size-guidelines': typeof DocsSizeGuidelinesRoute
   '/show/$storyId': typeof ShowStoryIdRoute
+  '/docs/': typeof DocsIndexRoute
   '/show/': typeof ShowIndexRoute
   '/stage/$sceneId': typeof AppStageSceneIdRoute
   '/stage/': typeof AppStageIndexRoute
@@ -135,13 +170,17 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/concept': typeof ConceptRoute
-  '/docs': typeof DocsRoute
   '/pricing': typeof PricingRoute
   '/under-construction': typeof UnderConstructionRoute
   '/director': typeof AppDirectorRoute
   '/profile': typeof AppProfileRoute
   '/auth/director-setup': typeof AuthDirectorSetupRoute
+  '/docs/add-scenes': typeof DocsAddScenesRoute
+  '/docs/create-story': typeof DocsCreateStoryRoute
+  '/docs/props': typeof DocsPropsRoute
+  '/docs/size-guidelines': typeof DocsSizeGuidelinesRoute
   '/show/$storyId': typeof ShowStoryIdRoute
+  '/docs': typeof DocsIndexRoute
   '/show': typeof ShowIndexRoute
   '/stage/$sceneId': typeof AppStageSceneIdRoute
   '/stage': typeof AppStageIndexRoute
@@ -155,13 +194,18 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/concept': typeof ConceptRoute
-  '/docs': typeof DocsRoute
+  '/docs': typeof DocsRouteWithChildren
   '/pricing': typeof PricingRoute
   '/under-construction': typeof UnderConstructionRoute
   '/_app/director': typeof AppDirectorRoute
   '/_app/profile': typeof AppProfileRoute
   '/auth/director-setup': typeof AuthDirectorSetupRoute
+  '/docs/add-scenes': typeof DocsAddScenesRoute
+  '/docs/create-story': typeof DocsCreateStoryRoute
+  '/docs/props': typeof DocsPropsRoute
+  '/docs/size-guidelines': typeof DocsSizeGuidelinesRoute
   '/show/$storyId': typeof ShowStoryIdRoute
+  '/docs/': typeof DocsIndexRoute
   '/show/': typeof ShowIndexRoute
   '/_app/stage/$sceneId': typeof AppStageSceneIdRoute
   '/_app/stage/': typeof AppStageIndexRoute
@@ -181,7 +225,12 @@ export interface FileRouteTypes {
     | '/director'
     | '/profile'
     | '/auth/director-setup'
+    | '/docs/add-scenes'
+    | '/docs/create-story'
+    | '/docs/props'
+    | '/docs/size-guidelines'
     | '/show/$storyId'
+    | '/docs/'
     | '/show/'
     | '/stage/$sceneId'
     | '/stage/'
@@ -193,13 +242,17 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/concept'
-    | '/docs'
     | '/pricing'
     | '/under-construction'
     | '/director'
     | '/profile'
     | '/auth/director-setup'
+    | '/docs/add-scenes'
+    | '/docs/create-story'
+    | '/docs/props'
+    | '/docs/size-guidelines'
     | '/show/$storyId'
+    | '/docs'
     | '/show'
     | '/stage/$sceneId'
     | '/stage'
@@ -218,7 +271,12 @@ export interface FileRouteTypes {
     | '/_app/director'
     | '/_app/profile'
     | '/auth/director-setup'
+    | '/docs/add-scenes'
+    | '/docs/create-story'
+    | '/docs/props'
+    | '/docs/size-guidelines'
     | '/show/$storyId'
+    | '/docs/'
     | '/show/'
     | '/_app/stage/$sceneId'
     | '/_app/stage/'
@@ -232,7 +290,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   ConceptRoute: typeof ConceptRoute
-  DocsRoute: typeof DocsRoute
+  DocsRoute: typeof DocsRouteWithChildren
   PricingRoute: typeof PricingRoute
   UnderConstructionRoute: typeof UnderConstructionRoute
   ShowStoryIdRoute: typeof ShowStoryIdRoute
@@ -297,12 +355,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShowIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/docs/': {
+      id: '/docs/'
+      path: '/'
+      fullPath: '/docs/'
+      preLoaderRoute: typeof DocsIndexRouteImport
+      parentRoute: typeof DocsRoute
+    }
     '/show/$storyId': {
       id: '/show/$storyId'
       path: '/show/$storyId'
       fullPath: '/show/$storyId'
       preLoaderRoute: typeof ShowStoryIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/docs/size-guidelines': {
+      id: '/docs/size-guidelines'
+      path: '/size-guidelines'
+      fullPath: '/docs/size-guidelines'
+      preLoaderRoute: typeof DocsSizeGuidelinesRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/props': {
+      id: '/docs/props'
+      path: '/props'
+      fullPath: '/docs/props'
+      preLoaderRoute: typeof DocsPropsRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/create-story': {
+      id: '/docs/create-story'
+      path: '/create-story'
+      fullPath: '/docs/create-story'
+      preLoaderRoute: typeof DocsCreateStoryRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/add-scenes': {
+      id: '/docs/add-scenes'
+      path: '/add-scenes'
+      fullPath: '/docs/add-scenes'
+      preLoaderRoute: typeof DocsAddScenesRouteImport
+      parentRoute: typeof DocsRoute
     }
     '/auth/director-setup': {
       id: '/auth/director-setup'
@@ -395,12 +488,30 @@ const AuthRouteChildren: AuthRouteChildren = {
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
+interface DocsRouteChildren {
+  DocsAddScenesRoute: typeof DocsAddScenesRoute
+  DocsCreateStoryRoute: typeof DocsCreateStoryRoute
+  DocsPropsRoute: typeof DocsPropsRoute
+  DocsSizeGuidelinesRoute: typeof DocsSizeGuidelinesRoute
+  DocsIndexRoute: typeof DocsIndexRoute
+}
+
+const DocsRouteChildren: DocsRouteChildren = {
+  DocsAddScenesRoute: DocsAddScenesRoute,
+  DocsCreateStoryRoute: DocsCreateStoryRoute,
+  DocsPropsRoute: DocsPropsRoute,
+  DocsSizeGuidelinesRoute: DocsSizeGuidelinesRoute,
+  DocsIndexRoute: DocsIndexRoute,
+}
+
+const DocsRouteWithChildren = DocsRoute._addFileChildren(DocsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   ConceptRoute: ConceptRoute,
-  DocsRoute: DocsRoute,
+  DocsRoute: DocsRouteWithChildren,
   PricingRoute: PricingRoute,
   UnderConstructionRoute: UnderConstructionRoute,
   ShowStoryIdRoute: ShowStoryIdRoute,
