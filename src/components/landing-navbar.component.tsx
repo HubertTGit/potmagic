@@ -14,7 +14,7 @@ export function LandingNavbar() {
   const isAuthPage = pathname === "/auth";
 
   return (
-    <div className="navbar bg-base-100 px-4 py-3 sm:px-6 lg:px-8">
+    <nav className="navbar bg-base-100 px-4 py-3 sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full max-w-7xl items-center">
         {/* Logo */}
         <div className="navbar-start">
@@ -32,7 +32,7 @@ export function LandingNavbar() {
           </Link>
         </div>
 
-        <div className="navbar-end flex items-center gap-2">
+        <div className="navbar-end flex items-center gap-5">
           {/* Desktop nav links */}
           <div className="hidden items-center gap-5 md:flex">
             <Link to="/pricing" className={navLinkClass}>
@@ -41,7 +41,7 @@ export function LandingNavbar() {
             <Link to="/concept" className={navLinkClass}>
               Concept
             </Link>
-            <div className="dropdown dropdown-hover flex flex-col">
+            <div className="dropdown dropdown-hover dropdown-center flex flex-col">
               <Link
                 tabIndex={0}
                 to="/docs"
@@ -117,21 +117,20 @@ export function LandingNavbar() {
             >
               Watch Live
             </Link>
+            {/* Theme toggle — always visible */}
+            <button
+              type="button"
+              onClick={toggle}
+              className="btn btn-ghost btn-sm btn-square"
+              aria-label="Toggle theme"
+            >
+              {theme === Theme.dark ? (
+                <Sun className="size-4" />
+              ) : (
+                <Moon className="size-4" />
+              )}
+            </button>
           </div>
-
-          {/* Theme toggle — always visible */}
-          <button
-            type="button"
-            onClick={toggle}
-            className="btn btn-ghost btn-sm btn-square"
-            aria-label="Toggle theme"
-          >
-            {theme === Theme.dark ? (
-              <Sun className="size-4" />
-            ) : (
-              <Moon className="size-4" />
-            )}
-          </button>
 
           {/* Mobile burger */}
           <div className="dropdown dropdown-end md:hidden">
@@ -191,6 +190,6 @@ export function LandingNavbar() {
           </div>
         </div>
       </div>
-    </div>
+    </nav>
   );
 }
