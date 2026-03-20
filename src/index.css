@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap");
 @import "tailwindcss";
 
 @plugin "daisyui" {
@@ -15,7 +15,7 @@
   --color-base-200: oklch(22.648% 0 0);
   --color-base-300: oklch(20.944% 0 0);
   --color-base-content: oklch(84.87% 0 0);
-  --color-primary: oklch(41.703% 0.099 251.473);
+  --color-primary: oklch(0.65 0.14 251.36);
   --color-primary-content: oklch(88.34% 0.019 251.473);
   --color-secondary: oklch(64.092% 0.027 229.389);
   --color-secondary-content: oklch(12.818% 0.005 229.389);
@@ -50,8 +50,8 @@
   --color-base-200: oklch(93% 0 0);
   --color-base-300: oklch(86% 0 0);
   --color-base-content: oklch(35.519% 0.032 262.988);
-  --color-primary: oklch(71.9% 0.158 153.450);
-  --color-primary-content: oklch(100% 0.040 162.240);
+  --color-primary: oklch(71.9% 0.158 153.45);
+  --color-primary-content: oklch(100% 0.04 162.24);
   --color-secondary: oklch(61.302% 0.202 261.294);
   --color-secondary-content: oklch(100% 0 0);
   --color-accent: oklch(70% 0.191 22.216);
@@ -81,11 +81,10 @@
 
 /* ─── Design tokens ─── */
 @theme {
-  --font-display: 'Lexend', Georgia, serif;
+  --font-display: "Lexend", Georgia, serif;
 }
 
 /* ─── Allow sidebar tooltips to escape drawer-side overflow clipping ─── */
 .lg\:drawer-open > .drawer-side {
   overflow: visible;
 }
-
