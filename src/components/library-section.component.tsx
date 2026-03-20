@@ -88,6 +88,7 @@ export function LibrarySection({
   } | null>(null);
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   useEffect(() => {
@@ -288,20 +289,60 @@ export function LibrarySection({
                 isSound={isSound}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-base-100/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 p-2">
-                <span className="text-xs font-medium text-center leading-tight line-clamp-2">
-                  {item.name}
-                </span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemove(item.id);
-                  }}
-                  disabled={!!deletingId}
-                  className="text-error/70 hover:text-error transition-colors disabled:opacity-50"
-                >
-                  <X className="size-4" />
-                </button>
+              <div
+                className={cn(
+                  'absolute inset-0 bg-base-100/70 transition-opacity flex flex-col items-center justify-center gap-1 p-2',
+                  confirmDeleteId === item.id
+                    ? 'opacity-100'
+                    : 'opacity-0 group-hover:opacity-100',
+                )}
+              >
+                {confirmDeleteId === item.id ? (
+                  <>
+                    <span className="text-xs font-medium text-center leading-tight text-error mb-1">
+                      Delete?
+                    </span>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setConfirmDeleteId(null);
+                          handleRemove(item.id);
+                        }}
+                        disabled={!!deletingId}
+                        className="btn btn-xs btn-error"
+                      >
+                        Delete
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setConfirmDeleteId(null);
+                        }}
+                        disabled={!!deletingId}
+                        className="btn btn-xs btn-ghost"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-xs font-medium text-center leading-tight line-clamp-2">
+                      {item.name}
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setConfirmDeleteId(item.id);
+                      }}
+                      disabled={!!deletingId}
+                      className="text-error/70 hover:text-error transition-colors disabled:opacity-50"
+                    >
+                      <X className="size-4" />
+                    </button>
+                  </>
+                )}
               </div>
 
               {deletingId === item.id && (

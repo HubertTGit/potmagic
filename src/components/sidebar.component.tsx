@@ -244,9 +244,9 @@ function SidebarLink({
         to={to}
         onClick={onExpand}
         className={cn(
-          "btn btn-sm btn-primary font-normal",
+          "btn btn-sm btn-primary/10 text-primary font-normal",
           collapsed ? "btn-square" : "w-full justify-start gap-3",
-          "[&.active]:bg-primary/10 [&.active]:text-primary",
+          "[&.active]:btn-primary [&.active]:text-white",
         )}
       >
         {icon}

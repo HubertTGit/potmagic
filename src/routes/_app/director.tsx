@@ -1,34 +1,36 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { listStories } from '@/lib/stories.fns';
-import { uploadProp, listAllProps, deleteProp } from '@/lib/props.fns';
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { listStories } from "@/lib/stories.fns";
+import { uploadProp, listAllProps, deleteProp } from "@/lib/props.fns";
 import {
   listInvitedActors,
   addInvitedActor,
   removeInvitedActor,
-} from '@/lib/actor-auth.fns';
-import { StatusBadge } from '@/components/status-badge.component';
-import { cn } from '@/lib/cn';
-import { X } from 'lucide-react';
-import { LibrarySection } from '@/components/library-section.component';
-import { updateStoryStatus } from '@/lib/story-detail.fns';
-import type { PropType } from '@/db/schema';
-import { toast } from '@/lib/toast';
+} from "@/lib/actor-auth.fns";
+import { StatusBadge } from "@/components/status-badge.component";
+import { cn } from "@/lib/cn";
+import { LibrarySection } from "@/components/library-section.component";
+import { ActorsTab } from "@/components/actors-tab.component";
+import { updateStoryStatus } from "@/lib/story-detail.fns";
+import type { PropType } from "@/db/schema";
+import { toast } from "@/lib/toast";
 
-export const Route = createFileRoute('/_app/director')({
-  head: () => ({ meta: [{ title: 'Director Dashboard — potmagic: Live Story Theater' }] }),
+export const Route = createFileRoute("/_app/director")({
+  head: () => ({
+    meta: [{ title: "Director Dashboard — potmagic: Live Story Theater" }],
+  }),
   component: DirectorPage,
 });
 
-type Tab = 'dashboard' | 'library' | 'actors';
+type Tab = "dashboard" | "library" | "actors";
 
 function DirectorPage() {
-  const [tab, setTab] = useState<Tab>('dashboard');
+  const [tab, setTab] = useState<Tab>("dashboard");
 
   const queryClient = useQueryClient();
   const { data: stories = [], isLoading } = useQuery({
-    queryKey: ['stories'],
+    queryKey: ["stories"],
     queryFn: () => listStories(),
   });
 
@@ -38,15 +40,15 @@ function DirectorPage() {
       status,
     }: {
       storyId: string;
-      status: 'draft' | 'active' | 'ended';
+      status: "draft" | "active" | "ended";
     }) => updateStoryStatus({ data: { storyId, status } }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['stories'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["stories"] }),
   });
 
   const { data: allProps, isLoading: loadingProps } = useQuery({
-    queryKey: ['props'],
+    queryKey: ["props"],
     queryFn: () => listAllProps(),
-    enabled: tab === 'library',
+    enabled: tab === "library",
   });
 
   const characters = allProps?.character ?? [];
@@ -57,34 +59,35 @@ function DirectorPage() {
   const loadingSounds = loadingProps;
 
   const { data: invitedActors = [], isLoading: loadingActors } = useQuery({
-    queryKey: ['invitedActors'],
+    queryKey: ["invitedActors"],
     queryFn: () => listInvitedActors(),
-    enabled: tab === 'actors',
   });
+
+  const acceptedCount = invitedActors.filter((a) => a.accepted).length;
 
   const addActorMutation = useMutation({
     mutationFn: (email: string) => addInvitedActor({ data: { email } }),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['invitedActors'] }),
+      queryClient.invalidateQueries({ queryKey: ["invitedActors"] }),
     onError: (err: any) =>
-      toast.error(err?.message ?? 'Failed to invite actor'),
+      toast.error(err?.message ?? "Failed to invite actor"),
   });
 
   const removeActorMutation = useMutation({
     mutationFn: (id: string) => removeInvitedActor({ data: { id } }),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['invitedActors'] }),
+      queryClient.invalidateQueries({ queryKey: ["invitedActors"] }),
   });
 
-  const active = stories.filter((s) => s.status === 'active');
-  const draft = stories.filter((s) => s.status === 'draft');
-  const ended = stories.filter((s) => s.status === 'ended');
+  const active = stories.filter((s) => s.status === "active");
+  const draft = stories.filter((s) => s.status === "draft");
+  const ended = stories.filter((s) => s.status === "ended");
 
   const handleAddProp = async (type: PropType, file: File, name: string) => {
     try {
       const arrayBuffer = await file.arrayBuffer();
       const bytes = new Uint8Array(arrayBuffer);
-      let binary = '';
+      let binary = "";
       const CHUNK = 8192;
       for (let i = 0; i < bytes.length; i += CHUNK) {
         binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
@@ -102,69 +105,75 @@ function DirectorPage() {
         },
       });
 
-      queryClient.invalidateQueries({ queryKey: ['props'] });
+      queryClient.invalidateQueries({ queryKey: ["props"] });
     } catch (error: any) {
-      toast.error(error.message ?? 'Upload failed');
+      toast.error(error.message ?? "Upload failed");
       throw error;
     }
   };
 
   const handleRemoveProp = async (_type: PropType, id: string) => {
     await deleteProp({ data: { id } });
-    queryClient.invalidateQueries({ queryKey: ['props'] });
+    queryClient.invalidateQueries({ queryKey: ["props"] });
   };
 
   return (
-    <div className="p-8 max-w-3xl">
-      <h1 className="text-2xl font-semibold mb-2">Director</h1>
-      <p className="text-sm text-base-content/40 mb-6">
+    <div className="max-w-3xl p-8">
+      <h1 className="mb-2 text-2xl font-semibold">Director</h1>
+      <p className="text-base-content/40 mb-6 text-sm">
         Manage sessions and story status.
       </p>
 
       {/* Tabs */}
-      <div role="tablist" className="flex border-b border-base-300 mb-8">
-        {(['dashboard', 'library', 'actors'] as Tab[]).map((t) => (
+      <div
+        role="tablist"
+        className="tabs tabs-border mb-8 border-b border-base-300 [--tab-color:var(--color-primary)]"
+      >
+        {(["dashboard", "library", "actors"] as Tab[]).map((t) => (
           <button
             key={t}
             role="tab"
             onClick={() => setTab(t)}
             className={cn(
-              'px-4 py-2 text-sm capitalize -mb-px border-b-2 transition-colors',
-              tab === t
-                ? 'border-primary font-semibold text-base-content'
-                : 'border-transparent text-base-content/40 hover:text-base-content/70',
+              "tab capitalize",
+              tab === t && "tab-active text-primary",
             )}
           >
             {t}
+            {t === "actors" && acceptedCount > 0 && (
+              <span className="badge badge-sm badge-primary ml-1.5">
+                {acceptedCount}
+              </span>
+            )}
           </button>
         ))}
       </div>
 
-      {tab === 'dashboard' && (
+      {tab === "dashboard" && (
         <>
           {/* Stats row */}
-          <div className="grid grid-cols-3 gap-4 mb-10">
+          <div className="mb-10 grid grid-cols-3 gap-4">
             {[
-              { label: 'Active', count: active.length, color: 'text-success' },
+              { label: "Active", count: active.length, color: "text-success" },
               {
-                label: 'Draft',
+                label: "Draft",
                 count: draft.length,
-                color: 'text-base-content/60',
+                color: "text-base-content/60",
               },
               {
-                label: 'Ended',
+                label: "Ended",
                 count: ended.length,
-                color: 'text-base-content/30',
+                color: "text-base-content/30",
               },
             ].map(({ label, count, color }) => (
               <div
                 key={label}
-                className="bg-base-200 border border-base-300 rounded-xl px-5 py-4"
+                className="bg-base-200 border-base-300 rounded-xl border px-5 py-4"
               >
-                <p className={cn('text-3xl font-bold font-display', color)}>
+                <p className={cn("font-display text-3xl font-bold", color)}>
                   {count}
                 </p>
-                <p className="text-xs text-base-content/40 uppercase tracking-widest mt-1">
+                <p className="text-base-content/40 mt-1 text-xs tracking-widest uppercase">
                   {label}
                 </p>
               </div>
@@ -175,7 +184,7 @@ function DirectorPage() {
           {isLoading ? (
             <div className="flex flex-col gap-2">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="flex gap-4 items-center py-2">
+                <div key={i} className="flex items-center gap-4 py-2">
                   <div className="skeleton h-4 flex-1 rounded" />
                   <div className="skeleton h-4 w-8 rounded" />
                   <div className="skeleton h-5 w-16 rounded-full" />
@@ -185,9 +194,9 @@ function DirectorPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="table table-sm w-full">
+              <table className="table-sm table w-full">
                 <thead>
-                  <tr className="text-base-content/50 text-xs uppercase tracking-wider">
+                  <tr className="text-base-content/50 text-xs tracking-wider uppercase">
                     <th>Story</th>
                     <th>Cast</th>
                     <th>Status</th>
@@ -204,7 +213,7 @@ function DirectorPage() {
                         <Link
                           to="/stories/$storyId"
                           params={{ storyId: story.id }}
-                          className="font-medium hover:text-primary transition-colors"
+                          className="hover:text-primary font-medium transition-colors"
                         >
                           {story.title}
                         </Link>
@@ -232,9 +241,9 @@ function DirectorPage() {
         </>
       )}
 
-      {tab === 'library' && (
+      {tab === "library" && (
         <>
-          <p className="text-sm text-base-content/40 mb-6">
+          <p className="text-base-content/40 mb-6 text-sm">
             Upload characters, backgrounds, and sounds available across stories.
           </p>
           <div className="flex flex-col gap-8">
@@ -243,24 +252,24 @@ function DirectorPage() {
               type="character"
               items={characters}
               isLoading={loadingChars}
-              onAdd={(file, name) => handleAddProp('character', file, name)}
-              onRemove={(id) => handleRemoveProp('character', id)}
+              onAdd={(file, name) => handleAddProp("character", file, name)}
+              onRemove={(id) => handleRemoveProp("character", id)}
             />
             <LibrarySection
               label="Backgrounds"
               type="background"
               items={backgrounds}
               isLoading={loadingBgs}
-              onAdd={(file, name) => handleAddProp('background', file, name)}
-              onRemove={(id) => handleRemoveProp('background', id)}
+              onAdd={(file, name) => handleAddProp("background", file, name)}
+              onRemove={(id) => handleRemoveProp("background", id)}
             />
             <LibrarySection
               label="Sounds"
               type="sound"
               items={sounds}
               isLoading={loadingSounds}
-              onAdd={(file, name) => handleAddProp('sound', file, name)}
-              onRemove={(id) => handleRemoveProp('sound', id)}
+              onAdd={(file, name) => handleAddProp("sound", file, name)}
+              onRemove={(id) => handleRemoveProp("sound", id)}
             />
             {/* Animations section hidden until feature is ready */}
             {/* <LibrarySection
@@ -275,7 +284,7 @@ function DirectorPage() {
         </>
       )}
 
-      {tab === 'actors' && (
+      {tab === "actors" && (
         <ActorsTab
           actors={invitedActors}
           isLoading={loadingActors}
@@ -288,144 +297,27 @@ function DirectorPage() {
   );
 }
 
-function ActorsTab({
-  actors,
-  isLoading,
-  onInvite,
-  onRemove,
-  isInviting,
-}: {
-  actors: { id: string; email: string; accepted: boolean; createdAt: Date }[];
-  isLoading: boolean;
-  onInvite: (email: string) => void;
-  onRemove: (id: string) => void;
-  isInviting: boolean;
-}) {
-  const [email, setEmail] = useState('');
-
-  const handleSubmit = (e: { preventDefault(): void }) => {
-    e.preventDefault();
-    if (!email.trim()) return;
-    onInvite(email.trim());
-    setEmail('');
-  };
-
-  return (
-    <div>
-      <p className="text-sm text-base-content/40 mb-6">
-        Invite actors by email. They can log in once invited.
-      </p>
-
-      {/* Invite form */}
-      <form onSubmit={handleSubmit} className="flex gap-2 mb-8">
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="actor@example.com"
-          required
-          className="input flex-1 bg-base-200 border-base-300 text-sm focus:border-primary/60 focus:ring-2 focus:ring-primary/10"
-        />
-        <button
-          type="submit"
-          disabled={isInviting || !email.trim()}
-          className={cn(
-            'btn btn-primary font-display tracking-[0.05em]',
-            (isInviting || !email.trim()) && 'opacity-50',
-          )}
-        >
-          {isInviting ? 'Inviting…' : 'Invite'}
-        </button>
-      </form>
-
-      {/* Actors list */}
-      {isLoading ? (
-        <div className="flex flex-col gap-2">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="flex gap-4 items-center py-2">
-              <div className="skeleton h-4 flex-1 rounded" />
-              <div className="skeleton h-4 w-16 rounded" />
-              <div className="skeleton h-4 w-20 rounded" />
-              <div className="skeleton h-6 w-6 rounded" />
-            </div>
-          ))}
-        </div>
-      ) : actors.length === 0 ? (
-        <p className="text-sm text-base-content/30 text-center py-8">
-          No actors invited yet.
-        </p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="table table-sm w-full">
-            <thead>
-              <tr className="text-base-content/50 text-xs uppercase tracking-wider">
-                <th>Email</th>
-                <th>Status</th>
-                <th>Added</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {actors.map((actor) => (
-                <tr
-                  key={actor.id}
-                  className="hover:bg-base-200 transition-colors"
-                >
-                  <td className="font-medium">{actor.email}</td>
-                  <td>
-                    <span
-                      className={cn(
-                        'text-xs font-medium uppercase tracking-wider',
-                        actor.accepted
-                          ? 'text-success'
-                          : 'text-base-content/40',
-                      )}
-                    >
-                      {actor.accepted ? 'Accepted' : 'Pending'}
-                    </span>
-                  </td>
-                  <td className="text-base-content/40 text-xs">
-                    {new Date(actor.createdAt).toLocaleDateString()}
-                  </td>
-                  <td>
-                    <button
-                      onClick={() => onRemove(actor.id)}
-                      className="btn btn-ghost btn-xs text-base-content/40 hover:text-error"
-                    >
-                      <X className="size-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
-}
-
 function SessionControls({
   story,
   onSetStatus,
 }: {
-  story: { id: string; status: 'draft' | 'active' | 'ended' };
-  onSetStatus: (id: string, status: 'draft' | 'active' | 'ended') => void;
+  story: { id: string; status: "draft" | "active" | "ended" };
+  onSetStatus: (id: string, status: "draft" | "active" | "ended") => void;
 }) {
-  if (story.status === 'draft') {
+  if (story.status === "draft") {
     return (
       <button
-        onClick={() => onSetStatus(story.id, 'active')}
+        onClick={() => onSetStatus(story.id, "active")}
         className="btn btn-xs btn-success font-display tracking-wide"
       >
         Start session
       </button>
     );
   }
-  if (story.status === 'active') {
+  if (story.status === "active") {
     return (
       <button
-        onClick={() => onSetStatus(story.id, 'ended')}
+        onClick={() => onSetStatus(story.id, "ended")}
         className="btn btn-xs btn-error btn-outline font-display tracking-wide"
       >
         End session
@@ -434,7 +326,7 @@ function SessionControls({
   }
   return (
     <button
-      onClick={() => onSetStatus(story.id, 'draft')}
+      onClick={() => onSetStatus(story.id, "draft")}
       className="btn btn-xs btn-outline font-display tracking-wide"
     >
       Set to draft
