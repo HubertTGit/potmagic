@@ -36,6 +36,12 @@ export function LandingNavbar() {
             >
               Concept
             </Link>
+            <Link
+              to="/docs"
+              className="decoration-primary hover:text-primary [&.active]:text-primary text-sm font-medium underline-offset-4 hover:underline hover:decoration-2 [&.active]:underline [&.active]:decoration-2"
+            >
+              Docs
+            </Link>
           </div>
           <div className="flex gap-2">
             <Link

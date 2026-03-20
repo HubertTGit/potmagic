@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnderConstructionRouteImport } from './routes/under-construction'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as DocsRouteImport } from './routes/docs'
 import { Route as ConceptRouteImport } from './routes/concept'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
@@ -34,6 +35,11 @@ const UnderConstructionRoute = UnderConstructionRouteImport.update({
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConceptRoute = ConceptRouteImport.update({
@@ -111,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/concept': typeof ConceptRoute
+  '/docs': typeof DocsRoute
   '/pricing': typeof PricingRoute
   '/under-construction': typeof UnderConstructionRoute
   '/director': typeof AppDirectorRoute
@@ -128,6 +135,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/concept': typeof ConceptRoute
+  '/docs': typeof DocsRoute
   '/pricing': typeof PricingRoute
   '/under-construction': typeof UnderConstructionRoute
   '/director': typeof AppDirectorRoute
@@ -147,6 +155,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/concept': typeof ConceptRoute
+  '/docs': typeof DocsRoute
   '/pricing': typeof PricingRoute
   '/under-construction': typeof UnderConstructionRoute
   '/_app/director': typeof AppDirectorRoute
@@ -166,6 +175,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/concept'
+    | '/docs'
     | '/pricing'
     | '/under-construction'
     | '/director'
@@ -183,6 +193,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/concept'
+    | '/docs'
     | '/pricing'
     | '/under-construction'
     | '/director'
@@ -201,6 +212,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/auth'
     | '/concept'
+    | '/docs'
     | '/pricing'
     | '/under-construction'
     | '/_app/director'
@@ -220,6 +232,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   ConceptRoute: typeof ConceptRoute
+  DocsRoute: typeof DocsRoute
   PricingRoute: typeof PricingRoute
   UnderConstructionRoute: typeof UnderConstructionRoute
   ShowStoryIdRoute: typeof ShowStoryIdRoute
@@ -240,6 +253,13 @@ declare module '@tanstack/react-router' {
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/concept': {
@@ -380,6 +400,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   ConceptRoute: ConceptRoute,
+  DocsRoute: DocsRoute,
   PricingRoute: PricingRoute,
   UnderConstructionRoute: UnderConstructionRoute,
   ShowStoryIdRoute: ShowStoryIdRoute,
