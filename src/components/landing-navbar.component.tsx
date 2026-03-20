@@ -36,7 +36,7 @@ export function LandingNavbar() {
             >
               Concept
             </Link>
-            <div className="dropdown dropdown-hover">
+            <div className="dropdown dropdown-hover flex flex-col">
               <Link
                 tabIndex={0}
                 to="/docs"
@@ -47,7 +47,7 @@ export function LandingNavbar() {
               </Link>
               <ul
                 tabIndex={0}
-                className="dropdown-content menu bg-base-100 border-base-300 z-50 w-48 rounded-xl border p-1.5 shadow-lg before:absolute before:content-[''] before:-top-2 before:left-0 before:right-0 before:h-2"
+                className="dropdown-content menu bg-base-100 border-base-300 top-5 z-50 mt-2 w-48 rounded-xl border p-1.5 shadow-lg before:absolute before:-top-2 before:right-0 before:left-0 before:h-2 before:content-['']"
               >
                 <li>
                   <Link
