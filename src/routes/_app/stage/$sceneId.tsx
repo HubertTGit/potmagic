@@ -14,7 +14,7 @@ import type { Room } from "livekit-client";
 import { getSceneStage } from "@/lib/scenes.fns";
 import { getLiveKitToken, muteAllViewers } from "@/lib/livekit.fns";
 import { StageComponent } from "@/components/stage.component";
-import { SessionPermissionModal } from "@/components/mic-permission-modal.component";
+import { SessionPermissionModal } from "@/components/session-permission-modal.component";
 import { CastPreview } from "@/components/cast-preview.component";
 import { SceneNavigator } from "@/components/scene-navigator.component";
 import {

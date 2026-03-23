@@ -12,6 +12,7 @@ import { RoomEvent, Track } from "livekit-client";
 import { getPublicStory, getViewerToken } from "@/lib/show.fns";
 import { cn } from "@/lib/cn";
 import { useTheme, Theme } from "@/hooks/useTheme";
+import { Maximize2, Minimize2 } from "lucide-react";
 
 export const Route = createFileRoute("/show/$storyId")({
   head: () => ({
@@ -218,20 +219,7 @@ function ShowContent({
             onClick={toggleFullscreen}
             title="Enter fullscreen"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="size-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
-              />
-            </svg>
+            <Maximize2 className="size-4" />
             <span className="text-xs">Enlarge</span>
           </button>
         </div>
@@ -263,20 +251,7 @@ function ShowContent({
             onClick={toggleFullscreen}
             title="Exit fullscreen"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="size-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25"
-              />
-            </svg>
+            <Minimize2 className="size-4" />
             <span className="text-xs">Exit</span>
           </button>
         )}
