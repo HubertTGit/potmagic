@@ -1,4 +1,4 @@
-import { Film, Users, MicOff } from "lucide-react";
+import { Clapperboard, Users, MicOff } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/cn";
 import { VIEWER_PREFIX } from "@/lib/livekit.fns";
@@ -78,7 +78,7 @@ export function CastPreview({
             isCurrentUserDirector && canClickMute ? onToggleMute : undefined
           }
         >
-          <Film className="text-primary size-4" />
+          <Clapperboard className="text-primary size-4" />
         </div>
       </div>
 
