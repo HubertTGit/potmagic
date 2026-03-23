@@ -12,7 +12,7 @@ import {
 import { ConnectionState, LocalVideoTrack, Track } from "livekit-client";
 import type { Room } from "livekit-client";
 import { getSceneStage } from "@/lib/scenes.fns";
-import { getLiveKitToken, muteAllViewers } from "@/lib/livekit.fns";
+import { getLiveKitToken } from "@/lib/livekit.fns";
 import { StageComponent } from "@/components/stage.component";
 import { SessionPermissionModal } from "@/components/session-permission-modal.component";
 import { CastPreview } from "@/components/cast-preview.component";
@@ -77,18 +77,12 @@ function LiveStageContent({
     room.localParticipant.identity === directorId;
 
   const isMuted = !isMicrophoneEnabled;
-  const onToggleMute = () => {
-    localParticipant.setMicrophoneEnabled(!isMicrophoneEnabled);
-  };
-
-  const [viewersMuted, setViewersMuted] = useState(false);
-  const onMuteViewers = useCallback(
-    async (muted: boolean) => {
-      await muteAllViewers({ data: { storyId, muted } });
-      setViewersMuted(muted);
-    },
-    [storyId],
-  );
+  const onToggleMute = useCallback(() => {
+    if (connectionState !== ConnectionState.Connected) return;
+    localParticipant.setMicrophoneEnabled(!isMicrophoneEnabled).catch((err) => {
+      console.error("Failed to toggle microphone:", err);
+    });
+  }, [localParticipant, isMicrophoneEnabled, connectionState]);
 
   return (
     <>
@@ -110,8 +104,6 @@ function LiveStageContent({
         soundAutoplay={soundAutoplay}
         isMuted={isMuted}
         onToggleMute={onToggleMute}
-        viewersMuted={viewersMuted}
-        onMuteViewers={onMuteViewers}
       />
     </>
   );
@@ -148,8 +140,6 @@ function OfflineStageContent({
       soundAutoplay={soundAutoplay}
       isMuted={false}
       onToggleMute={() => {}}
-      viewersMuted={false}
-      onMuteViewers={() => {}}
     />
   );
 }
@@ -161,8 +151,6 @@ interface StageShellProps extends StageContentProps {
   isDirector: boolean;
   isMuted: boolean;
   onToggleMute: () => void;
-  viewersMuted: boolean;
-  onMuteViewers: (muted: boolean) => void;
 }
 
 function StageShell({
@@ -182,8 +170,6 @@ function StageShell({
   soundAutoplay,
   isMuted,
   onToggleMute,
-  viewersMuted,
-  onMuteViewers,
 }: StageShellProps) {
   const stageWrapperRef = useRef<HTMLDivElement>(null);
 
@@ -256,8 +242,6 @@ function StageShell({
           isMuted={isMuted}
           onToggleMute={onToggleMute}
           canMute={status === "draft" || status === "active"}
-          viewersMuted={viewersMuted}
-          onMuteViewers={onMuteViewers}
         />
       </div>
       <div
