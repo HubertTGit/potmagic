@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
 import { RoomEvent } from 'livekit-client';
 import type { Room } from 'livekit-client';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 import { getSceneNavigation } from '@/lib/scenes.fns';
 
@@ -59,23 +60,25 @@ export function SceneNavigator({ sceneId, room }: SceneNavigatorProps) {
   if (isLoading || isError || !data) return null;
 
   return (
-    <div className="flex items-center gap-3 bg-base-200 border border-base-300 rounded-xl px-3 py-2 shadow-lg">
+    <div className="flex items-center bg-base-200 border border-base-300 rounded-xl shadow-lg overflow-hidden">
       <button
         onClick={() => navigateTo(data.prev!.id)}
         disabled={!isDirector || !data.prev}
-        className="text-sm px-2 py-1 rounded-lg bg-base-300 border border-base-300 text-base-content transition-opacity disabled:opacity-40"
+        className="btn btn-sm btn-ghost rounded-none border-r border-base-300"
       >
-        ◀ Prev
+        <ChevronLeft className="size-4" />
+        Prev
       </button>
-      <span className="max-w-48 truncate text-sm font-semibold text-base-content">
+      <span className="px-3 text-sm font-semibold text-base-content max-w-48 truncate">
         {data.current.title}
       </span>
       <button
         onClick={() => navigateTo(data.next!.id)}
         disabled={!isDirector || !data.next}
-        className="text-sm px-2 py-1 rounded-lg bg-base-300 border border-base-300 text-base-content transition-opacity disabled:opacity-40"
+        className="btn btn-sm btn-ghost rounded-none border-l border-base-300"
       >
-        Next ▶
+        Next
+        <ChevronRight className="size-4" />
       </button>
     </div>
   );
