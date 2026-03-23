@@ -261,8 +261,13 @@ function SceneDetailPage() {
         )}
         <Link
           to="/stage/$sceneId"
-          params={{ sceneId }}
-          className="btn btn-primary font-display tracking-[0.05em]"
+          params={{ sceneId: (!isDirector && data?.story?.selectedSceneId) ? data.story.selectedSceneId : sceneId }}
+          disabled={!isDirector && (!data?.story?.directorOnStage || (data?.story?.status !== 'draft' && data?.story?.status !== 'active'))}
+          className={cn(
+            'btn btn-primary font-display tracking-[0.05em]',
+            !isDirector && (!data?.story?.directorOnStage || (data?.story?.status !== 'draft' && data?.story?.status !== 'active')) && 'btn-disabled pointer-events-none opacity-50',
+          )}
+          aria-disabled={!isDirector && (!data?.story?.directorOnStage || (data?.story?.status !== 'draft' && data?.story?.status !== 'active'))}
         >
           Enter Stage <Theater className="size-4" />
         </Link>

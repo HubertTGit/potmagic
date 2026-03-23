@@ -8,6 +8,22 @@ import { cast, stories } from '@/db/schema';
 
 export const VIEWER_PREFIX = 'viewer-';
 
+/** Server-side check: returns true if the director is currently connected to the LiveKit room. */
+export async function isDirectorOnStage(roomName: string, directorId: string): Promise<boolean> {
+  try {
+    const { RoomServiceClient } = await import('livekit-server-sdk');
+    const svc = new RoomServiceClient(
+      process.env.LIVEKIT_URL!,
+      process.env.LIVEKIT_API_KEY!,
+      process.env.LIVEKIT_API_SECRET!,
+    );
+    const participants = await svc.listParticipants(roomName);
+    return participants.some((p) => p.identity === directorId);
+  } catch {
+    return false;
+  }
+}
+
 async function getSessionOrThrow() {
   const session = await auth.api.getSession({ headers: getRequest().headers });
   if (!session) throw new Error('Unauthorized');

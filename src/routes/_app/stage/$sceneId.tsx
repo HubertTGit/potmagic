@@ -231,7 +231,7 @@ function StageShell({
       <div className="flex w-7xl items-center justify-between">
         <StoryStatusButton storyId={storyId} status={status} room={room} />
         <div className="flex items-center gap-3">
-          <SceneNavigator sceneId={sceneId} room={room} />
+          <SceneNavigator sceneId={sceneId} storyId={storyId} room={room} />
         </div>
         <CastPreview
           casts={casts}

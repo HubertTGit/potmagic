@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
 import { stories, users, scenes } from '@/db/schema'
+import { isDirectorOnStage } from '@/lib/livekit.fns'
 
 async function getSessionOrThrow() {
   const session = await auth.api.getSession({ headers: getRequest().headers })
@@ -33,6 +34,8 @@ export const listStories = createServerFn({ method: 'GET' }).handler(async () =>
       createdAt: stories.createdAt,
       castCount: sql<number>`(select count(*) from "cast" where "cast".story_id = stories.id)::int`,
       sceneCount: sql<number>`(select count(*) from "scenes" where "scenes".story_id = stories.id)::int`,
+      selectedSceneId: stories.selectedSceneId,
+      livekitRoomName: stories.livekitRoomName,
     })
     .from(stories)
     .where(
@@ -58,7 +61,15 @@ export const listStories = createServerFn({ method: 'GET' }).handler(async () =>
     return acc
   }, {})
 
-  return rows.map((r) => ({ ...r, scenes: scenesByStory[r.id] ?? [] }))
+  const directorOnStageFlags = await Promise.all(
+    rows.map((r) =>
+      r.status === 'draft' || r.status === 'active'
+        ? isDirectorOnStage(r.id, r.directorId)
+        : Promise.resolve(false),
+    ),
+  )
+
+  return rows.map((r, i) => ({ ...r, scenes: scenesByStory[r.id] ?? [], directorOnStage: directorOnStageFlags[i] }))
 })
 
 export const createStory = createServerFn({ method: 'POST' })

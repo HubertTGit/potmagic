@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { scenes, stories, props, cast, users, sceneCast, invitedActors } from '@/db/schema';
+import { isDirectorOnStage } from '@/lib/livekit.fns';
 
 export type StageContext = {
   storyId: string
@@ -94,6 +95,10 @@ export const getSceneDetail = createServerFn({ method: 'GET' })
       .select({
         id: stories.id,
         title: stories.title,
+        selectedSceneId: stories.selectedSceneId,
+        directorId: stories.directorId,
+        livekitRoomName: stories.livekitRoomName,
+        status: stories.status,
         totalScenes: sql<number>`(select count(*) from "scenes" where "scenes".story_id = stories.id)::int`,
       })
       .from(stories)
@@ -165,9 +170,15 @@ export const getSceneDetail = createServerFn({ method: 'GET' })
           .where(eq(props.id, scene.soundId))
       : [null];
 
+    const directorOnStage = storyRow
+      ? storyRow.status === 'draft' || storyRow.status === 'active'
+        ? await isDirectorOnStage(storyRow.id, storyRow.directorId)
+        : false
+      : false;
+
     return {
       scene,
-      story: storyRow ?? null,
+      story: storyRow ? { ...storyRow, directorOnStage } : null,
       props: storyProps,
       assignedCast,
       availableActors,

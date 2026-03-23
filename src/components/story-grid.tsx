@@ -2,6 +2,7 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { deleteStory } from '@/lib/stories.fns';
+import { cn } from '@/lib/cn';
 import { StatusBadge } from '@/components/status-badge.component';
 import { ConfirmModal } from '@/components/confirm-modal';
 import { Theater, Trash2 } from 'lucide-react';
@@ -12,6 +13,8 @@ type Story = {
   status: any; // Type accurately if exposed from your fns or types
   castCount: number;
   sceneCount: number;
+  selectedSceneId: string | null;
+  directorOnStage: boolean;
   scenes: { id: string }[];
 };
 
@@ -46,6 +49,8 @@ export function StoryGrid({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {stories.map((story) => {
           const firstScene = story.scenes[0];
+          const stageSceneId = (!isDirector && story.selectedSceneId) ? story.selectedSceneId : firstScene?.id;
+          const canEnterStage = isDirector || (story.directorOnStage && (story.status === 'draft' || story.status === 'active'));
           return (
             <div
               key={story.id}
@@ -118,11 +123,16 @@ export function StoryGrid({
                   className="flex flex-col gap-2 mt-auto w-full"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  {firstScene && (
+                  {stageSceneId && (
                     <Link
                       to="/stage/$sceneId"
-                      params={{ sceneId: firstScene.id }}
-                      className="btn btn-sm btn-primary w-full gap-2"
+                      params={{ sceneId: stageSceneId }}
+                      disabled={!canEnterStage}
+                      className={cn(
+                        'btn btn-sm btn-primary w-full gap-2',
+                        !canEnterStage && 'btn-disabled pointer-events-none opacity-50',
+                      )}
+                      aria-disabled={!canEnterStage}
                     >
                       Enter Stage <Theater className="size-4" />
                     </Link>

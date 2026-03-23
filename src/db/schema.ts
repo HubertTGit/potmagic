@@ -92,6 +92,7 @@ export const stories = pgTable(
     status: storyStatusEnum('status').default('draft').notNull(),
     broadcastAt: timestamp('broadcast_at'),
     livekitRoomName: text('livekit_room_name'),
+    selectedSceneId: text('selected_scene_id'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
       .defaultNow()

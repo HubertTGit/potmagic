@@ -6,6 +6,7 @@ import type { Room } from 'livekit-client';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 import { getSceneNavigation } from '@/lib/scenes.fns';
+import { updateSelectedScene } from '@/lib/story-detail.fns';
 
 interface SceneNavigateMessage {
   type: 'scene:navigate';
@@ -14,10 +15,11 @@ interface SceneNavigateMessage {
 
 interface SceneNavigatorProps {
   sceneId: string;
+  storyId: string;
   room?: Room | null;
 }
 
-export function SceneNavigator({ sceneId, room }: SceneNavigatorProps) {
+export function SceneNavigator({ sceneId, storyId, room }: SceneNavigatorProps) {
   const router = useRouter();
   const { data: session } = authClient.useSession();
   const isDirector = session?.user?.role === 'director';
@@ -48,6 +50,10 @@ export function SceneNavigator({ sceneId, room }: SceneNavigatorProps) {
 
   function navigateTo(targetSceneId: string) {
     router.navigate({ to: '/stage/$sceneId', params: { sceneId: targetSceneId } });
+
+    if (isDirector) {
+      updateSelectedScene({ data: { storyId, sceneId: targetSceneId } }).catch(console.error);
+    }
 
     if (!room) return;
     const msg: SceneNavigateMessage = { type: 'scene:navigate', sceneId: targetSceneId };
