@@ -1,18 +1,9 @@
 import { Assets, Container, Sprite } from 'pixi.js';
 import type { FederatedPointerEvent, Texture } from 'pixi.js';
-import { RoomEvent } from 'livekit-client';
 import { saveSceneCastPosition } from '@/lib/scenes.fns';
-import type { PixiCharacterProps } from '@/components/draggable-character.component';
+import type { PixiCharacterProps, PropMoveMessage } from '@/components/draggable-character.component';
 
-interface PropMoveMessage {
-  type: 'prop:move';
-  castId: string;
-  x: number;
-  y: number;
-  rotation: number;
-  scaleX: number;
-  indexZ: number;
-}
+const encoder = new TextEncoder();
 
 function getMidpoint(a: { x: number; y: number }, b: { x: number; y: number }) {
   return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
@@ -28,8 +19,6 @@ export class PixiBackground {
   private activePointers = new Map<number, { x: number; y: number }>();
   private lastSendTime = 0;
 
-  private readonly onDataReceived: (payload: Uint8Array) => void;
-
   constructor(props: PixiCharacterProps) {
     this.props = props;
 
@@ -43,23 +32,6 @@ export class PixiBackground {
     this.sprite.anchor.set(0.5);
 
     this.container.addChild(this.sprite);
-
-    // Listen for remote moves via LiveKit — backgrounds only sync x
-    this.onDataReceived = (payload: Uint8Array) => {
-      let msg: PropMoveMessage;
-      try {
-        msg = JSON.parse(new TextDecoder().decode(payload)) as PropMoveMessage;
-      } catch {
-        return;
-      }
-      if (msg.type !== 'prop:move' || msg.castId !== props.castId) return;
-      this.container.x = msg.x;
-      // y is always locked locally; rotation is always 0 for backgrounds
-    };
-
-    if (props.room) {
-      props.room.on(RoomEvent.DataReceived, this.onDataReceived);
-    }
 
     this.loadTexture();
   }
@@ -127,6 +99,7 @@ export class PixiBackground {
 
   private onStagePointerMove(e: FederatedPointerEvent) {
     if (!this.props.canDrag) return;
+    if (this.activePointers.size === 0 && !this.isDragging) return;
 
     const prevStateMap = new Map(this.activePointers);
     this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -176,7 +149,7 @@ export class PixiBackground {
       indexZ: 0,
     };
     this.props.room?.localParticipant.publishData(
-      new TextEncoder().encode(JSON.stringify(msg)),
+      encoder.encode(JSON.stringify(msg)),
       { reliable: false },
     );
   }
@@ -197,15 +170,17 @@ export class PixiBackground {
   // No-op — backgrounds do not have a speaking glow
   updateSpeaking(_isSpeaking: boolean) {}
 
+  applyRemoteMove(msg: PropMoveMessage) {
+    this.container.x = msg.x;
+    // y is locked to bottom — intentionally not applied
+  }
+
   saveCurrentPosition() {
     if (!this.props.canDrag) return;
     this.persistPosition();
   }
 
   destroy() {
-    if (this.props.room) {
-      this.props.room.off(RoomEvent.DataReceived, this.onDataReceived);
-    }
     this.container.destroy({ children: true });
   }
 }

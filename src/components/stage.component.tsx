@@ -1,10 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Application } from "pixi.js";
+import { RoomEvent } from "livekit-client";
 import type { Room } from "livekit-client";
 import { PixiCharacter } from "@/components/draggable-character.component";
+import type { PropMoveMessage } from "@/components/draggable-character.component";
 import { PixiBackground } from "@/components/draggable-background.component";
 import { authClient } from "@/lib/auth-client";
 import type { PropType } from "@/db/schema";
+
+const decoder = new TextDecoder();
 
 export interface StageCast {
   sceneCastId: string;
@@ -48,6 +52,10 @@ export const StageComponent = React.forwardRef<
   const propsRef = useRef<Map<string, PixiCharacter | PixiBackground>>(
     new Map(),
   );
+  // castId → prop lookup for O(1) dispatch of incoming LiveKit data messages
+  const castIdMapRef = useRef<Map<string, PixiCharacter | PixiBackground>>(
+    new Map(),
+  );
   const appReadyRef = useRef(false);
 
   const [allLoaded, setAllLoaded] = useState(false);
@@ -71,6 +79,7 @@ export const StageComponent = React.forwardRef<
     const app = new Application();
     appRef.current = app;
     const props = propsRef.current;
+    const castIdMap = castIdMapRef.current;
     let unmounted = false;
     let initDone = false;
 
@@ -103,6 +112,7 @@ export const StageComponent = React.forwardRef<
         prop.destroy();
       }
       props.clear();
+      castIdMap.clear();
       appRef.current = null;
       // If init already finished, destroy immediately; otherwise the .then() above handles it
       if (initDone) app.destroy(true);
@@ -131,6 +141,10 @@ export const StageComponent = React.forwardRef<
           prop.destroy();
           app.stage.removeChild(prop.container);
           existing.delete(id);
+          // Remove from castId lookup
+          for (const [cid, p] of castIdMapRef.current) {
+            if (p === prop) { castIdMapRef.current.delete(cid); break; }
+          }
         }
       }
 
@@ -181,6 +195,7 @@ export const StageComponent = React.forwardRef<
 
         app.stage.addChild(prop.container);
         existing.set(cast.sceneCastId, prop);
+        castIdMapRef.current.set(cast.castId, prop);
       }
     };
 
@@ -189,6 +204,23 @@ export const StageComponent = React.forwardRef<
       return () => cancelAnimationFrame(rafId);
     }
   }, [casts, room, session, stageWidth, stageHeight]);
+
+  // Single centralized LiveKit DataReceived handler — parse once, dispatch by castId
+  useEffect(() => {
+    if (!room) return;
+    const onDataReceived = (payload: Uint8Array) => {
+      let msg: PropMoveMessage;
+      try {
+        msg = JSON.parse(decoder.decode(payload)) as PropMoveMessage;
+      } catch {
+        return;
+      }
+      if (msg.type !== 'prop:move') return;
+      castIdMapRef.current.get(msg.castId)?.applyRemoteMove(msg);
+    };
+    room.on(RoomEvent.DataReceived, onDataReceived);
+    return () => { room.off(RoomEvent.DataReceived, onDataReceived); };
+  }, [room]);
 
   // Update speaking glow without recreating characters
   useEffect(() => {

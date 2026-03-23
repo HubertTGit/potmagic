@@ -1,7 +1,6 @@
 import { Application, Assets, Container, Sprite } from 'pixi.js';
 import type { FederatedPointerEvent, Texture } from 'pixi.js';
 import { GlowFilter } from 'pixi-filters/glow';
-import { RoomEvent } from 'livekit-client';
 import type { Room } from 'livekit-client';
 import { saveSceneCastPosition } from '@/lib/scenes.fns';
 import type { PropType } from '@/db/schema';
@@ -24,7 +23,7 @@ export interface PixiCharacterProps {
   onReady?: () => void;
 }
 
-interface PropMoveMessage {
+export interface PropMoveMessage {
   type: 'prop:move';
   castId: string;
   x: number;
@@ -33,6 +32,8 @@ interface PropMoveMessage {
   scaleX: number;
   indexZ: number;
 }
+
+const encoder = new TextEncoder();
 
 function getAngle(a: { x: number; y: number }, b: { x: number; y: number }) {
   return Math.atan2(b.y - a.y, b.x - a.x) * (180 / Math.PI);
@@ -59,8 +60,6 @@ export class PixiCharacter {
   // Suppress spurious taps fired when fingers lift after a multi-touch gesture
   private suppressNextNTaps = 0;
 
-  private readonly onDataReceived: (payload: Uint8Array) => void;
-
   constructor(props: PixiCharacterProps) {
     this.props = props;
 
@@ -84,25 +83,6 @@ export class PixiCharacter {
     this.sprite.filters = [this.glowFilter];
 
     this.container.addChild(this.sprite);
-
-    // Listen for remote moves via LiveKit
-    this.onDataReceived = (payload: Uint8Array) => {
-      let msg: PropMoveMessage;
-      try {
-        msg = JSON.parse(new TextDecoder().decode(payload)) as PropMoveMessage;
-      } catch {
-        return;
-      }
-      if (msg.type !== 'prop:move' || msg.castId !== props.castId) return;
-      this.container.x = msg.x;
-      this.container.y = msg.y;
-      this.container.rotation = msg.rotation * (Math.PI / 180);
-      this.sprite.scale.x = msg.scaleX;
-    };
-
-    if (props.room) {
-      props.room.on(RoomEvent.DataReceived, this.onDataReceived);
-    }
 
     this.loadTexture();
   }
@@ -201,6 +181,7 @@ export class PixiCharacter {
 
   private onStagePointerMove(e: FederatedPointerEvent) {
     if (!this.props.canDrag) return;
+    if (this.activePointers.size === 0 && !this.isDragging) return;
 
     // Snapshot full previous state BEFORE updating the moved pointer so both
     // oldAngle and oldMid are computed from a consistent pre-event baseline.
@@ -275,7 +256,7 @@ export class PixiCharacter {
       indexZ: 0,
     };
     this.props.room?.localParticipant.publishData(
-      new TextEncoder().encode(JSON.stringify(msg)),
+      encoder.encode(JSON.stringify(msg)),
       { reliable: false },
     );
   }
@@ -318,9 +299,6 @@ export class PixiCharacter {
   }
 
   destroy() {
-    if (this.props.room) {
-      this.props.room.off(RoomEvent.DataReceived, this.onDataReceived);
-    }
     this.container.destroy({ children: true });
   }
 }
