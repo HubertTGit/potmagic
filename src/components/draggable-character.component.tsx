@@ -181,7 +181,7 @@ export class PixiCharacter {
 
   private onStagePointerMove(e: FederatedPointerEvent) {
     if (!this.props.canDrag) return;
-    if (this.activePointers.size === 0 && !this.isDragging) return;
+    if (!this.activePointers.has(e.pointerId)) return;
 
     // Snapshot full previous state BEFORE updating the moved pointer so both
     // oldAngle and oldMid are computed from a consistent pre-event baseline.

@@ -225,9 +225,10 @@ export const StageComponent = React.forwardRef<
   // Update speaking glow without recreating characters
   useEffect(() => {
     const props = propsRef.current;
+    const castUserMap = new Map(casts.map((c) => [c.sceneCastId, c.userId]));
     for (const [, prop] of props) {
-      const cast = casts.find((c) => c.sceneCastId === prop.container.label);
-      if (cast) prop.updateSpeaking(speakingIds.has(cast.userId));
+      const userId = castUserMap.get(prop.container.label);
+      if (userId) prop.updateSpeaking(speakingIds.has(userId));
     }
   }, [speakingIds, casts]);
 

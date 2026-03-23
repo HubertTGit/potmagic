@@ -99,7 +99,7 @@ export class PixiBackground {
 
   private onStagePointerMove(e: FederatedPointerEvent) {
     if (!this.props.canDrag) return;
-    if (this.activePointers.size === 0 && !this.isDragging) return;
+    if (!this.activePointers.has(e.pointerId)) return;
 
     const prevStateMap = new Map(this.activePointers);
     this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
