@@ -114,8 +114,6 @@ function StoryDetailPage() {
 
   const isTitleDirty = title !== story.title;
 
-  console.log(story.directorOnStage);
-
   return (
     <div className="max-w-3xl p-8">
       <Breadcrumb
