@@ -334,7 +334,10 @@ function SceneStagePage() {
   const soundName = data?.soundName ?? null;
   const soundAutoplay = data?.soundAutoplay ?? false;
   const liveKitReady = !!livekitData && micResolved;
-  const showMicModal = micState === "prompt" && !micResolved;
+  const showMicModal =
+    micState === "prompt" &&
+    !micResolved &&
+    (status === "draft" || status === "active");
 
   return (
     <>
