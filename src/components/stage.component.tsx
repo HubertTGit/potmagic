@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Application } from 'pixi.js';
 import type { Room } from 'livekit-client';
 import { PixiCharacter } from '@/components/draggable-character.component';
+import { PixiBackground } from '@/components/draggable-background.component';
 import { authClient } from '@/lib/auth-client';
 import type { PropType } from '@/db/schema';
 
@@ -42,7 +43,7 @@ export const StageComponent = React.forwardRef<HTMLDivElement, StageComponentPro
     const { data: session } = authClient.useSession();
     const containerRef = useRef<HTMLDivElement>(null);
     const appRef = useRef<Application | null>(null);
-    const charactersRef = useRef<Map<string, PixiCharacter>>(new Map());
+    const charactersRef = useRef<Map<string, PixiCharacter | PixiBackground>>(new Map());
     const appReadyRef = useRef(false);
 
     const [allLoaded, setAllLoaded] = useState(false);
@@ -149,7 +150,8 @@ export const StageComponent = React.forwardRef<HTMLDivElement, StageComponentPro
           const canDrag =
             session?.user?.id === cast.userId || session?.user?.role === 'director';
 
-          const char = new PixiCharacter({
+          const CharClass = cast.type === 'background' ? PixiBackground : PixiCharacter;
+          const char = new CharClass({
             sceneCastId: cast.sceneCastId,
             castId: cast.castId,
             src: cast.path,
