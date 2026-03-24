@@ -18,18 +18,27 @@ export function LandingNavbar() {
       <div className="mx-auto flex w-full max-w-7xl items-center">
         {/* Logo */}
         <div className="navbar-start">
-          <Link to="/" className="flex items-center gap-2">
-            <img
-              src={theme === Theme.dark ? "/logo-white.svg" : "/logo-color.svg"}
-              alt="potmagic"
-              className="hidden h-7 md:block"
-            />
-            <img
-              src={theme === Theme.dark ? "/icon-white.svg" : "/icon-red.svg"}
-              alt="potmagic"
-              className="h-7 md:hidden"
-            />
-          </Link>
+          <div className="relative inline-flex">
+            <Link to="/" className="flex items-center gap-2">
+              <img
+                src={
+                  theme === Theme.dark ? "/logo-white.svg" : "/logo-color.svg"
+                }
+                alt="potmagic"
+                className="hidden h-7 md:block"
+              />
+              <img
+                src={theme === Theme.dark ? "/icon-white.svg" : "/icon-red.svg"}
+                alt="potmagic"
+                className="h-7 md:hidden"
+              />
+            </Link>
+            {import.meta.env.VITE_UNDER_CONSTRUCTION === "true" && (
+              <span className="badge badge-xs border-error/30 bg-warning/10 text-error/80 absolute -top-2 -right-2 translate-x-full tracking-wide uppercase">
+                preview only
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="navbar-end flex items-center gap-5">
