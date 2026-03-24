@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -6,46 +6,64 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
+import { useAtom, useAtomValue } from "jotai";
+import type { Room } from "livekit-client";
 import { cn } from "@/lib/cn";
-
-type Speed = 0 | 1 | 2 | 3;
-type Direction = "left" | "right" | null;
+import { bgPanningAtom, bgProgressAtom } from "@/lib/bg-panning.atoms";
+import type { BgDirection, BgSpeed } from "@/lib/livekit-messages";
 
 interface BgPanningToolProps {
-  leftProgress: number;
-  rightProgress: number;
   isDirector: boolean;
-  activeDirection?: Direction;
+  room?: Room | null;
 }
 
-export function BgPanningTool({
-  leftProgress,
-  rightProgress,
-  isDirector,
-  activeDirection,
-}: BgPanningToolProps) {
-  const [speed, setSpeed] = useState<Speed>(0);
-  const [direction, setDirection] = useState<Direction>(null);
+const encoder = new TextEncoder();
 
-  const resolvedDirection = isDirector ? direction : (activeDirection ?? null);
+export function BgPanningTool({ isDirector, room }: BgPanningToolProps) {
+  const [{ direction, speed }, setBgPanning] = useAtom(bgPanningAtom);
+  const { leftProgress, rightProgress } = useAtomValue(bgProgressAtom);
+
+  const publishAnimate = useCallback(
+    (nextDirection: BgDirection, nextSpeed: BgSpeed) => {
+      if (!room) return;
+      room.localParticipant.publishData(
+        encoder.encode(
+          JSON.stringify({ type: 'bg:animate', direction: nextDirection, speed: nextSpeed }),
+        ),
+        { reliable: true },
+      );
+    },
+    [room],
+  );
 
   const handleClick = useCallback(
     (btn: "left" | "right") => {
+      let nextDirection: BgDirection;
+      let nextSpeed: BgSpeed;
+
       if (direction === btn) {
-        const next = ((speed + 1) % 4) as Speed;
-        setSpeed(next);
-        if (next === 0) setDirection(null);
+        const next = ((speed + 1) % 4) as BgSpeed;
+        nextSpeed = next;
+        nextDirection = next === 0 ? null : btn;
       } else if (direction !== null) {
-        const next = (speed - 1) as Speed;
-        setSpeed(next);
-        if (next === 0) setDirection(null);
+        const next = (speed - 1) as BgSpeed;
+        nextSpeed = next;
+        nextDirection = next === 0 ? null : direction;
       } else {
-        setDirection(btn);
-        setSpeed(1);
+        nextDirection = btn;
+        nextSpeed = 1;
       }
+
+      setBgPanning({ direction: nextDirection, speed: nextSpeed });
+      publishAnimate(nextDirection, nextSpeed);
     },
-    [direction, speed],
+    [direction, speed, setBgPanning, publishAnimate],
   );
+
+  const handleStop = useCallback(() => {
+    setBgPanning({ direction: null, speed: 0 });
+    publishAnimate(null, 0);
+  }, [setBgPanning, publishAnimate]);
 
   return (
     <div className="flex flex-col gap-1">
@@ -70,10 +88,7 @@ export function BgPanningTool({
           </button>
           <button
             type="button"
-            onClick={() => {
-              setSpeed(0);
-              setDirection(null);
-            }}
+            onClick={handleStop}
             className={cn(
               "hover:text-base-content flex min-w-13 items-center justify-center gap-1 px-3 py-1.5 text-center text-xs font-semibold tabular-nums transition-colors",
               direction && "cursor-pointer",
@@ -110,7 +125,11 @@ export function BgPanningTool({
         </div>
       )}
 
-      {!isDirector && (
+      {/* Intentional: show the indicator only when actively animating.
+          The always-visible static label from the original is replaced by
+          atom-driven direction state, so showing it only when direction is
+          set is the correct new behaviour for non-directors. */}
+      {!isDirector && direction && (
         <div className="flex w-28 items-center justify-center gap-1 text-xs">
           background <MoveHorizontal className="size-2" />{" "}
         </div>
@@ -119,12 +138,12 @@ export function BgPanningTool({
       <progress
         className={cn(
           "progress progress-primary min-w-1.5xl w-full transition-all",
-          resolvedDirection === "left" && "scale-x-[-1]",
+          direction === "left" && "scale-x-[-1]",
         )}
         value={
-          resolvedDirection === "left"
+          direction === "left"
             ? leftProgress
-            : resolvedDirection === "right"
+            : direction === "right"
               ? rightProgress
               : 0
         }
