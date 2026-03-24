@@ -1,10 +1,26 @@
-import { Assets, Container, Sprite } from 'pixi.js';
-import type { FederatedPointerEvent, Texture, Ticker } from 'pixi.js';
-import { saveSceneCastPosition } from '@/lib/scenes.fns';
-import type { PropMoveMessage, BgDirection, BgSpeed } from '@/lib/livekit-messages';
-import type { PixiCharacterProps } from '@/components/draggable-character.component';
+import { Assets, Container, Sprite } from "pixi.js";
+import type { FederatedPointerEvent, Texture, Ticker } from "pixi.js";
+import { saveSceneCastPosition } from "@/lib/scenes.fns";
+import type {
+  PropMoveMessage,
+  BgDirection,
+  BgSpeed,
+} from "@/lib/livekit-messages";
+import type { PixiCharacterProps } from "@/components/draggable-character.component";
 
 const encoder = new TextEncoder();
+
+const enum ANIMATION_SPEED {
+  slow = 2,
+  medium = 4,
+  fast = 8,
+}
+
+const BG_PAN_PX_PER_FRAME: Record<1 | 2 | 3, ANIMATION_SPEED> = {
+  1: ANIMATION_SPEED.slow,
+  2: ANIMATION_SPEED.medium,
+  3: ANIMATION_SPEED.fast,
+};
 
 function getMidpoint(a: { x: number; y: number }, b: { x: number; y: number }) {
   return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
@@ -72,15 +88,15 @@ export class PixiBackground {
   private setupInteraction() {
     const { canDrag } = this.props;
 
-    this.sprite.eventMode = canDrag ? 'static' : 'none';
-    this.sprite.cursor = canDrag ? 'pointer' : 'default';
+    this.sprite.eventMode = canDrag ? "static" : "none";
+    this.sprite.cursor = canDrag ? "pointer" : "default";
 
     if (!canDrag) return;
 
-    this.sprite.on('pointerdown', this.onPointerDown.bind(this));
-    this.sprite.on('pointerup', this.onPointerUp.bind(this));
-    this.sprite.on('pointerupoutside', this.onPointerUp.bind(this));
-    this.sprite.on('globalpointermove', this.onStagePointerMove.bind(this));
+    this.sprite.on("pointerdown", this.onPointerDown.bind(this));
+    this.sprite.on("pointerup", this.onPointerUp.bind(this));
+    this.sprite.on("pointerupoutside", this.onPointerUp.bind(this));
+    this.sprite.on("globalpointermove", this.onStagePointerMove.bind(this));
     // No double-click / tap handlers — backgrounds cannot be mirrored
   }
 
@@ -152,7 +168,7 @@ export class PixiBackground {
     this.lastSendTime = now;
 
     const msg: PropMoveMessage = {
-      type: 'prop:move',
+      type: "prop:move",
       castId,
       x: this.container.x,
       y: this.container.y,
@@ -190,17 +206,17 @@ export class PixiBackground {
 
     if (speed === 0 || direction === null) {
       // Re-enable drag
-      this.sprite.eventMode = this.props.canDrag ? 'static' : 'none';
-      this.sprite.cursor = this.props.canDrag ? 'pointer' : 'default';
+      this.sprite.eventMode = this.props.canDrag ? "static" : "none";
+      this.sprite.cursor = this.props.canDrag ? "pointer" : "default";
       return;
     }
 
     // Disable drag while animating
-    this.sprite.eventMode = 'none';
-    this.sprite.cursor = 'default';
+    this.sprite.eventMode = "none";
+    this.sprite.cursor = "default";
 
-    const pxPerFrame = speed === 1 ? 4 : speed === 2 ? 8 : 16;
-    const delta = direction === 'left' ? -pxPerFrame : pxPerFrame;
+    const pxPerFrame = BG_PAN_PX_PER_FRAME[speed as 1 | 2 | 3];
+    const delta = direction === "left" ? -pxPerFrame : pxPerFrame;
 
     this.animationTicker = (ticker: Ticker) => {
       const rawX = this.container.x + delta * ticker.deltaTime;
@@ -212,8 +228,8 @@ export class PixiBackground {
         this.props.app.ticker.remove(this.animationTicker!);
         this.animationTicker = null;
         this.animationSpeed = 0;
-        this.sprite.eventMode = this.props.canDrag ? 'static' : 'none';
-        this.sprite.cursor = this.props.canDrag ? 'pointer' : 'default';
+        this.sprite.eventMode = this.props.canDrag ? "static" : "none";
+        this.sprite.cursor = this.props.canDrag ? "pointer" : "default";
         this.props.onAnimationComplete?.();
         return;
       }
