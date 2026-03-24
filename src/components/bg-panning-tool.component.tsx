@@ -131,7 +131,7 @@ export function BgPanningTool({ isDirector, room }: BgPanningToolProps) {
           set is the correct new behaviour for non-directors. */}
       {!isDirector && direction && (
         <div className="flex w-28 items-center justify-center gap-1 text-xs">
-          background <MoveHorizontal className="size-2" />{" "}
+          background <MoveHorizontal className="size-2" />
         </div>
       )}
 

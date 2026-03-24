@@ -20,7 +20,6 @@ export class PixiBackground {
   private activePointers = new Map<number, { x: number; y: number }>();
   private lastSendTime = 0;
   private animationSpeed: BgSpeed = 0;
-  private animationDirection: BgDirection = null;
   private animationTicker: ((ticker: Ticker) => void) | null = null;
   private lastProgressTime = 0;
 
@@ -182,7 +181,6 @@ export class PixiBackground {
     }
 
     this.animationSpeed = speed;
-    this.animationDirection = direction;
 
     if (speed === 0 || direction === null) {
       // Re-enable drag
