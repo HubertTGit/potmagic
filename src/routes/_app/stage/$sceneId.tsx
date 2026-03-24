@@ -31,7 +31,8 @@ export const Route = createFileRoute("/_app/stage/$sceneId")({
   component: SceneStagePage,
   pendingComponent: () => (
     <div className="bg-base-100 fixed inset-0 flex items-center justify-center">
-      <p className="text-base-content/40 text-sm">Loading scene…</p>
+      <img src="/icon-red.svg" className="size-10 animate-bounce dark:hidden" alt="" />
+      <img src="/icon-white.svg" className="size-10 animate-bounce hidden dark:block" alt="" />
     </div>
   ),
   errorComponent: ({ error }) => <ErrorComponent error={error} />,
@@ -306,7 +307,8 @@ function SceneStagePage() {
   if (isPending) {
     return (
       <div className="bg-base-100 fixed inset-0 flex items-center justify-center">
-        <p className="text-base-content/40 text-sm">Loading scene…</p>
+        <img src="/icon-red.svg" className="size-10 animate-bounce dark:hidden" alt="" />
+        <img src="/icon-white.svg" className="size-10 animate-bounce hidden dark:block" alt="" />
       </div>
     );
   }
