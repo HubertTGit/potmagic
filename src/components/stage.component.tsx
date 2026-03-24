@@ -2,11 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import { Application } from "pixi.js";
 import { RoomEvent } from "livekit-client";
 import type { Room } from "livekit-client";
+import { useAtomValue, useSetAtom } from 'jotai';
 import { PixiCharacter } from "@/components/draggable-character.component";
-import type { PropMoveMessage } from "@/components/draggable-character.component";
 import { PixiBackground } from "@/components/draggable-background.component";
 import { authClient } from "@/lib/auth-client";
 import type { PropType } from "@/db/schema";
+import { bgPanningAtom, bgProgressAtom } from '@/lib/bg-panning.atoms';
+import type { LiveKitMessage } from '@/lib/livekit-messages';
 
 const decoder = new TextDecoder();
 
@@ -57,8 +59,13 @@ export const StageComponent = React.forwardRef<
     new Map(),
   );
   const appReadyRef = useRef(false);
+  const prevCastIdsRef = useRef<string>('');
 
   const [allLoaded, setAllLoaded] = useState(false);
+
+  const bgPanning = useAtomValue(bgPanningAtom);
+  const setBgPanning = useSetAtom(bgPanningAtom);
+  const setBgProgress = useSetAtom(bgProgressAtom);
 
   // Expose the container div via forwardRef
   useEffect(() => {
@@ -191,6 +198,14 @@ export const StageComponent = React.forwardRef<
             remaining -= 1;
             if (remaining === 0) setAllLoaded(true);
           },
+          ...(cast.type === 'background' && {
+            onPositionChange: (x: number, bounds: { minX: number; maxX: number }) => {
+              const range = bounds.maxX - bounds.minX;
+              if (range <= 0) return;
+              const rightProgress = Math.round(((x - bounds.minX) / range) * 100);
+              setBgProgress({ leftProgress: 100 - rightProgress, rightProgress });
+            },
+          }),
         });
 
         app.stage.addChild(prop.container);
@@ -209,18 +224,21 @@ export const StageComponent = React.forwardRef<
   useEffect(() => {
     if (!room) return;
     const onDataReceived = (payload: Uint8Array) => {
-      let msg: PropMoveMessage;
+      let msg: LiveKitMessage;
       try {
-        msg = JSON.parse(decoder.decode(payload)) as PropMoveMessage;
+        msg = JSON.parse(decoder.decode(payload)) as LiveKitMessage;
       } catch {
         return;
       }
-      if (msg.type !== 'prop:move') return;
-      castIdMapRef.current.get(msg.castId)?.applyRemoteMove(msg);
+      if (msg.type === 'prop:move') {
+        castIdMapRef.current.get(msg.castId)?.applyRemoteMove(msg);
+      } else if (msg.type === 'bg:animate') {
+        setBgPanning({ direction: msg.direction, speed: msg.speed });
+      }
     };
     room.on(RoomEvent.DataReceived, onDataReceived);
     return () => { room.off(RoomEvent.DataReceived, onDataReceived); };
-  }, [room]);
+  }, [room, setBgPanning]);
 
   // Update speaking glow without recreating characters
   useEffect(() => {
@@ -231,6 +249,35 @@ export const StageComponent = React.forwardRef<
       if (userId) prop.updateSpeaking(speakingIds.has(userId));
     }
   }, [speakingIds, casts]);
+
+  // Drive PixiBackground setAnimation when bgPanningAtom changes
+  useEffect(() => {
+    for (const prop of propsRef.current.values()) {
+      if (prop instanceof PixiBackground) {
+        prop.setAnimation(bgPanning.direction, bgPanning.speed);
+        break; // one background per scene
+      }
+    }
+  }, [bgPanning]);
+
+  // Reset atoms when scene (cast set) changes
+  useEffect(() => {
+    const castKey = casts.map((c) => c.sceneCastId).sort().join(',');
+    if (castKey !== prevCastIdsRef.current) {
+      prevCastIdsRef.current = castKey;
+      setBgPanning({ direction: null, speed: 0 });
+      setBgProgress({ leftProgress: 0, rightProgress: 0 });
+    }
+  }, [casts, setBgPanning, setBgProgress]);
+
+  // Reset atoms on unmount
+  useEffect(() => {
+    return () => {
+      setBgPanning({ direction: null, speed: 0 });
+      setBgProgress({ leftProgress: 0, rightProgress: 0 });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Persist positions on unmount
   useEffect(() => {
