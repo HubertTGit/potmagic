@@ -198,7 +198,19 @@ export class PixiBackground {
 
     this.animationTicker = (ticker: Ticker) => {
       const rawX = this.container.x + delta * ticker.deltaTime;
-      this.container.x = this.clampX(rawX);
+      const clampedX = this.clampX(rawX);
+      this.container.x = clampedX;
+
+      // Boundary reached — self-stop and notify
+      if (rawX !== clampedX) {
+        this.props.app.ticker.remove(this.animationTicker!);
+        this.animationTicker = null;
+        this.animationSpeed = 0;
+        this.sprite.eventMode = this.props.canDrag ? 'static' : 'none';
+        this.sprite.cursor = this.props.canDrag ? 'pointer' : 'default';
+        this.props.onAnimationComplete?.();
+        return;
+      }
 
       // Publish position to remote participants (director/canDrag only, throttled)
       this.publishMove();

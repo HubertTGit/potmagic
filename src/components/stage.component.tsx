@@ -11,6 +11,7 @@ import { bgPanningAtom, bgProgressAtom } from '@/lib/bg-panning.atoms';
 import type { LiveKitMessage } from '@/lib/livekit-messages';
 
 const decoder = new TextDecoder();
+const encoder = new TextEncoder();
 
 export interface StageCast {
   sceneCastId: string;
@@ -204,6 +205,15 @@ export const StageComponent = React.forwardRef<
               if (range <= 0) return;
               const rightProgress = Math.round(((x - bounds.minX) / range) * 100);
               setBgProgress({ leftProgress: 100 - rightProgress, rightProgress });
+            },
+            onAnimationComplete: () => {
+              setBgPanning({ direction: null, speed: 0 });
+              if (room && canDrag) {
+                room.localParticipant.publishData(
+                  encoder.encode(JSON.stringify({ type: 'bg:animate', direction: null, speed: 0 })),
+                  { reliable: true },
+                );
+              }
             },
           }),
         });

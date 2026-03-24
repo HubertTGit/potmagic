@@ -23,6 +23,7 @@ export interface PixiCharacterProps {
   app: Application;
   onReady?: () => void;
   onPositionChange?: (x: number, bounds: { minX: number; maxX: number }) => void;
+  onAnimationComplete?: () => void;
 }
 
 export type { PropMoveMessage };
