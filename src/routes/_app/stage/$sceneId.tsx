@@ -253,7 +253,7 @@ function StageShell({
       </div>
       <div className="flex w-7xl items-center justify-between">
         <div>&nbsp;</div>
-        <BgPanningTool leftProgress={0} rightProgress={0} />
+        <BgPanningTool leftProgress={0} rightProgress={0} isDirector={false} />
         {isDirector && soundName && (
           <SoundControlBar
             soundName={soundName}
