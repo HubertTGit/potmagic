@@ -59,6 +59,13 @@ export class PixiBackground {
     this.setupInteraction();
     this.props.onReady?.();
 
+    // Report initial position so progress atom (and button disabled state) is correct on entry
+    const { stageWidth = 1280 } = this.props;
+    const halfW = this.sprite.width / 2;
+    const minX = stageWidth - halfW;
+    const maxX = halfW;
+    this.props.onPositionChange?.(this.container.x, { minX, maxX });
+
     if (app.stage.sortableChildren) app.stage.sortChildren();
   }
 

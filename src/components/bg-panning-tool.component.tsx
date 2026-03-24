@@ -72,6 +72,7 @@ export function BgPanningTool({ isDirector, room }: BgPanningToolProps) {
           <button
             type="button"
             onClick={() => handleClick("left")}
+            disabled={leftProgress >= 100}
             className={cn(
               "btn btn-sm btn-ghost border-base-300 gap-1 rounded-none border-r",
               direction === "left" && "text-primary",
@@ -108,6 +109,7 @@ export function BgPanningTool({ isDirector, room }: BgPanningToolProps) {
           <button
             type="button"
             onClick={() => handleClick("right")}
+            disabled={rightProgress >= 100}
             className={cn(
               "btn btn-sm btn-ghost border-base-300 gap-1 rounded-none border-l",
               direction === "right" && "text-primary",
