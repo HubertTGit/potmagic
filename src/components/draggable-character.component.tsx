@@ -22,6 +22,7 @@ export interface PixiCharacterProps {
   stageHeight?: number;
   app: Application;
   onReady?: () => void;
+  onPositionChange?: (x: number, bounds: { minX: number; maxX: number }) => void;
 }
 
 export type { PropMoveMessage };

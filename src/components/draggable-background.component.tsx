@@ -1,7 +1,7 @@
 import { Assets, Container, Sprite } from 'pixi.js';
-import type { FederatedPointerEvent, Texture } from 'pixi.js';
+import type { FederatedPointerEvent, Texture, Ticker } from 'pixi.js';
 import { saveSceneCastPosition } from '@/lib/scenes.fns';
-import type { PropMoveMessage } from '@/lib/livekit-messages';
+import type { PropMoveMessage, BgDirection, BgSpeed } from '@/lib/livekit-messages';
 import type { PixiCharacterProps } from '@/components/draggable-character.component';
 
 const encoder = new TextEncoder();
@@ -19,6 +19,10 @@ export class PixiBackground {
   private dragOffset = { x: 0, y: 0 };
   private activePointers = new Map<number, { x: number; y: number }>();
   private lastSendTime = 0;
+  private animationSpeed: BgSpeed = 0;
+  private animationDirection: BgDirection = null;
+  private animationTicker: ((ticker: Ticker) => void) | null = null;
+  private lastProgressTime = 0;
 
   constructor(props: PixiCharacterProps) {
     this.props = props;
@@ -75,6 +79,7 @@ export class PixiBackground {
   }
 
   private onPointerDown(e: FederatedPointerEvent) {
+    if (this.animationSpeed > 0) return;
     this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
     if (this.activePointers.size === 1) {
@@ -100,6 +105,7 @@ export class PixiBackground {
 
   private onStagePointerMove(e: FederatedPointerEvent) {
     if (!this.props.canDrag) return;
+    if (this.animationSpeed > 0) return;
     if (!this.activePointers.has(e.pointerId)) return;
 
     const prevStateMap = new Map(this.activePointers);
@@ -168,6 +174,52 @@ export class PixiBackground {
     });
   }
 
+  setAnimation(direction: BgDirection, speed: BgSpeed) {
+    // Always remove existing ticker first to prevent duplicate adds
+    if (this.animationTicker) {
+      this.props.app.ticker.remove(this.animationTicker);
+      this.animationTicker = null;
+    }
+
+    this.animationSpeed = speed;
+    this.animationDirection = direction;
+
+    if (speed === 0 || direction === null) {
+      // Re-enable drag
+      this.sprite.eventMode = this.props.canDrag ? 'static' : 'none';
+      this.sprite.cursor = this.props.canDrag ? 'pointer' : 'default';
+      return;
+    }
+
+    // Disable drag while animating
+    this.sprite.eventMode = 'none';
+    this.sprite.cursor = 'default';
+
+    const pxPerFrame = speed === 1 ? 2 : speed === 2 ? 4 : 8;
+    const delta = direction === 'left' ? -pxPerFrame : pxPerFrame;
+
+    this.animationTicker = (ticker: Ticker) => {
+      const rawX = this.container.x + delta * ticker.deltaTime;
+      this.container.x = this.clampX(rawX);
+
+      // Publish position to remote participants (director/canDrag only, throttled)
+      this.publishMove();
+
+      // Update progress for all clients (throttled independently)
+      const now = Date.now();
+      if (now - this.lastProgressTime >= 30) {
+        this.lastProgressTime = now;
+        const { stageWidth = 1280 } = this.props;
+        const halfW = this.sprite.width / 2;
+        const minX = stageWidth - halfW;
+        const maxX = halfW;
+        this.props.onPositionChange?.(this.container.x, { minX, maxX });
+      }
+    };
+
+    this.props.app.ticker.add(this.animationTicker);
+  }
+
   // No-op — backgrounds do not have a speaking glow
   updateSpeaking(_isSpeaking: boolean) {}
 
@@ -182,6 +234,10 @@ export class PixiBackground {
   }
 
   destroy() {
+    if (this.animationTicker) {
+      this.props.app.ticker.remove(this.animationTicker);
+      this.animationTicker = null;
+    }
     this.container.destroy({ children: true });
   }
 }
