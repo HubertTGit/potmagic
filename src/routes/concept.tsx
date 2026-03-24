@@ -23,13 +23,25 @@ import {
 export const Route = createFileRoute("/concept")({
   head: () => ({
     meta: [
-      { title: 'Concept — potmagic: Live Story Theater' },
-      { name: 'description', content: 'Learn about the vision behind potmagic — a live story theater platform built for Directors, Actors, and Communities to create and share interactive stories in real-time.' },
-      { property: 'og:title', content: 'The Concept Behind potmagic' },
-      { property: 'og:description', content: 'A deliberate antidote to passive screen consumption. potmagic brings people together through live, collaborative storytelling.' },
-      { property: 'og:type', content: 'website' },
-      { name: 'twitter:title', content: 'The Concept Behind potmagic' },
-      { name: 'twitter:description', content: 'A deliberate antidote to passive screen consumption. potmagic brings people together through live, collaborative storytelling.' },
+      { title: "Concept — potmagic: Live Story Theater" },
+      {
+        name: "description",
+        content:
+          "Learn about the vision behind potmagic — a live story theater platform built for Directors, Actors, and Communities to create and share interactive stories in real-time.",
+      },
+      { property: "og:title", content: "The Concept Behind potmagic" },
+      {
+        property: "og:description",
+        content:
+          "A deliberate antidote to passive screen consumption. potmagic brings people together through live, collaborative storytelling.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "The Concept Behind potmagic" },
+      {
+        name: "twitter:description",
+        content:
+          "A deliberate antidote to passive screen consumption. potmagic brings people together through live, collaborative storytelling.",
+      },
     ],
   }),
   component: ConceptPage,
@@ -37,23 +49,23 @@ export const Route = createFileRoute("/concept")({
 
 function ConceptPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-base-200 text-base-content">
+    <div className="bg-base-200 text-base-content flex min-h-screen flex-col">
       <LandingNavbar />
 
       <main className="flex-1">
         {/* ── Hero / Vision ── */}
-        <section className="hero min-h-[70vh] bg-base-100 relative overflow-hidden">
+        <section className="hero bg-base-100 relative min-h-[70vh] overflow-hidden">
           {/* Subtle curtain gradient backdrop */}
-          <div className="absolute inset-0 bg-gradient-to-b from-accent/5 via-transparent to-base-100 pointer-events-none" />
-          <div className="hero-content text-center max-w-3xl py-24 relative z-10">
+          <div className="from-accent/5 to-base-100 pointer-events-none absolute inset-0 bg-linear-to-b via-transparent" />
+          <div className="hero-content relative z-10 max-w-3xl py-24 text-center">
             <div>
-              <div className="badge badge-accent badge-lg font-semibold uppercase tracking-wider mb-6">
+              <div className="badge badge-accent badge-lg mb-6 font-semibold tracking-wider uppercase">
                 The Vision
               </div>
-              <h1 className="font-display text-5xl font-bold leading-tight mb-6">
-                Live Story Theater
+              <h1 className="font-display mb-6 text-5xl leading-tight font-bold">
+                Live Story Telling
               </h1>
-              <p className="text-base-content/70 text-lg leading-relaxed mb-10">
+              <p className="text-base-content/70 mb-10 text-lg leading-relaxed">
                 In a world where screen addiction is at an all-time high and yet
                 genuine human connection is quietly fading,{" "}
                 <span className="text-accent font-semibold">potmagic</span>{" "}
@@ -64,40 +76,15 @@ function ConceptPage() {
                 deliberate antidote: a space where people perform, collaborate,
                 and truly share a moment.
               </p>
-
-              {/* Three roles */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <RoleCard
-                  icon={<Clapperboard className="size-6" />}
-                  title="The Director"
-                  description="Someone with a story to tell but no physical stage."
-                  color="text-primary"
-                  bg="bg-primary/10"
-                />
-                <RoleCard
-                  icon={<Users className="size-6" />}
-                  title="The Actors"
-                  description="Those looking to share a moment of connection across any distance."
-                  color="text-accent"
-                  bg="bg-accent/10"
-                />
-                <RoleCard
-                  icon={<Globe className="size-6" />}
-                  title="The Community"
-                  description="An audience that doesn't just watch — they interact directly with the storytellers, shaping the experience in real-time."
-                  color="text-success"
-                  bg="bg-success/10"
-                />
-              </div>
             </div>
           </div>
         </section>
 
         {/* ── Director's Workshop ── */}
-        <section className="py-20 bg-base-200">
-          <div className="max-w-4xl mx-auto px-6">
+        <section className="bg-base-200 py-20">
+          <div className="mx-auto max-w-4xl px-6">
             <SectionLabel>The Director's Workshop</SectionLabel>
-            <h2 className="font-display text-3xl font-bold mb-4">
+            <h2 className="font-display mb-4 text-3xl font-bold">
               Architect the Experience
             </h2>
             <p className="text-base-content/60 mb-12">
@@ -106,14 +93,20 @@ function ConceptPage() {
               <em>Little Red Riding Hood</em>.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <WorkshopStep
                 step="01"
                 icon={<Map className="size-5" />}
                 title="Script & Scene Mapping"
                 items={[
-                  { label: "Narrative Flow", text: "Input story beats and define settings (e.g., The Village, The Deep Bavarian Forest, Grandma's Cottage)." },
-                  { label: "Atmosphere", text: 'Select Background Layers (parallax scrolling art) and Music Loops (e.g., "Whimsical Forest" or "Suspenseful Growl").' },
+                  {
+                    label: "Narrative Flow",
+                    text: "Input story beats and define settings (e.g., The Village, The Deep Bavarian Forest, Grandma's Cottage).",
+                  },
+                  {
+                    label: "Atmosphere",
+                    text: 'Select Background Layers (parallax scrolling art) and Music Loops (e.g., "Whimsical Forest" or "Suspenseful Growl").',
+                  },
                 ]}
               />
               <WorkshopStep
@@ -121,8 +114,14 @@ function ConceptPage() {
                 icon={<Package className="size-5" />}
                 title="Asset Curation"
                 items={[
-                  { label: "Character Assignment", text: 'Select "Digital Puppets" — 2D or 3D assets that respond to actor input.' },
-                  { label: "Virtual Props", text: 'Add interactive elements like a "Basket of Treats" or a "Hidden Wolf" behind a tree.' },
+                  {
+                    label: "Character Assignment",
+                    text: 'Select "Digital Puppets" — 2D assets that respond to actor input.',
+                  },
+                  {
+                    label: "Virtual Props",
+                    text: 'Add interactive elements like a "Basket of Treats" or a "Hidden Wolf" behind a tree.',
+                  },
                 ]}
               />
               <WorkshopStep
@@ -130,8 +129,14 @@ function ConceptPage() {
                 icon={<UserCheck className="size-5" />}
                 title="Casting & Invitations"
                 items={[
-                  { label: "Role Assignment", text: 'Assign characters to specific people (e.g., Daughter as "Red," Grandpa as "The Wolf").' },
-                  { label: "The Call", text: "Send unique secure links containing a Digital Mask — the specific puppet that actor will control." },
+                  {
+                    label: "Role Assignment",
+                    text: 'Assign characters to specific people (e.g., Daughter as "Red," Grandpa as "The Wolf").',
+                  },
+                  {
+                    label: "The Call",
+                    text: "Send unique secure links containing a Digital Mask — the specific puppet that actor will control.",
+                  },
                 ]}
               />
               <WorkshopStep
@@ -139,8 +144,14 @@ function ConceptPage() {
                 icon={<FlaskConical className="size-5" />}
                 title="The Rehearsal (Sandbox)"
                 items={[
-                  { label: "Draft Mode", text: "The stage opens for actors to test movements via mouse, touch, or motion-tracking." },
-                  { label: "Live Coaching", text: "The Director uses live voice-chat to give notes and guide the performance." },
+                  {
+                    label: "Draft Mode",
+                    text: "The stage opens for actors to test movements via mouse, touch, or motion-tracking.",
+                  },
+                  {
+                    label: "Live Coaching",
+                    text: "The Director uses live voice-chat to give notes and guide the performance.",
+                  },
                 ]}
               />
             </div>
@@ -148,17 +159,17 @@ function ConceptPage() {
         </section>
 
         {/* ── Actor's Stage ── */}
-        <section className="py-20 bg-base-100">
-          <div className="max-w-4xl mx-auto px-6">
+        <section className="bg-base-100 py-20">
+          <div className="mx-auto max-w-4xl px-6">
             <SectionLabel>The Actor's Stage</SectionLabel>
-            <h2 className="font-display text-3xl font-bold mb-4">
+            <h2 className="font-display mb-4 text-3xl font-bold">
               Performance &amp; Spontaneity
             </h2>
             <p className="text-base-content/60 mb-12">
               Being an actor on potmagic is about presence, instinct, and play.
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <ActorFeature
                 icon={<MousePointerClick className="size-5" />}
                 title="Entry"
@@ -184,28 +195,28 @@ function ConceptPage() {
         </section>
 
         {/* ── Showtime ── */}
-        <section className="py-20 bg-base-200">
-          <div className="max-w-4xl mx-auto px-6">
+        <section className="bg-base-200 py-20">
+          <div className="mx-auto max-w-4xl px-6">
             <SectionLabel>Showtime</SectionLabel>
-            <h2 className="font-display text-3xl font-bold mb-12">
+            <h2 className="font-display mb-12 text-3xl font-bold">
               The Live Broadcast
             </h2>
 
             <div className="flex flex-col gap-6">
               <ShowtimeRow
-                icon={<Radio className="size-5 text-accent" />}
+                icon={<Radio className="text-accent size-5" />}
                 title="The Link"
                 description="A public or private Curtain Link is shared with the audience — no downloads, no sign-up required to watch."
               />
               <div className="divider my-0" />
               <ShowtimeRow
-                icon={<Zap className="size-5 text-warning" />}
+                icon={<Zap className="text-warning size-5" />}
                 title="Live Engagement"
                 description='Viewers act as the "Village," triggering sound effects (applause, gasps) or voting on plot points (e.g., "Should Red take the shortcut?").'
               />
               <div className="divider my-0" />
               <ShowtimeRow
-                icon={<Heart className="size-5 text-error" />}
+                icon={<Heart className="text-error size-5" />}
                 title="Emotional Connection"
                 description="The Director orchestrates transitions live while actors provide the soul of the performance."
               />
@@ -214,14 +225,14 @@ function ConceptPage() {
         </section>
 
         {/* ── Technical Requirements ── */}
-        <section className="py-20 bg-base-100">
-          <div className="max-w-4xl mx-auto px-6">
+        <section className="bg-base-100 py-20">
+          <div className="mx-auto max-w-4xl px-6">
             <SectionLabel>Under the Hood</SectionLabel>
-            <h2 className="font-display text-3xl font-bold mb-12">
+            <h2 className="font-display mb-12 text-3xl font-bold">
               Technical Requirements
             </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <TechCard
                 icon={<Monitor className="size-5" />}
                 title="Platform"
@@ -257,12 +268,12 @@ function ConceptPage() {
         </section>
 
         {/* ── Closing CTA ── */}
-        <section className="py-24 bg-base-200 text-center">
-          <div className="max-w-2xl mx-auto px-6">
-            <p className="font-display text-2xl font-semibold text-base-content/80 italic">
+        <section className="bg-base-200 py-24 text-center">
+          <div className="mx-auto max-w-2xl px-6">
+            <p className="font-display text-base-content/80 text-2xl font-semibold italic">
               "Distance is no longer a barrier to the magic of the theater."
             </p>
-            <div className="mt-2 text-accent font-semibold tracking-wide">
+            <div className="text-accent mt-2 font-semibold tracking-wide">
               — potmagic
             </div>
           </div>
@@ -278,7 +289,7 @@ function ConceptPage() {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-accent font-semibold uppercase tracking-widest text-sm mb-3">
+    <p className="text-accent mb-3 text-sm font-semibold tracking-widest uppercase">
       {children}
     </p>
   );
@@ -298,13 +309,17 @@ function RoleCard({
   bg: string;
 }) {
   return (
-    <div className="card bg-base-200 border border-base-300 shadow-sm text-left">
+    <div className="card bg-base-200 border-base-300 border text-left shadow-sm">
       <div className="card-body gap-3 p-5">
-        <div className={`size-10 rounded-xl flex items-center justify-center ${bg} ${color}`}>
+        <div
+          className={`flex size-10 items-center justify-center rounded-xl ${bg} ${color}`}
+        >
           {icon}
         </div>
-        <h3 className="font-display font-semibold text-base">{title}</h3>
-        <p className="text-base-content/60 text-sm leading-relaxed">{description}</p>
+        <h3 className="font-display text-base font-semibold">{title}</h3>
+        <p className="text-base-content/60 text-sm leading-relaxed">
+          {description}
+        </p>
       </div>
     </div>
   );
@@ -322,21 +337,26 @@ function WorkshopStep({
   items: { label: string; text: string }[];
 }) {
   return (
-    <div className="card bg-base-100 border border-base-300 shadow-sm">
+    <div className="card bg-base-100 border-base-300 border shadow-sm">
       <div className="card-body gap-4 p-6">
         <div className="flex items-center gap-3">
-          <span className="font-display text-3xl font-bold text-base-content/10 leading-none">
+          <span className="font-display text-base-content/10 text-3xl leading-none font-bold">
             {step}
           </span>
-          <div className="size-9 rounded-xl bg-accent/10 text-accent flex items-center justify-center">
+          <div className="bg-accent/10 text-accent flex size-9 items-center justify-center rounded-xl">
             {icon}
           </div>
-          <h3 className="font-display font-semibold text-sm">{title}</h3>
+          <h3 className="font-display text-sm font-semibold">{title}</h3>
         </div>
         <ul className="flex flex-col gap-3">
           {items.map((item) => (
-            <li key={item.label} className="text-sm text-base-content/70 leading-relaxed">
-              <span className="font-semibold text-base-content">{item.label}:</span>{" "}
+            <li
+              key={item.label}
+              className="text-base-content/70 text-sm leading-relaxed"
+            >
+              <span className="text-base-content font-semibold">
+                {item.label}:
+              </span>{" "}
               {item.text}
             </li>
           ))}
@@ -356,13 +376,15 @@ function ActorFeature({
   description: string;
 }) {
   return (
-    <div className="card bg-base-200 border border-base-300 shadow-sm">
-      <div className="card-body gap-3 p-5 items-center text-center">
-        <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+    <div className="card bg-base-200 border-base-300 border shadow-sm">
+      <div className="card-body items-center gap-3 p-5 text-center">
+        <div className="bg-primary/10 text-primary flex size-10 items-center justify-center rounded-xl">
           {icon}
         </div>
-        <h3 className="font-display font-semibold text-sm">{title}</h3>
-        <p className="text-base-content/60 text-xs leading-relaxed">{description}</p>
+        <h3 className="font-display text-sm font-semibold">{title}</h3>
+        <p className="text-base-content/60 text-xs leading-relaxed">
+          {description}
+        </p>
       </div>
     </div>
   );
@@ -379,12 +401,14 @@ function ShowtimeRow({
 }) {
   return (
     <div className="flex items-start gap-4">
-      <div className="size-10 rounded-xl bg-base-100 border border-base-300 flex items-center justify-center shrink-0 mt-1">
+      <div className="bg-base-100 border-base-300 mt-1 flex size-10 shrink-0 items-center justify-center rounded-xl border">
         {icon}
       </div>
       <div>
-        <h3 className="font-display font-semibold text-base mb-1">{title}</h3>
-        <p className="text-base-content/60 text-sm leading-relaxed">{description}</p>
+        <h3 className="font-display mb-1 text-base font-semibold">{title}</h3>
+        <p className="text-base-content/60 text-sm leading-relaxed">
+          {description}
+        </p>
       </div>
     </div>
   );
@@ -402,13 +426,15 @@ function TechCard({
   detail: string;
 }) {
   return (
-    <div className="card bg-base-200 border border-base-300 shadow-sm">
+    <div className="card bg-base-200 border-base-300 border shadow-sm">
       <div className="card-body gap-3 p-5">
-        <div className="size-10 rounded-xl bg-neutral text-neutral-content flex items-center justify-center">
+        <div className="bg-neutral text-neutral-content flex size-10 items-center justify-center rounded-xl">
           {icon}
         </div>
-        <p className="text-base-content/50 text-xs uppercase tracking-wider">{title}</p>
-        <p className="font-display font-semibold text-sm">{spec}</p>
+        <p className="text-base-content/50 text-xs tracking-wider uppercase">
+          {title}
+        </p>
+        <p className="font-display text-sm font-semibold">{spec}</p>
         <p className="text-base-content/60 text-xs leading-relaxed">{detail}</p>
       </div>
     </div>
