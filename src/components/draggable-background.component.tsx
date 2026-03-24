@@ -1,7 +1,8 @@
 import { Assets, Container, Sprite } from 'pixi.js';
 import type { FederatedPointerEvent, Texture } from 'pixi.js';
 import { saveSceneCastPosition } from '@/lib/scenes.fns';
-import type { PixiCharacterProps, PropMoveMessage } from '@/components/draggable-character.component';
+import type { PropMoveMessage } from '@/lib/livekit-messages';
+import type { PixiCharacterProps } from '@/components/draggable-character.component';
 
 const encoder = new TextEncoder();
 

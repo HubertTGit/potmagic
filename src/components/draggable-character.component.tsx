@@ -4,6 +4,7 @@ import { GlowFilter } from 'pixi-filters/glow';
 import type { Room } from 'livekit-client';
 import { saveSceneCastPosition } from '@/lib/scenes.fns';
 import type { PropType } from '@/db/schema';
+import type { PropMoveMessage } from '@/lib/livekit-messages';
 
 export interface PixiCharacterProps {
   sceneCastId: string;
@@ -23,15 +24,7 @@ export interface PixiCharacterProps {
   onReady?: () => void;
 }
 
-export interface PropMoveMessage {
-  type: 'prop:move';
-  castId: string;
-  x: number;
-  y: number;
-  rotation: number;
-  scaleX: number;
-  indexZ: number;
-}
+export type { PropMoveMessage };
 
 const encoder = new TextEncoder();
 
