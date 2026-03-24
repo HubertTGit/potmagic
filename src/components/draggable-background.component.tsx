@@ -145,10 +145,9 @@ export class PixiBackground {
     return maxX > minX ? Math.min(Math.max(x, minX), maxX) : x;
   }
 
-  private publishMove(immediate = false) {
+  private publishMove(immediate = false, now = Date.now()) {
     const { room, canDrag, castId } = this.props;
     if (!room || !canDrag) return;
-    const now = Date.now();
     if (!immediate && now - this.lastSendTime < 30) return;
     this.lastSendTime = now;
 
@@ -200,7 +199,7 @@ export class PixiBackground {
     this.sprite.eventMode = 'none';
     this.sprite.cursor = 'default';
 
-    const pxPerFrame = speed === 1 ? 2 : speed === 2 ? 4 : 8;
+    const pxPerFrame = speed === 1 ? 4 : speed === 2 ? 8 : 16;
     const delta = direction === 'left' ? -pxPerFrame : pxPerFrame;
 
     this.animationTicker = (ticker: Ticker) => {
@@ -209,7 +208,7 @@ export class PixiBackground {
       this.container.x = clampedX;
 
       // Boundary reached — self-stop and notify
-      if (rawX !== clampedX) {
+      if (Math.abs(rawX - clampedX) > 1e-6) {
         this.props.app.ticker.remove(this.animationTicker!);
         this.animationTicker = null;
         this.animationSpeed = 0;
@@ -219,12 +218,14 @@ export class PixiBackground {
         return;
       }
 
-      // Publish position to remote participants (director/canDrag only, throttled)
-      this.publishMove();
-
-      // Update progress for all clients (throttled independently)
+      // Share a single timestamp for both throttle checks
       const now = Date.now();
-      if (now - this.lastProgressTime >= 30) {
+
+      // Publish position to remote participants (director/canDrag only, throttled)
+      this.publishMove(false, now);
+
+      // Update progress for all clients (throttled independently at 60ms)
+      if (now - this.lastProgressTime >= 60) {
         this.lastProgressTime = now;
         const { stageWidth = 1280 } = this.props;
         const halfW = this.sprite.width / 2;
