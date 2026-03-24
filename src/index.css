@@ -84,6 +84,17 @@
   --font-display: "Lexend", Georgia, serif;
 }
 
+/* ─── Custom animations ─── */
+@keyframes wiggle {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
+@utility animate-wiggle {
+  animation: wiggle 0.6s ease-in-out infinite;
+}
+
 /* ─── Allow sidebar tooltips to escape drawer-side overflow clipping ─── */
 .lg\:drawer-open > .drawer-side {
   overflow: visible;

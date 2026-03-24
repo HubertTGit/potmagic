@@ -22,6 +22,7 @@ import {
   type StoryStatus,
 } from "@/components/story-status-button.component";
 import { SoundControlBar } from "@/components/sound-control-bar.component";
+import { BgPanningTool } from "@/components/bg-panning-tool.component";
 import { useSceneSound } from "@/hooks/useSceneSound";
 import type { StageCast } from "@/components/stage.component";
 
@@ -250,7 +251,9 @@ function StageShell({
       >
         <StageComponent casts={casts} room={room} speakingIds={speakingIds} />
       </div>
-      <div>
+      <div className="flex w-7xl items-center justify-between">
+        <div>&nbsp;</div>
+        <BgPanningTool leftProgress={0} rightProgress={0} />
         {isDirector && soundName && (
           <SoundControlBar
             soundName={soundName}
