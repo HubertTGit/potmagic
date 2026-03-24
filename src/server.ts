@@ -22,17 +22,6 @@ export default createServerEntry({
       return Response.redirect(new URL('/under-construction', request.url), 302);
     }
 
-    const response = await startHandler(request);
-    const secret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
-    if (secret) {
-      const headers = new Headers(response.headers);
-      headers.set('x-vercel-protection-bypass', secret);
-      return new Response(response.body, {
-        status: response.status,
-        statusText: response.statusText,
-        headers,
-      });
-    }
-    return response;
+    return startHandler(request);
   },
 });
