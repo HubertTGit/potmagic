@@ -1,5 +1,6 @@
 import { Assets, Container, Sprite } from "pixi.js";
 import type { FederatedPointerEvent, Texture, Ticker } from "pixi.js";
+import { MotionBlurFilter } from "pixi-filters";
 import { saveSceneCastPosition } from "@/lib/scenes.fns";
 import type {
   PropMoveMessage,
@@ -22,6 +23,14 @@ const BG_PAN_PX_PER_FRAME: Record<1 | 2 | 3, ANIMATION_SPEED> = {
   3: ANIMATION_SPEED.fast,
 };
 
+const BG_BLUR_STRENGTH: Record<1 | 2 | 3, number> = {
+  1: 8,
+  2: 16,
+  3: 28,
+};
+
+const DRAG_BLUR_STRENGTH = 10;
+
 function getMidpoint(a: { x: number; y: number }, b: { x: number; y: number }) {
   return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
 }
@@ -33,11 +42,13 @@ export class PixiBackground {
 
   private isDragging = false;
   private dragOffset = { x: 0, y: 0 };
+  private lastDragX = 0;
   private activePointers = new Map<number, { x: number; y: number }>();
   private lastSendTime = 0;
   private animationSpeed: BgSpeed = 0;
   private animationTicker: ((ticker: Ticker) => void) | null = null;
   private lastProgressTime = 0;
+  private blurFilter!: MotionBlurFilter;
 
   constructor(props: PixiCharacterProps) {
     this.props = props;
@@ -71,6 +82,9 @@ export class PixiBackground {
     this.sprite.scale.x = initialScaleX;
     this.container.zIndex = 0;
     this.container.y = stageHeight - texture.height / 2;
+
+    this.blurFilter = new MotionBlurFilter({ velocity: { x: 0, y: 0 }, kernelSize: 9 });
+    this.sprite.filters = [this.blurFilter];
 
     this.setupInteraction();
     this.props.onReady?.();
@@ -106,6 +120,7 @@ export class PixiBackground {
 
     if (this.activePointers.size === 1) {
       this.isDragging = true;
+      this.lastDragX = e.global.x;
       this.dragOffset = {
         x: this.container.x - e.global.x,
         y: this.container.y - e.global.y,
@@ -121,6 +136,7 @@ export class PixiBackground {
 
     if (this.activePointers.size === 0) {
       this.isDragging = false;
+      if (this.blurFilter) this.blurFilter.velocity = { x: 0, y: 0 };
       this.persistPosition();
     }
   }
@@ -149,6 +165,11 @@ export class PixiBackground {
       const rawX = e.global.x + this.dragOffset.x;
       this.container.x = this.clampX(rawX);
       // y stays locked to bottom (set in loadTexture, never overridden)
+      const dx = e.global.x - this.lastDragX;
+      this.lastDragX = e.global.x;
+      if (this.blurFilter && Math.abs(dx) > 0.5) {
+        this.blurFilter.velocity = { x: Math.sign(dx) * DRAG_BLUR_STRENGTH, y: 0 };
+      }
       this.publishMove();
     }
   }
@@ -205,6 +226,7 @@ export class PixiBackground {
     this.animationSpeed = speed;
 
     if (speed === 0 || direction === null) {
+      if (this.blurFilter) this.blurFilter.velocity = { x: 0, y: 0 };
       // Re-enable drag
       this.sprite.eventMode = this.props.canDrag ? "static" : "none";
       this.sprite.cursor = this.props.canDrag ? "pointer" : "default";
@@ -218,6 +240,11 @@ export class PixiBackground {
     const pxPerFrame = BG_PAN_PX_PER_FRAME[speed as 1 | 2 | 3];
     const delta = direction === "left" ? -pxPerFrame : pxPerFrame;
 
+    const blurStrength = BG_BLUR_STRENGTH[speed as 1 | 2 | 3];
+    if (this.blurFilter) {
+      this.blurFilter.velocity = { x: direction === "left" ? -blurStrength : blurStrength, y: 0 };
+    }
+
     this.animationTicker = (ticker: Ticker) => {
       const rawX = this.container.x + delta * ticker.deltaTime;
       const clampedX = this.clampX(rawX);
@@ -228,6 +255,7 @@ export class PixiBackground {
         this.props.app.ticker.remove(this.animationTicker!);
         this.animationTicker = null;
         this.animationSpeed = 0;
+        if (this.blurFilter) this.blurFilter.velocity = { x: 0, y: 0 };
         this.sprite.eventMode = this.props.canDrag ? "static" : "none";
         this.sprite.cursor = this.props.canDrag ? "pointer" : "default";
         this.props.onAnimationComplete?.();
