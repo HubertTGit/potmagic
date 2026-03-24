@@ -31,8 +31,16 @@ export const Route = createFileRoute("/_app/stage/$sceneId")({
   component: SceneStagePage,
   pendingComponent: () => (
     <div className="bg-base-100 fixed inset-0 flex items-center justify-center">
-      <img src="/icon-red.svg" className="size-10 animate-bounce dark:hidden" alt="" />
-      <img src="/icon-white.svg" className="size-10 animate-bounce hidden dark:block" alt="" />
+      <img
+        src="/icon-red.svg"
+        className="size-10 animate-bounce dark:hidden"
+        alt=""
+      />
+      <img
+        src="/icon-white.svg"
+        className="hidden size-10 animate-bounce dark:block"
+        alt=""
+      />
     </div>
   ),
   errorComponent: ({ error }) => <ErrorComponent error={error} />,
@@ -254,7 +262,11 @@ function StageShell({
       </div>
       <div className="flex w-7xl items-center justify-between">
         <div>&nbsp;</div>
-        <BgPanningTool leftProgress={0} rightProgress={0} isDirector={false} />
+        <BgPanningTool
+          leftProgress={0}
+          rightProgress={0}
+          isDirector={isDirector}
+        />
         {isDirector && soundName && (
           <SoundControlBar
             soundName={soundName}
@@ -307,8 +319,16 @@ function SceneStagePage() {
   if (isPending) {
     return (
       <div className="bg-base-100 fixed inset-0 flex items-center justify-center">
-        <img src="/icon-red.svg" className="size-10 animate-bounce dark:hidden" alt="" />
-        <img src="/icon-white.svg" className="size-10 animate-bounce hidden dark:block" alt="" />
+        <img
+          src="/icon-red.svg"
+          className="size-10 animate-bounce dark:hidden"
+          alt=""
+        />
+        <img
+          src="/icon-white.svg"
+          className="hidden size-10 animate-bounce dark:block"
+          alt=""
+        />
       </div>
     );
   }

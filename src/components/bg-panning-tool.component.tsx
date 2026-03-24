@@ -118,7 +118,7 @@ export function BgPanningTool({
 
       <progress
         className={cn(
-          "progress progress-primary w-full transition-all",
+          "progress progress-primary min-w-1.5xl w-full transition-all",
           resolvedDirection === "left" && "scale-x-[-1]",
         )}
         value={
