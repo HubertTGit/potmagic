@@ -12,6 +12,7 @@ import { RoomEvent, Track } from "livekit-client";
 import { getPublicStory, getViewerToken } from "@/lib/show.fns";
 import { cn } from "@/lib/cn";
 import { useTheme, Theme } from "@/hooks/useTheme";
+import { useLanguage } from "@/hooks/useLanguage";
 import { Maximize2, Minimize2 } from "lucide-react";
 
 export const Route = createFileRoute("/($lang)/show/$storyId")({
@@ -124,6 +125,7 @@ function ShowContent({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const { theme } = useTheme();
+  const { langPrefix } = useLanguage();
 
   // Create audio element on mount
   useEffect(() => {
@@ -196,9 +198,9 @@ function ShowContent({
         <div className="flex w-7xl items-center justify-between px-2 py-4">
           <div className="flex items-center gap-3">
             <Link
-              to={'/' as any}
+              to={`${langPrefix}/show` as any}
               className="btn btn-ghost btn-sm btn-square"
-              title="Home"
+              title="Show"
             >
               <img
                 src={theme === Theme.dark ? "/icon-white.svg" : "/icon-red.svg"}
@@ -264,6 +266,7 @@ function ShowContent({
 
 function ShowPage() {
   const { storyId } = Route.useParams();
+  const { langPrefix } = useLanguage();
   const [forcedOffline, setForcedOffline] = useState(false);
   const { theme } = useTheme();
 
@@ -313,6 +316,12 @@ function ShowPage() {
         <p className="font-display text-base-content/60 text-2xl">
           Show not found
         </p>
+        <Link
+          to={`${langPrefix}/show` as any}
+          className="btn btn-accent btn-sm mt-2"
+        >
+          ← Back to Show entry
+        </Link>
       </div>
     );
   }
@@ -326,6 +335,12 @@ function ShowPage() {
         />
         <p className="font-display text-base-content text-2xl">{story.title}</p>
         <p className="text-base-content/50 text-sm">The show has ended</p>
+        <Link
+          to={`${langPrefix}/show` as any}
+          className="btn btn-accent btn-sm mt-2"
+        >
+          ← Back to Show entry
+        </Link>
       </div>
     );
   }
