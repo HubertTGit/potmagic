@@ -97,6 +97,18 @@ export const deleteStory = createServerFn({ method: 'POST' })
     await db.delete(stories).where(and(eq(stories.id, data.id), eq(stories.directorId, session.user.id)))
   })
 
+export const lookupStoryByPin = createServerFn({ method: 'POST' })
+  .inputValidator((input) => z.object({ pin: z.string().length(6) }).parse(input))
+  .handler(async ({ data }) => {
+    const [story] = await db
+      .select({ id: stories.id })
+      .from(stories)
+      .where(eq(stories.accessPin, data.pin.toUpperCase()))
+      .limit(1)
+    if (!story) throw new Error('PIN incorrect, can not find story')
+    return { storyId: story.id }
+  })
+
 export const listPublicStories = createServerFn({ method: 'GET' }).handler(async () => {
   return await db
     .select({ id: stories.id, title: stories.title, status: stories.status })

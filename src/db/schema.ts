@@ -100,7 +100,10 @@ export const stories = pgTable(
       .$onUpdate(() => new Date())
       .notNull(),
   },
-  (table) => [index('stories_director_id_idx').on(table.directorId)],
+  (table) => [
+    index('stories_director_id_idx').on(table.directorId),
+    index('stories_access_pin_idx').on(table.accessPin),
+  ],
 )
 
 export const scenes = pgTable(

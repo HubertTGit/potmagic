@@ -1,70 +1,171 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useQuery } from '@tanstack/react-query';
-import { listPublicStories } from '@/lib/stories.fns';
-import { LandingNavbar } from '@/components/landing-navbar.component';
-import { LandingFooter } from '@/components/landing-footer.component';
-import { PublicStoryCard } from '@/components/public-story-card.component';
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useForm } from "@tanstack/react-form";
+import { useState } from "react";
+import { lookupStoryByPin } from "@/lib/stories.fns";
+import { LandingNavbar } from "@/components/landing-navbar.component";
+import { LandingFooter } from "@/components/landing-footer.component";
+import { useLanguage } from "@/hooks/useLanguage";
+import { cn } from "@/lib/cn";
 
-export const Route = createFileRoute('/($lang)/show/')({
+export const Route = createFileRoute("/($lang)/show/")({
   head: () => ({
     meta: [
-      { title: 'Live Shows — potmagic: Live Story Theater' },
-      { name: 'description', content: 'Watch live interactive story performances on potmagic. Join an audience and interact directly with actors in real-time from anywhere in the world.' },
-      { property: 'og:title', content: 'Live Shows — potmagic' },
-      { property: 'og:description', content: 'Watch live interactive story performances and interact directly with actors in real-time.' },
-      { property: 'og:type', content: 'website' },
-      { name: 'twitter:title', content: 'Live Shows — potmagic' },
-      { name: 'twitter:description', content: 'Watch live interactive story performances and interact directly with actors in real-time.' },
+      { title: "Join a Show — potmagic: Live Story Theater" },
+      {
+        name: "description",
+        content:
+          "Enter your show PIN to join a live interactive story performance on potmagic.",
+      },
+      { property: "og:title", content: "Join a Show — potmagic" },
+      {
+        property: "og:description",
+        content:
+          "Enter your show PIN to join a live interactive story performance.",
+      },
+      { property: "og:type", content: "website" },
     ],
   }),
-  component: ShowsPage,
+  component: ShowPinPage,
 });
 
-function ShowsPage() {
-  const { data: stories = [], isLoading } = useQuery({
-    queryKey: ['public-stories'],
-    queryFn: () => listPublicStories(),
+function validatePin(value: string): string | undefined {
+  if (!value) return "PIN is required";
+  if (value.length !== 6) return "PIN must be exactly 6 characters";
+  if (!/^[A-Z0-9]+$/.test(value))
+    return "PIN must contain only letters and numbers";
+  return undefined;
+}
+
+function ShowPinPage() {
+  const { langPrefix } = useLanguage();
+  const navigate = useNavigate();
+
+  const [serverError, setServerError] = useState<string | null>(null);
+
+  const form = useForm({
+    defaultValues: { pin: "" },
+    onSubmit: async ({ value }) => {
+      setServerError(null);
+      let storyId: string;
+      try {
+        const result = await lookupStoryByPin({ data: { pin: value.pin } });
+        storyId = result.storyId;
+      } catch (e) {
+        setServerError(
+          e instanceof Error ? e.message : "PIN incorrect, can not find story",
+        );
+        return;
+      }
+      await navigate({
+        to: `${langPrefix}/show/$storyId` as any,
+        params: { storyId },
+      });
+    },
   });
 
   return (
-    <div className="min-h-screen flex flex-col bg-base-200 text-base-content">
+    <div className="bg-base-200 text-base-content flex min-h-screen flex-col">
       <LandingNavbar />
-      <div className="flex-1 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        {isLoading ? (
-          <div className="flex items-center gap-2 text-base-content/40 text-sm mt-16 justify-center">
-            <span className="loading loading-spinner loading-xs" />
-            Loading…
-          </div>
-        ) : stories.length === 0 ? (
-          <div className="text-center py-20 text-base-content/30">
-            <svg
-              className="size-12 mx-auto mb-3 opacity-40"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.5}
+
+      <div className="flex flex-1 items-center justify-center px-4">
+        <div className="card bg-base-100 border-base-300 w-full max-w-sm border shadow-lg">
+          <div className="card-body items-center gap-6 text-center">
+            <div className="flex flex-col gap-1">
+              <h1 className="font-display text-xl font-semibold tracking-wide">
+                Enter your show PIN
+              </h1>
+              <p className="text-base-content/50 text-sm">
+                You should have a 6-character PIN from the show host in your
+                email inbox.
+              </p>
+            </div>
+
+            {serverError && (
+              <p
+                role="alert"
+                className="text-error border-error/30 bg-error/10 w-full rounded-xl border px-3 py-2 text-center text-xs"
+              >
+                {serverError}
+              </p>
+            )}
+
+            <form
+              className="flex w-full flex-col gap-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                void form.handleSubmit();
+              }}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"
-              />
-            </svg>
-            <p className="text-sm">No stories yet.</p>
+              <form.Field
+                name="pin"
+                validators={{
+                  onChange: ({ value }) => validatePin(value),
+                  onBlur: ({ value }) => validatePin(value),
+                }}
+              >
+                {(field) => (
+                  <div className="flex flex-col gap-1">
+                    <input
+                      type="text"
+                      inputMode="text"
+                      autoComplete="off"
+                      autoCapitalize="characters"
+                      spellCheck={false}
+                      maxLength={6}
+                      placeholder="A1B2C3"
+                      value={field.state.value}
+                      onChange={(e) =>
+                        field.handleChange(e.target.value.toUpperCase())
+                      }
+                      onBlur={field.handleBlur}
+                      className={cn(
+                        "input w-full text-center font-mono text-xl tracking-[0.4em] uppercase",
+                        field.state.meta.isTouched &&
+                          !field.state.meta.isValid &&
+                          "input-error",
+                      )}
+                    />
+                    {field.state.meta.isTouched &&
+                      !field.state.meta.isValid && (
+                        <p
+                          role="alert"
+                          className="text-error text-center text-xs"
+                        >
+                          {field.state.meta.errors.join(", ")}
+                        </p>
+                      )}
+                  </div>
+                )}
+              </form.Field>
+
+              <form.Subscribe
+                selector={(state) =>
+                  [state.canSubmit, state.isSubmitting] as const
+                }
+              >
+                {([canSubmit, isSubmitting]) => (
+                  <button
+                    type="submit"
+                    disabled={!canSubmit}
+                    className={cn(
+                      "btn btn-primary btn-block font-display tracking-wide",
+                      !canSubmit && "cursor-not-allowed opacity-60",
+                    )}
+                  >
+                    {isSubmitting ? (
+                      <span className="loading loading-spinner loading-sm" />
+                    ) : (
+                      "Join Show"
+                    )}
+                  </button>
+                )}
+              </form.Subscribe>
+            </form>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {stories.map((story) => (
-              <PublicStoryCard
-                key={story.id}
-                id={story.id}
-                title={story.title}
-                status={story.status as 'draft' | 'active' | 'ended'}
-              />
-            ))}
-          </div>
-        )}
+        </div>
       </div>
+
       <LandingFooter />
     </div>
   );
