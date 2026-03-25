@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { RoomEvent } from 'livekit-client';
 import type { Room } from 'livekit-client';
 import { authClient } from '@/lib/auth-client';
+import { useLanguage } from '@/hooks/useLanguage';
 import { updateStoryStatus } from '@/lib/story-detail.fns';
 import { Play, Pause, RefreshCw } from 'lucide-react';
 
@@ -24,6 +25,7 @@ export function StoryStatusButton({
   status: initialStatus,
   room,
 }: StoryStatusButtonProps) {
+  const { t } = useLanguage();
   const { data: session } = authClient.useSession();
   const queryClient = useQueryClient();
   const [status, setStatus] = useState<StoryStatus>(initialStatus);
@@ -82,7 +84,7 @@ export function StoryStatusButton({
         onClick={() => mutation.mutate('active')}
         disabled={!isDirector || mutation.isPending}
       >
-        Go Live
+        {t('stage.goLive')}
         {mutation.isPending ? (
           <span className="loading loading-spinner loading-xs" />
         ) : (
@@ -99,7 +101,7 @@ export function StoryStatusButton({
         onClick={() => mutation.mutate('ended')}
         disabled={!isDirector || mutation.isPending}
       >
-        End Show
+        {t('stage.endShow')}
         {mutation.isPending ? (
           <span className="loading loading-spinner loading-xs" />
         ) : (
@@ -115,7 +117,7 @@ export function StoryStatusButton({
       onClick={() => mutation.mutate('draft')}
       disabled={!isDirector || mutation.isPending}
     >
-      Reset to Draft
+      {t('stage.resetToDraft')}
       {mutation.isPending ? (
         <span className="loading loading-spinner loading-xs" />
       ) : (

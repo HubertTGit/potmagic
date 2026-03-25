@@ -16,6 +16,7 @@ import { updateStoryStatus } from "@/lib/story-detail.fns";
 import type { PropType } from "@/db/schema";
 import { toast } from "@/lib/toast";
 import { getMeta } from "@/i18n/meta";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export const Route = createFileRoute("/($lang)/_app/director")({
   head: ({ match }) => {
@@ -28,6 +29,7 @@ export const Route = createFileRoute("/($lang)/_app/director")({
 type Tab = "dashboard" | "library" | "actors";
 
 function DirectorPage() {
+  const { t } = useLanguage();
   const [tab, setTab] = useState<Tab>("dashboard");
 
   const queryClient = useQueryClient();
@@ -72,7 +74,7 @@ function DirectorPage() {
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["invitedActors"] }),
     onError: (err: any) =>
-      toast.error(err?.message ?? "Failed to invite actor"),
+      toast.error(err?.message ?? t('director.error.failedInvite')),
   });
 
   const removeActorMutation = useMutation({
@@ -121,9 +123,9 @@ function DirectorPage() {
 
   return (
     <div className="max-w-3xl p-8">
-      <h1 className="mb-2 text-2xl font-semibold">Director</h1>
+      <h1 className="mb-2 text-2xl font-semibold">{t('director.heading')}</h1>
       <p className="text-base-content/40 mb-6 text-sm">
-        Manage sessions and story status.
+        {t('director.subtitle')}
       </p>
 
       {/* Tabs */}
@@ -131,18 +133,22 @@ function DirectorPage() {
         role="tablist"
         className="tabs tabs-border mb-8 border-b border-base-300 [--tab-color:var(--color-primary)]"
       >
-        {(["dashboard", "library", "actors"] as Tab[]).map((t) => (
+        {([
+          { id: "dashboard" as Tab, label: t('director.tab.dashboard') },
+          { id: "library" as Tab, label: t('director.tab.library') },
+          { id: "actors" as Tab, label: t('director.tab.actors') },
+        ]).map(({ id: tabId, label }) => (
           <button
-            key={t}
+            key={tabId}
             role="tab"
-            onClick={() => setTab(t)}
+            onClick={() => setTab(tabId)}
             className={cn(
-              "tab capitalize",
-              tab === t && "tab-active text-primary",
+              "tab",
+              tab === tabId && "tab-active text-primary",
             )}
           >
-            {t}
-            {t === "actors" && acceptedCount > 0 && (
+            {label}
+            {tabId === "actors" && acceptedCount > 0 && (
               <span className="badge badge-sm badge-primary ml-1.5">
                 {acceptedCount}
               </span>
@@ -156,17 +162,9 @@ function DirectorPage() {
           {/* Stats row */}
           <div className="mb-10 grid grid-cols-3 gap-4">
             {[
-              { label: "Active", count: active.length, color: "text-success" },
-              {
-                label: "Draft",
-                count: draft.length,
-                color: "text-base-content/60",
-              },
-              {
-                label: "Ended",
-                count: ended.length,
-                color: "text-base-content/30",
-              },
+              { label: t('director.stat.active'), count: active.length, color: "text-success" },
+              { label: t('status.draft'), count: draft.length, color: "text-base-content/60" },
+              { label: t('status.ended'), count: ended.length, color: "text-base-content/30" },
             ].map(({ label, count, color }) => (
               <div
                 key={label}
@@ -199,10 +197,10 @@ function DirectorPage() {
               <table className="table-sm table w-full">
                 <thead>
                   <tr className="text-base-content/50 text-xs tracking-wider uppercase">
-                    <th>Story</th>
-                    <th>Cast</th>
-                    <th>Status</th>
-                    <th>Session</th>
+                    <th>{t('director.table.story')}</th>
+                    <th>{t('director.table.cast')}</th>
+                    <th>{t('table.status')}</th>
+                    <th>{t('director.table.session')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -245,11 +243,11 @@ function DirectorPage() {
       {tab === "library" && (
         <>
           <p className="text-base-content/40 mb-6 text-sm">
-            Upload characters, backgrounds, and sounds available across stories.
+            {t('director.library.description')}
           </p>
           <div className="flex flex-col gap-8">
             <LibrarySection
-              label="Characters"
+              label={t('director.library.characters')}
               type="character"
               items={characters}
               isLoading={loadingChars}
@@ -257,7 +255,7 @@ function DirectorPage() {
               onRemove={(id) => handleRemoveProp("character", id)}
             />
             <LibrarySection
-              label="Backgrounds"
+              label={t('director.library.backgrounds')}
               type="background"
               items={backgrounds}
               isLoading={loadingBgs}
@@ -265,7 +263,7 @@ function DirectorPage() {
               onRemove={(id) => handleRemoveProp("background", id)}
             />
             <LibrarySection
-              label="Sounds"
+              label={t('director.library.sounds')}
               type="sound"
               items={sounds}
               isLoading={loadingSounds}
@@ -305,13 +303,14 @@ function SessionControls({
   story: { id: string; status: "draft" | "active" | "ended" };
   onSetStatus: (id: string, status: "draft" | "active" | "ended") => void;
 }) {
+  const { t } = useLanguage();
   if (story.status === "draft") {
     return (
       <button
         onClick={() => onSetStatus(story.id, "active")}
         className="btn btn-xs btn-success font-display tracking-wide"
       >
-        Start session
+        {t('director.session.start')}
       </button>
     );
   }
@@ -321,7 +320,7 @@ function SessionControls({
         onClick={() => onSetStatus(story.id, "ended")}
         className="btn btn-xs btn-error btn-outline font-display tracking-wide"
       >
-        End session
+        {t('director.session.end')}
       </button>
     );
   }
@@ -330,7 +329,7 @@ function SessionControls({
       onClick={() => onSetStatus(story.id, "draft")}
       className="btn btn-xs btn-outline font-display tracking-wide"
     >
-      Set to draft
+      {t('director.session.setToDraft')}
     </button>
   );
 }

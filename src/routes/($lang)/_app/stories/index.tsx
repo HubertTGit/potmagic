@@ -5,6 +5,7 @@ import { authClient } from '@/lib/auth-client';
 import { listStories, createStory } from '@/lib/stories.fns';
 import { StoryGrid } from '@/components/story-grid';
 import { getMeta } from '@/i18n/meta';
+import { useLanguage } from '@/hooks/useLanguage';
 
 export const Route = createFileRoute('/($lang)/_app/stories/')({
   head: ({ match }) => {
@@ -17,6 +18,7 @@ export const Route = createFileRoute('/($lang)/_app/stories/')({
 });
 
 function StoriesPage() {
+  const { t } = useLanguage();
   const { data: session } = authClient.useSession();
   const isDirector = session?.user?.role === 'director';
   const queryClient = useQueryClient();
@@ -46,13 +48,13 @@ function StoriesPage() {
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold">Stories</h1>
+        <h1 className="text-2xl font-semibold">{t('stories.heading')}</h1>
         {isDirector && (
           <button
             onClick={() => setAdding(true)}
             className="btn btn-primary font-display tracking-[0.05em]"
           >
-            + New Story
+            {t('stories.newStory')}
           </button>
         )}
       </div>
@@ -69,7 +71,7 @@ function StoriesPage() {
               if (e.key === 'Enter') handleAdd();
               if (e.key === 'Escape') setAdding(false);
             }}
-            placeholder="Story title…"
+            placeholder={t('stories.titlePlaceholder')}
             className="input input-sm bg-base-200 border-base-300 text-sm focus:border-primary/60 focus:ring-2 focus:ring-primary/10 w-64"
           />
           <button
@@ -77,13 +79,13 @@ function StoriesPage() {
             disabled={addMutation.isPending}
             className="btn btn-sm btn-primary font-display"
           >
-            Add
+            {t('action.add')}
           </button>
           <button
             onClick={() => setAdding(false)}
             className="btn btn-sm btn-ghost text-base-content/50"
           >
-            Cancel
+            {t('action.cancel')}
           </button>
         </div>
       )}

@@ -4,12 +4,14 @@ import { authClient } from '@/lib/auth-client'
 import { cn } from '@/lib/cn'
 import { uploadAvatar } from '@/lib/avatar.fns'
 import { Camera } from 'lucide-react'
+import { useLanguage } from '@/hooks/useLanguage'
 
 export const Route = createFileRoute('/($lang)/_app/profile')({
   component: ProfilePage,
 })
 
 function ProfilePage() {
+  const { t } = useLanguage()
   const { data: session, refetch } = authClient.useSession()
   const user = session?.user
   const [name, setName] = useState(user?.name ?? '')
@@ -55,7 +57,7 @@ function ProfilePage() {
 
   return (
     <div className="p-8 max-w-lg">
-      <h1 className="text-2xl font-semibold mb-6">Profile</h1>
+      <h1 className="text-2xl font-semibold mb-6">{t('profile.heading')}</h1>
 
       {/* Avatar */}
       <div className="flex items-center gap-4 mb-8">
@@ -71,7 +73,7 @@ function ProfilePage() {
           type="button"
           onClick={() => !uploading && fileInputRef.current?.click()}
           className="relative group cursor-pointer"
-          title="Upload avatar"
+          title={t('profile.uploadAvatar')}
         >
           <div className="avatar">
             <div className="size-16 rounded-full bg-base-300 overflow-hidden">
@@ -114,20 +116,20 @@ function ProfilePage() {
       <div className="flex flex-col gap-4">
         <fieldset className="fieldset gap-1">
           <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
-            Display Name
+            {t('profile.displayName')}
           </legend>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Your name"
+            placeholder={t('profile.namePlaceholder')}
             className="input w-full bg-base-200 border-base-300 text-sm focus:border-primary/60 focus:ring-2 focus:ring-primary/10"
           />
         </fieldset>
 
         <fieldset className="fieldset gap-1">
           <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
-            Email
+            {t('common.email')}
           </legend>
           <input
             type="email"
@@ -145,7 +147,7 @@ function ProfilePage() {
             (!isDirty || saving) && 'opacity-40 cursor-not-allowed',
           )}
         >
-          {saving ? 'Saving…' : 'Save changes'}
+          {saving ? t('profile.saving') : t('profile.saveChanges')}
         </button>
       </div>
     </div>

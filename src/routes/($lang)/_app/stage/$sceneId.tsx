@@ -13,6 +13,7 @@ import {
 import { ConnectionState, LocalVideoTrack, Track } from "livekit-client";
 import type { Room } from "livekit-client";
 import { getSceneStage } from "@/lib/scenes.fns";
+import { useLanguage } from "@/hooks/useLanguage";
 import { getLiveKitToken } from "@/lib/livekit.fns";
 import type { StageCast } from "@/components/stage.component";
 import { SessionPermissionModal } from "@/components/session-permission-modal.component";
@@ -188,6 +189,7 @@ function StageShell({
   isMuted,
   onToggleMute,
 }: StageShellProps) {
+  const { t } = useLanguage();
   const stageWrapperRef = useRef<HTMLDivElement>(null);
 
   const { playing, volume, setPlaying, setVolume } = useSceneSound({
@@ -239,7 +241,7 @@ function StageShell({
           <div className="bg-base-100/75 border-base-300 flex items-center gap-2.5 rounded-full border px-5 py-2 shadow-lg backdrop-blur-md">
             <span className="loading loading-dots loading-xs text-primary" />
             <span className="font-display text-base-content/50 text-[11px] tracking-[0.18em] uppercase">
-              Changing scene
+              {t('stage.changingScene')}
             </span>
           </div>
         </div>

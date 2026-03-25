@@ -1,6 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { getMeta } from "@/i18n/meta";
 import { Theater } from "lucide-react";
+import { useLanguage } from "@/hooks/useLanguage";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -27,6 +28,7 @@ export const Route = createFileRoute("/($lang)/_app/stories/$storyId/")({
 
 function StoryDetailPage() {
   const { storyId } = Route.useParams();
+  const { t } = useLanguage();
   const { data: session } = authClient.useSession();
   const isDirector = session?.user?.role === "director";
   const queryClient = useQueryClient();
@@ -109,7 +111,7 @@ function StoryDetailPage() {
   if (!data) {
     return (
       <div className="p-8">
-        <p className="text-base-content/40">Story not found.</p>
+        <p className="text-base-content/40">{t('story.notFound')}</p>
       </div>
     );
   }
@@ -122,7 +124,7 @@ function StoryDetailPage() {
     <div className="max-w-3xl p-8">
       <Breadcrumb
         crumbs={[
-          { label: "Stories", to: "/stories" },
+          { label: t('nav.stories'), to: "/stories" },
           { label: story.title, type: "story" },
         ]}
       />
@@ -150,7 +152,7 @@ function StoryDetailPage() {
                 "cursor-not-allowed opacity-40",
             )}
           >
-            Save
+            {t('action.save')}
           </button>
         )}
         {scenes.length > 0 && (
@@ -173,7 +175,7 @@ function StoryDetailPage() {
               })
             }
           >
-            Enter Stage <Theater className="size-4" />
+            {t('story.enterStage')} <Theater className="size-4" />
           </button>
         )}
       </div>
@@ -197,15 +199,10 @@ function StoryDetailPage() {
       {/* Delete Scene Confirmation Modal */}
       <ConfirmModal
         isOpen={!!sceneToDelete}
-        title="Confirm Deletion"
-        message={
-          <>
-            Are you sure you want to delete the scene "{sceneToDelete?.title}"?
-            This action cannot be undone.
-          </>
-        }
-        confirmText="Delete"
-        pendingText="Deleting..."
+        title={t('modal.confirmDeletion')}
+        message={t('modal.deleteSceneMessage', { title: sceneToDelete?.title ?? '' })}
+        confirmText={t('action.delete')}
+        pendingText={t('action.deleting')}
         onConfirm={() =>
           sceneToDelete && removeSceneMutation.mutate(sceneToDelete.id)
         }

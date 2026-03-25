@@ -229,5 +229,55 @@
 
   "notFound.heading": "Seite nicht gefunden",
   "notFound.body": "Der Vorhang ist über dieser URL gefallen. Lass uns zurück zur Bühne gehen.",
-  "notFound.returnHome": "Zur Startseite"
+  "notFound.returnHome": "Zur Startseite",
+
+  "action.save": "Speichern",
+  "action.removing": "Wird entfernt...",
+
+  "director.heading": "Regie",
+  "director.subtitle": "Sitzungen und Story-Status verwalten.",
+  "director.tab.dashboard": "Dashboard",
+  "director.tab.library": "Bibliothek",
+  "director.tab.actors": "Schauspieler",
+  "director.stat.active": "Aktiv",
+  "director.table.story": "Geschichte",
+  "director.table.cast": "Besetzung",
+  "director.table.session": "Sitzung",
+  "director.library.description": "Charaktere, Hintergründe und Sounds für alle Geschichten hochladen.",
+  "director.library.characters": "Charaktere",
+  "director.library.backgrounds": "Hintergründe",
+  "director.library.sounds": "Sounds",
+  "director.session.start": "Sitzung starten",
+  "director.session.end": "Sitzung beenden",
+  "director.session.setToDraft": "Auf Entwurf setzen",
+  "director.error.failedInvite": "Schauspieler konnte nicht eingeladen werden",
+
+  "profile.heading": "Profil",
+  "profile.uploadAvatar": "Avatar hochladen",
+  "profile.displayName": "Anzeigename",
+  "profile.namePlaceholder": "Dein Name",
+  "profile.saving": "Wird gespeichert…",
+  "profile.saveChanges": "Änderungen speichern",
+
+  "stories.heading": "Geschichten",
+  "stories.newStory": "+ Neue Geschichte",
+  "stories.titlePlaceholder": "Titel der Geschichte…",
+
+  "story.notFound": "Geschichte nicht gefunden.",
+  "modal.deleteSceneMessage": "Bist du sicher, dass du die Szene \"{{title}}\" löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",
+
+  "scene.notFound": "Szene nicht gefunden.",
+  "modal.confirmRemoval": "Entfernung bestätigen",
+  "modal.removeFromSceneMessage": "Bist du sicher, dass du \"{{name}}\" aus der Szene entfernen möchtest?",
+
+  "stage.empty": "Hier ist momentan nichts. Wähle eine Geschichte und dann eine Szene, um die Bühne zu betreten.",
+  "stage.goToStories": "Zu den Geschichten",
+  "stage.changingScene": "Szene wechseln",
+
+  "nav.prev": "Zurück",
+  "nav.next": "Weiter",
+
+  "stage.goLive": "Live gehen",
+  "stage.endShow": "Show beenden",
+  "stage.resetToDraft": "Zurück zu Entwurf"
 }

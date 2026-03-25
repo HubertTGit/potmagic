@@ -226,5 +226,55 @@
 
   "notFound.heading": "Page not found",
   "notFound.body": "The curtain has fallen on this URL. Let's get you back to the stage.",
-  "notFound.returnHome": "Return to Home"
+  "notFound.returnHome": "Return to Home",
+
+  "action.save": "Save",
+  "action.removing": "Removing...",
+
+  "director.heading": "Director",
+  "director.subtitle": "Manage sessions and story status.",
+  "director.tab.dashboard": "Dashboard",
+  "director.tab.library": "Library",
+  "director.tab.actors": "Actors",
+  "director.stat.active": "Active",
+  "director.table.story": "Story",
+  "director.table.cast": "Cast",
+  "director.table.session": "Session",
+  "director.library.description": "Upload characters, backgrounds, and sounds available across stories.",
+  "director.library.characters": "Characters",
+  "director.library.backgrounds": "Backgrounds",
+  "director.library.sounds": "Sounds",
+  "director.session.start": "Start session",
+  "director.session.end": "End session",
+  "director.session.setToDraft": "Set to draft",
+  "director.error.failedInvite": "Failed to invite actor",
+
+  "profile.heading": "Profile",
+  "profile.uploadAvatar": "Upload avatar",
+  "profile.displayName": "Display Name",
+  "profile.namePlaceholder": "Your name",
+  "profile.saving": "Saving…",
+  "profile.saveChanges": "Save changes",
+
+  "stories.heading": "Stories",
+  "stories.newStory": "+ New Story",
+  "stories.titlePlaceholder": "Story title…",
+
+  "story.notFound": "Story not found.",
+  "modal.deleteSceneMessage": "Are you sure you want to delete the scene \"{{title}}\"? This action cannot be undone.",
+
+  "scene.notFound": "Scene not found.",
+  "modal.confirmRemoval": "Confirm Removal",
+  "modal.removeFromSceneMessage": "Are you sure you want to remove \"{{name}}\" from the scene?",
+
+  "stage.empty": "Currently there is nothing here. Select a story then choose a scene to enter the stage.",
+  "stage.goToStories": "Go to Stories",
+  "stage.changingScene": "Changing scene",
+
+  "nav.prev": "Prev",
+  "nav.next": "Next",
+
+  "stage.goLive": "Go Live",
+  "stage.endShow": "End Show",
+  "stage.resetToDraft": "Reset to Draft"
 }

@@ -22,7 +22,7 @@ interface SceneNavigatorProps {
 
 export function SceneNavigator({ sceneId, storyId, room }: SceneNavigatorProps) {
   const router = useRouter();
-  const { langPrefix } = useLanguage();
+  const { langPrefix, t } = useLanguage();
   const { data: session } = authClient.useSession();
   const isDirector = session?.user?.role === 'director';
 
@@ -75,7 +75,7 @@ export function SceneNavigator({ sceneId, storyId, room }: SceneNavigatorProps) 
         className="btn btn-sm btn-ghost rounded-none border-r border-base-300"
       >
         <ChevronLeft className="size-4" />
-        Prev
+        {t('nav.prev')}
       </button>
       <span className="px-3 text-sm font-semibold text-base-content max-w-48 truncate">
         {data.current.title}
@@ -85,7 +85,7 @@ export function SceneNavigator({ sceneId, storyId, room }: SceneNavigatorProps) 
         disabled={!isDirector || !data.next}
         className="btn btn-sm btn-ghost rounded-none border-l border-base-300"
       >
-        Next
+        {t('nav.next')}
         <ChevronRight className="size-4" />
       </button>
     </div>

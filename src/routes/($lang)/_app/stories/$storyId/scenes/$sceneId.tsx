@@ -1,5 +1,6 @@
 import { createFileRoute, Link, ErrorComponent } from '@tanstack/react-router';
 import { getMeta } from '@/i18n/meta';
+import { useLanguage } from '@/hooks/useLanguage';
 import { Theater } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import {
@@ -90,6 +91,7 @@ export const Route = createFileRoute('/($lang)/_app/stories/$storyId/scenes/$sce
 
 function SceneDetailPage() {
   const { storyId, sceneId } = Route.useParams();
+  const { t } = useLanguage();
   const { data: session } = authClient.useSession();
   const isDirector = session?.user?.role === 'director';
   const queryClient = useQueryClient();
@@ -202,7 +204,7 @@ function SceneDetailPage() {
   if (!scene || !story) {
     return (
       <div className="p-8">
-        <p className="text-base-content/40">Scene not found.</p>
+        <p className="text-base-content/40">{t('scene.notFound')}</p>
       </div>
     );
   }
@@ -226,7 +228,7 @@ function SceneDetailPage() {
     <div className="p-8 max-w-3xl">
       <Breadcrumb
         crumbs={[
-          { label: 'Stories', to: '/stories/' },
+          { label: t('nav.stories'), to: '/stories/' },
           {
             label: story.title,
             to: `/stories/${storyId}/`,
@@ -259,7 +261,7 @@ function SceneDetailPage() {
                 'opacity-40 cursor-not-allowed',
             )}
           >
-            Save
+            {t('action.save')}
           </button>
         )}
         <Link
@@ -271,7 +273,7 @@ function SceneDetailPage() {
           )}
           aria-disabled={!isDirector && (!data?.story?.directorOnStage || (data?.story?.status !== 'draft' && data?.story?.status !== 'active'))}
         >
-          Enter Stage <Theater className="size-4" />
+          {t('story.enterStage')} <Theater className="size-4" />
         </Link>
       </div>
 
@@ -320,15 +322,10 @@ function SceneDetailPage() {
 
       <ConfirmModal
         isOpen={!!castToDelete}
-        title="Confirm Removal"
-        message={
-          <>
-            Are you sure you want to remove "{castToDelete?.userName}" from the
-            scene?
-          </>
-        }
-        confirmText="Remove"
-        pendingText="Removing..."
+        title={t('modal.confirmRemoval')}
+        message={t('modal.removeFromSceneMessage', { name: castToDelete?.userName ?? '' })}
+        confirmText={t('action.remove')}
+        pendingText={t('action.removing')}
         onConfirm={() =>
           castToDelete && removeCastMutation.mutate(castToDelete.id)
         }
