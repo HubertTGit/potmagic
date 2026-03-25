@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Ruler, ArrowLeftRight } from "lucide-react";
 import { useRef } from "react";
 import { getMeta } from "@/i18n/meta";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const BASE_URL = 'https://potmagic.com';
 
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/($lang)/docs/size-guidelines")({
 });
 
 function PanDemo() {
+  const { t } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const thumbRef = useRef<HTMLDivElement>(null);
@@ -95,16 +97,16 @@ function PanDemo() {
           {/* Viewport boundary at 64% (1280 / 2000) */}
           <div className="absolute top-0 left-[64%] h-full border-l-2 border-dashed border-white/60">
             <span className="absolute top-0 left-0 -translate-x-1/2 rounded-b-md bg-black/30 px-1.5 py-0.5 font-mono text-[9px] whitespace-nowrap text-white backdrop-blur-sm">
-              viewport edge
+              {t('docs.sizeGuidelines.panning.viewportEdge')}
             </span>
           </div>
 
           {/* Dimension labels */}
           <div className="absolute top-2.5 left-[2%] font-mono text-[9px] text-white/70 drop-shadow">
-            ← 1280 px (stage viewport)
+            {t('docs.sizeGuidelines.panning.viewportLabel')}
           </div>
           <div className="absolute top-2.5 left-[66%] font-mono text-[9px] text-white/50 drop-shadow">
-            +720 px (pan area) →
+            {t('docs.sizeGuidelines.panning.panAreaLabel')}
           </div>
 
           {/* Drag hint pill */}
@@ -112,7 +114,7 @@ function PanDemo() {
             <div className="flex items-center gap-1.5 rounded-full bg-black/30 px-3 py-1.5 backdrop-blur-sm">
               <ArrowLeftRight className="size-3 text-white/70" />
               <span className="text-[10px] font-medium text-white/80">
-                drag to pan
+                {t('docs.sizeGuidelines.panning.dragHint')}
               </span>
             </div>
           </div>
@@ -129,32 +131,32 @@ function PanDemo() {
       </div>
 
       <div className="text-base-content/30 flex justify-between font-mono text-[10px]">
-        <span>1280 px viewport</span>
-        <span>2000 px background (example)</span>
+        <span>{t('docs.sizeGuidelines.panning.footerLeft')}</span>
+        <span>{t('docs.sizeGuidelines.panning.footerRight')}</span>
       </div>
     </div>
   );
 }
 
 function SizeGuidelinesPage() {
+  const { t } = useLanguage();
   return (
     <div className="space-y-10">
       <div>
         <div className="mb-4 flex items-center gap-3">
           <Ruler className="text-primary size-7" />
           <h1 className="font-display text-3xl font-semibold tracking-tight">
-            Size Guidelines
+            {t('docs.sizeGuidelines.title')}
           </h1>
         </div>
         <p className="text-base-content/60 max-w-2xl text-base leading-relaxed">
-          Follow these guidelines when preparing prop assets to ensure
-          characters and backgrounds look great on the stage canvas.
+          {t('docs.sizeGuidelines.subtitle')}
         </p>
       </div>
 
       <section>
         <h2 className="font-display mb-4 text-lg font-semibold">
-          Stage Canvas
+          {t('docs.sizeGuidelines.stageCanvas.heading')}
         </h2>
         <div className="w-full max-w-sm">
           <div className="border-base-content/30 flex aspect-video w-full flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed">
@@ -168,29 +170,29 @@ function SizeGuidelinesPage() {
 
       <section>
         <h2 className="font-display mb-4 text-lg font-semibold">
-          Character Props
+          {t('docs.sizeGuidelines.characters.heading')}
         </h2>
         <div className="bg-base-100 border-base-300 divide-base-300 divide-y rounded-2xl border">
           {[
             {
-              label: "Recommended size",
-              value: "200 – 400 px tall",
-              desc: "Characters shorter than 200 px may be hard to see; taller than 400 px may dominate the stage.",
+              label: t('docs.sizeGuidelines.char.size.label'),
+              value: t('docs.sizeGuidelines.char.size.value'),
+              desc: t('docs.sizeGuidelines.char.size.desc'),
             },
             {
-              label: "Aspect ratio",
-              value: "Any",
-              desc: "Characters are displayed at their native size. No automatic scaling is applied.",
+              label: t('docs.sizeGuidelines.char.ratio.label'),
+              value: t('docs.sizeGuidelines.char.ratio.value'),
+              desc: t('docs.sizeGuidelines.char.ratio.desc'),
             },
             {
-              label: "File format",
-              value: "PNG or WebP",
-              desc: "Use transparent backgrounds (PNG or WebP with alpha) for clean character cutouts.",
+              label: t('docs.sizeGuidelines.char.format.label'),
+              value: t('docs.sizeGuidelines.char.format.value'),
+              desc: t('docs.sizeGuidelines.char.format.desc'),
             },
             {
-              label: "Max file size",
-              value: "2 MB",
-              desc: "Keep files small for fast loading on stage join. Compress assets before uploading.",
+              label: t('docs.sizeGuidelines.char.maxSize.label'),
+              value: t('docs.sizeGuidelines.char.maxSize.value'),
+              desc: t('docs.sizeGuidelines.char.maxSize.desc'),
             },
           ].map(({ label, value, desc }) => (
             <div key={label} className="flex items-start gap-4 px-5 py-4">
@@ -208,30 +210,30 @@ function SizeGuidelinesPage() {
 
       <section>
         <h2 className="font-display mb-4 text-lg font-semibold">
-          Background Props
+          {t('docs.sizeGuidelines.backgrounds.heading')}
         </h2>
         <PanDemo />
         <div className="bg-base-100 border-base-300 divide-base-300 mt-4 divide-y rounded-2xl border">
           {[
             {
-              label: "Recommended size",
-              value: "1280 × 720 px",
-              desc: "Matches the stage exactly for full-bleed coverage. For panning scenes, use a wider image — e.g. 2000 × 720 px. Backgrounds are automatically pannable; actors and the director can drag them horizontally to reveal off-screen areas.",
+              label: t('docs.sizeGuidelines.bg.size.label'),
+              value: t('docs.sizeGuidelines.bg.size.value'),
+              desc: t('docs.sizeGuidelines.bg.size.desc'),
             },
             {
-              label: "Position",
-              value: "Bottom-anchored",
-              desc: "Backgrounds are pinned to the bottom of the canvas. Only horizontal dragging is allowed.",
+              label: t('docs.sizeGuidelines.bg.position.label'),
+              value: t('docs.sizeGuidelines.bg.position.value'),
+              desc: t('docs.sizeGuidelines.bg.position.desc'),
             },
             {
-              label: "File format",
-              value: "PNG, WebP, or JPG",
-              desc: "JPG is suitable for photographic backgrounds without transparency requirements.",
+              label: t('docs.sizeGuidelines.bg.format.label'),
+              value: t('docs.sizeGuidelines.bg.format.value'),
+              desc: t('docs.sizeGuidelines.bg.format.desc'),
             },
             {
-              label: "Max file size",
-              value: "4 MB",
-              desc: "Backgrounds are shared with all participants — keep them compressed to reduce load times.",
+              label: t('docs.sizeGuidelines.bg.maxSize.label'),
+              value: t('docs.sizeGuidelines.bg.maxSize.value'),
+              desc: t('docs.sizeGuidelines.bg.maxSize.desc'),
             },
           ].map(({ label, value, desc }) => (
             <div key={label} className="flex items-start gap-4 px-5 py-4">
@@ -249,18 +251,11 @@ function SizeGuidelinesPage() {
 
       <section>
         <h2 className="font-display mb-4 text-lg font-semibold">
-          Rive Animations
+          {t('docs.sizeGuidelines.rive.heading')}
         </h2>
         <div className="bg-base-100 border-base-300 rounded-2xl border p-5">
           <p className="text-base-content/60 text-sm leading-relaxed">
-            Rive files (
-            <code className="bg-base-300 rounded px-1 py-0.5 text-xs">
-              .riv
-            </code>
-            ) are rendered at their exported artboard size. Export artboards at
-            1× scale. State machine names and artboard names must match the
-            values set in the prop assignment panel. Keep Rive files under{" "}
-            <strong className="text-base-content">1 MB</strong> where possible.
+            {t('docs.sizeGuidelines.rive.body')}
           </p>
         </div>
       </section>

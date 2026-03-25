@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { FilePlus, Clapperboard } from 'lucide-react';
 import { getMeta } from '@/i18n/meta';
+import { useLanguage } from '@/hooks/useLanguage';
 
 const BASE_URL = 'https://potmagic.com';
 
@@ -22,54 +23,55 @@ export const Route = createFileRoute('/($lang)/docs/create-story')({
 });
 
 function CreateStoryPage() {
+  const { t } = useLanguage();
   return (
     <div className="space-y-10">
 
       <div>
         <div className="mb-4 flex items-center gap-3">
           <FilePlus className="size-7 text-primary" />
-          <h1 className="font-display text-3xl font-semibold tracking-tight">Create a Story</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-tight">{t('docs.createStory.title')}</h1>
         </div>
         <p className="text-base-content/60 max-w-2xl text-base leading-relaxed">
-          Stories are the top-level container for your performance. Each story holds scenes,
-          a cast of actors, and a live broadcast channel.
+          {t('docs.createStory.subtitle')}
         </p>
       </div>
 
       <section>
-        <h2 className="font-display mb-2 text-lg font-semibold">Who can create stories?</h2>
+        <h2 className="font-display mb-2 text-lg font-semibold">{t('docs.createStory.whoCanCreate.heading')}</h2>
         <div className="bg-base-100 border-base-300 flex items-start gap-3 rounded-2xl border p-5">
           <Clapperboard className="text-primary mt-0.5 size-5 shrink-0" />
           <p className="text-base-content/70 text-sm leading-relaxed">
-            Only users with the <strong className="text-base-content">Director</strong> role can create
-            and manage stories. Actors can view stories they are assigned to but cannot create new ones.
+            {t('docs.createStory.whoCanCreate.body')}{" "}
+            <strong className="text-base-content">{t('docs.createStory.whoCanCreate.role')}</strong>{" "}
+            {t('docs.createStory.whoCanCreate.bodyPost')}
           </p>
         </div>
       </section>
 
       <section>
-        <h2 className="font-display mb-6 text-lg font-semibold">Steps</h2>
+        <h2 className="font-display mb-6 text-lg font-semibold">{t('docs.createStory.steps.heading')}</h2>
         <ul className="timeline timeline-vertical timeline-compact">
           {[
             {
               step: '1',
-              title: 'Open the Director dashboard',
-              body: 'Navigate to the Director page from the sidebar. You will see a list of all stories you have created.',
+              title: t('docs.createStory.step1.title'),
+              body: t('docs.createStory.step1.body'),
             },
             {
               step: '2',
-              title: 'Click "New Story"',
-              body: 'Press the New Story button in the top-right corner of the dashboard. A creation form will appear.',
+              title: t('docs.createStory.step2.title'),
+              body: t('docs.createStory.step2.body'),
             },
             {
               step: '3',
-              title: 'Enter a title',
-              body: 'Give your story a descriptive title — for example "The Lost Crown" or "Midnight in the Forest". The title is visible to all assigned actors.',
+              title: t('docs.createStory.step3.title'),
+              body: t('docs.createStory.step3.body'),
             },
             {
               step: '4',
-              title: 'Confirm creation',
-              body: 'Click Create. The story is created in Draft status and you are taken to the story detail page where you can add scenes and assign cast.',
+              title: t('docs.createStory.step4.title'),
+              body: t('docs.createStory.step4.body'),
             },
           ].map(({ step, title, body }, index, arr) => (
             <li key={step}>
@@ -90,23 +92,23 @@ function CreateStoryPage() {
       </section>
 
       <section>
-        <h2 className="font-display mb-4 text-lg font-semibold">Story Status</h2>
+        <h2 className="font-display mb-4 text-lg font-semibold">{t('docs.createStory.status.heading')}</h2>
         <div className="bg-base-100 border-base-300 divide-base-300 divide-y rounded-2xl border">
           {[
             {
-              badge: 'Draft',
+              badge: t('docs.createStory.status.draft.badge'),
               color: 'badge-warning',
-              desc: 'Default state. The stage is accessible to assigned actors for rehearsal but the public broadcast is not live.',
+              desc: t('docs.createStory.status.draft.desc'),
             },
             {
-              badge: 'Active',
+              badge: t('docs.createStory.status.active.badge'),
               color: 'badge-success',
-              desc: 'The performance is live. A public broadcast URL is generated and the stage is visible to viewers.',
+              desc: t('docs.createStory.status.active.desc'),
             },
             {
-              badge: 'Ended',
+              badge: t('docs.createStory.status.ended.badge'),
               color: 'badge-neutral',
-              desc: 'The performance has concluded. All participants are disconnected and the broadcast URL is deactivated.',
+              desc: t('docs.createStory.status.ended.desc'),
             },
           ].map(({ badge, color, desc }) => (
             <div key={badge} className="flex items-start gap-4 px-5 py-4">

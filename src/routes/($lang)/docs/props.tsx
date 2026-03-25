@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Library, ImageIcon, Music, Sparkles, Clapperboard } from 'lucide-react';
 import { getMeta } from '@/i18n/meta';
+import { useLanguage } from '@/hooks/useLanguage';
 
 const BASE_URL = 'https://potmagic.com';
 
@@ -22,81 +23,81 @@ export const Route = createFileRoute('/($lang)/docs/props')({
 });
 
 function PropsPage() {
+  const { t } = useLanguage();
   return (
     <div className="space-y-10">
 
       <div>
         <div className="mb-4 flex items-center gap-3">
           <Library className="size-7 text-primary" />
-          <h1 className="font-display text-3xl font-semibold tracking-tight">Props Library</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-tight">{t('docs.props.title')}</h1>
         </div>
         <p className="text-base-content/60 max-w-2xl text-base leading-relaxed">
-          Props are the visual and audio building blocks of your story — characters, backgrounds,
-          sounds, and animations. Directors manage the props library and assign props to cast members.
+          {t('docs.props.subtitle')}
         </p>
       </div>
 
       <section>
-        <h2 className="font-display mb-2 text-lg font-semibold">Who can manage props?</h2>
+        <h2 className="font-display mb-2 text-lg font-semibold">{t('docs.props.whoCanManage.heading')}</h2>
         <div className="bg-base-100 border-base-300 flex items-start gap-3 rounded-2xl border p-5">
           <Clapperboard className="text-primary mt-0.5 size-5 shrink-0" />
           <p className="text-base-content/70 text-sm leading-relaxed">
-            Only users with the <strong className="text-base-content">Director</strong> role can
-            upload, rename, and delete props. Actors can view props assigned to them but cannot
-            modify the library.
+            {t('docs.props.whoCanManage.body')}{" "}
+            <strong className="text-base-content">{t('docs.props.whoCanManage.role')}</strong>{" "}
+            {t('docs.props.whoCanManage.bodyPost')}
           </p>
         </div>
       </section>
 
       <section>
-        <h2 className="font-display mb-6 text-lg font-semibold">Prop Types</h2>
+        <h2 className="font-display mb-6 text-lg font-semibold">{t('docs.props.types.heading')}</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <TypeCard
             icon={<ImageIcon className="size-5" />}
-            title="Character"
-            description="A movable sprite that an actor controls on stage. Characters can be dragged, rotated, and mirrored."
+            title={t('docs.props.type.character.title')}
+            description={t('docs.props.type.character.description')}
           />
           <TypeCard
             icon={<ImageIcon className="size-5" />}
-            title="Background"
-            description="A full-stage image pinned to the bottom of the canvas. One background per scene. Only horizontal drag allowed."
+            title={t('docs.props.type.background.title')}
+            description={t('docs.props.type.background.description')}
           />
           <TypeCard
             icon={<Music className="size-5" />}
-            title="Sound"
-            description="An audio track the director can play during a scene. Audible to all participants and viewers."
+            title={t('docs.props.type.sound.title')}
+            description={t('docs.props.type.sound.description')}
           />
           <TypeCard
             icon={<Sparkles className="size-5" />}
-            title="Animation"
-            description="A Rive animation file (.riv) placed on the canvas as an interactive animated prop."
+            title={t('docs.props.type.animation.title')}
+            description={t('docs.props.type.animation.description')}
           />
         </div>
       </section>
 
       <section>
-        <h2 className="font-display mb-6 text-lg font-semibold">Uploading a Prop</h2>
+        <h2 className="font-display mb-6 text-lg font-semibold">{t('docs.props.upload.heading')}</h2>
         <ul className="timeline timeline-vertical timeline-compact">
           {[
             {
               step: '1',
-              title: 'Go to the Director dashboard',
-              body: 'Open the Director page from the sidebar and switch to the Library tab.',
+              title: t('docs.props.upload.step1.title'),
+              body: t('docs.props.upload.step1.body'),
             },
             {
               step: '2',
-              title: 'Click "Upload Prop"',
-              body: 'Choose the prop type and select a file from your device. Supported formats: PNG, WebP, SVG for images; MP3, WAV for sounds; .riv for animations.',
+              title: t('docs.props.upload.step2.title'),
+              body: t('docs.props.upload.step2.body'),
             },
             {
               step: '3',
-              title: 'Name the prop',
-              body: 'Give the prop a descriptive name — for example "Bear Character" or "Forest Background". This name appears in the cast assignment screen.',
+              title: t('docs.props.upload.step3.title'),
+              body: t('docs.props.upload.step3.body'),
             },
             {
               step: '4',
-              title: 'Assign to a cast member',
-              body: 'Open a story, go to the Cast tab, and assign the prop to an actor. Each actor can only hold one prop per story.',
+              title: t('docs.props.upload.step4.title'),
+              body: t('docs.props.upload.step4.body'),
             },
           ].map(({ step, title, body }, index, arr) => (
             <li key={step}>
@@ -117,11 +118,9 @@ function PropsPage() {
       </section>
 
       <section>
-        <h2 className="font-display mb-4 text-lg font-semibold">Deleting Props</h2>
+        <h2 className="font-display mb-4 text-lg font-semibold">{t('docs.props.delete.heading')}</h2>
         <p className="text-base-content/60 text-sm leading-relaxed">
-          Props can be deleted from the Library tab. Deleting a prop removes it from all scenes
-          and cast assignments permanently. Make sure to reassign actors before deleting a prop
-          that is currently in use.
+          {t('docs.props.delete.body')}
         </p>
       </section>
 

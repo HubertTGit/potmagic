@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Layers, Clapperboard } from 'lucide-react';
 import { getMeta } from '@/i18n/meta';
+import { useLanguage } from '@/hooks/useLanguage';
 
 const BASE_URL = 'https://potmagic.com';
 
@@ -22,54 +23,55 @@ export const Route = createFileRoute('/($lang)/docs/add-scenes')({
 });
 
 function AddScenesPage() {
+  const { t } = useLanguage();
   return (
     <div className="space-y-10">
 
       <div>
         <div className="mb-4 flex items-center gap-3">
           <Layers className="size-7 text-primary" />
-          <h1 className="font-display text-3xl font-semibold tracking-tight">Add Scenes</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-tight">{t('docs.addScenes.title')}</h1>
         </div>
         <p className="text-base-content/60 max-w-2xl text-base leading-relaxed">
-          Scenes divide your story into acts. Each scene has its own cast, backgrounds, and props —
-          the director switches between scenes live during the performance.
+          {t('docs.addScenes.subtitle')}
         </p>
       </div>
 
       <section>
-        <h2 className="font-display mb-2 text-lg font-semibold">Who can add scenes?</h2>
+        <h2 className="font-display mb-2 text-lg font-semibold">{t('docs.addScenes.whoCanAdd.heading')}</h2>
         <div className="bg-base-100 border-base-300 flex items-start gap-3 rounded-2xl border p-5">
           <Clapperboard className="text-primary mt-0.5 size-5 shrink-0" />
           <p className="text-base-content/70 text-sm leading-relaxed">
-            Only users with the <strong className="text-base-content">Director</strong> role can add
-            and manage scenes. Actors can view scenes they are cast in but cannot create or reorder them.
+            {t('docs.addScenes.whoCanAdd.body')}{" "}
+            <strong className="text-base-content">{t('docs.addScenes.whoCanAdd.role')}</strong>{" "}
+            {t('docs.addScenes.whoCanAdd.bodyPost')}
           </p>
         </div>
       </section>
 
       <section>
-        <h2 className="font-display mb-6 text-lg font-semibold">Adding a Scene</h2>
+        <h2 className="font-display mb-6 text-lg font-semibold">{t('docs.addScenes.steps.heading')}</h2>
         <ul className="timeline timeline-vertical timeline-compact">
           {[
             {
               step: '1',
-              title: 'Open the story detail page',
-              body: 'Navigate to Stories and click your story. You will see a Scenes tab listing all current scenes.',
+              title: t('docs.addScenes.step1.title'),
+              body: t('docs.addScenes.step1.body'),
             },
             {
               step: '2',
-              title: 'Click "Add Scene"',
-              body: 'Press the Add Scene button. Enter a title for the scene — for example "Act 1" or "The Forest".',
+              title: t('docs.addScenes.step2.title'),
+              body: t('docs.addScenes.step2.body'),
             },
             {
               step: '3',
-              title: 'Assign cast to the scene',
-              body: 'Open the scene detail page. Use the "Add to Scene" controls to choose which cast members appear in this scene. You can add one background and multiple characters per scene.',
+              title: t('docs.addScenes.step3.title'),
+              body: t('docs.addScenes.step3.body'),
             },
             {
               step: '4',
-              title: 'Reorder scenes',
-              body: 'Drag scenes in the scene list to reorder them. The order determines the sequence during the live performance.',
+              title: t('docs.addScenes.step4.title'),
+              body: t('docs.addScenes.step4.body'),
             },
           ].map(({ step, title, body }, index, arr) => (
             <li key={step}>
@@ -90,20 +92,20 @@ function AddScenesPage() {
       </section>
 
       <section>
-        <h2 className="font-display mb-4 text-lg font-semibold">Scene Composition Rules</h2>
+        <h2 className="font-display mb-4 text-lg font-semibold">{t('docs.addScenes.rules.heading')}</h2>
         <div className="bg-base-100 border-base-300 divide-base-300 divide-y rounded-2xl border">
           {[
             {
-              label: 'One background per scene',
-              desc: 'Each scene can have at most one background prop. Adding a second background replaces the existing one.',
+              label: t('docs.addScenes.rule1.label'),
+              desc: t('docs.addScenes.rule1.desc'),
             },
             {
-              label: 'Multiple characters',
-              desc: 'You can add any number of character props to a scene, limited only by the number of cast members in your story.',
+              label: t('docs.addScenes.rule2.label'),
+              desc: t('docs.addScenes.rule2.desc'),
             },
             {
-              label: 'Independent positioning',
-              desc: 'Character positions are saved per scene. Moving a character in Scene 2 does not affect their position in Scene 1.',
+              label: t('docs.addScenes.rule3.label'),
+              desc: t('docs.addScenes.rule3.desc'),
             },
           ].map(({ label, desc }) => (
             <div key={label} className="px-5 py-4">
@@ -115,11 +117,9 @@ function AddScenesPage() {
       </section>
 
       <section>
-        <h2 className="font-display mb-4 text-lg font-semibold">Switching Scenes Live</h2>
+        <h2 className="font-display mb-4 text-lg font-semibold">{t('docs.addScenes.switching.heading')}</h2>
         <p className="text-base-content/60 text-sm leading-relaxed">
-          During a live performance, the director uses the Scene Navigator on the stage to switch
-          between scenes. All participants and viewers transition to the new scene simultaneously.
-          Actors only see the stage for scenes they are cast in.
+          {t('docs.addScenes.switching.body')}
         </p>
       </section>
 
