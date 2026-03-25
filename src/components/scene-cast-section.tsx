@@ -4,6 +4,7 @@ import { cn } from "@/lib/cn";
 import { DataList, DataListItem } from "@/components/data-list";
 import { PropPicker } from "@/components/prop-picker";
 import type { PropType } from "@/db/schema";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export type CastMember = {
   id: string; // cast.id
@@ -71,6 +72,7 @@ export function SceneCastSection({
   nav,
   currentUserId,
 }: SceneCastSectionProps) {
+  const { t } = useLanguage();
   const usedPropIds = new Set(
     assignedCast.map((c) => c.propId).filter(Boolean) as string[],
   );

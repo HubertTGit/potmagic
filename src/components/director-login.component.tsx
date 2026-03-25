@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { Megaphone } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 import { cn } from '@/lib/cn';
+import { useLanguage } from '@/hooks/useLanguage';
 
 export function DirectorLogin({ token = '' }: { token?: string }) {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -22,7 +24,7 @@ export function DirectorLogin({ token = '' }: { token?: string }) {
     const { error } = await authClient.signIn.magicLink({ email, callbackURL });
     setLoading(false);
     if (error) {
-      setError(error.message ?? 'Failed to send link');
+      setError(error.message ?? t('auth.error.failedSendLink'));
       return;
     }
     setSentEmail(email);
@@ -37,7 +39,7 @@ export function DirectorLogin({ token = '' }: { token?: string }) {
       callbackURL,
     });
     if (error) {
-      setError(error.message ?? 'Google sign-in failed');
+      setError(error.message ?? t('auth.error.googleSignInFailed'));
       setGoogleLoading(false);
     }
     // on success the browser redirects — component unmounts
@@ -52,17 +54,17 @@ export function DirectorLogin({ token = '' }: { token?: string }) {
             <Megaphone className="size-10 text-primary" />
           </div>
           <h2 className="card-title justify-center font-display italic font-semibold text-2xl leading-none mb-1 text-primary tracking-[-0.01em]">
-            I am a Director
+            {t('auth.role.director')}
           </h2>
           <p className="font-display text-sm tracking-[0.25em] uppercase text-base-content/40">
-            Enter the stage
+            {t('auth.subtitle.enterStage')}
           </p>
         </div>
 
         {sent ? (
           <div className="px-8 pb-8 text-center flex flex-col gap-3">
             <p className="text-base-content/60 text-sm">
-              Check your inbox — we sent a sign-in link to
+              {t('auth.confirmation.sentTo')}
             </p>
             <p className="text-base-content bg-primary/10 border-primary p-3 font-medium text-sm rounded-2xl">
               {sentEmail}
@@ -72,7 +74,7 @@ export function DirectorLogin({ token = '' }: { token?: string }) {
               onClick={() => setSent(false)}
               className="link text-xs opacity-50 hover:opacity-100 mt-2"
             >
-              ← Try a different email
+              {t('auth.action.tryDifferentEmail')}
             </button>
           </div>
         ) : (
@@ -86,13 +88,13 @@ export function DirectorLogin({ token = '' }: { token?: string }) {
             <form onSubmit={handleSend} className="flex flex-col gap-4">
               <fieldset className="fieldset gap-1">
                 <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
-                  Email
+                  {t('common.email')}
                 </legend>
                 <input
                   name="email"
                   type="email"
                   autoComplete="email"
-                  placeholder="you@example.com"
+                  placeholder={t('auth.emailPlaceholder')}
                   required
                   className="input w-full"
                 />
@@ -106,13 +108,13 @@ export function DirectorLogin({ token = '' }: { token?: string }) {
                   (loading || googleLoading) && 'opacity-60 cursor-not-allowed',
                 )}
               >
-                {loading ? 'Sending…' : 'Use Magic Link'}
+                {loading ? t('auth.loading.sending') : t('auth.director.useMagicLink')}
               </button>
             </form>
 
             <div className="flex items-center gap-3">
               <div className="flex-1 h-px bg-base-content/10" />
-              <span className="text-xs text-base-content/30">or</span>
+              <span className="text-xs text-base-content/30">{t('auth.divider.or')}</span>
               <div className="flex-1 h-px bg-base-content/10" />
             </div>
 
@@ -152,7 +154,7 @@ export function DirectorLogin({ token = '' }: { token?: string }) {
                   />
                 </svg>
               )}
-              {googleLoading ? 'Redirecting…' : 'Continue with Google'}
+              {googleLoading ? t('auth.loading.redirecting') : t('auth.director.continueGoogle')}
             </button>
           </div>
         )}

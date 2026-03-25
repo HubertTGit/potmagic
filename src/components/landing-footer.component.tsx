@@ -1,30 +1,32 @@
 import { Link } from "@tanstack/react-router";
 import { XIcon, InstagramIcon, YoutubeIcon } from "lucide-react";
-
-const LINKS = {
-  Platform: [
-    { label: "Watch Live", to: "/show" },
-    { label: "Pricing", to: "/pricing" },
-    { label: "Concept", to: "/concept" },
-    { label: "Docs", to: "/docs" },
-  ],
-  Company: [
-    { label: "About Us", to: "/about" },
-    { label: "Terms & Policy", to: "/terms" },
-    { label: "Privacy Policy", to: "/privacy" },
-    { label: "Careers", to: "/careers" },
-    { label: "Help", to: "/help" },
-  ],
-};
-
-const SOCIAL = [
-  { label: "Twitter / X", icon: XIcon, href: "https://twitter.com" },
-  { label: "Instagram", icon: InstagramIcon, href: "https://instagram.com" },
-  { label: "YouTube", icon: YoutubeIcon, href: "https://youtube.com" },
-];
+import { useLanguage } from "@/hooks/useLanguage";
 
 export function LandingFooter() {
   const year = new Date().getFullYear();
+  const { t } = useLanguage();
+
+  const LINKS = {
+    [t('footer.platform')]: [
+      { label: t('nav.watchLive'), to: "/show" },
+      { label: t('nav.pricing'), to: "/pricing" },
+      { label: t('nav.concept'), to: "/concept" },
+      { label: t('nav.docs'), to: "/docs" },
+    ],
+    [t('footer.company')]: [
+      { label: t('nav.aboutUs'), to: "/about" },
+      { label: t('nav.termsPolicy'), to: "/terms" },
+      { label: t('nav.privacyPolicy'), to: "/privacy" },
+      { label: t('nav.careers'), to: "/careers" },
+      { label: t('nav.help'), to: "/help" },
+    ],
+  };
+
+  const SOCIAL = [
+    { label: t('social.twitter'), icon: XIcon, href: "https://twitter.com" },
+    { label: t('social.instagram'), icon: InstagramIcon, href: "https://instagram.com" },
+    { label: t('social.youtube'), icon: YoutubeIcon, href: "https://youtube.com" },
+  ];
 
   return (
     <footer className="bg-base-300 border-base-300 text-base-content border-t">
@@ -48,13 +50,11 @@ export function LandingFooter() {
               />
             </Link>
             <p className="text-base-content/60 max-w-xs text-sm leading-relaxed">
-              A collaborative storytelling platform designed for families,
-              friends, and creators to perform live, interactive shows without
-              physical constraints.
+              {t('footer.description')}
             </p>
             <div className="flex flex-col gap-2">
               <span className="text-base-content/40 text-xs font-semibold tracking-widest uppercase">
-                Keep in touch
+                {t('footer.keepInTouch')}
               </span>
               <div className="flex items-center gap-3">
                 {SOCIAL.map(({ label, icon: Icon, href }) => (
@@ -100,7 +100,7 @@ export function LandingFooter() {
       <div className="border-base-content/10 border-t">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-center px-4 py-4 sm:px-6 lg:px-8">
           <p className="text-base-content/30 text-xs">
-            potmagic © {year} All Rights Reserved
+            {t('footer.copyright', { year })}
           </p>
         </div>
       </div>

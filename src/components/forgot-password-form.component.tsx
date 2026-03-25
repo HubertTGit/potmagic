@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/cn';
+import { useLanguage } from '@/hooks/useLanguage';
 
 interface ForgotPasswordFormProps {
   loading: boolean;
@@ -16,6 +17,7 @@ export default function ForgotPasswordForm({
   onSubmit,
   onBack,
 }: ForgotPasswordFormProps) {
+  const { t } = useLanguage();
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
       {error && (

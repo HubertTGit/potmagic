@@ -1,11 +1,11 @@
-import { useNavigate, useRouterState } from '@tanstack/react-router'
-import { useLanguage } from '@/hooks/useLanguage'
-import { cn } from '@/lib/cn'
+import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { useLanguage } from "@/hooks/useLanguage";
+import { cn } from "@/lib/cn";
 
 const LANGUAGES = [
-  { code: 'en', label: 'English', short: 'EN' },
-  { code: 'de', label: 'Deutsch', short: 'DE' },
-] as const
+  { code: "en", label: "English", short: "EN" },
+  { code: "de", label: "Deutsch", short: "DE" },
+] as const;
 
 /**
  * Dropdown to switch between EN (no prefix) and DE (/de/ prefix).
@@ -13,24 +13,24 @@ const LANGUAGES = [
  * Only used in navbar and sidebar — never rendered on show/ routes.
  */
 export function LanguageSwitcher() {
-  const { locale } = useLanguage()
-  const navigate = useNavigate()
-  const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const { locale } = useLanguage();
+  const navigate = useNavigate();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  const switchTo = (code: 'en' | 'de') => {
-    ;(document.activeElement as HTMLElement)?.blur()
-    if (code === locale) return
-    if (code === 'de') {
-      navigate({ to: `/de${pathname}` })
+  const switchTo = (code: "en" | "de") => {
+    (document.activeElement as HTMLElement)?.blur();
+    if (code === locale) return;
+    if (code === "de") {
+      navigate({ to: `/de${pathname}` });
     } else {
-      navigate({ to: pathname.replace(/^\/de/, '') || '/' })
+      navigate({ to: pathname.replace(/^\/de/, "") || "/" });
     }
-  }
+  };
 
-  const current = LANGUAGES.find((l) => l.code === locale) ?? LANGUAGES[0]
+  const current = LANGUAGES.find((l) => l.code === locale) ?? LANGUAGES[0];
 
   return (
-    <div className="dropdown dropdown-end">
+    <div className="dropdown dropdown-start">
       <button
         type="button"
         tabIndex={0}
@@ -49,8 +49,8 @@ export function LanguageSwitcher() {
               type="button"
               onClick={() => switchTo(lang.code)}
               className={cn(
-                'flex items-center justify-between text-xs',
-                locale === lang.code && 'font-semibold text-primary',
+                "flex items-center justify-between text-xs",
+                locale === lang.code && "text-primary font-semibold",
               )}
             >
               <span>{lang.label}</span>
@@ -62,5 +62,5 @@ export function LanguageSwitcher() {
         ))}
       </ul>
     </div>
-  )
+  );
 }

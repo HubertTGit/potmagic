@@ -1,3 +1,5 @@
+import { useLanguage } from '@/hooks/useLanguage';
+
 export function SessionPermissionModal({
   onEnter,
   onDecline,
@@ -5,21 +7,21 @@ export function SessionPermissionModal({
   onEnter: () => void;
   onDecline: () => void;
 }) {
+  const { t } = useLanguage();
+
   return (
     <div className="modal modal-open">
       <div className="modal-box max-w-sm">
-        <h3 className="mb-2 text-lg font-bold">Live Session</h3>
+        <h3 className="mb-2 text-lg font-bold">{t('session.title')}</h3>
         <p className="text-base-content/70 mb-6 text-sm">
-          Join the remote session to collaborate with others in real-time. Your
-          microphone will be used for live voice interactions. You can mute your
-          microphone at any time.
+          {t('session.description')}
         </p>
         <div className="modal-action flex-col gap-2">
           <button className="btn btn-primary w-full" onClick={onEnter}>
-            Enter Session
+            {t('session.enter')}
           </button>
           <button className="btn btn-ghost btn-sm w-full" onClick={onDecline}>
-            I don't want to join session.
+            {t('session.decline')}
           </button>
         </div>
       </div>

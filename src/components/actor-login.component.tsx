@@ -10,7 +10,7 @@ export function ActorLogin() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { langPrefix } = useLanguage();
+  const { langPrefix, t } = useLanguage();
   // refetch() updates the shared useSession() atom — getSession() does not
   const { refetch } = authClient.useSession();
 
@@ -25,7 +25,7 @@ export function ActorLogin() {
       await refetch();
       await router.navigate({ to: `${langPrefix}/stories` });
     } catch (err: unknown) {
-      setError((err as { message?: string })?.message ?? 'Login failed');
+      setError((err as { message?: string })?.message ?? t('auth.error.loginFailed'));
     } finally {
       setLoading(false);
     }
@@ -40,10 +40,10 @@ export function ActorLogin() {
             <Spotlight className="size-10 text-secondary" />
           </div>
           <h2 className="card-title justify-center font-display italic font-semibold text-2xl leading-none mb-1 text-secondary tracking-[-0.01em]">
-            I am an Actor
+            {t('auth.role.actor')}
           </h2>
           <p className="font-display text-sm tracking-[0.25em] uppercase text-base-content/40">
-            Enter the stage
+            {t('auth.subtitle.enterStage')}
           </p>
         </div>
 
@@ -77,15 +77,15 @@ export function ActorLogin() {
                 loading && 'opacity-60 cursor-not-allowed',
               )}
             >
-              {loading ? 'Entering…' : 'Enter →'}
+              {loading ? t('auth.loading.entering') : t('auth.actor.enter')}
             </button>
           </form>
 
           <div className="mt-8 text-center">
             <p className="text-base-content/30 text-sm">
-              Ready to showcase your talent?
+              {t('auth.actor.line1')}
               <br />
-              <span className="text-secondary/70">Your next role awaits!</span>
+              <span className="text-secondary/70">{t('auth.actor.line2')}</span>
             </p>
           </div>
         </div>

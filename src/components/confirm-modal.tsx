@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { cn } from '@/lib/cn';
+import { useLanguage } from '@/hooks/useLanguage';
 
 export type ConfirmModalProps = {
   isOpen: boolean;
@@ -24,6 +25,8 @@ export function ConfirmModal({
   isPending = false,
   pendingText = 'Confirming...',
 }: ConfirmModalProps) {
+  const { t } = useLanguage();
+
   if (!isOpen) return null;
 
   return (
@@ -40,13 +43,13 @@ export function ConfirmModal({
             {isPending ? pendingText : confirmText}
           </button>
           <button className="btn" onClick={onCancel} disabled={isPending}>
-            Cancel
+            {t('modal.cancel')}
           </button>
         </div>
       </div>
       <form method="dialog" className="modal-backdrop">
         <button type="button" onClick={onCancel}>
-          close
+          {t('modal.close')}
         </button>
       </form>
     </dialog>

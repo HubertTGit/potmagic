@@ -28,7 +28,7 @@ export function StoryGrid({
 }) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { langPrefix } = useLanguage();
+  const { langPrefix, t } = useLanguage();
   const [storyToDelete, setStoryToDelete] = useState<{
     id: string;
     title: string;

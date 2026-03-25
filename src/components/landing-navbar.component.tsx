@@ -22,7 +22,10 @@ export function LandingNavbar() {
         {/* Logo */}
         <div className="navbar-start">
           <div className="relative inline-flex">
-            <Link to={`${langPrefix}/` as any} className="flex items-center gap-2">
+            <Link
+              to={`${langPrefix}/` as any}
+              className="flex items-center gap-2"
+            >
               <img
                 src={
                   theme === Theme.dark ? "/logo-white.svg" : "/logo-color.svg"
@@ -38,7 +41,7 @@ export function LandingNavbar() {
             </Link>
             {import.meta.env.VITE_UNDER_CONSTRUCTION === "true" && (
               <span className="badge badge-xs border-error/30 bg-warning/10 text-error/80 absolute -top-2 -right-2 translate-x-full tracking-wide uppercase">
-                preview only
+                {t("ui.previewOnly")}
               </span>
             )}
           </div>
@@ -48,19 +51,19 @@ export function LandingNavbar() {
           {/* Desktop nav links */}
           <div className="hidden items-center gap-5 md:flex">
             <Link to={`${langPrefix}/pricing` as any} className={navLinkClass}>
-              {t('nav.pricing')}
+              {t("nav.pricing")}
             </Link>
             <Link to={`${langPrefix}/concept` as any} className={navLinkClass}>
-              {t('nav.concept')}
+              {t("nav.concept")}
             </Link>
-            <div className="dropdown dropdown-hover dropdown-center flex flex-col">
+            <div className="dropdown dropdown-hover dropdown-start flex flex-col">
               <Link
                 tabIndex={0}
                 to={`${langPrefix}/docs` as any}
                 activeOptions={{ exact: false }}
                 className={navLinkClass}
               >
-                {t('nav.docs')}
+                {t("nav.docs")}
               </Link>
               <ul
                 tabIndex={0}
@@ -72,7 +75,7 @@ export function LandingNavbar() {
                     activeOptions={{ exact: true }}
                     className="[&.active]:text-primary text-sm [&.active]:font-medium"
                   >
-                    {t('nav.overview')}
+                    {t("nav.overview")}
                   </Link>
                 </li>
                 <li>
@@ -80,7 +83,7 @@ export function LandingNavbar() {
                     to={`${langPrefix}/docs/create-story` as any}
                     className="[&.active]:text-primary text-sm [&.active]:font-medium"
                   >
-                    {t('nav.createStory')}
+                    {t("nav.createStory")}
                   </Link>
                 </li>
                 <li>
@@ -88,7 +91,7 @@ export function LandingNavbar() {
                     to={`${langPrefix}/docs/add-scenes` as any}
                     className="[&.active]:text-primary text-sm [&.active]:font-medium"
                   >
-                    {t('nav.addScenes')}
+                    {t("nav.addScenes")}
                   </Link>
                 </li>
                 <li>
@@ -96,7 +99,7 @@ export function LandingNavbar() {
                     to={`${langPrefix}/docs/props` as any}
                     className="[&.active]:text-primary text-sm [&.active]:font-medium"
                   >
-                    {t('nav.propsLibrary')}
+                    {t("nav.propsLibrary")}
                   </Link>
                 </li>
                 <li>
@@ -104,7 +107,7 @@ export function LandingNavbar() {
                     to={`${langPrefix}/docs/size-guidelines` as any}
                     className="[&.active]:text-primary text-sm [&.active]:font-medium"
                   >
-                    {t('nav.sizeGuidelines')}
+                    {t("nav.sizeGuidelines")}
                   </Link>
                 </li>
               </ul>
@@ -121,13 +124,13 @@ export function LandingNavbar() {
                 isAuthPage && "btn-active",
               )}
             >
-              {session ? t('nav.startCurating') : t('nav.joinTheatre')}
+              {session ? t("nav.startCurating") : t("nav.joinTheatre")}
             </Link>
             <Link
               to="/show"
               className="btn btn-accent btn-sm font-display px-5 tracking-wide"
             >
-              {t('nav.watchLive')}
+              {t("nav.watchLive")}
             </Link>
             <LanguageSwitcher />
             {/* Theme toggle — always visible */}
@@ -135,7 +138,7 @@ export function LandingNavbar() {
               type="button"
               onClick={toggle}
               className="btn btn-ghost btn-sm btn-square"
-              aria-label="Toggle theme"
+              aria-label={t("ui.toggleTheme")}
             >
               {theme === Theme.dark ? (
                 <Sun className="size-4" />
@@ -151,7 +154,7 @@ export function LandingNavbar() {
               tabIndex={0}
               type="button"
               className="btn btn-ghost btn-sm btn-square"
-              aria-label="Open menu"
+              aria-label={t("ui.openMenu")}
             >
               <Menu className="size-5" />
             </button>
@@ -160,13 +163,19 @@ export function LandingNavbar() {
               className="dropdown-content menu bg-base-100 border-base-300 z-50 mt-2 w-56 rounded-xl border p-2 shadow-lg"
             >
               <li>
-                <Link to={`${langPrefix}/pricing` as any} className="[&.active]:text-primary text-sm">
-                  {t('nav.pricing')}
+                <Link
+                  to={`${langPrefix}/pricing` as any}
+                  className="[&.active]:text-primary text-sm"
+                >
+                  {t("nav.pricing")}
                 </Link>
               </li>
               <li>
-                <Link to={`${langPrefix}/concept` as any} className="[&.active]:text-primary text-sm">
-                  {t('nav.concept')}
+                <Link
+                  to={`${langPrefix}/concept` as any}
+                  className="[&.active]:text-primary text-sm"
+                >
+                  {t("nav.concept")}
                 </Link>
               </li>
               <li>
@@ -175,10 +184,10 @@ export function LandingNavbar() {
                   activeOptions={{ exact: false }}
                   className="[&.active]:text-primary text-sm"
                 >
-                  {t('nav.docs')}
+                  {t("nav.docs")}
                 </Link>
               </li>
-              <li className="menu-title mt-1 text-xs">Account</li>
+              <li className="menu-title mt-1 text-xs">{t("nav.account")}</li>
               <li>
                 <Link
                   to={`${langPrefix}/auth` as any}
@@ -188,7 +197,7 @@ export function LandingNavbar() {
                     isAuthPage && "btn-active",
                   )}
                 >
-                  {session ? t('nav.startCurating') : t('nav.joinTheatre')}
+                  {session ? t("nav.startCurating") : t("nav.joinTheatre")}
                 </Link>
               </li>
               <li className="mt-1">
@@ -196,7 +205,7 @@ export function LandingNavbar() {
                   to="/show"
                   className="btn btn-accent btn-sm font-display tracking-wide"
                 >
-                  {t('nav.watchLive')}
+                  {t("nav.watchLive")}
                 </Link>
               </li>
               <li className="mt-1 flex justify-between px-2">

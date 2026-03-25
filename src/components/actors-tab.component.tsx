@@ -2,6 +2,7 @@ import { useState } from "react";
 import { cn } from "@/lib/cn";
 import { X } from "lucide-react";
 import { ConfirmModal } from "@/components/confirm-modal";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface Actor {
   id: string;
@@ -25,6 +26,7 @@ export function ActorsTab({
   onRemove,
   isInviting,
 }: ActorsTabProps) {
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
 

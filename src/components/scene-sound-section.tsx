@@ -1,6 +1,7 @@
 import { Trash2, Music } from "lucide-react";
 import { PropPicker } from "@/components/prop-picker";
 import { Link } from "@tanstack/react-router";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export type SoundProp = {
   id: string;
@@ -30,6 +31,7 @@ export function SceneSoundSection({
   autoplay,
   onToggleAutoplay,
 }: SceneSoundSectionProps) {
+  const { t } = useLanguage();
   const picker =
     (isDirector && availableSounds.length > 0) || sound ? (
       <PropPicker

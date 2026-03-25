@@ -1,6 +1,7 @@
 import { PropPicker } from "@/components/prop-picker";
 import { Trash2 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export type BackgroundProp = {
   id: string;
@@ -24,6 +25,7 @@ export function SceneBackgroundSection({
   onAssignBackground,
   isAssigning,
 }: SceneBackgroundSectionProps) {
+  const { t } = useLanguage();
   const picker =
     (isDirector && availableBackgrounds.length > 0) || background ? (
       <PropPicker

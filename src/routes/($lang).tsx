@@ -1,15 +1,17 @@
-import { createFileRoute, redirect, Outlet } from '@tanstack/react-router'
+import { createFileRoute, notFound, Outlet } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import i18n from '@/i18n'
+import { NotFound } from '@/components/not-found.component'
 
 export const Route = createFileRoute('/($lang)')({
+  notFoundComponent: NotFound,
   beforeLoad: ({ params }) => {
     // TanStack Router TypeScript infers param as "lang)" due to ($lang) syntax — cast required
     const lang = (params as { lang?: string }).lang
     // undefined = English (no prefix), 'de' = German
-    // Any other value is invalid — redirect to home
+    // Any other segment means the URL is unknown — show 404
     if (lang !== undefined && lang !== 'de') {
-      throw redirect({ to: '/' as any })
+      throw notFound()
     }
     return { locale: lang ?? 'en' }
   },

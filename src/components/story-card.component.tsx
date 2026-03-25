@@ -8,12 +8,6 @@ import type { listStories } from '@/lib/stories.fns';
 
 type StoryStatus = 'draft' | 'active' | 'ended';
 
-const STATUS_CONFIG: Record<StoryStatus, { label: string; badge: string; next: StoryStatus | null; nextLabel: string | null }> = {
-  draft:  { label: 'Draft',  badge: 'badge-warning', next: 'active', nextLabel: 'Go Live' },
-  active: { label: 'Live',   badge: 'badge-success', next: 'ended',  nextLabel: 'End Show' },
-  ended:  { label: 'Ended',  badge: 'badge-neutral', next: 'draft',  nextLabel: 'Reset'    },
-};
-
 interface StoryCardProps {
   story: Awaited<ReturnType<typeof listStories>>[number];
   isDirector: boolean;
@@ -22,7 +16,13 @@ interface StoryCardProps {
 export function StoryCard({ story, isDirector }: StoryCardProps) {
   const queryClient = useQueryClient();
   const router = useRouter();
-  const { langPrefix } = useLanguage();
+  const { langPrefix, t } = useLanguage();
+
+  const STATUS_CONFIG: Record<StoryStatus, { label: string; badge: string; next: StoryStatus | null; nextLabel: string | null }> = {
+    draft:  { label: t('status.draft'),  badge: 'badge-warning', next: 'active', nextLabel: t('status.goLive') },
+    active: { label: t('status.active'), badge: 'badge-success', next: 'ended',  nextLabel: t('status.endShow') },
+    ended:  { label: t('status.ended'),  badge: 'badge-neutral', next: 'draft',  nextLabel: t('status.reset')   },
+  };
 
   const statusMutation = useMutation({
     mutationFn: (status: StoryStatus) =>
@@ -89,14 +89,14 @@ export function StoryCard({ story, isDirector }: StoryCardProps) {
             <svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            {story.castCount} {story.castCount === 1 ? 'actor' : 'actors'}
+            {story.castCount} {story.castCount === 1 ? t('story.actor') : t('story.actors')}
           </Link>
           <span className="text-base-content/20">·</span>
           <span className="flex items-center gap-1">
             <svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
             </svg>
-            {story.sceneCount} {story.sceneCount === 1 ? 'scene' : 'scenes'}
+            {story.sceneCount} {story.sceneCount === 1 ? t('story.scene') : t('story.scenes')}
           </span>
         </div>
 
@@ -116,12 +116,12 @@ export function StoryCard({ story, isDirector }: StoryCardProps) {
             ))}
             {story.scenes.length > 4 && (
               <li className="text-xs text-base-content/30 pl-5">
-                +{story.scenes.length - 4} more…
+                {t('story.moreScenes', { count: story.scenes.length - 4 })}
               </li>
             )}
           </ol>
         ) : (
-          <p className="text-xs text-base-content/30 italic flex-1">No scenes yet</p>
+          <p className="text-xs text-base-content/30 italic flex-1">{t('story.noScenesYet')}</p>
         )}
 
         {/* Enter Stage button */}
@@ -131,11 +131,11 @@ export function StoryCard({ story, isDirector }: StoryCardProps) {
               className="btn btn-sm btn-primary w-full font-display tracking-wide"
               onClick={() => router.navigate({ to: `${langPrefix}/stage/$sceneId`, params: { sceneId: firstScene.id } })}
             >
-              Enter Stage <Theater className="size-4" />
+              {t('story.enterStage')} <Theater className="size-4" />
             </button>
           ) : (
             <button className="btn btn-sm btn-ghost w-full" disabled>
-              No scenes
+              {t('story.noScenes')}
             </button>
           )}
         </div>
