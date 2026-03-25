@@ -17,13 +17,21 @@ export const Route = createFileRoute('/($lang)')({
   },
   component: function LangLayout() {
     const { lang } = Route.useParams() as { lang?: string }
-    const locale = lang ?? 'en'
 
     useEffect(() => {
       // client-only: avoids SSR singleton mutation on concurrent requests
+      let locale: string
+      if (lang !== undefined) {
+        // Explicit URL prefix (e.g. /de/) — always honour it
+        locale = lang
+      } else {
+        // No URL prefix — use browser language, fallback to English
+        const browser = (navigator.languages?.[0] ?? navigator.language ?? 'en').toLowerCase()
+        locale = browser.startsWith('de') ? 'de' : 'en'
+      }
       i18n.changeLanguage(locale)
       document.documentElement.lang = locale
-    }, [locale])
+    }, [lang])
 
     return <Outlet />
   },
