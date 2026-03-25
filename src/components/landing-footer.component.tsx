@@ -8,7 +8,7 @@ export function LandingFooter() {
 
   const LINKS = {
     [t('footer.platform')]: [
-      { label: t('nav.watchLive'), to: "/show" },
+      { label: t('nav.watchLive'), to: `${langPrefix}/show` },
       { label: t('nav.pricing'), to: `${langPrefix}/pricing` },
       { label: t('nav.concept'), to: `${langPrefix}/concept` },
       { label: t('nav.docs'), to: `${langPrefix}/docs` },

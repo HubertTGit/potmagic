@@ -17,7 +17,7 @@ interface PublicStoryCardProps {
 }
 
 export function PublicStoryCard({ id, title, status }: PublicStoryCardProps) {
-  const { t } = useLanguage();
+  const { t, langPrefix } = useLanguage();
   const STATUS_LABEL: Record<StoryStatus, string> = {
     draft: t('status.draft'),
     active: t('status.active'),
@@ -43,7 +43,7 @@ export function PublicStoryCard({ id, title, status }: PublicStoryCardProps) {
         {status === 'active' && (
           <div className="card-actions mt-auto pt-1">
             <Link
-              to="/show/$storyId"
+              to={`${langPrefix}/show/$storyId` as any}
               params={{ storyId: id }}
               className="btn btn-sm btn-primary w-full font-display tracking-wide"
             >

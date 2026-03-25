@@ -127,7 +127,7 @@ export function LandingNavbar() {
               {session ? t("nav.startCurating") : t("nav.joinTheatre")}
             </Link>
             <Link
-              to="/show"
+              to={`${langPrefix}/show` as any}
               className="btn btn-accent btn-sm font-display px-5 tracking-wide"
             >
               {t("nav.watchLive")}
@@ -202,7 +202,7 @@ export function LandingNavbar() {
               </li>
               <li className="mt-1">
                 <Link
-                  to="/show"
+                  to={`${langPrefix}/show` as any}
                   className="btn btn-accent btn-sm font-display tracking-wide"
                 >
                   {t("nav.watchLive")}

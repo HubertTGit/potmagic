@@ -5,7 +5,7 @@ import { LandingNavbar } from '@/components/landing-navbar.component';
 import { LandingFooter } from '@/components/landing-footer.component';
 import { PublicStoryCard } from '@/components/public-story-card.component';
 
-export const Route = createFileRoute('/show/')({
+export const Route = createFileRoute('/($lang)/show/')({
   head: () => ({
     meta: [
       { title: 'Live Shows — potmagic: Live Story Theater' },

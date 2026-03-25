@@ -14,7 +14,7 @@ import { cn } from "@/lib/cn";
 import { useTheme, Theme } from "@/hooks/useTheme";
 import { Maximize2, Minimize2 } from "lucide-react";
 
-export const Route = createFileRoute("/show/$storyId")({
+export const Route = createFileRoute("/($lang)/show/$storyId")({
   head: () => ({
     meta: [
       { title: "Watch Live — potmagic: Live Story Theater" },

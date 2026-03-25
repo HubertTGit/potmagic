@@ -10,8 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LangRouteImport } from './routes/($lang)'
-import { Route as ShowIndexRouteImport } from './routes/show/index'
-import { Route as ShowStoryIdRouteImport } from './routes/show/$storyId'
+import { Route as LangShowIndexRouteImport } from './routes/($lang)/show/index'
+import { Route as LangShowStoryIdRouteImport } from './routes/($lang)/show/$storyId'
 import { Route as LangIndexRouteImport } from './routes/($lang)/index'
 import { Route as LangPricingRouteImport } from './routes/($lang)/pricing'
 import { Route as LangUnderConstructionRouteImport } from './routes/($lang)/under-construction'
@@ -43,15 +43,15 @@ const LangRoute = LangRouteImport.update({
   path: '/{-$lang}',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ShowIndexRoute = ShowIndexRouteImport.update({
+const LangShowIndexRoute = LangShowIndexRouteImport.update({
   id: '/show/',
   path: '/show/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => LangRoute,
 } as any)
-const ShowStoryIdRoute = ShowStoryIdRouteImport.update({
+const LangShowStoryIdRoute = LangShowStoryIdRouteImport.update({
   id: '/show/$storyId',
   path: '/show/$storyId',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => LangRoute,
 } as any)
 const LangIndexRoute = LangIndexRouteImport.update({
   id: '/',
@@ -182,8 +182,8 @@ const LangAppStoriesStoryIdScenesSceneIdRoute =
 
 export interface FileRoutesByFullPath {
   '/($lang)': typeof LangRouteWithChildren
-  '/show/': typeof ShowIndexRoute
-  '/show/$storyId': typeof ShowStoryIdRoute
+  '/($lang)/show/': typeof LangShowIndexRoute
+  '/($lang)/show/$storyId': typeof LangShowStoryIdRoute
   '/($lang)/': typeof LangIndexRoute
   '/($lang)/pricing': typeof LangPricingRoute
   '/($lang)/under-construction': typeof LangUnderConstructionRoute
@@ -210,8 +210,8 @@ export interface FileRoutesByFullPath {
   '/($lang)/stories/$storyId/scenes/$sceneId': typeof LangAppStoriesStoryIdScenesSceneIdRoute
 }
 export interface FileRoutesByTo {
-  '/show': typeof ShowIndexRoute
-  '/show/$storyId': typeof ShowStoryIdRoute
+  '/($lang)/show': typeof LangShowIndexRoute
+  '/($lang)/show/$storyId': typeof LangShowStoryIdRoute
   '/($lang)': typeof LangIndexRoute
   '/($lang)/pricing': typeof LangPricingRoute
   '/($lang)/under-construction': typeof LangUnderConstructionRoute
@@ -272,12 +272,16 @@ export interface FileRoutesByTo {
   '/de/stage'?: typeof LangAppStageIndexRoute
   '/stage/$sceneId'?: typeof LangAppStageSceneIdRoute
   '/de/stage/$sceneId'?: typeof LangAppStageSceneIdRoute
+  '/show'?: typeof LangShowIndexRoute
+  '/de/show'?: typeof LangShowIndexRoute
+  '/show/$storyId'?: typeof LangShowStoryIdRoute
+  '/de/show/$storyId'?: typeof LangShowStoryIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/($lang)': typeof LangRouteWithChildren
-  '/show/': typeof ShowIndexRoute
-  '/show/$storyId': typeof ShowStoryIdRoute
+  '/($lang)/show/': typeof LangShowIndexRoute
+  '/($lang)/show/$storyId': typeof LangShowStoryIdRoute
   '/($lang)/': typeof LangIndexRoute
   '/($lang)/pricing': typeof LangPricingRoute
   '/($lang)/under-construction': typeof LangUnderConstructionRoute
@@ -308,8 +312,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/($lang)'
-    | '/show/'
-    | '/show/$storyId'
+    | '/($lang)/show/'
+    | '/($lang)/show/$storyId'
     | '/($lang)/'
     | '/($lang)/pricing'
     | '/($lang)/under-construction'
@@ -336,8 +340,8 @@ export interface FileRouteTypes {
     | '/($lang)/stories/$storyId/scenes/$sceneId'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/show'
-    | '/show/$storyId'
+    | '/($lang)/show'
+    | '/($lang)/show/$storyId'
     | '/($lang)'
     | '/($lang)/pricing'
     | '/($lang)/under-construction'
@@ -408,11 +412,15 @@ export interface FileRouteTypes {
     | '/de/stage'
     | '/stage/$sceneId'
     | '/de/stage/$sceneId'
+    | '/show'
+    | '/de/show'
+    | '/show/$storyId'
+    | '/de/show/$storyId'
   id:
     | '__root__'
     | '/($lang)'
-    | '/show/'
-    | '/show/$storyId'
+    | '/($lang)/show/'
+    | '/($lang)/show/$storyId'
     | '/($lang)/'
     | '/($lang)/pricing'
     | '/($lang)/under-construction'
@@ -442,8 +450,6 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   LangRoute: typeof LangRouteWithChildren
-  ShowIndexRoute: typeof ShowIndexRoute
-  ShowStoryIdRoute: typeof ShowStoryIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -455,19 +461,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/show/': {
+    '/($lang)/show/': {
       id: '/show/'
       path: '/show'
-      fullPath: '/show/'
-      preLoaderRoute: typeof ShowIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/($lang)/show/'
+      preLoaderRoute: typeof LangShowIndexRouteImport
+      parentRoute: typeof LangRoute
     }
-    '/show/$storyId': {
+    '/($lang)/show/$storyId': {
       id: '/show/$storyId'
       path: '/show/$storyId'
-      fullPath: '/show/$storyId'
-      preLoaderRoute: typeof ShowStoryIdRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/($lang)/show/$storyId'
+      preLoaderRoute: typeof LangShowStoryIdRouteImport
+      parentRoute: typeof LangRoute
     }
     '/($lang)/': {
       id: '/($lang)/'
@@ -697,6 +703,10 @@ declare module '@tanstack/react-router' {
     '/de/stage': { id: '/de/stage'; path: '/de/stage'; fullPath: '/de/stage'; preLoaderRoute: typeof LangAppStageIndexRouteImport; parentRoute: typeof rootRouteImport }
     '/stage/$sceneId': { id: '/stage/$sceneId'; path: '/stage/$sceneId'; fullPath: '/stage/$sceneId'; preLoaderRoute: typeof LangAppStageSceneIdRouteImport; parentRoute: typeof rootRouteImport }
     '/de/stage/$sceneId': { id: '/de/stage/$sceneId'; path: '/de/stage/$sceneId'; fullPath: '/de/stage/$sceneId'; preLoaderRoute: typeof LangAppStageSceneIdRouteImport; parentRoute: typeof rootRouteImport }
+    '/show': { id: '/show'; path: '/show'; fullPath: '/show'; preLoaderRoute: typeof LangShowIndexRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/show': { id: '/de/show'; path: '/de/show'; fullPath: '/de/show'; preLoaderRoute: typeof LangShowIndexRouteImport; parentRoute: typeof rootRouteImport }
+    '/show/$storyId': { id: '/show/$storyId'; path: '/show/$storyId'; fullPath: '/show/$storyId'; preLoaderRoute: typeof LangShowStoryIdRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/show/$storyId': { id: '/de/show/$storyId'; path: '/de/show/$storyId'; fullPath: '/de/show/$storyId'; preLoaderRoute: typeof LangShowStoryIdRouteImport; parentRoute: typeof rootRouteImport }
   }
 }
 
@@ -763,6 +773,8 @@ interface LangRouteChildren {
   LangAuthRoute: typeof LangAuthRouteWithChildren
   LangDocsRoute: typeof LangDocsRouteWithChildren
   LangAppRoute: typeof LangAppRouteWithChildren
+  LangShowIndexRoute: typeof LangShowIndexRoute
+  LangShowStoryIdRoute: typeof LangShowStoryIdRoute
 }
 
 const LangRouteChildren: LangRouteChildren = {
@@ -778,14 +790,14 @@ const LangRouteChildren: LangRouteChildren = {
   LangAuthRoute: LangAuthRouteWithChildren,
   LangDocsRoute: LangDocsRouteWithChildren,
   LangAppRoute: LangAppRouteWithChildren,
+  LangShowIndexRoute: LangShowIndexRoute,
+  LangShowStoryIdRoute: LangShowStoryIdRoute,
 }
 
 const LangRouteWithChildren = LangRoute._addFileChildren(LangRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   LangRoute: LangRouteWithChildren,
-  ShowIndexRoute: ShowIndexRoute,
-  ShowStoryIdRoute: ShowStoryIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
