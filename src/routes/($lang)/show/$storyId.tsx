@@ -69,11 +69,12 @@ const STAGE_HEIGHT = 720;
 
 function CanvasVideoPlayer() {
   const { theme } = useTheme();
+  const { t } = useLanguage();
   const tracks = useTracks([Track.Source.ScreenShare]);
 
   // Take the first screen share track in the room (always the director's canvas)
   const canvasTrack = tracks.find(
-    (t): t is TrackReference => t.publication != null,
+    (track): track is TrackReference => track.publication != null,
   );
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -96,7 +97,7 @@ function CanvasVideoPlayer() {
           alt="potmagic"
           className="size-12 animate-bounce"
         />
-        <span>The show will start shortly.</span>
+        <span>{t("show.willStartShortly")}</span>
       </div>
     );
   }
@@ -125,7 +126,7 @@ function ShowContent({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const { theme } = useTheme();
-  const { langPrefix } = useLanguage();
+  const { t, langPrefix } = useLanguage();
 
   // Create audio element on mount
   useEffect(() => {
@@ -222,7 +223,7 @@ function ShowContent({
             title="Enter fullscreen"
           >
             <Maximize2 className="size-4" />
-            <span className="text-xs">Enlarge</span>
+            <span className="text-xs">{t("show.enlarge")}</span>
           </button>
         </div>
       )}
@@ -254,7 +255,7 @@ function ShowContent({
             title="Exit fullscreen"
           >
             <Minimize2 className="size-4" />
-            <span className="text-xs">Exit</span>
+            <span className="text-xs">{t("show.exit")}</span>
           </button>
         )}
 
@@ -266,7 +267,7 @@ function ShowContent({
 
 function ShowPage() {
   const { storyId } = Route.useParams();
-  const { langPrefix } = useLanguage();
+  const { t, langPrefix } = useLanguage();
   const [forcedOffline, setForcedOffline] = useState(false);
   const { theme } = useTheme();
 
@@ -314,13 +315,13 @@ function ShowPage() {
           alt="potmagic"
         />
         <p className="font-display text-base-content/60 text-2xl">
-          Show not found
+          {t("show.notFound")}
         </p>
         <Link
           to={`${langPrefix}/show` as any}
           className="btn btn-accent btn-sm mt-2"
         >
-          ← Back to Show entry
+          {t("show.backToEntry")}
         </Link>
       </div>
     );
@@ -334,12 +335,12 @@ function ShowPage() {
           alt="potmagic"
         />
         <p className="font-display text-base-content text-2xl">{story.title}</p>
-        <p className="text-base-content/50 text-sm">The show has ended</p>
+        <p className="text-base-content/50 text-sm">{t("show.ended")}</p>
         <Link
           to={`${langPrefix}/show` as any}
           className="btn btn-accent btn-sm mt-2"
         >
-          ← Back to Show entry
+          {t("show.backToEntry")}
         </Link>
       </div>
     );
@@ -350,10 +351,10 @@ function ShowPage() {
       <div className="bg-base-100 fixed inset-0 flex flex-col items-center justify-center gap-3">
         <span className="text-4xl">🎭</span>
         <p className="font-display text-base-content/60 text-2xl">
-          Not live yet
+          {t("show.notLiveYet")}
         </p>
         <p className="text-base-content/40 text-sm">
-          {story.title} — check back soon
+          {t("show.checkBackSoon", { title: story.title })}
         </p>
       </div>
     );

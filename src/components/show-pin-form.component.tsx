@@ -2,13 +2,16 @@ import { useForm } from "@tanstack/react-form";
 import { useState } from "react";
 import { lookupStoryByPin } from "@/lib/stories.fns";
 import { cn } from "@/lib/cn";
+import { useLanguage } from "@/hooks/useLanguage";
 
-function validatePin(value: string): string | undefined {
-  if (!value) return "PIN is required";
-  if (value.length !== 6) return "PIN must be exactly 6 characters";
-  if (!/^[A-Z0-9]+$/.test(value))
-    return "PIN must contain only letters and numbers";
-  return undefined;
+function useValidatePin() {
+  const { t } = useLanguage();
+  return (value: string): string | undefined => {
+    if (!value) return t("show.pin.error.required");
+    if (value.length !== 6) return t("show.pin.error.length");
+    if (!/^[A-Z0-9]+$/.test(value)) return t("show.pin.error.format");
+    return undefined;
+  };
 }
 
 interface ShowPinFormProps {
@@ -16,6 +19,8 @@ interface ShowPinFormProps {
 }
 
 export function ShowPinForm({ onSuccess }: ShowPinFormProps) {
+  const { t } = useLanguage();
+  const validatePin = useValidatePin();
   const [serverError, setServerError] = useState<string | null>(null);
 
   const form = useForm({
@@ -27,7 +32,7 @@ export function ShowPinForm({ onSuccess }: ShowPinFormProps) {
         onSuccess(result.storyId);
       } catch (e) {
         setServerError(
-          e instanceof Error ? e.message : "PIN incorrect, can not find story",
+          e instanceof Error ? e.message : t("show.pin.error.notFound"),
         );
       }
     },
@@ -38,11 +43,10 @@ export function ShowPinForm({ onSuccess }: ShowPinFormProps) {
       <div className="card-body items-center gap-6 text-center">
         <div className="flex flex-col gap-1">
           <h1 className="font-display text-xl font-semibold tracking-wide">
-            Enter your show PIN
+            {t("show.pin.heading")}
           </h1>
           <p className="text-base-content/50 text-sm">
-            You should have a 6-character PIN from the show host in your email
-            inbox.
+            {t("show.pin.subtitle")}
           </p>
         </div>
 
@@ -118,7 +122,7 @@ export function ShowPinForm({ onSuccess }: ShowPinFormProps) {
                 {isSubmitting ? (
                   <span className="loading loading-spinner loading-sm" />
                 ) : (
-                  "Join Show"
+                  t("show.pin.joinButton")
                 )}
               </button>
             )}

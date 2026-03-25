@@ -585,5 +585,22 @@
   "docs.sizeGuidelines.panning.viewportEdge": "viewport edge",
   "docs.sizeGuidelines.panning.dragHint": "drag to pan",
   "docs.sizeGuidelines.panning.footerLeft": "1280 px viewport",
-  "docs.sizeGuidelines.panning.footerRight": "2000 px background (example)"
+  "docs.sizeGuidelines.panning.footerRight": "2000 px background (example)",
+
+  "show.pin.heading": "Enter your show PIN",
+  "show.pin.subtitle": "You should have a 6-character PIN from the show host in your email inbox.",
+  "show.pin.joinButton": "Join Show",
+  "show.pin.error.required": "PIN is required",
+  "show.pin.error.length": "PIN must be exactly 6 characters",
+  "show.pin.error.format": "PIN must contain only letters and numbers",
+  "show.pin.error.notFound": "PIN incorrect, can not find story",
+
+  "show.willStartShortly": "The show will start shortly.",
+  "show.enlarge": "Enlarge",
+  "show.exit": "Exit",
+  "show.notFound": "Show not found",
+  "show.backToEntry": "← Back to Show entry",
+  "show.ended": "The show has ended",
+  "show.notLiveYet": "Not live yet",
+  "show.checkBackSoon": "{{title}} — check back soon"
 }

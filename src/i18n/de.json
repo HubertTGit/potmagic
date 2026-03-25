@@ -518,5 +518,22 @@
   "docs.sizeGuidelines.panning.viewportEdge": "Viewport-Rand",
   "docs.sizeGuidelines.panning.dragHint": "Ziehen zum Schwenken",
   "docs.sizeGuidelines.panning.footerLeft": "1280 px Viewport",
-  "docs.sizeGuidelines.panning.footerRight": "2000 px Hintergrund (Beispiel)"
+  "docs.sizeGuidelines.panning.footerRight": "2000 px Hintergrund (Beispiel)",
+
+  "show.pin.heading": "Gib deine Show-PIN ein",
+  "show.pin.subtitle": "Du solltest eine 6-stellige PIN vom Show-Host in deinem E-Mail-Postfach haben.",
+  "show.pin.joinButton": "Show beitreten",
+  "show.pin.error.required": "PIN ist erforderlich",
+  "show.pin.error.length": "PIN muss genau 6 Zeichen lang sein",
+  "show.pin.error.format": "PIN darf nur Buchstaben und Zahlen enthalten",
+  "show.pin.error.notFound": "PIN falsch, Show nicht gefunden",
+
+  "show.willStartShortly": "Die Show beginnt gleich.",
+  "show.enlarge": "Vergrößern",
+  "show.exit": "Schließen",
+  "show.notFound": "Show nicht gefunden",
+  "show.backToEntry": "← Zurück zur Show-Eingabe",
+  "show.ended": "Die Show ist beendet",
+  "show.notLiveYet": "Noch nicht live",
+  "show.checkBackSoon": "{{title}} — schau bald wieder vorbei"
 }
