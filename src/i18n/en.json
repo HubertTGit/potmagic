@@ -12,6 +12,8 @@
   "nav.watchLive": "Watch Live",
   "nav.stories": "Stories",
   "nav.stage": "Stage",
+  "nav.goToStage": "Go to Stage",
+  "nav.welcome": "Welcome, {{name}}",
   "nav.director": "Director",
   "nav.profile": "Profile",
   "nav.account": "Account",

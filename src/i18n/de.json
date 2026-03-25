@@ -12,6 +12,8 @@
   "nav.watchLive": "Live schauen",
   "nav.stories": "Geschichten",
   "nav.stage": "Bühne",
+  "nav.goToStage": "Zur Bühne",
+  "nav.welcome": "Willkommen, {{name}}",
   "nav.director": "Regie",
   "nav.profile": "Profil",
   "nav.account": "Konto",
