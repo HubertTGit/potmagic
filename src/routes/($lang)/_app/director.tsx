@@ -15,11 +15,13 @@ import { ActorsTab } from "@/components/actors-tab.component";
 import { updateStoryStatus } from "@/lib/story-detail.fns";
 import type { PropType } from "@/db/schema";
 import { toast } from "@/lib/toast";
+import { getMeta } from "@/i18n/meta";
 
 export const Route = createFileRoute("/($lang)/_app/director")({
-  head: () => ({
-    meta: [{ title: "Director Dashboard — potmagic: Live Story Theater" }],
-  }),
+  head: ({ match }) => {
+    const locale = (match.context as { locale?: string })?.locale ?? "en";
+    return { meta: [{ title: getMeta(locale, "meta.director.title") }] };
+  },
   component: DirectorPage,
 });
 

@@ -8,6 +8,7 @@ import { LandingNavbar } from "@/components/landing-navbar.component";
 import { LandingFooter } from "@/components/landing-footer.component";
 import { BookOpen, FilePlus, Layers, Library, Ruler } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
+import { getMeta } from "@/i18n/meta";
 
 const BASE_URL = "https://potmagic.com";
 
@@ -16,7 +17,7 @@ export const Route = createFileRoute("/($lang)/docs")({
     const locale = (match.context as { locale?: string })?.locale ?? "en";
     return {
       meta: [
-        { title: "Docs — potmagic: Live Story Theater" },
+        { title: getMeta(locale, "meta.docs.title") },
       ],
       links: [
         { rel: "alternate", hrefLang: "en", href: `${BASE_URL}/docs` },

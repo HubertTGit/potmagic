@@ -2,19 +2,19 @@ import { createFileRoute } from "@tanstack/react-router";
 import { LandingNavbar } from "@/components/landing-navbar.component";
 import { LandingFooter } from "@/components/landing-footer.component";
 import { Check, Wand2, Sparkles, Building2 } from "lucide-react";
+import { getMeta } from "@/i18n/meta";
 
 const BASE_URL = "https://potmagic.com";
 
 export const Route = createFileRoute("/($lang)/pricing")({
   head: ({ match }) => {
     const locale = (match.context as { locale?: string })?.locale ?? "en";
-    const isDE = locale === "de";
     return {
       meta: [
-        { title: isDE ? "Preise — potmagic" : "Pricing — potmagic: Live Story Theater" },
-        { name: "description", content: isDE ? "Einfache, transparente Preise für potmagic." : "Simple, honest plans for every stage. From free family shows to full professional productions — potmagic has a plan for every storyteller." },
-        { property: "og:title", content: isDE ? "Preise — potmagic" : "Pricing — potmagic" },
-        { property: "og:description", content: isDE ? "Einfache, transparente Preise für potmagic." : "Simple, honest plans for every stage. From free family shows to full professional productions." },
+        { title: getMeta(locale, "meta.pricing.title") },
+        { name: "description", content: getMeta(locale, "meta.pricing.description") },
+        { property: "og:title", content: getMeta(locale, "meta.pricing.ogTitle") },
+        { property: "og:description", content: getMeta(locale, "meta.pricing.ogDescription") },
         { property: "og:type", content: "website" },
       ],
       links: [

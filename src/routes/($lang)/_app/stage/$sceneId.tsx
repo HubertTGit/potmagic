@@ -1,4 +1,5 @@
 import { createFileRoute, ErrorComponent } from "@tanstack/react-router";
+import { getMeta } from "@/i18n/meta";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { lazy, useEffect, useRef, useState, useCallback, Suspense } from "react";
 import {
@@ -30,7 +31,10 @@ const StageComponent = lazy(() =>
 );
 
 export const Route = createFileRoute("/($lang)/_app/stage/$sceneId")({
-  head: () => ({ meta: [{ title: "Stage — potmagic: Live Story Theater" }] }),
+  head: ({ match }) => {
+    const locale = (match.context as { locale?: string })?.locale ?? "en";
+    return { meta: [{ title: getMeta(locale, "meta.stage.title") }] };
+  },
   component: SceneStagePage,
   pendingComponent: () => (
     <div className="bg-base-100 fixed inset-0 flex items-center justify-center">

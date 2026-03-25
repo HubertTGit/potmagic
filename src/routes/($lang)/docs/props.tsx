@@ -1,19 +1,23 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Library, ImageIcon, Music, Sparkles, Clapperboard } from 'lucide-react';
+import { getMeta } from '@/i18n/meta';
 
 const BASE_URL = 'https://potmagic.com';
 
 export const Route = createFileRoute('/($lang)/docs/props')({
-  head: () => ({
-    meta: [
-      { title: 'Props Library — potmagic: Live Story Theater' },
-      { name: 'description', content: 'Manage your props library on potmagic — upload characters, backgrounds, sounds, and Rive animations for your productions.' },
-    ],
-    links: [
-      { rel: 'alternate', hrefLang: 'en', href: `${BASE_URL}/docs/props` },
-      { rel: 'alternate', hrefLang: 'de', href: `${BASE_URL}/de/docs/props` },
-    ],
-  }),
+  head: ({ match }) => {
+    const locale = (match.context as { locale?: string })?.locale ?? 'en';
+    return {
+      meta: [
+        { title: getMeta(locale, 'meta.docs.props.title') },
+        { name: 'description', content: getMeta(locale, 'meta.docs.props.description') },
+      ],
+      links: [
+        { rel: 'alternate', hrefLang: 'en', href: `${BASE_URL}/docs/props` },
+        { rel: 'alternate', hrefLang: 'de', href: `${BASE_URL}/de/docs/props` },
+      ],
+    };
+  },
   component: PropsPage,
 });
 

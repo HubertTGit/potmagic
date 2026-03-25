@@ -4,12 +4,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { authClient } from '@/lib/auth-client';
 import { listStories, createStory } from '@/lib/stories.fns';
 import { StoryGrid } from '@/components/story-grid';
+import { getMeta } from '@/i18n/meta';
 
 export const Route = createFileRoute('/($lang)/_app/stories/')({
   head: ({ match }) => {
     const locale = (match.context as { locale?: string })?.locale ?? 'en';
     return {
-      meta: [{ title: locale === 'de' ? 'Geschichten — potmagic: Live Story Theater' : 'Stories — potmagic: Live Story Theater' }],
+      meta: [{ title: getMeta(locale, 'meta.stories.title') }],
     };
   },
   component: StoriesPage,

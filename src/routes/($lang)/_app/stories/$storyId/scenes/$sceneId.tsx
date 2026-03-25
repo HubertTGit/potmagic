@@ -1,4 +1,5 @@
 import { createFileRoute, Link, ErrorComponent } from '@tanstack/react-router';
+import { getMeta } from '@/i18n/meta';
 import { Theater } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import {
@@ -36,7 +37,10 @@ import {
 } from '@/components/scene-sound-section';
 
 export const Route = createFileRoute('/($lang)/_app/stories/$storyId/scenes/$sceneId')({
-  head: () => ({ meta: [{ title: 'Scene — potmagic: Live Story Theater' }] }),
+  head: ({ match }) => {
+    const locale = (match.context as { locale?: string })?.locale ?? 'en';
+    return { meta: [{ title: getMeta(locale, 'meta.sceneDetail.title') }] };
+  },
   component: SceneDetailPage,
   pendingComponent: () => (
     <div className="p-8 max-w-3xl">

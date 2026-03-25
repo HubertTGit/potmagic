@@ -2,37 +2,22 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { LandingNavbar } from "@/components/landing-navbar.component";
 import { LandingFooter } from "@/components/landing-footer.component";
 import { useLanguage } from "@/hooks/useLanguage";
+import { getMeta } from "@/i18n/meta";
 
 const BASE_URL = "https://potmagic.com";
 
 export const Route = createFileRoute("/($lang)/")({
   head: ({ match }) => {
     const locale = (match.context as { locale?: string })?.locale ?? "en";
-    const isDE = locale === "de";
     return {
       meta: [
-        { title: "potmagic: Live Story Theater" },
-        {
-          name: "description",
-          content: isDE
-            ? "Tritt ins digitale Rampenlicht. potmagic ist eine kollaborative Live-Storytelling-Plattform für Familien, Freunde und Kreative."
-            : "Step into the digital spotlight. potmagic is a live collaborative storytelling platform for families, friends, and creators to perform interactive stories from anywhere.",
-        },
-        { property: "og:title", content: "potmagic: Live Story Theater" },
-        {
-          property: "og:description",
-          content: isDE
-            ? "Führe live interaktive Geschichten mit deiner Community von überall auf der Welt auf."
-            : "Perform live interactive stories with your community from anywhere in the world. Directors, actors, and audiences connect in real-time.",
-        },
+        { title: getMeta(locale, "meta.home.title") },
+        { name: "description", content: getMeta(locale, "meta.home.description") },
+        { property: "og:title", content: getMeta(locale, "meta.home.ogTitle") },
+        { property: "og:description", content: getMeta(locale, "meta.home.ogDescription") },
         { property: "og:type", content: "website" },
-        { name: "twitter:title", content: "potmagic: Live Story Theater" },
-        {
-          name: "twitter:description",
-          content: isDE
-            ? "Führe live interaktive Geschichten mit deiner Community von überall auf der Welt auf."
-            : "Perform live interactive stories with your community from anywhere in the world.",
-        },
+        { name: "twitter:title", content: getMeta(locale, "meta.home.title") },
+        { name: "twitter:description", content: getMeta(locale, "meta.home.twitterDescription") },
       ],
       links: [
         { rel: "alternate", hrefLang: "en", href: `${BASE_URL}/` },

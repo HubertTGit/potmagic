@@ -1,19 +1,23 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { FilePlus, Clapperboard } from 'lucide-react';
+import { getMeta } from '@/i18n/meta';
 
 const BASE_URL = 'https://potmagic.com';
 
 export const Route = createFileRoute('/($lang)/docs/create-story')({
-  head: () => ({
-    meta: [
-      { title: 'Create a Story — potmagic: Live Story Theater' },
-      { name: 'description', content: 'Learn how to create a new story as a Director on potmagic — set scenes, assign props, and invite your cast.' },
-    ],
-    links: [
-      { rel: 'alternate', hrefLang: 'en', href: `${BASE_URL}/docs/create-story` },
-      { rel: 'alternate', hrefLang: 'de', href: `${BASE_URL}/de/docs/create-story` },
-    ],
-  }),
+  head: ({ match }) => {
+    const locale = (match.context as { locale?: string })?.locale ?? 'en';
+    return {
+      meta: [
+        { title: getMeta(locale, 'meta.docs.createStory.title') },
+        { name: 'description', content: getMeta(locale, 'meta.docs.createStory.description') },
+      ],
+      links: [
+        { rel: 'alternate', hrefLang: 'en', href: `${BASE_URL}/docs/create-story` },
+        { rel: 'alternate', hrefLang: 'de', href: `${BASE_URL}/de/docs/create-story` },
+      ],
+    };
+  },
   component: CreateStoryPage,
 });
 

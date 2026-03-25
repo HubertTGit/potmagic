@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LandingNavbar } from "@/components/landing-navbar.component";
 import { LandingFooter } from "@/components/landing-footer.component";
+import { getMeta } from "@/i18n/meta";
 import {
-  Clapperboard,
   Users,
   Globe,
   Map,
@@ -25,23 +25,12 @@ const BASE_URL = "https://potmagic.com";
 export const Route = createFileRoute("/($lang)/concept")({
   head: ({ match }) => {
     const locale = (match.context as { locale?: string })?.locale ?? "en";
-    const isDE = locale === "de";
     return {
       meta: [
-        { title: isDE ? "Konzept — potmagic: Live Story Theater" : "Concept — potmagic: Live Story Theater" },
-        {
-          name: "description",
-          content: isDE
-            ? "Erfahre mehr über die Vision hinter potmagic — eine Live-Theater-Plattform für Regisseure, Schauspieler und Gemeinschaften."
-            : "Learn about the vision behind potmagic — a live story theater platform built for Directors, Actors, and Communities to create and share interactive stories in real-time.",
-        },
-        { property: "og:title", content: isDE ? "Das Konzept hinter potmagic" : "The Concept Behind potmagic" },
-        {
-          property: "og:description",
-          content: isDE
-            ? "Ein bewusstes Gegenmittel zu passivem Medienkonsum. potmagic bringt Menschen durch Live-Storytelling zusammen."
-            : "A deliberate antidote to passive screen consumption. potmagic brings people together through live, collaborative storytelling.",
-        },
+        { title: getMeta(locale, "meta.concept.title") },
+        { name: "description", content: getMeta(locale, "meta.concept.description") },
+        { property: "og:title", content: getMeta(locale, "meta.concept.ogTitle") },
+        { property: "og:description", content: getMeta(locale, "meta.concept.ogDescription") },
         { property: "og:type", content: "website" },
       ],
       links: [

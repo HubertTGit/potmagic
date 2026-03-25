@@ -44,7 +44,26 @@
 
   "meta.pricing.title": "Preise — potmagic",
   "meta.pricing.description": "Einfache, transparente Preise für potmagic.",
+  "meta.pricing.ogTitle": "Preise — potmagic",
+  "meta.pricing.ogDescription": "Einfache, transparente Preise für potmagic.",
+  "meta.auth.title": "Anmelden — potmagic: Live Story Theater",
+  "meta.auth.description": "Melde dich bei potmagic an oder erstelle ein Konto, um zu beginnen.",
 
   "meta.stories.title": "Geschichten — potmagic: Live Story Theater",
-  "meta.docs.title": "Docs — potmagic"
+  "meta.storyDetail.title": "Geschichte — potmagic: Live Story Theater",
+  "meta.sceneDetail.title": "Szene — potmagic: Live Story Theater",
+  "meta.stage.title": "Bühne — potmagic: Live Story Theater",
+  "meta.director.title": "Regisseur — potmagic: Live Story Theater",
+  "meta.docs.title": "Docs — potmagic",
+  "meta.docs.description": "Lerne, wie du potmagic nutzt — Anleitungen für Regisseure, Schauspieler und Zuschauer.",
+  "meta.docs.ogTitle": "Dokumentation — potmagic",
+  "meta.docs.ogDescription": "Anleitungen für Regisseure, Schauspieler und Zuschauer von potmagic.",
+  "meta.docs.createStory.title": "Geschichte erstellen — potmagic: Live Story Theater",
+  "meta.docs.createStory.description": "Lerne, wie du als Regisseur eine neue Geschichte erstellst und auf die Bühne bringst.",
+  "meta.docs.addScenes.title": "Szenen hinzufügen — potmagic: Live Story Theater",
+  "meta.docs.addScenes.description": "Lerne, wie du Szenen zu einer Geschichte hinzufügst und arrangierst.",
+  "meta.docs.props.title": "Requisiten — potmagic: Live Story Theater",
+  "meta.docs.props.description": "Verwalte deine Requisiten-Bibliothek auf potmagic — lade Charaktere, Hintergründe und Animationen hoch.",
+  "meta.docs.sizeGuidelines.title": "Größenrichtlinien — potmagic: Live Story Theater",
+  "meta.docs.sizeGuidelines.description": "Empfohlene Größen und Abmessungen für Charakter-, Hintergrund- und Requisiten-Assets."
 }

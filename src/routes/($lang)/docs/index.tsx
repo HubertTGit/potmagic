@@ -18,22 +18,27 @@ import {
   Keyboard,
 } from 'lucide-react';
 
+import { getMeta } from '@/i18n/meta';
+
 const BASE_URL = 'https://potmagic.com';
 
 export const Route = createFileRoute('/($lang)/docs/')({
-  head: () => ({
-    meta: [
-      { title: 'Docs — potmagic: Live Story Theater' },
-      { name: 'description', content: 'Learn how to use potmagic — guides for Directors, Actors, and Viewers to get the most out of the live story theater platform.' },
-      { property: 'og:title', content: 'Documentation — potmagic' },
-      { property: 'og:description', content: 'Guides for Directors, Actors, and Viewers to get the most out of the potmagic live story theater platform.' },
-      { property: 'og:type', content: 'website' },
-    ],
-    links: [
-      { rel: 'alternate', hrefLang: 'en', href: `${BASE_URL}/docs` },
-      { rel: 'alternate', hrefLang: 'de', href: `${BASE_URL}/de/docs` },
-    ],
-  }),
+  head: ({ match }) => {
+    const locale = (match.context as { locale?: string })?.locale ?? 'en';
+    return {
+      meta: [
+        { title: getMeta(locale, 'meta.docs.title') },
+        { name: 'description', content: getMeta(locale, 'meta.docs.description') },
+        { property: 'og:title', content: getMeta(locale, 'meta.docs.ogTitle') },
+        { property: 'og:description', content: getMeta(locale, 'meta.docs.ogDescription') },
+        { property: 'og:type', content: 'website' },
+      ],
+      links: [
+        { rel: 'alternate', hrefLang: 'en', href: `${BASE_URL}/docs` },
+        { rel: 'alternate', hrefLang: 'de', href: `${BASE_URL}/de/docs` },
+      ],
+    };
+  },
   component: DocsOverviewPage,
 });
 

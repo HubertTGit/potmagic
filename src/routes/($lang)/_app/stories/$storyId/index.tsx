@@ -1,4 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { getMeta } from "@/i18n/meta";
 import { Theater } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -17,7 +18,10 @@ import { authClient } from "@/lib/auth-client";
 import { StoryScenesTab } from "@/components/story-scenes-tab";
 
 export const Route = createFileRoute("/($lang)/_app/stories/$storyId/")({
-  head: () => ({ meta: [{ title: "Story — potmagic: Live Story Theater" }] }),
+  head: ({ match }) => {
+    const locale = (match.context as { locale?: string })?.locale ?? "en";
+    return { meta: [{ title: getMeta(locale, "meta.storyDetail.title") }] };
+  },
   component: StoryDetailPage,
 });
 
