@@ -166,6 +166,8 @@ Available skills to invoke with the `Skill` tool during development:
 
 - `tanstack-start-best-practices` — TanStack Start execution model, server functions, routing, middleware, SEO, import protection, hosting
 - `tanstack-start-i18n` — Optional locale URL prefix, react-i18next, language switching, HTML lang, `($lang)` pattern + build workaround
+- `tanstack-form-best-practices` — `useForm` setup, field validation timing, async initial values with TanStack Query, reactivity (`useStore`/`form.Subscribe`), listeners, custom error objects, SSR with TanStack Start
+- `tanstack-query-best-practices` — `useQuery`, query keys factory pattern, `queryOptions` helper, caching lifecycle (`staleTime`/`gcTime`), parallel queries with `useQueries`, render optimizations (`select`, `notifyOnChangeProps`), network mode, SSR hydration
 - `livekit-best-practices` — LiveKit rooms, tokens, multi-user video/voice/data exchange patterns
 - `react-best-practices` — Function components, Context API over prop drilling
 - `tailwind-dark-mode` — Dark/light mode with Tailwind v4, `data-theme` attribute
