@@ -4,21 +4,21 @@ import { useLanguage } from "@/hooks/useLanguage";
 
 export function LandingFooter() {
   const year = new Date().getFullYear();
-  const { t } = useLanguage();
+  const { t, langPrefix } = useLanguage();
 
   const LINKS = {
     [t('footer.platform')]: [
       { label: t('nav.watchLive'), to: "/show" },
-      { label: t('nav.pricing'), to: "/pricing" },
-      { label: t('nav.concept'), to: "/concept" },
-      { label: t('nav.docs'), to: "/docs" },
+      { label: t('nav.pricing'), to: `${langPrefix}/pricing` },
+      { label: t('nav.concept'), to: `${langPrefix}/concept` },
+      { label: t('nav.docs'), to: `${langPrefix}/docs` },
     ],
     [t('footer.company')]: [
-      { label: t('nav.aboutUs'), to: "/about" },
-      { label: t('nav.termsPolicy'), to: "/terms" },
-      { label: t('nav.privacyPolicy'), to: "/privacy" },
-      { label: t('nav.careers'), to: "/careers" },
-      { label: t('nav.help'), to: "/help" },
+      { label: t('nav.aboutUs'), to: `${langPrefix}/about` },
+      { label: t('nav.termsPolicy'), to: `${langPrefix}/terms` },
+      { label: t('nav.privacyPolicy'), to: `${langPrefix}/privacy` },
+      { label: t('nav.careers'), to: `${langPrefix}/careers` },
+      { label: t('nav.help'), to: `${langPrefix}/help` },
     ],
   };
 
@@ -35,7 +35,7 @@ export function LandingFooter() {
           {/* Brand */}
           <div className="flex flex-col gap-4 md:col-span-2">
             <Link
-              to={'/' as any}
+              to={`${langPrefix}/` as any}
               className="inline-block transition-opacity hover:opacity-75"
             >
               <img

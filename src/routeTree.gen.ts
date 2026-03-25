@@ -20,6 +20,11 @@ import { Route as LangAuthRouteImport } from './routes/($lang)/auth'
 import { Route as LangDocsRouteImport } from './routes/($lang)/docs'
 import { Route as LangAppRouteImport } from './routes/($lang)/_app'
 import { Route as LangAuthDirectorSetupRouteImport } from './routes/($lang)/auth.director-setup'
+import { Route as LangAboutRouteImport } from './routes/($lang)/about'
+import { Route as LangTermsRouteImport } from './routes/($lang)/terms'
+import { Route as LangPrivacyRouteImport } from './routes/($lang)/privacy'
+import { Route as LangCareersRouteImport } from './routes/($lang)/careers'
+import { Route as LangHelpRouteImport } from './routes/($lang)/help'
 import { Route as LangDocsIndexRouteImport } from './routes/($lang)/docs/index'
 import { Route as LangDocsAddScenesRouteImport } from './routes/($lang)/docs/add-scenes'
 import { Route as LangDocsCreateStoryRouteImport } from './routes/($lang)/docs/create-story'
@@ -80,6 +85,31 @@ const LangDocsRoute = LangDocsRouteImport.update({
 } as any)
 const LangAppRoute = LangAppRouteImport.update({
   id: '/_app',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangAboutRoute = LangAboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangTermsRoute = LangTermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangPrivacyRoute = LangPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangCareersRoute = LangCareersRouteImport.update({
+  id: '/careers',
+  path: '/careers',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangHelpRoute = LangHelpRouteImport.update({
+  id: '/help',
+  path: '/help',
   getParentRoute: () => LangRoute,
 } as any)
 const LangAuthDirectorSetupRoute = LangAuthDirectorSetupRouteImport.update({
@@ -158,6 +188,11 @@ export interface FileRoutesByFullPath {
   '/($lang)/pricing': typeof LangPricingRoute
   '/($lang)/under-construction': typeof LangUnderConstructionRoute
   '/($lang)/concept': typeof LangConceptRoute
+  '/($lang)/about': typeof LangAboutRoute
+  '/($lang)/terms': typeof LangTermsRoute
+  '/($lang)/privacy': typeof LangPrivacyRoute
+  '/($lang)/careers': typeof LangCareersRoute
+  '/($lang)/help': typeof LangHelpRoute
   '/($lang)/auth': typeof LangAuthRouteWithChildren
   '/($lang)/docs': typeof LangDocsRouteWithChildren
   '/($lang)/auth/director-setup': typeof LangAuthDirectorSetupRoute
@@ -181,6 +216,11 @@ export interface FileRoutesByTo {
   '/($lang)/pricing': typeof LangPricingRoute
   '/($lang)/under-construction': typeof LangUnderConstructionRoute
   '/($lang)/concept': typeof LangConceptRoute
+  '/($lang)/about': typeof LangAboutRoute
+  '/($lang)/terms': typeof LangTermsRoute
+  '/($lang)/privacy': typeof LangPrivacyRoute
+  '/($lang)/careers': typeof LangCareersRoute
+  '/($lang)/help': typeof LangHelpRoute
   '/($lang)/auth': typeof LangAuthRouteWithChildren
   '/($lang)/auth/director-setup': typeof LangAuthDirectorSetupRoute
   '/($lang)/docs': typeof LangDocsIndexRoute
@@ -242,6 +282,11 @@ export interface FileRoutesById {
   '/($lang)/pricing': typeof LangPricingRoute
   '/($lang)/under-construction': typeof LangUnderConstructionRoute
   '/($lang)/concept': typeof LangConceptRoute
+  '/($lang)/about': typeof LangAboutRoute
+  '/($lang)/terms': typeof LangTermsRoute
+  '/($lang)/privacy': typeof LangPrivacyRoute
+  '/($lang)/careers': typeof LangCareersRoute
+  '/($lang)/help': typeof LangHelpRoute
   '/($lang)/auth': typeof LangAuthRouteWithChildren
   '/($lang)/docs': typeof LangDocsRouteWithChildren
   '/($lang)/_app': typeof LangAppRouteWithChildren
@@ -269,6 +314,11 @@ export interface FileRouteTypes {
     | '/($lang)/pricing'
     | '/($lang)/under-construction'
     | '/($lang)/concept'
+    | '/($lang)/about'
+    | '/($lang)/terms'
+    | '/($lang)/privacy'
+    | '/($lang)/careers'
+    | '/($lang)/help'
     | '/($lang)/auth'
     | '/($lang)/docs'
     | '/($lang)/auth/director-setup'
@@ -292,6 +342,11 @@ export interface FileRouteTypes {
     | '/($lang)/pricing'
     | '/($lang)/under-construction'
     | '/($lang)/concept'
+    | '/($lang)/about'
+    | '/($lang)/terms'
+    | '/($lang)/privacy'
+    | '/($lang)/careers'
+    | '/($lang)/help'
     | '/($lang)/auth'
     | '/($lang)/auth/director-setup'
     | '/($lang)/docs'
@@ -313,6 +368,16 @@ export interface FileRouteTypes {
     | '/de/pricing'
     | '/concept'
     | '/de/concept'
+    | '/about'
+    | '/de/about'
+    | '/terms'
+    | '/de/terms'
+    | '/privacy'
+    | '/de/privacy'
+    | '/careers'
+    | '/de/careers'
+    | '/help'
+    | '/de/help'
     | '/under-construction'
     | '/de/under-construction'
     | '/auth'
@@ -352,6 +417,11 @@ export interface FileRouteTypes {
     | '/($lang)/pricing'
     | '/($lang)/under-construction'
     | '/($lang)/concept'
+    | '/($lang)/about'
+    | '/($lang)/terms'
+    | '/($lang)/privacy'
+    | '/($lang)/careers'
+    | '/($lang)/help'
     | '/($lang)/auth'
     | '/($lang)/docs'
     | '/($lang)/_app'
@@ -425,6 +495,41 @@ declare module '@tanstack/react-router' {
       path: '/concept'
       fullPath: '/($lang)/concept'
       preLoaderRoute: typeof LangConceptRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/($lang)/about': {
+      id: '/($lang)/about'
+      path: '/about'
+      fullPath: '/($lang)/about'
+      preLoaderRoute: typeof LangAboutRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/($lang)/terms': {
+      id: '/($lang)/terms'
+      path: '/terms'
+      fullPath: '/($lang)/terms'
+      preLoaderRoute: typeof LangTermsRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/($lang)/privacy': {
+      id: '/($lang)/privacy'
+      path: '/privacy'
+      fullPath: '/($lang)/privacy'
+      preLoaderRoute: typeof LangPrivacyRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/($lang)/careers': {
+      id: '/($lang)/careers'
+      path: '/careers'
+      fullPath: '/($lang)/careers'
+      preLoaderRoute: typeof LangCareersRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/($lang)/help': {
+      id: '/($lang)/help'
+      path: '/help'
+      fullPath: '/($lang)/help'
+      preLoaderRoute: typeof LangHelpRouteImport
       parentRoute: typeof LangRoute
     }
     '/($lang)/auth': {
@@ -552,6 +657,16 @@ declare module '@tanstack/react-router' {
     '/de/pricing': { id: '/de/pricing'; path: '/de/pricing'; fullPath: '/de/pricing'; preLoaderRoute: typeof LangPricingRouteImport; parentRoute: typeof rootRouteImport }
     '/concept': { id: '/concept'; path: '/concept'; fullPath: '/concept'; preLoaderRoute: typeof LangConceptRouteImport; parentRoute: typeof rootRouteImport }
     '/de/concept': { id: '/de/concept'; path: '/de/concept'; fullPath: '/de/concept'; preLoaderRoute: typeof LangConceptRouteImport; parentRoute: typeof rootRouteImport }
+    '/about': { id: '/about'; path: '/about'; fullPath: '/about'; preLoaderRoute: typeof LangAboutRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/about': { id: '/de/about'; path: '/de/about'; fullPath: '/de/about'; preLoaderRoute: typeof LangAboutRouteImport; parentRoute: typeof rootRouteImport }
+    '/terms': { id: '/terms'; path: '/terms'; fullPath: '/terms'; preLoaderRoute: typeof LangTermsRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/terms': { id: '/de/terms'; path: '/de/terms'; fullPath: '/de/terms'; preLoaderRoute: typeof LangTermsRouteImport; parentRoute: typeof rootRouteImport }
+    '/privacy': { id: '/privacy'; path: '/privacy'; fullPath: '/privacy'; preLoaderRoute: typeof LangPrivacyRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/privacy': { id: '/de/privacy'; path: '/de/privacy'; fullPath: '/de/privacy'; preLoaderRoute: typeof LangPrivacyRouteImport; parentRoute: typeof rootRouteImport }
+    '/careers': { id: '/careers'; path: '/careers'; fullPath: '/careers'; preLoaderRoute: typeof LangCareersRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/careers': { id: '/de/careers'; path: '/de/careers'; fullPath: '/de/careers'; preLoaderRoute: typeof LangCareersRouteImport; parentRoute: typeof rootRouteImport }
+    '/help': { id: '/help'; path: '/help'; fullPath: '/help'; preLoaderRoute: typeof LangHelpRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/help': { id: '/de/help'; path: '/de/help'; fullPath: '/de/help'; preLoaderRoute: typeof LangHelpRouteImport; parentRoute: typeof rootRouteImport }
     '/under-construction': { id: '/under-construction'; path: '/under-construction'; fullPath: '/under-construction'; preLoaderRoute: typeof LangUnderConstructionRouteImport; parentRoute: typeof rootRouteImport }
     '/de/under-construction': { id: '/de/under-construction'; path: '/de/under-construction'; fullPath: '/de/under-construction'; preLoaderRoute: typeof LangUnderConstructionRouteImport; parentRoute: typeof rootRouteImport }
     '/auth': { id: '/auth'; path: '/auth'; fullPath: '/auth'; preLoaderRoute: typeof LangAuthRouteImport; parentRoute: typeof rootRouteImport }
@@ -640,6 +755,11 @@ interface LangRouteChildren {
   LangPricingRoute: typeof LangPricingRoute
   LangUnderConstructionRoute: typeof LangUnderConstructionRoute
   LangConceptRoute: typeof LangConceptRoute
+  LangAboutRoute: typeof LangAboutRoute
+  LangTermsRoute: typeof LangTermsRoute
+  LangPrivacyRoute: typeof LangPrivacyRoute
+  LangCareersRoute: typeof LangCareersRoute
+  LangHelpRoute: typeof LangHelpRoute
   LangAuthRoute: typeof LangAuthRouteWithChildren
   LangDocsRoute: typeof LangDocsRouteWithChildren
   LangAppRoute: typeof LangAppRouteWithChildren
@@ -650,6 +770,11 @@ const LangRouteChildren: LangRouteChildren = {
   LangPricingRoute: LangPricingRoute,
   LangUnderConstructionRoute: LangUnderConstructionRoute,
   LangConceptRoute: LangConceptRoute,
+  LangAboutRoute: LangAboutRoute,
+  LangTermsRoute: LangTermsRoute,
+  LangPrivacyRoute: LangPrivacyRoute,
+  LangCareersRoute: LangCareersRoute,
+  LangHelpRoute: LangHelpRoute,
   LangAuthRoute: LangAuthRouteWithChildren,
   LangDocsRoute: LangDocsRouteWithChildren,
   LangAppRoute: LangAppRouteWithChildren,
