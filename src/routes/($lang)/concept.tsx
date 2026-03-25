@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { LandingNavbar } from "@/components/landing-navbar.component";
 import { LandingFooter } from "@/components/landing-footer.component";
 import { getMeta } from "@/i18n/meta";
+import { useLanguage } from "@/hooks/useLanguage";
 import {
   Users,
   Globe,
@@ -20,7 +21,7 @@ import {
   Library,
 } from "lucide-react";
 
-const BASE_URL = "https://potmagic.com";
+const BASE_URL = "https://potmagic.live";
 
 export const Route = createFileRoute("/($lang)/concept")({
   head: ({ match }) => {
@@ -28,9 +29,18 @@ export const Route = createFileRoute("/($lang)/concept")({
     return {
       meta: [
         { title: getMeta(locale, "meta.concept.title") },
-        { name: "description", content: getMeta(locale, "meta.concept.description") },
-        { property: "og:title", content: getMeta(locale, "meta.concept.ogTitle") },
-        { property: "og:description", content: getMeta(locale, "meta.concept.ogDescription") },
+        {
+          name: "description",
+          content: getMeta(locale, "meta.concept.description"),
+        },
+        {
+          property: "og:title",
+          content: getMeta(locale, "meta.concept.ogTitle"),
+        },
+        {
+          property: "og:description",
+          content: getMeta(locale, "meta.concept.ogDescription"),
+        },
         { property: "og:type", content: "website" },
       ],
       links: [
@@ -43,6 +53,8 @@ export const Route = createFileRoute("/($lang)/concept")({
 });
 
 function ConceptPage() {
+  const { t } = useLanguage();
+
   return (
     <div className="bg-base-200 text-base-content flex min-h-screen flex-col">
       <LandingNavbar />
@@ -55,21 +67,19 @@ function ConceptPage() {
           <div className="hero-content relative z-10 max-w-3xl py-24 text-center">
             <div>
               <div className="badge badge-accent badge-lg mb-6 font-semibold tracking-wider uppercase">
-                The Vision
+                {t("concept.vision.badge")}
               </div>
               <h1 className="font-display mb-6 text-5xl leading-tight font-bold">
-                Live Story Telling
+                {t("concept.vision.title")}
               </h1>
               <p className="text-base-content/70 mb-10 text-lg leading-relaxed">
-                In a world where screen addiction is at an all-time high and yet
-                genuine human connection is quietly fading,{" "}
+                {t("concept.vision.bodyIntro")}{" "}
                 <span className="text-accent font-semibold">potmagic</span>{" "}
-                returns to the roots of active storytelling. We scroll
-                endlessly, consume passively, and interact with feeds instead of
-                faces — but we rarely <em>create</em> together.{" "}
-                <span className="text-accent font-semibold">potmagic</span> is a
-                deliberate antidote: a space where people perform, collaborate,
-                and truly share a moment.
+                {t("concept.vision.bodyMid")}{" "}
+                <em>{t("concept.vision.bodyCreate")}</em>{" "}
+                {t("concept.vision.bodyTogether")}{" "}
+                <span className="text-accent font-semibold">potmagic</span>{" "}
+                {t("concept.vision.bodyConclusion")}
               </p>
             </div>
           </div>
@@ -78,74 +88,74 @@ function ConceptPage() {
         {/* ── Director's Workshop ── */}
         <section className="bg-base-200 py-20">
           <div className="mx-auto max-w-4xl px-6">
-            <SectionLabel>The Director's Workshop</SectionLabel>
+            <SectionLabel>{t("concept.workshop.sectionLabel")}</SectionLabel>
             <h2 className="font-display mb-4 text-3xl font-bold">
-              Architect the Experience
+              {t("concept.workshop.title")}
             </h2>
             <p className="text-base-content/60 mb-12">
-              Every great show starts behind the curtain. Here is how a Director
-              sets the stage for a production like{" "}
-              <em>Little Red Riding Hood</em>.
+              {t("concept.workshop.subtitlePre")}{" "}
+              <em>{t("concept.workshop.subtitleTitle")}</em>
+              {t("concept.workshop.subtitlePost")}
             </p>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <WorkshopStep
                 step="01"
                 icon={<Map className="size-5" />}
-                title="Script & Scene Mapping"
+                title={t("concept.workshop.step1.title")}
                 items={[
                   {
-                    label: "Narrative Flow",
-                    text: "Input story beats and define settings (e.g., The Village, The Deep Bavarian Forest, Grandma's Cottage).",
+                    label: t("concept.workshop.step1.item1.label"),
+                    text: t("concept.workshop.step1.item1.text"),
                   },
                   {
-                    label: "Atmosphere",
-                    text: 'Select Background Layers (parallax scrolling art) and Music Loops (e.g., "Whimsical Forest" or "Suspenseful Growl").',
+                    label: t("concept.workshop.step1.item2.label"),
+                    text: t("concept.workshop.step1.item2.text"),
                   },
                 ]}
               />
               <WorkshopStep
                 step="02"
                 icon={<Package className="size-5" />}
-                title="Asset Curation"
+                title={t("concept.workshop.step2.title")}
                 items={[
                   {
-                    label: "Character Assignment",
-                    text: 'Select "Digital Puppets" — 2D assets that respond to actor input.',
+                    label: t("concept.workshop.step2.item1.label"),
+                    text: t("concept.workshop.step2.item1.text"),
                   },
                   {
-                    label: "Virtual Props",
-                    text: 'Add interactive elements like a "Basket of Treats" or a "Hidden Wolf" behind a tree.',
+                    label: t("concept.workshop.step2.item2.label"),
+                    text: t("concept.workshop.step2.item2.text"),
                   },
                 ]}
               />
               <WorkshopStep
                 step="03"
                 icon={<UserCheck className="size-5" />}
-                title="Casting & Invitations"
+                title={t("concept.workshop.step3.title")}
                 items={[
                   {
-                    label: "Role Assignment",
-                    text: 'Assign characters to specific people (e.g., Daughter as "Red," Grandpa as "The Wolf").',
+                    label: t("concept.workshop.step3.item1.label"),
+                    text: t("concept.workshop.step3.item1.text"),
                   },
                   {
-                    label: "The Call",
-                    text: "Send unique secure links containing a Digital Mask — the specific puppet that actor will control.",
+                    label: t("concept.workshop.step3.item2.label"),
+                    text: t("concept.workshop.step3.item2.text"),
                   },
                 ]}
               />
               <WorkshopStep
                 step="04"
                 icon={<FlaskConical className="size-5" />}
-                title="The Rehearsal (Sandbox)"
+                title={t("concept.workshop.step4.title")}
                 items={[
                   {
-                    label: "Draft Mode",
-                    text: "The stage opens for actors to test movements via mouse, touch, or motion-tracking.",
+                    label: t("concept.workshop.step4.item1.label"),
+                    text: t("concept.workshop.step4.item1.text"),
                   },
                   {
-                    label: "Live Coaching",
-                    text: "The Director uses live voice-chat to give notes and guide the performance.",
+                    label: t("concept.workshop.step4.item2.label"),
+                    text: t("concept.workshop.step4.item2.text"),
                   },
                 ]}
               />
@@ -156,34 +166,34 @@ function ConceptPage() {
         {/* ── Actor's Stage ── */}
         <section className="bg-base-100 py-20">
           <div className="mx-auto max-w-4xl px-6">
-            <SectionLabel>The Actor's Stage</SectionLabel>
+            <SectionLabel>{t("concept.actor.sectionLabel")}</SectionLabel>
             <h2 className="font-display mb-4 text-3xl font-bold">
-              Performance &amp; Spontaneity
+              {t("concept.actor.title")}
             </h2>
             <p className="text-base-content/60 mb-12">
-              Being an actor on potmagic is about presence, instinct, and play.
+              {t("concept.actor.subtitle")}
             </p>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <ActorFeature
                 icon={<MousePointerClick className="size-5" />}
-                title="Entry"
-                description="Click the invitation link to enter the Backstage View."
+                title={t("concept.actor.entry.title")}
+                description={t("concept.actor.entry.description")}
               />
               <ActorFeature
                 icon={<Users className="size-5" />}
-                title="Control"
-                description="Maneuver your character's silhouette or stylized puppet on screen."
+                title={t("concept.actor.control.title")}
+                description={t("concept.actor.control.description")}
               />
               <ActorFeature
                 icon={<Mic className="size-5" />}
-                title="Voice"
-                description="Transmit live audio with optional Character Filters (e.g., deepening the Wolf's voice)."
+                title={t("concept.actor.voice.title")}
+                description={t("concept.actor.voice.description")}
               />
               <ActorFeature
                 icon={<Globe className="size-5" />}
-                title="Interaction"
-                description="Viewers can speak and interact directly with actors in real-time — no passive crowd."
+                title={t("concept.actor.interaction.title")}
+                description={t("concept.actor.interaction.description")}
               />
             </div>
           </div>
@@ -192,28 +202,28 @@ function ConceptPage() {
         {/* ── Showtime ── */}
         <section className="bg-base-200 py-20">
           <div className="mx-auto max-w-4xl px-6">
-            <SectionLabel>Showtime</SectionLabel>
+            <SectionLabel>{t("concept.showtime.sectionLabel")}</SectionLabel>
             <h2 className="font-display mb-12 text-3xl font-bold">
-              The Live Broadcast
+              {t("concept.showtime.title")}
             </h2>
 
             <div className="flex flex-col gap-6">
               <ShowtimeRow
                 icon={<Radio className="text-accent size-5" />}
-                title="The Link"
-                description="A public or private Curtain Link is shared with the audience — no downloads, no sign-up required to watch."
+                title={t("concept.showtime.link.title")}
+                description={t("concept.showtime.link.description")}
               />
               <div className="divider my-0" />
               <ShowtimeRow
                 icon={<Zap className="text-warning size-5" />}
-                title="Live Engagement"
-                description='Viewers act as the "Village," triggering sound effects (applause, gasps) or voting on plot points (e.g., "Should Red take the shortcut?").'
+                title={t("concept.showtime.engagement.title")}
+                description={t("concept.showtime.engagement.description")}
               />
               <div className="divider my-0" />
               <ShowtimeRow
                 icon={<Heart className="text-error size-5" />}
-                title="Emotional Connection"
-                description="The Director orchestrates transitions live while actors provide the soul of the performance."
+                title={t("concept.showtime.emotion.title")}
+                description={t("concept.showtime.emotion.description")}
               />
             </div>
           </div>
@@ -222,41 +232,41 @@ function ConceptPage() {
         {/* ── Technical Requirements ── */}
         <section className="bg-base-100 py-20">
           <div className="mx-auto max-w-4xl px-6">
-            <SectionLabel>Under the Hood</SectionLabel>
+            <SectionLabel>{t("concept.tech.sectionLabel")}</SectionLabel>
             <h2 className="font-display mb-12 text-3xl font-bold">
-              Technical Requirements
+              {t("concept.tech.title")}
             </h2>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <TechCard
                 icon={<Monitor className="size-5" />}
-                title="Platform"
-                spec="Cross-Platform"
-                detail="Web Browsers and Tablet"
+                title={t("concept.tech.platform.title")}
+                spec={t("concept.tech.platform.spec")}
+                detail={t("concept.tech.platform.detail")}
               />
               <TechCard
                 icon={<Wifi className="size-5" />}
-                title="Performance"
-                spec="Low Latency via WebRTC"
-                detail="Voice and movement synchronised in real-time"
+                title={t("concept.tech.performance.title")}
+                spec={t("concept.tech.performance.spec")}
+                detail={t("concept.tech.performance.detail")}
               />
               <TechCard
                 icon={<Globe className="size-5" />}
-                title="Communication"
-                spec="WebRTC Audio / Video"
-                detail="Optimal internet connection required"
+                title={t("concept.tech.communication.title")}
+                spec={t("concept.tech.communication.spec")}
+                detail={t("concept.tech.communication.detail")}
               />
               <TechCard
                 icon={<Mail className="size-5" />}
-                title="Account"
-                spec="Email Required"
-                detail="A working email address to create an account and receive invites"
+                title={t("concept.tech.account.title")}
+                spec={t("concept.tech.account.spec")}
+                detail={t("concept.tech.account.detail")}
               />
               <TechCard
                 icon={<Library className="size-5" />}
-                title="Asset Library"
-                spec="Multi-format Support"
-                detail="Still images, sound effects, and Rive-powered animated characters"
+                title={t("concept.tech.library.title")}
+                spec={t("concept.tech.library.spec")}
+                detail={t("concept.tech.library.detail")}
               />
             </div>
           </div>
@@ -266,10 +276,10 @@ function ConceptPage() {
         <section className="bg-base-200 py-24 text-center">
           <div className="mx-auto max-w-2xl px-6">
             <p className="font-display text-base-content/80 text-2xl font-semibold italic">
-              "Distance is no longer a barrier to the magic of the theater."
+              {t("concept.cta.quote")}
             </p>
             <div className="text-accent mt-2 font-semibold tracking-wide">
-              — potmagic
+              {t("concept.cta.attribution")}
             </div>
           </div>
         </section>
@@ -287,36 +297,6 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
     <p className="text-accent mb-3 text-sm font-semibold tracking-widest uppercase">
       {children}
     </p>
-  );
-}
-
-function RoleCard({
-  icon,
-  title,
-  description,
-  color,
-  bg,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  color: string;
-  bg: string;
-}) {
-  return (
-    <div className="card bg-base-200 border-base-300 border text-left shadow-sm">
-      <div className="card-body gap-3 p-5">
-        <div
-          className={`flex size-10 items-center justify-center rounded-xl ${bg} ${color}`}
-        >
-          {icon}
-        </div>
-        <h3 className="font-display text-base font-semibold">{title}</h3>
-        <p className="text-base-content/60 text-sm leading-relaxed">
-          {description}
-        </p>
-      </div>
-    </div>
   );
 }
 

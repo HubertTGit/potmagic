@@ -3,8 +3,9 @@ import { LandingNavbar } from "@/components/landing-navbar.component";
 import { LandingFooter } from "@/components/landing-footer.component";
 import { Check, Wand2, Sparkles, Building2 } from "lucide-react";
 import { getMeta } from "@/i18n/meta";
+import { useLanguage } from "@/hooks/useLanguage";
 
-const BASE_URL = "https://potmagic.com";
+const BASE_URL = "https://potmagic.live";
 
 export const Route = createFileRoute("/($lang)/pricing")({
   head: ({ match }) => {
@@ -12,9 +13,18 @@ export const Route = createFileRoute("/($lang)/pricing")({
     return {
       meta: [
         { title: getMeta(locale, "meta.pricing.title") },
-        { name: "description", content: getMeta(locale, "meta.pricing.description") },
-        { property: "og:title", content: getMeta(locale, "meta.pricing.ogTitle") },
-        { property: "og:description", content: getMeta(locale, "meta.pricing.ogDescription") },
+        {
+          name: "description",
+          content: getMeta(locale, "meta.pricing.description"),
+        },
+        {
+          property: "og:title",
+          content: getMeta(locale, "meta.pricing.ogTitle"),
+        },
+        {
+          property: "og:description",
+          content: getMeta(locale, "meta.pricing.ogDescription"),
+        },
         { property: "og:type", content: "website" },
       ],
       links: [
@@ -27,113 +37,115 @@ export const Route = createFileRoute("/($lang)/pricing")({
 });
 
 function PricingPage() {
+  const { t } = useLanguage();
+
   return (
-    <div className="flex min-h-screen flex-col bg-base-200 text-base-content">
+    <div className="bg-base-200 text-base-content flex min-h-screen flex-col">
       <LandingNavbar />
 
       <main className="flex-1">
         {/* Header */}
-        <section className="py-20 text-center bg-base-100">
-          <div className="max-w-2xl mx-auto px-6">
-            <p className="text-accent font-semibold uppercase tracking-widest text-sm mb-3">
-              Pricing
+        <section className="bg-base-100 py-20 text-center">
+          <div className="mx-auto max-w-2xl px-6">
+            <p className="text-accent mb-3 text-sm font-semibold tracking-widest uppercase">
+              {t("pricing.header.eyebrow")}
             </p>
-            <h1 className="font-display text-4xl font-bold mb-4">
-              Simple, honest plans
+            <h1 className="font-display mb-4 text-4xl font-bold">
+              {t("pricing.header.title")}
             </h1>
             <p className="text-base-content/60 text-lg">
-              Whether you're gathering family around a story or running a full
-              production, there's a plan for every stage.
+              {t("pricing.header.subtitle")}
             </p>
           </div>
         </section>
 
         {/* Pricing cards */}
-        <section className="py-16 bg-base-200">
-          <div className="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+        <section className="bg-base-200 py-16">
+          <div className="mx-auto grid max-w-5xl grid-cols-1 items-start gap-6 px-6 md:grid-cols-3">
             <PricingCard
-              badge="Free"
+              badge={t("pricing.plan.free.badge")}
               badgeColor="badge-ghost border border-base-300"
-              title="Curtain Up"
-              price="$0"
-              period="forever"
-              description="Perfect for families and small groups exploring the stage for the first time."
+              title={t("pricing.plan.free.title")}
+              price={t("pricing.plan.free.price")}
+              period={t("pricing.plan.free.period")}
+              description={t("pricing.plan.free.description")}
               features={[
-                "Up to 3 actors per show",
-                "5 scenes per story",
-                "Built-in asset library",
-                "Public broadcast link",
-                "Community interaction",
+                t("pricing.plan.free.feature1"),
+                t("pricing.plan.free.feature2"),
+                t("pricing.plan.free.feature3"),
+                t("pricing.plan.free.feature4"),
+                t("pricing.plan.free.feature5"),
               ]}
-              cta="Get started"
+              cta={t("pricing.plan.free.cta")}
               ctaClass="btn-outline"
               highlight={false}
+              disabled={false}
             />
 
             <PricingCard
-              badge="Popular"
+              badge={t("pricing.plan.popular.badge")}
               badgeColor="badge-accent"
-              title="The Troupe"
-              price="$12"
-              period="per month"
-              description="For creators and storytellers who want the full stage experience."
+              title={t("pricing.plan.popular.title")}
+              price={t("pricing.plan.popular.price")}
+              period={t("pricing.plan.popular.period")}
+              description={t("pricing.plan.popular.description")}
               features={[
-                "Up to 12 actors per show",
-                "Unlimited scenes",
-                "Custom prop uploads",
-                "Rive animated characters",
-                "Voice character filters",
-                "Private broadcast links",
-                "Priority support",
+                t("pricing.plan.popular.feature1"),
+                t("pricing.plan.popular.feature2"),
+                t("pricing.plan.popular.feature3"),
+                t("pricing.plan.popular.feature4"),
+                t("pricing.plan.popular.feature5"),
+                t("pricing.plan.popular.feature6"),
+                t("pricing.plan.popular.feature7"),
               ]}
-              cta="Coming soon"
+              cta={t("pricing.plan.popular.cta")}
               ctaClass="btn-accent"
               highlight={true}
+              disabled={true}
             />
 
             <PricingCard
-              badge="Teams"
+              badge={t("pricing.plan.teams.badge")}
               badgeColor="badge-neutral"
-              title="Grand Theater"
-              price="Custom"
-              period="contact us"
-              description="Schools, studios, and organizations running professional productions."
+              title={t("pricing.plan.teams.title")}
+              price={t("pricing.plan.teams.price")}
+              period={t("pricing.plan.teams.period")}
+              description={t("pricing.plan.teams.description")}
               features={[
-                "Unlimited actors",
-                "Branded stage environment",
-                "Multi-show management",
-                "Analytics & recordings",
-                "Dedicated support",
-                "SLA guarantee",
+                t("pricing.plan.teams.feature1"),
+                t("pricing.plan.teams.feature2"),
+                t("pricing.plan.teams.feature3"),
+                t("pricing.plan.teams.feature4"),
+                t("pricing.plan.teams.feature5"),
+                t("pricing.plan.teams.feature6"),
               ]}
-              cta="Coming soon"
+              cta={t("pricing.plan.teams.cta")}
               ctaClass="btn-outline"
               highlight={false}
+              disabled={true}
             />
           </div>
         </section>
 
         {/* Under construction banner */}
-        <section className="py-16 bg-base-100">
-          <div className="max-w-2xl mx-auto px-6">
-            <div className="card bg-base-200 border border-accent/30 shadow-sm">
-              <div className="card-body items-center text-center gap-5 py-10">
-                <div className="size-14 rounded-2xl bg-accent/10 flex items-center justify-center">
-                  <Wand2 className="size-7 text-accent" />
+        <section className="bg-base-100 py-16">
+          <div className="mx-auto max-w-2xl px-6">
+            <div className="card bg-base-200 border-accent/30 border shadow-sm">
+              <div className="card-body items-center gap-5 py-10 text-center">
+                <div className="bg-accent/10 flex size-14 items-center justify-center rounded-2xl">
+                  <Wand2 className="text-accent size-7" />
                 </div>
                 <div>
-                  <h2 className="font-display text-xl font-semibold mb-2">
-                    Pricing is being crafted
+                  <h2 className="font-display mb-2 text-xl font-semibold">
+                    {t("pricing.earlyAccess.title")}
                   </h2>
-                  <p className="text-base-content/60 text-sm leading-relaxed max-w-sm">
-                    The plans above are a preview. Billing and subscriptions are
-                    still under construction — everything is free during the
-                    early access period.
+                  <p className="text-base-content/60 max-w-sm text-sm leading-relaxed">
+                    {t("pricing.earlyAccess.description")}
                   </p>
                 </div>
                 <div className="badge badge-accent badge-lg gap-2 font-semibold">
                   <Sparkles className="size-3.5" />
-                  Early Access — All Features Free
+                  {t("pricing.earlyAccess.badge")}
                 </div>
               </div>
             </div>
@@ -157,6 +169,7 @@ function PricingCard({
   cta,
   ctaClass,
   highlight,
+  disabled,
 }: {
   badge: string;
   badgeColor: string;
@@ -168,6 +181,7 @@ function PricingCard({
   cta: string;
   ctaClass: string;
   highlight: boolean;
+  disabled: boolean;
 }) {
   return (
     <div
@@ -179,36 +193,43 @@ function PricingCard({
     >
       <div className="card-body gap-5 p-6">
         <div className="flex items-center justify-between">
-          <span className={`badge badge-sm font-semibold uppercase tracking-wider ${badgeColor}`}>
+          <span
+            className={`badge badge-sm font-semibold tracking-wider uppercase ${badgeColor}`}
+          >
             {badge}
           </span>
-          {highlight && <Building2 className="size-4 text-accent/50" />}
+          {highlight && <Building2 className="text-accent/50 size-4" />}
         </div>
 
         <div>
-          <h2 className="font-display text-lg font-bold mb-1">{title}</h2>
-          <p className="text-base-content/50 text-xs leading-relaxed">{description}</p>
+          <h2 className="font-display mb-1 text-lg font-bold">{title}</h2>
+          <p className="text-base-content/50 text-xs leading-relaxed">
+            {description}
+          </p>
         </div>
 
         <div className="flex items-end gap-1">
           <span className="font-display text-4xl font-bold">{price}</span>
-          <span className="text-base-content/50 text-sm pb-1">/ {period}</span>
+          <span className="text-base-content/50 pb-1 text-sm">/ {period}</span>
         </div>
 
         <div className="divider my-0" />
 
         <ul className="flex flex-col gap-2.5">
           {features.map((f) => (
-            <li key={f} className="flex items-start gap-2.5 text-sm text-base-content/70">
-              <Check className="size-4 text-success shrink-0 mt-0.5" />
+            <li
+              key={f}
+              className="text-base-content/70 flex items-start gap-2.5 text-sm"
+            >
+              <Check className="text-success mt-0.5 size-4 shrink-0" />
               {f}
             </li>
           ))}
         </ul>
 
         <button
-          className={`btn btn-sm w-full mt-2 ${ctaClass}`}
-          disabled={cta === "Coming soon"}
+          className={`btn btn-sm mt-2 w-full ${ctaClass}`}
+          disabled={disabled}
         >
           {cta}
         </button>
