@@ -4,7 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-always use pnpm never use npm
+**ALWAYS use `pnpm` for ALL package operations (add, install, remove). NEVER use `npm` under any circumstances. This is non-negotiable.**
+
+- `pnpm add <pkg>` — install a dependency
+- `pnpm add -D <pkg>` — install a dev dependency
+- `pnpm remove <pkg>` — remove a dependency
+- `pnpm install` — install all dependencies
 
 **Never commit changes unless the user explicitly asks you to.** Always show what would be committed and wait for confirmation first.
 
@@ -160,6 +165,7 @@ Auth is still mounted at `/api/auth/*` via better-auth's handler in the server e
 Available skills to invoke with the `Skill` tool during development:
 
 - `tanstack-start-best-practices` — TanStack Start execution model, server functions, routing, middleware, SEO, import protection, hosting
+- `tanstack-start-i18n` — Optional locale URL prefix, react-i18next, language switching, HTML lang, `($lang)` pattern + build workaround
 - `livekit-best-practices` — LiveKit rooms, tokens, multi-user video/voice/data exchange patterns
 - `react-best-practices` — Function components, Context API over prop drilling
 - `tailwind-dark-mode` — Dark/light mode with Tailwind v4, `data-theme` attribute
