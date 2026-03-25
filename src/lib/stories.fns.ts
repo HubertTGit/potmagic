@@ -78,9 +78,13 @@ export const createStory = createServerFn({ method: 'POST' })
     const session = await requireDirector()
 
     const id = crypto.randomUUID()
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+    const accessPin = Array.from(crypto.getRandomValues(new Uint8Array(6)))
+      .map((b) => chars[b % chars.length])
+      .join('')
     const [row] = await db
       .insert(stories)
-      .values({ id, title: data.title, directorId: session.user.id, status: 'draft' })
+      .values({ id, title: data.title, directorId: session.user.id, status: 'draft', accessPin })
       .returning({ id: stories.id, title: stories.title, directorId: stories.directorId, status: stories.status, createdAt: stories.createdAt })
 
     return { ...row, castCount: 0, sceneCount: 0 }

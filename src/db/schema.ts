@@ -93,6 +93,7 @@ export const stories = pgTable(
     broadcastAt: timestamp('broadcast_at'),
     livekitRoomName: text('livekit_room_name'),
     selectedSceneId: text('selected_scene_id'),
+    accessPin: text('access_pin').unique(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
       .defaultNow()
