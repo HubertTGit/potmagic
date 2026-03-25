@@ -12,9 +12,9 @@ import type { PixiCharacterProps } from "@/components/draggable-character.compon
 const encoder = new TextEncoder();
 
 const enum ANIMATION_SPEED {
-  slow = 2,
-  medium = 4,
-  fast = 8,
+  slow = 1,
+  medium = 3,
+  fast = 6,
 }
 
 const BG_PAN_PX_PER_FRAME: Record<1 | 2 | 3, ANIMATION_SPEED> = {
@@ -24,9 +24,9 @@ const BG_PAN_PX_PER_FRAME: Record<1 | 2 | 3, ANIMATION_SPEED> = {
 };
 
 const BG_BLUR_STRENGTH: Record<1 | 2 | 3, number> = {
-  1: 8,
-  2: 16,
-  3: 28,
+  1: 0,
+  2: 6,
+  3: 12,
 };
 
 const DRAG_BLUR_STRENGTH = 10;
@@ -83,7 +83,10 @@ export class PixiBackground {
     this.container.zIndex = 0;
     this.container.y = stageHeight - texture.height / 2;
 
-    this.blurFilter = new MotionBlurFilter({ velocity: { x: 0, y: 0 }, kernelSize: 9 });
+    this.blurFilter = new MotionBlurFilter({
+      velocity: { x: 0, y: 0 },
+      kernelSize: 9,
+    });
     this.sprite.filters = [this.blurFilter];
 
     this.setupInteraction();
@@ -168,7 +171,10 @@ export class PixiBackground {
       const dx = e.global.x - this.lastDragX;
       this.lastDragX = e.global.x;
       if (this.blurFilter && Math.abs(dx) > 0.5) {
-        this.blurFilter.velocity = { x: Math.sign(dx) * DRAG_BLUR_STRENGTH, y: 0 };
+        this.blurFilter.velocity = {
+          x: Math.sign(dx) * DRAG_BLUR_STRENGTH,
+          y: 0,
+        };
       }
       this.publishMove();
     }
@@ -242,7 +248,10 @@ export class PixiBackground {
 
     const blurStrength = BG_BLUR_STRENGTH[speed as 1 | 2 | 3];
     if (this.blurFilter) {
-      this.blurFilter.velocity = { x: direction === "left" ? -blurStrength : blurStrength, y: 0 };
+      this.blurFilter.velocity = {
+        x: direction === "left" ? -blurStrength : blurStrength,
+        y: 0,
+      };
     }
 
     this.animationTicker = (ticker: Ticker) => {

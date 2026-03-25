@@ -40,7 +40,9 @@ export const Route = createRootRoute({
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { property: 'og:site_name', content: 'potmagic' },
       { property: 'og:type', content: 'website' },
+      { property: 'og:image', content: 'https://potmagic.live/potmagic-logo.png' },
       { name: 'twitter:card', content: 'summary_large_image' },
+      { name: 'twitter:image', content: 'https://potmagic.live/potmagic-logo.png' },
     ],
     links: [
       { rel: 'stylesheet', href: appCss },
