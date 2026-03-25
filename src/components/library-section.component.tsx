@@ -4,6 +4,7 @@ import { Image, X, ChevronLeft, ChevronRight, Music } from 'lucide-react';
 import { toast } from '@/lib/toast';
 import type { PropType } from '@/db/schema';
 import { RiveCanvas } from '@/components/rive-canvas.component';
+import { useLanguage } from '@/hooks/useLanguage';
 
 export interface LibraryItem {
   id: string;
@@ -79,6 +80,7 @@ export function LibrarySection({
   onAdd: (file: File, name: string) => Promise<void>;
   onRemove: (id: string) => Promise<void>;
 }) {
+  const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<{
     preview: string;
@@ -187,7 +189,7 @@ export function LibrarySection({
           disabled={uploading}
           className="btn btn-xs btn-primary font-display tracking-wide"
         >
-          + Upload
+          {t('library.upload')}
         </button>
         <input
           ref={fileInputRef}
@@ -219,7 +221,7 @@ export function LibrarySection({
               if (e.key === 'Enter') handleConfirm();
               if (e.key === 'Escape') handleCancel();
             }}
-            placeholder="Name…"
+            placeholder={t('library.namePlaceholder')}
             className="input input-sm flex-1 bg-base-300 border-base-300 text-sm focus:border-primary/60"
             disabled={uploading}
           />
@@ -231,10 +233,10 @@ export function LibrarySection({
             {uploading ? (
               <>
                 <span className="loading loading-spinner loading-xs" />
-                Uploading…
+                {t('action.uploading')}
               </>
             ) : (
-              'Add'
+              t('action.add')
             )}
           </button>
           <button
@@ -242,7 +244,7 @@ export function LibrarySection({
             disabled={uploading}
             className="btn btn-sm btn-ghost text-base-content/40"
           >
-            Cancel
+            {t('action.cancel')}
           </button>
         </div>
       )}
@@ -271,7 +273,7 @@ export function LibrarySection({
             <Image className="size-7" />
           )}
           <span className="text-xs">
-            Upload your first {label.toLowerCase().slice(0, -1)}
+            {t('library.uploadFirstItem', { type: label.toLowerCase() })}
           </span>
         </div>
       ) : !isLoading ? (
@@ -300,7 +302,7 @@ export function LibrarySection({
                 {confirmDeleteId === item.id ? (
                   <>
                     <span className="text-xs font-medium text-center leading-tight text-error mb-1">
-                      Delete?
+                      {t('library.deleteConfirm')}
                     </span>
                     <div className="flex gap-1">
                       <button
@@ -312,7 +314,7 @@ export function LibrarySection({
                         disabled={!!deletingId}
                         className="btn btn-xs btn-error"
                       >
-                        Delete
+                        {t('action.delete')}
                       </button>
                       <button
                         onClick={(e) => {
@@ -322,7 +324,7 @@ export function LibrarySection({
                         disabled={!!deletingId}
                         className="btn btn-xs btn-ghost"
                       >
-                        Cancel
+                        {t('action.cancel')}
                       </button>
                     </div>
                   </>
@@ -366,7 +368,7 @@ export function LibrarySection({
             <button
               onClick={() => setSelectedIndex(null)}
               className="btn btn-circle btn-sm btn-ghost bg-base-100/50 hover:bg-base-100 backdrop-blur-md absolute -top-12 right-0 md:-top-4 md:-right-12 xl:-right-16 z-50 text-base-content/80"
-              title="Close (Esc)"
+              title={t('aria.closeEsc')}
             >
               <X className="size-5" />
             </button>
@@ -379,7 +381,7 @@ export function LibrarySection({
                   setSelectedIndex(selectedIndex - 1);
                 }}
                 className="btn btn-circle btn-ghost bg-base-100/50 hover:bg-base-100 backdrop-blur-md absolute top-1/2 -translate-y-1/2 left-2 md:-left-12 xl:-left-16 z-50 shadow-md text-base-content/80"
-                title="Previous (Left Arrow)"
+                title={t('aria.previousArrow')}
               >
                 <ChevronLeft className="size-6" />
               </button>
@@ -393,7 +395,7 @@ export function LibrarySection({
                   setSelectedIndex(selectedIndex + 1);
                 }}
                 className="btn btn-circle btn-ghost bg-base-100/50 hover:bg-base-100 backdrop-blur-md absolute top-1/2 -translate-y-1/2 right-2 md:-right-12 xl:-right-16 z-50 shadow-md text-base-content/80"
-                title="Next (Right Arrow)"
+                title={t('aria.nextArrow')}
               >
                 <ChevronRight className="size-6" />
               </button>

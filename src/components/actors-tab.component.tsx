@@ -40,7 +40,7 @@ export function ActorsTab({
   return (
     <div>
       <p className="text-base-content/40 mb-6 text-sm">
-        Invite actors by email. They can log in once invited.
+        {t('actors.inviteDescription')}
       </p>
 
       {/* Invite form */}
@@ -49,7 +49,7 @@ export function ActorsTab({
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="actor@example.com"
+          placeholder={t('actors.emailPlaceholder')}
           required
           className="input bg-base-200 border-base-300 focus:border-primary/60 focus:ring-primary/10 flex-1 text-sm focus:ring-2"
         />
@@ -61,7 +61,7 @@ export function ActorsTab({
             (isInviting || !email.trim()) && "opacity-50",
           )}
         >
-          {isInviting ? "Inviting…" : "Invite"}
+          {isInviting ? t('action.inviting') : t('action.invite')}
         </button>
       </form>
 
@@ -79,16 +79,16 @@ export function ActorsTab({
         </div>
       ) : actors.length === 0 ? (
         <p className="text-base-content/30 py-8 text-center text-sm">
-          No actors invited yet.
+          {t('actors.empty')}
         </p>
       ) : (
         <div className="overflow-x-auto">
           <table className="table-sm table w-full">
             <thead>
               <tr className="text-base-content/50 text-xs tracking-wider uppercase">
-                <th>Email</th>
-                <th>Status</th>
-                <th>Added</th>
+                <th>{t('table.email')}</th>
+                <th>{t('table.status')}</th>
+                <th>{t('table.added')}</th>
                 <th></th>
               </tr>
             </thead>
@@ -108,7 +108,7 @@ export function ActorsTab({
                           : "text-base-content/40",
                       )}
                     >
-                      {actor.accepted ? "Accepted" : "Pending"}
+                      {actor.accepted ? t('status.accepted') : t('status.pending')}
                     </span>
                   </td>
                   <td className="text-base-content/40 text-xs">
@@ -131,16 +131,9 @@ export function ActorsTab({
 
       <ConfirmModal
         isOpen={!!confirmingId}
-        title="Remove actor?"
-        message={
-          <>
-            <span className="text-base-content font-medium">
-              {actors.find((a) => a.id === confirmingId)?.email}
-            </span>{" "}
-            will be removed from this story.
-          </>
-        }
-        confirmText="Remove"
+        title={t('modal.removeActor')}
+        message={t('modal.removeActorMessage', { name: actors.find((a) => a.id === confirmingId)?.email ?? '' })}
+        confirmText={t('action.remove')}
         confirmButtonClass="btn-error"
         onConfirm={() => {
           if (confirmingId) onRemove(confirmingId);

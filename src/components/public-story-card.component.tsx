@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { cn } from '@/lib/cn';
+import { useLanguage } from '@/hooks/useLanguage';
 
 type StoryStatus = 'draft' | 'active' | 'ended';
 
@@ -9,12 +10,6 @@ const STATUS_BADGE: Record<StoryStatus, string> = {
   ended: 'badge-neutral',
 };
 
-const STATUS_LABEL: Record<StoryStatus, string> = {
-  draft: 'Draft',
-  active: 'Live',
-  ended: 'Ended',
-};
-
 interface PublicStoryCardProps {
   id: string;
   title: string;
@@ -22,6 +17,12 @@ interface PublicStoryCardProps {
 }
 
 export function PublicStoryCard({ id, title, status }: PublicStoryCardProps) {
+  const { t } = useLanguage();
+  const STATUS_LABEL: Record<StoryStatus, string> = {
+    draft: t('status.draft'),
+    active: t('status.active'),
+    ended: t('status.ended'),
+  };
   return (
     <div className="card bg-base-100 border border-primary/60 hover:ring-primary ring-2 ring-transparent ring-offset-2 ring-offset-base-100  transition-all duration-300">
       <div className="card-body gap-3">
@@ -46,7 +47,7 @@ export function PublicStoryCard({ id, title, status }: PublicStoryCardProps) {
               params={{ storyId: id }}
               className="btn btn-sm btn-primary w-full font-display tracking-wide"
             >
-              View Show
+              {t('story.viewShow')}
             </Link>
           </div>
         )}

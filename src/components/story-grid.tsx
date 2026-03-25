@@ -43,7 +43,7 @@ export function StoryGrid({
   });
 
   if (stories.length === 0) {
-    return <p className="text-base-content/40 text-sm">No stories yet.</p>;
+    return <p className="text-base-content/40 text-sm">{t('stories.empty')}</p>;
   }
 
   return (
@@ -91,7 +91,7 @@ export function StoryGrid({
                         }}
                         disabled={deleteMutation.isPending}
                         className="text-xs text-error/60 hover:text-error transition-colors"
-                        title="Delete Story"
+                        title={t('story.deleteStory')}
                       >
                         <Trash2 className="size-4" />
                       </button>
@@ -104,13 +104,13 @@ export function StoryGrid({
                     <span className="font-semibold text-base-content/80">
                       {story.castCount}
                     </span>{' '}
-                    Actors
+                    {story.castCount === 1 ? t('story.actor') : t('story.actors')}
                   </div>
                   <div>
                     <span className="font-semibold text-base-content/80">
                       {story.sceneCount}
                     </span>{' '}
-                    Scenes
+                    {story.sceneCount === 1 ? t('story.scene') : t('story.scenes')}
                   </div>
                 </div>
 
@@ -128,7 +128,7 @@ export function StoryGrid({
                       )}
                       aria-disabled={!canEnterStage}
                     >
-                      Enter Stage <Theater className="size-4" />
+                      {t('story.enterStage')} <Theater className="size-4" />
                     </Link>
                   )}
                 </div>
@@ -141,15 +141,10 @@ export function StoryGrid({
       {/* Delete Confirmation Modal */}
       <ConfirmModal
         isOpen={!!storyToDelete}
-        title="Confirm Deletion"
-        message={
-          <>
-            Are you sure you want to delete the story "{storyToDelete?.title}"?
-            This action cannot be undone.
-          </>
-        }
-        confirmText="Delete"
-        pendingText="Deleting..."
+        title={t('modal.confirmDeletion')}
+        message={t('modal.deleteStoryMessage', { title: storyToDelete?.title ?? '' })}
+        confirmText={t('action.delete')}
+        pendingText={t('action.deleting')}
         onConfirm={() =>
           storyToDelete && deleteMutation.mutate(storyToDelete.id)
         }

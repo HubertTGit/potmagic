@@ -18,14 +18,16 @@ export function ConfirmModal({
   isOpen,
   title,
   message,
-  confirmText = 'Confirm',
+  confirmText,
   confirmButtonClass = 'btn-warning',
   onConfirm,
   onCancel,
   isPending = false,
-  pendingText = 'Confirming...',
+  pendingText,
 }: ConfirmModalProps) {
   const { t } = useLanguage();
+  const resolvedConfirmText = confirmText ?? t('modal.confirm');
+  const resolvedPendingText = pendingText ?? t('modal.confirming');
 
   if (!isOpen) return null;
 
@@ -40,7 +42,7 @@ export function ConfirmModal({
             onClick={onConfirm}
             disabled={isPending}
           >
-            {isPending ? pendingText : confirmText}
+            {isPending ? resolvedPendingText : resolvedConfirmText}
           </button>
           <button className="btn" onClick={onCancel} disabled={isPending}>
             {t('modal.cancel')}

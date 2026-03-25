@@ -11,6 +11,7 @@ import type { Room } from "livekit-client";
 import { cn } from "@/lib/cn";
 import { bgPanningAtom, bgProgressAtom } from "@/lib/bg-panning.atoms";
 import type { BgDirection, BgSpeed } from "@/lib/livekit-messages";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface BgPanningToolProps {
   isDirector: boolean;
@@ -20,6 +21,7 @@ interface BgPanningToolProps {
 const encoder = new TextEncoder();
 
 export function BgPanningTool({ isDirector, room }: BgPanningToolProps) {
+  const { t } = useLanguage();
   const [{ direction, speed }, setBgPanning] = useAtom(bgPanningAtom);
   const { leftProgress, rightProgress } = useAtomValue(bgProgressAtom);
 
@@ -97,12 +99,12 @@ export function BgPanningTool({ isDirector, room }: BgPanningToolProps) {
             )}
           >
             {direction === "left" ? (
-              <div className="animate-wiggle">... animating left</div>
+              <div className="animate-wiggle">{t('bg.animatingLeft')}</div>
             ) : direction === "right" ? (
-              <div className="animate-wiggle">animating right ...</div>
+              <div className="animate-wiggle">{t('bg.animatingRight')}</div>
             ) : (
               <>
-                background <MoveHorizontal className="size-3" />
+                {t('bg.background')} <MoveHorizontal className="size-3" />
               </>
             )}
           </button>
@@ -133,7 +135,7 @@ export function BgPanningTool({ isDirector, room }: BgPanningToolProps) {
           set is the correct new behaviour for non-directors. */}
       {!isDirector && direction && (
         <div className="flex w-28 items-center justify-center gap-1 text-xs">
-          background <MoveHorizontal className="size-2" />
+          {t('bg.background')} <MoveHorizontal className="size-2" />
         </div>
       )}
 

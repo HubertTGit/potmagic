@@ -1,5 +1,6 @@
 import { Music, Play, Pause } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { useLanguage } from '@/hooks/useLanguage';
 
 interface SoundControlBarProps {
   soundName: string;
@@ -16,6 +17,7 @@ export function SoundControlBar({
   onTogglePlay,
   onVolumeChange,
 }: SoundControlBarProps) {
+  const { t } = useLanguage();
   return (
     <div className="flex items-center gap-2 bg-base-200 border border-base-300 rounded-lg px-3 py-1.5">
       <Music className="size-4 text-base-content/50 shrink-0" />
@@ -25,7 +27,7 @@ export function SoundControlBar({
       <button
         className={cn('btn btn-ghost btn-xs btn-circle', playing && 'text-primary')}
         onClick={onTogglePlay}
-        title={playing ? 'Pause' : 'Play'}
+        title={playing ? t('sound.pause') : t('sound.play')}
       >
         {playing ? (
           <Pause className="size-4" />
@@ -41,7 +43,7 @@ export function SoundControlBar({
         value={volume}
         onChange={(e) => onVolumeChange(Number(e.target.value))}
         className="range range-xs w-20"
-        title="Volume"
+        title={t('sound.volume')}
       />
     </div>
   );

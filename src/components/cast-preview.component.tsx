@@ -3,6 +3,7 @@ import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/cn";
 import { VIEWER_PREFIX } from "@/lib/livekit.fns";
 import type { StageCast } from "@/components/stage.component";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface CastPreviewProps {
   casts: StageCast[];
@@ -26,6 +27,7 @@ export function CastPreview({
   canMute = false,
 }: CastPreviewProps) {
   const { data: session } = authClient.useSession();
+  const { t } = useLanguage();
   const currentUserId = session?.user?.id;
 
   if (!currentUserId) return null;
@@ -70,8 +72,8 @@ export function CastPreview({
           title={
             isCurrentUserDirector && canClickMute
               ? isMuted
-                ? "Unmute mic"
-                : "Mute mic"
+                ? t('cast.unmuteMic')
+                : t('cast.muteMic')
               : directorName
           }
           onClick={
@@ -134,7 +136,7 @@ export function CastPreview({
                 <button
                   type="button"
                   onClick={onToggleMute}
-                  title={isMuted ? "Unmute mic" : "Mute mic"}
+                  title={isMuted ? t('cast.unmuteMic') : t('cast.muteMic')}
                   className="cursor-pointer"
                 >
                   {avatarContent}

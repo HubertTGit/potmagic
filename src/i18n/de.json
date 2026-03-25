@@ -225,5 +225,9 @@
   "meta.docs.props.title": "Requisiten — potmagic: Live Story Theater",
   "meta.docs.props.description": "Verwalte deine Requisiten-Bibliothek auf potmagic — lade Charaktere, Hintergründe und Animationen hoch.",
   "meta.docs.sizeGuidelines.title": "Größenrichtlinien — potmagic: Live Story Theater",
-  "meta.docs.sizeGuidelines.description": "Empfohlene Größen und Abmessungen für Charakter-, Hintergrund- und Requisiten-Assets."
+  "meta.docs.sizeGuidelines.description": "Empfohlene Größen und Abmessungen für Charakter-, Hintergrund- und Requisiten-Assets.",
+
+  "notFound.heading": "Seite nicht gefunden",
+  "notFound.body": "Der Vorhang ist über dieser URL gefallen. Lass uns zurück zur Bühne gehen.",
+  "notFound.returnHome": "Zur Startseite"
 }

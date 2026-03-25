@@ -13,7 +13,7 @@ const LANGUAGES = [
  * Only used in navbar and sidebar — never rendered on show/ routes.
  */
 export function LanguageSwitcher() {
-  const { locale } = useLanguage();
+  const { locale, t } = useLanguage();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -35,7 +35,7 @@ export function LanguageSwitcher() {
         type="button"
         tabIndex={0}
         className="btn btn-ghost btn-sm btn-square font-display text-xs tracking-wider"
-        aria-label="Switch language"
+        aria-label={t('ui.switchLanguage')}
       >
         {current.short}
       </button>

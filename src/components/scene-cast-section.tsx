@@ -81,7 +81,7 @@ export function SceneCastSection({
     <div className="mb-8">
       <div className="my-3 flex items-center justify-between">
         <h2 className="text-base-content/40 text-xs font-semibold tracking-widest uppercase">
-          Cast
+          {t('scene.cast')}
         </h2>
 
         <SceneNavigator
@@ -96,7 +96,7 @@ export function SceneCastSection({
       <DataList>
         {assignedCast.length === 0 ? (
           <DataListItem className="text-base-content/40 p-4 text-sm italic">
-            No Actor to cast, can't assign yet.
+            {t('scene.noActorToCast')}
           </DataListItem>
         ) : (
           [...assignedCast]
@@ -129,7 +129,7 @@ export function SceneCastSection({
                     {c.userId === currentUserId && (
                       <div
                         className="tooltip tooltip-top absolute -top-2 -right-2 flex size-5 items-center justify-center"
-                        data-tip="This is you"
+                        data-tip={t('tooltip.thisIsYou')}
                       >
                         <CircleHelp className="text-primary bg-base-100 size-4 rounded-full" />
                       </div>
@@ -139,7 +139,7 @@ export function SceneCastSection({
                     <span className="text-sm font-semibold">{c.userName}</span>
                     <div className="flex items-center gap-2">
                       <span className="text-base-content/40 text-[10px] font-bold tracking-widest uppercase">
-                        Actor
+                        {t('role.actor')}
                       </span>
                     </div>
                   </div>
@@ -176,7 +176,7 @@ export function SceneCastSection({
                           {c.userId === currentUserId && (
                             <div
                               className="tooltip tooltip-right flex items-center"
-                              data-tip="Your character is assigned by the director and cannot be changed."
+                              data-tip={t('tooltip.characterAssigned')}
                             >
                               <CircleHelp className="text-base-content/20 hover:text-base-content/40 size-3.5 cursor-help transition-colors" />
                             </div>
@@ -184,7 +184,7 @@ export function SceneCastSection({
                         </div>
                       ) : (
                         <span className="text-base-content/30 text-sm italic">
-                          No character assigned
+                          {t('scene.noCharacterAssigned')}
                         </span>
                       )}
                     </div>
@@ -197,7 +197,7 @@ export function SceneCastSection({
                       onClick={() => onRemoveCast(c)}
                       disabled={isRemovingCast}
                       className="text-error/60 hover:text-error hover:bg-error/10 rounded-lg p-2 text-xs transition-colors"
-                      title="Remove from scene"
+                      title={t('aria.removeFromScene')}
                     >
                       <Trash2 className="size-4" />
                     </button>
@@ -213,6 +213,7 @@ export function SceneCastSection({
           availableActors={availableActors}
           onAdd={onAddCast}
           isLoading={isAddingCast}
+          addLabel={t('scene.addCastMember')}
         />
       )}
     </div>
@@ -223,10 +224,12 @@ function ActorDropdown({
   availableActors,
   onAdd,
   isLoading,
+  addLabel,
 }: {
   availableActors: AvailableActor[];
   onAdd: (userId: string) => void;
   isLoading?: boolean;
+  addLabel: string;
 }) {
   return (
     <div className="dropdown">
@@ -239,7 +242,7 @@ function ActorDropdown({
         {isLoading ? (
           <span className="loading loading-spinner loading-xs" />
         ) : (
-          <span>+ Add cast member</span>
+          <span>{addLabel}</span>
         )}
       </div>
       <ul

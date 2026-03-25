@@ -57,7 +57,7 @@ function SortableSceneRow({
   onRemoveScene,
 }: SortableSceneRowProps) {
   const navigate = useNavigate();
-  const { langPrefix } = useLanguage();
+  const { langPrefix, t } = useLanguage();
   const {
     attributes,
     listeners,
@@ -94,7 +94,7 @@ function SortableSceneRow({
           {isDirector && (
             <button
               className="cursor-grab active:cursor-grabbing text-base-content/20 hover:text-base-content/50 transition-colors p-2 shrink-0"
-              aria-label="Drag to reorder"
+              aria-label={t('aria.dragToReorder')}
               onClick={(e) => e.stopPropagation()}
               {...attributes}
               {...listeners}
@@ -110,7 +110,7 @@ function SortableSceneRow({
 
         <div className="flex items-center gap-3">
           <span className="text-xs text-base-content/20 group-hover:text-base-content/40 transition-colors mr-1">
-            Click to view details →
+            {t('scene.clickToViewDetails')}
           </span>
           {isDirector && (
             <button
@@ -120,7 +120,7 @@ function SortableSceneRow({
               }}
               disabled={isRemovingScene}
               className="text-xs text-error/60 hover:text-error transition-colors p-2 hover:bg-error/10 rounded-lg"
-              title="Remove scene"
+              title={t('scene.removeScene')}
             >
               <Trash2 className="size-4" />
             </button>
@@ -141,6 +141,7 @@ export function StoryScenesTab({
   isAddingScene,
   isRemovingScene,
 }: StoryScenesTabProps) {
+  const { t } = useLanguage();
   const [newSceneTitle, setNewSceneTitle] = useState('');
   const [localScenes, setLocalScenes] = useState(scenes);
 
@@ -176,7 +177,7 @@ export function StoryScenesTab({
       {localScenes.length === 0 ? (
         <DataList>
           <DataListItem className="p-4 text-base-content/40 text-sm">
-            No scenes yet.
+            {t('scene.noScenesYet')}
           </DataListItem>
         </DataList>
       ) : (
@@ -215,7 +216,7 @@ export function StoryScenesTab({
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleAddScene();
             }}
-            placeholder="Scene title…"
+            placeholder={t('scene.placeholderTitle')}
             className="input input-sm bg-base-200 border-base-300 text-sm focus:border-primary/60 focus:ring-2 focus:ring-primary/10 w-56"
           />
           <button
@@ -227,7 +228,7 @@ export function StoryScenesTab({
                 'opacity-40 cursor-not-allowed',
             )}
           >
-            + Add Scene
+            {t('scene.addScene')}
           </button>
         </div>
       )}

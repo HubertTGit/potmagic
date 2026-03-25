@@ -57,13 +57,13 @@ export function ActorLogin() {
 
             <fieldset className="fieldset gap-1">
               <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
-                Email
+                {t('common.email')}
               </legend>
               <input
                 name="email"
                 type="email"
                 autoComplete="email"
-                placeholder="you@example.com"
+                placeholder={t('auth.emailPlaceholder')}
                 required
                 className="input w-full"
               />
