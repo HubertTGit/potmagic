@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
+import { useLanguage } from '@/hooks/useLanguage';
 import { RoomEvent } from 'livekit-client';
 import type { Room } from 'livekit-client';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -21,6 +22,7 @@ interface SceneNavigatorProps {
 
 export function SceneNavigator({ sceneId, storyId, room }: SceneNavigatorProps) {
   const router = useRouter();
+  const { langPrefix } = useLanguage();
   const { data: session } = authClient.useSession();
   const isDirector = session?.user?.role === 'director';
 
@@ -41,7 +43,7 @@ export function SceneNavigator({ sceneId, storyId, room }: SceneNavigatorProps) 
         return;
       }
       if (msg.type !== 'scene:navigate') return;
-      router.navigate({ to: '/stage/$sceneId', params: { sceneId: msg.sceneId } });
+      router.navigate({ to: `${langPrefix}/stage/${msg.sceneId}` as any });
     };
 
     room.on(RoomEvent.DataReceived, handler);
@@ -49,7 +51,7 @@ export function SceneNavigator({ sceneId, storyId, room }: SceneNavigatorProps) 
   }, [room, router]);
 
   function navigateTo(targetSceneId: string) {
-    router.navigate({ to: '/stage/$sceneId', params: { sceneId: targetSceneId } });
+    router.navigate({ to: `${langPrefix}/stage/${targetSceneId}` as any });
 
     if (isDirector) {
       updateSelectedScene({ data: { storyId, sceneId: targetSceneId } }).catch(console.error);

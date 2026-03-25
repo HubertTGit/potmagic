@@ -3,18 +3,26 @@ import { LandingNavbar } from "@/components/landing-navbar.component";
 import { LandingFooter } from "@/components/landing-footer.component";
 import { Check, Wand2, Sparkles, Building2 } from "lucide-react";
 
-export const Route = createFileRoute("/pricing")({
-  head: () => ({
-    meta: [
-      { title: 'Pricing — potmagic: Live Story Theater' },
-      { name: 'description', content: 'Simple, honest plans for every stage. From free family shows to full professional productions — potmagic has a plan for every storyteller.' },
-      { property: 'og:title', content: 'Pricing — potmagic' },
-      { property: 'og:description', content: 'Simple, honest plans for every stage. From free family shows to full professional productions.' },
-      { property: 'og:type', content: 'website' },
-      { name: 'twitter:title', content: 'Pricing — potmagic' },
-      { name: 'twitter:description', content: 'Simple, honest plans for every stage. From free family shows to full professional productions.' },
-    ],
-  }),
+const BASE_URL = "https://potmagic.com";
+
+export const Route = createFileRoute("/($lang)/pricing")({
+  head: ({ match }) => {
+    const locale = (match.context as { locale?: string })?.locale ?? "en";
+    const isDE = locale === "de";
+    return {
+      meta: [
+        { title: isDE ? "Preise — potmagic" : "Pricing — potmagic: Live Story Theater" },
+        { name: "description", content: isDE ? "Einfache, transparente Preise für potmagic." : "Simple, honest plans for every stage. From free family shows to full professional productions — potmagic has a plan for every storyteller." },
+        { property: "og:title", content: isDE ? "Preise — potmagic" : "Pricing — potmagic" },
+        { property: "og:description", content: isDE ? "Einfache, transparente Preise für potmagic." : "Simple, honest plans for every stage. From free family shows to full professional productions." },
+        { property: "og:type", content: "website" },
+      ],
+      links: [
+        { rel: "alternate", hrefLang: "en", href: `${BASE_URL}/pricing` },
+        { rel: "alternate", hrefLang: "de", href: `${BASE_URL}/de/pricing` },
+      ],
+    };
+  },
   component: PricingPage,
 });
 

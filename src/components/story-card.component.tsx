@@ -1,4 +1,5 @@
 import { useRouter, Link } from '@tanstack/react-router';
+import { useLanguage } from '@/hooks/useLanguage';
 import { Theater } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateStoryStatus } from '@/lib/story-detail.fns';
@@ -21,6 +22,7 @@ interface StoryCardProps {
 export function StoryCard({ story, isDirector }: StoryCardProps) {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const { langPrefix } = useLanguage();
 
   const statusMutation = useMutation({
     mutationFn: (status: StoryStatus) =>
@@ -38,8 +40,7 @@ export function StoryCard({ story, isDirector }: StoryCardProps) {
         {/* Header: title + status */}
         <div className="flex items-start justify-between gap-2">
           <Link
-            to="/stories/$storyId"
-            params={{ storyId: story.id }}
+            to={`${langPrefix}/stories/${story.id}` as any}
             className="card-title font-display text-base leading-snug line-clamp-2 hover:text-primary transition-colors"
           >
             {story.title}
@@ -82,8 +83,7 @@ export function StoryCard({ story, isDirector }: StoryCardProps) {
         {/* Stats row */}
         <div className="flex items-center gap-3 text-xs text-base-content/50">
           <Link
-            to="/stories/$storyId"
-            params={{ storyId: story.id }}
+            to={`${langPrefix}/stories/${story.id}` as any}
             className="flex items-center gap-1 hover:text-base-content transition-colors"
           >
             <svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -107,8 +107,7 @@ export function StoryCard({ story, isDirector }: StoryCardProps) {
               <li key={scene.id} className="flex items-center gap-1.5 text-xs">
                 <span className="text-base-content/30 w-3 shrink-0 text-right">{i + 1}.</span>
                 <Link
-                  to="/stories/$storyId/scenes/$sceneId"
-                  params={{ storyId: story.id, sceneId: scene.id }}
+                  to={`/stories/${story.id}/scenes/${scene.id}` as any}
                   className="truncate text-base-content/60 hover:text-base-content transition-colors"
                 >
                   {scene.title}
@@ -130,7 +129,7 @@ export function StoryCard({ story, isDirector }: StoryCardProps) {
           {firstScene ? (
             <button
               className="btn btn-sm btn-primary w-full font-display tracking-wide"
-              onClick={() => router.navigate({ to: '/stage/$sceneId', params: { sceneId: firstScene.id } })}
+              onClick={() => router.navigate({ to: `${langPrefix}/stage/$sceneId`, params: { sceneId: firstScene.id } })}
             >
               Enter Stage <Theater className="size-4" />
             </button>

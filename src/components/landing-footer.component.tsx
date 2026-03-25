@@ -33,7 +33,7 @@ export function LandingFooter() {
           {/* Brand */}
           <div className="flex flex-col gap-4 md:col-span-2">
             <Link
-              to="/"
+              to={'/' as any}
               className="inline-block transition-opacity hover:opacity-75"
             >
               <img
@@ -83,7 +83,7 @@ export function LandingFooter() {
                 {links.map(({ label, to }) => (
                   <li key={to}>
                     <Link
-                      to={to}
+                      to={to as any}
                       className="text-base-content/60 hover:text-base-content text-sm transition-colors"
                     >
                       {label}

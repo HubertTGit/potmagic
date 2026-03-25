@@ -196,7 +196,7 @@ function ShowContent({
         <div className="flex w-7xl items-center justify-between px-2 py-4">
           <div className="flex items-center gap-3">
             <Link
-              to="/"
+              to={'/' as any}
               className="btn btn-ghost btn-sm btn-square"
               title="Home"
             >

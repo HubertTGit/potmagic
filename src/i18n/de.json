@@ -1,0 +1,50 @@
+{
+  "nav.pricing": "Preise",
+  "nav.concept": "Konzept",
+  "nav.docs": "Docs",
+  "nav.overview": "Übersicht",
+  "nav.createStory": "Geschichte erstellen",
+  "nav.addScenes": "Szenen hinzufügen",
+  "nav.propsLibrary": "Requisiten",
+  "nav.sizeGuidelines": "Größenrichtlinien",
+  "nav.joinTheatre": "Mitmachen",
+  "nav.startCurating": "Zur App",
+  "nav.watchLive": "Live schauen",
+  "nav.stories": "Geschichten",
+  "nav.stage": "Bühne",
+  "nav.director": "Regie",
+  "nav.profile": "Profil",
+
+  "ui.lightMode": "Heller Modus",
+  "ui.darkMode": "Dunkler Modus",
+  "ui.logout": "Abmelden",
+  "ui.expandSidebar": "Seitenleiste ausklappen",
+  "ui.collapseSidebar": "Seitenleiste einklappen",
+  "ui.switchLanguage": "Sprache wechseln",
+
+  "hero.rotate1": "Geschichte.",
+  "hero.rotate2": "Theater.",
+  "hero.rotate3": "Bühne.",
+  "hero.rotate4": "Aufführung.",
+  "hero.rotate5": "Interaktion.",
+  "hero.subline": "Wann und wo immer.",
+  "hero.body": "Tritt ins digitale Rampenlicht. Führe live interaktive Geschichten mit deiner Community von überall auf der Welt auf.",
+  "hero.cta": "Jetzt mitmachen",
+
+  "meta.home.title": "potmagic: Live Story Theater",
+  "meta.home.description": "Tritt ins digitale Rampenlicht. potmagic ist eine kollaborative Live-Storytelling-Plattform für Familien, Freunde und Kreative.",
+  "meta.home.ogTitle": "potmagic: Live Story Theater",
+  "meta.home.ogDescription": "Führe live interaktive Geschichten mit deiner Community von überall auf der Welt auf.",
+  "meta.home.twitterDescription": "Führe live interaktive Geschichten mit deiner Community von überall auf der Welt auf.",
+
+  "meta.concept.title": "Konzept — potmagic: Live Story Theater",
+  "meta.concept.description": "Erfahre mehr über die Vision hinter potmagic — eine Live-Theater-Plattform für Regisseure, Schauspieler und Gemeinschaften.",
+  "meta.concept.ogTitle": "Das Konzept hinter potmagic",
+  "meta.concept.ogDescription": "Ein bewusstes Gegenmittel zu passivem Medienkonsum. potmagic bringt Menschen durch Live-Storytelling zusammen.",
+
+  "meta.pricing.title": "Preise — potmagic",
+  "meta.pricing.description": "Einfache, transparente Preise für potmagic.",
+
+  "meta.stories.title": "Geschichten — potmagic: Live Story Theater",
+  "meta.docs.title": "Docs — potmagic"
+}

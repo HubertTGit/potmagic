@@ -2,15 +2,17 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Ruler, ArrowLeftRight } from "lucide-react";
 import { useRef } from "react";
 
-export const Route = createFileRoute("/docs/size-guidelines")({
+const BASE_URL = 'https://potmagic.com';
+
+export const Route = createFileRoute("/($lang)/docs/size-guidelines")({
   head: () => ({
     meta: [
       { title: "Size Guidelines — potmagic: Live Story Theater" },
-      {
-        name: "description",
-        content:
-          "Recommended sizes and dimensions for character, background, and prop assets on the potmagic stage.",
-      },
+      { name: "description", content: "Recommended sizes and dimensions for character, background, and prop assets on the potmagic stage." },
+    ],
+    links: [
+      { rel: 'alternate', hrefLang: 'en', href: `${BASE_URL}/docs/size-guidelines` },
+      { rel: 'alternate', hrefLang: 'de', href: `${BASE_URL}/de/docs/size-guidelines` },
     ],
   }),
   component: SizeGuidelinesPage,

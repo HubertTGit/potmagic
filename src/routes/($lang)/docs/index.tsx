@@ -18,7 +18,9 @@ import {
   Keyboard,
 } from 'lucide-react';
 
-export const Route = createFileRoute('/docs/')({
+const BASE_URL = 'https://potmagic.com';
+
+export const Route = createFileRoute('/($lang)/docs/')({
   head: () => ({
     meta: [
       { title: 'Docs — potmagic: Live Story Theater' },
@@ -26,6 +28,10 @@ export const Route = createFileRoute('/docs/')({
       { property: 'og:title', content: 'Documentation — potmagic' },
       { property: 'og:description', content: 'Guides for Directors, Actors, and Viewers to get the most out of the potmagic live story theater platform.' },
       { property: 'og:type', content: 'website' },
+    ],
+    links: [
+      { rel: 'alternate', hrefLang: 'en', href: `${BASE_URL}/docs` },
+      { rel: 'alternate', hrefLang: 'de', href: `${BASE_URL}/de/docs` },
     ],
   }),
   component: DocsOverviewPage,

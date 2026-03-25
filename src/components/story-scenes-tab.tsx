@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
+import { useLanguage } from '@/hooks/useLanguage';
 import { Trash2, Menu } from 'lucide-react';
 import {
   DndContext,
@@ -56,6 +57,7 @@ function SortableSceneRow({
   onRemoveScene,
 }: SortableSceneRowProps) {
   const navigate = useNavigate();
+  const { langPrefix } = useLanguage();
   const {
     attributes,
     listeners,
@@ -84,10 +86,7 @@ function SortableSceneRow({
         isDragging && 'opacity-50',
       )}
       onClick={() =>
-        navigate({
-          to: '/stories/$storyId/scenes/$sceneId',
-          params: { storyId, sceneId: scene.id },
-        })
+        navigate({ to: `${langPrefix}/stories/${storyId}/scenes/${scene.id}` as any })
       }
     >
       <div className="flex justify-between items-center w-full">

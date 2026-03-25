@@ -16,7 +16,7 @@ import { cn } from "@/lib/cn";
 import { authClient } from "@/lib/auth-client";
 import { StoryScenesTab } from "@/components/story-scenes-tab";
 
-export const Route = createFileRoute("/_app/stories/$storyId/")({
+export const Route = createFileRoute("/($lang)/_app/stories/$storyId/")({
   head: () => ({ meta: [{ title: "Story — potmagic: Live Story Theater" }] }),
   component: StoryDetailPage,
 });
@@ -118,7 +118,7 @@ function StoryDetailPage() {
     <div className="max-w-3xl p-8">
       <Breadcrumb
         crumbs={[
-          { label: "Stories", to: "/stories/" },
+          { label: "Stories", to: "/stories" },
           { label: story.title, type: "story" },
         ]}
       />
@@ -165,13 +165,7 @@ function StoryDetailPage() {
             )}
             onClick={() =>
               router.navigate({
-                to: "/stage/$sceneId",
-                params: {
-                  sceneId:
-                    !isDirector && story.selectedSceneId
-                      ? story.selectedSceneId
-                      : scenes[0].id,
-                },
+                to: `/stage/${!isDirector && story.selectedSceneId ? story.selectedSceneId : scenes[0].id}` as any,
               })
             }
           >

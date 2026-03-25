@@ -35,7 +35,7 @@ import {
   type SoundProp,
 } from '@/components/scene-sound-section';
 
-export const Route = createFileRoute('/_app/stories/$storyId/scenes/$sceneId')({
+export const Route = createFileRoute('/($lang)/_app/stories/$storyId/scenes/$sceneId')({
   head: () => ({ meta: [{ title: 'Scene — potmagic: Live Story Theater' }] }),
   component: SceneDetailPage,
   pendingComponent: () => (
@@ -225,8 +225,7 @@ function SceneDetailPage() {
           { label: 'Stories', to: '/stories/' },
           {
             label: story.title,
-            to: '/stories/$storyId/',
-            params: { storyId },
+            to: `/stories/${storyId}/`,
             type: 'story',
           },
           { label: scene.title, type: 'scene' },
@@ -260,8 +259,7 @@ function SceneDetailPage() {
           </button>
         )}
         <Link
-          to="/stage/$sceneId"
-          params={{ sceneId: (!isDirector && data?.story?.selectedSceneId) ? data.story.selectedSceneId : sceneId }}
+          to={`/stage/${(!isDirector && data?.story?.selectedSceneId) ? data.story.selectedSceneId : sceneId}` as any}
           disabled={!isDirector && (!data?.story?.directorOnStage || (data?.story?.status !== 'draft' && data?.story?.status !== 'active'))}
           className={cn(
             'btn btn-primary font-display tracking-[0.05em]',

@@ -4,6 +4,7 @@ import {
   Link,
   Outlet,
   Scripts,
+  useRouterState,
 } from '@tanstack/react-router';
 import {
   QueryClient,
@@ -33,7 +34,7 @@ const queryClient = new QueryClient({
 function NotFound() {
   return (
     <div className="min-h-screen bg-base-200 flex flex-col items-center justify-center px-4 text-center gap-8">
-      <Link to="/" className="transition-opacity hover:opacity-70">
+      <Link to={'/' as any} className="transition-opacity hover:opacity-70">
         <img src="/icon-red.svg" alt="potmagic" className="h-10 dark:hidden" />
         <img src="/icon-white.svg" alt="potmagic" className="h-10 hidden dark:block" />
       </Link>
@@ -48,7 +49,7 @@ function NotFound() {
         </p>
       </div>
 
-      <Link to="/" className="btn btn-accent btn-sm px-6">
+      <Link to={'/' as any} className="btn btn-accent btn-sm px-6">
         Return to Home
       </Link>
     </div>
@@ -61,8 +62,6 @@ export const Route = createRootRoute({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'potmagic: Live Story Theater' },
-      { name: 'description', content: 'potmagic is a live collaborative storytelling platform. Directors, actors, and audiences come together to perform and watch interactive stories in real-time from anywhere.' },
       { property: 'og:site_name', content: 'potmagic' },
       { property: 'og:type', content: 'website' },
       { name: 'twitter:card', content: 'summary_large_image' },
@@ -83,8 +82,15 @@ export const Route = createRootRoute({
 });
 
 function RootDocument({ children }: { children: ReactNode }) {
+  const locale = useRouterState({
+    select: (state) => {
+      const langMatch = state.matches.find((m) => m.routeId === '/($lang)')
+      return (langMatch?.params as { lang?: string })?.lang ?? 'en'
+    },
+  })
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>

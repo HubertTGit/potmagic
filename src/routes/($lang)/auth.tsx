@@ -5,8 +5,9 @@ import { ActorLogin } from '@/components/actor-login.component';
 import { LandingNavbar } from '@/components/landing-navbar.component';
 import { LandingFooter } from '@/components/landing-footer.component';
 import { authClient } from '@/lib/auth-client';
+import { useLanguage } from '@/hooks/useLanguage';
 
-export const Route = createFileRoute('/auth')({
+export const Route = createFileRoute('/($lang)/auth')({
   head: () => ({
     meta: [
       { title: 'Sign In — potmagic: Live Story Theater' },
@@ -24,12 +25,13 @@ function LoginPage() {
   const { token } = Route.useSearch();
   const navigate = useNavigate();
   const { data: session } = authClient.useSession();
+  const { langPrefix } = useLanguage();
 
   useEffect(() => {
     if (session) {
-      navigate({ to: '/stories' });
+      navigate({ to: `${langPrefix}/stories` });
     }
-  }, [session, navigate]);
+  }, [session, navigate, langPrefix]);
 
   return (
     <div className="min-h-screen flex flex-col bg-base-200">

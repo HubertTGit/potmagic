@@ -5,7 +5,7 @@ import { Sidebar } from '@/components/sidebar.component';
 import { requireAuth } from '@/lib/auth-guard';
 import { authClient } from '@/lib/auth-client';
 
-export const Route = createFileRoute('/_app')({
+export const Route = createFileRoute('/($lang)/_app')({
   beforeLoad: () => requireAuth(),
   component: AppLayout,
 });
@@ -32,7 +32,7 @@ function AppLayout() {
             <Menu className="size-5" />
           </label>
           <Link
-            to="/"
+            to={'/' as any}
             className="font-display italic font-semibold text-primary text-lg leading-none ml-2 select-none"
           >
             potmagic

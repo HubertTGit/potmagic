@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 
-export const Route = createFileRoute('/_app/stage/')({
+export const Route = createFileRoute('/($lang)/_app/stage/')({
   component: StagePage,
 });
 
@@ -12,7 +12,7 @@ function StagePage() {
         enter the stage.
       </p>
       <Link
-        to="/stories"
+        to={'/stories' as any}
         className="btn btn-sm btn-primary font-display tracking-[0.05em]"
       >
         Go to Stories

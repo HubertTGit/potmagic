@@ -3,6 +3,8 @@ import { Sun, Moon, Menu } from "lucide-react";
 import { useTheme, Theme } from "@/hooks/useTheme";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/cn";
+import { LanguageSwitcher } from "@/components/language-switcher.component";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const navLinkClass =
   "decoration-primary hover:text-primary [&.active]:text-primary text-sm font-medium underline-offset-4 hover:underline hover:decoration-2 [&.active]:underline [&.active]:decoration-2";
@@ -10,8 +12,9 @@ const navLinkClass =
 export function LandingNavbar() {
   const { theme, toggle } = useTheme();
   const { data: session } = authClient.useSession();
+  const { t, langPrefix } = useLanguage();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isAuthPage = pathname === "/auth";
+  const isAuthPage = pathname === "/auth" || pathname === "/de/auth";
 
   return (
     <nav className="navbar bg-base-100 px-4 py-3 sm:px-6 lg:px-8">
@@ -19,7 +22,7 @@ export function LandingNavbar() {
         {/* Logo */}
         <div className="navbar-start">
           <div className="relative inline-flex">
-            <Link to="/" className="flex items-center gap-2">
+            <Link to={`${langPrefix}/` as any} className="flex items-center gap-2">
               <img
                 src={
                   theme === Theme.dark ? "/logo-white.svg" : "/logo-color.svg"
@@ -44,20 +47,20 @@ export function LandingNavbar() {
         <div className="navbar-end flex items-center gap-5">
           {/* Desktop nav links */}
           <div className="hidden items-center gap-5 md:flex">
-            <Link to="/pricing" className={navLinkClass}>
-              Pricing
+            <Link to={`${langPrefix}/pricing` as any} className={navLinkClass}>
+              {t('nav.pricing')}
             </Link>
-            <Link to="/concept" className={navLinkClass}>
-              Concept
+            <Link to={`${langPrefix}/concept` as any} className={navLinkClass}>
+              {t('nav.concept')}
             </Link>
             <div className="dropdown dropdown-hover dropdown-center flex flex-col">
               <Link
                 tabIndex={0}
-                to="/docs"
+                to={`${langPrefix}/docs` as any}
                 activeOptions={{ exact: false }}
                 className={navLinkClass}
               >
-                Docs
+                {t('nav.docs')}
               </Link>
               <ul
                 tabIndex={0}
@@ -65,43 +68,43 @@ export function LandingNavbar() {
               >
                 <li>
                   <Link
-                    to="/docs"
+                    to={`${langPrefix}/docs` as any}
                     activeOptions={{ exact: true }}
                     className="[&.active]:text-primary text-sm [&.active]:font-medium"
                   >
-                    Overview
+                    {t('nav.overview')}
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/docs/create-story"
+                    to={`${langPrefix}/docs/create-story` as any}
                     className="[&.active]:text-primary text-sm [&.active]:font-medium"
                   >
-                    Create a Story
+                    {t('nav.createStory')}
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/docs/add-scenes"
+                    to={`${langPrefix}/docs/add-scenes` as any}
                     className="[&.active]:text-primary text-sm [&.active]:font-medium"
                   >
-                    Add Scenes
+                    {t('nav.addScenes')}
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/docs/props"
+                    to={`${langPrefix}/docs/props` as any}
                     className="[&.active]:text-primary text-sm [&.active]:font-medium"
                   >
-                    Props Library
+                    {t('nav.propsLibrary')}
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/docs/size-guidelines"
+                    to={`${langPrefix}/docs/size-guidelines` as any}
                     className="[&.active]:text-primary text-sm [&.active]:font-medium"
                   >
-                    Size Guidelines
+                    {t('nav.sizeGuidelines')}
                   </Link>
                 </li>
               </ul>
@@ -111,21 +114,22 @@ export function LandingNavbar() {
           {/* Desktop auth buttons */}
           <div className="hidden gap-2 md:flex">
             <Link
-              to="/auth"
-              search={{ token: undefined }}
+              to={`${langPrefix}/auth` as any}
+              search={{ token: undefined } as any}
               className={cn(
                 "btn btn-primary btn-sm font-display px-5 tracking-wide",
                 isAuthPage && "btn-active",
               )}
             >
-              {session ? "Start Curating" : "Join Theatre"}
+              {session ? t('nav.startCurating') : t('nav.joinTheatre')}
             </Link>
             <Link
               to="/show"
               className="btn btn-accent btn-sm font-display px-5 tracking-wide"
             >
-              Watch Live
+              {t('nav.watchLive')}
             </Link>
+            <LanguageSwitcher />
             {/* Theme toggle — always visible */}
             <button
               type="button"
@@ -156,35 +160,35 @@ export function LandingNavbar() {
               className="dropdown-content menu bg-base-100 border-base-300 z-50 mt-2 w-56 rounded-xl border p-2 shadow-lg"
             >
               <li>
-                <Link to="/pricing" className="[&.active]:text-primary text-sm">
-                  Pricing
+                <Link to={`${langPrefix}/pricing` as any} className="[&.active]:text-primary text-sm">
+                  {t('nav.pricing')}
                 </Link>
               </li>
               <li>
-                <Link to="/concept" className="[&.active]:text-primary text-sm">
-                  Concept
+                <Link to={`${langPrefix}/concept` as any} className="[&.active]:text-primary text-sm">
+                  {t('nav.concept')}
                 </Link>
               </li>
               <li>
                 <Link
-                  to="/docs"
+                  to={`${langPrefix}/docs` as any}
                   activeOptions={{ exact: false }}
                   className="[&.active]:text-primary text-sm"
                 >
-                  Docs
+                  {t('nav.docs')}
                 </Link>
               </li>
               <li className="menu-title mt-1 text-xs">Account</li>
               <li>
                 <Link
-                  to="/auth"
-                  search={{ token: undefined }}
+                  to={`${langPrefix}/auth` as any}
+                  search={{ token: undefined } as any}
                   className={cn(
                     "btn btn-primary btn-sm font-display tracking-wide",
                     isAuthPage && "btn-active",
                   )}
                 >
-                  {session ? "Start Curating" : "Join Theatre"}
+                  {session ? t('nav.startCurating') : t('nav.joinTheatre')}
                 </Link>
               </li>
               <li className="mt-1">
@@ -192,8 +196,11 @@ export function LandingNavbar() {
                   to="/show"
                   className="btn btn-accent btn-sm font-display tracking-wide"
                 >
-                  Watch Live
+                  {t('nav.watchLive')}
                 </Link>
+              </li>
+              <li className="mt-1 flex justify-between px-2">
+                <LanguageSwitcher />
               </li>
             </ul>
           </div>

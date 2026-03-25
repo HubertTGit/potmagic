@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Wand2 } from 'lucide-react';
 
-export const Route = createFileRoute('/under-construction')({
+export const Route = createFileRoute('/($lang)/under-construction')({
   head: () => ({ meta: [{ title: 'Coming Soon — potmagic: Live Story Theater' }, { name: 'robots', content: 'noindex' }] }),
   component: UnderConstructionPage,
 });

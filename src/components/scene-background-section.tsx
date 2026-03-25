@@ -54,7 +54,7 @@ export function SceneBackgroundSection({
         {picker ?? (
           <span className="text-base-content/40 text-sm">
             No background in{" "}
-            <Link to="/director" className="text-primary hover:underline">
+            <Link to={'/director' as any} className="text-primary hover:underline">
               library
             </Link>{" "}
             to assigned yet.

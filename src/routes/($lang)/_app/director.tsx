@@ -16,7 +16,7 @@ import { updateStoryStatus } from "@/lib/story-detail.fns";
 import type { PropType } from "@/db/schema";
 import { toast } from "@/lib/toast";
 
-export const Route = createFileRoute("/_app/director")({
+export const Route = createFileRoute("/($lang)/_app/director")({
   head: () => ({
     meta: [{ title: "Director Dashboard — potmagic: Live Story Theater" }],
   }),
@@ -211,8 +211,7 @@ function DirectorPage() {
                     >
                       <td>
                         <Link
-                          to="/stories/$storyId"
-                          params={{ storyId: story.id }}
+                          to={`/stories/${story.id}` as any}
                           className="hover:text-primary font-medium transition-colors"
                         >
                           {story.title}

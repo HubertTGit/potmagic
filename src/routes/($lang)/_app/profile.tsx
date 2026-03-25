@@ -5,7 +5,7 @@ import { cn } from '@/lib/cn'
 import { uploadAvatar } from '@/lib/avatar.fns'
 import { Camera } from 'lucide-react'
 
-export const Route = createFileRoute('/_app/profile')({
+export const Route = createFileRoute('/($lang)/_app/profile')({
   component: ProfilePage,
 })
 

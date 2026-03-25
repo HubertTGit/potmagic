@@ -283,8 +283,7 @@ function SceneNavigator({
         nav.all.map((s, idx) => (
           <Link
             key={s.id}
-            to="/stories/$storyId/scenes/$sceneId"
-            params={{ storyId, sceneId: s.id }}
+            to={`/stories/${storyId}/scenes/${s.id}` as any}
             className={cn(
               "join-item btn btn-xs",
               s.id === sceneId ? "btn-primary" : "btn-ghost",

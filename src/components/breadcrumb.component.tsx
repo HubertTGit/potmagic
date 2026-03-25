@@ -21,8 +21,8 @@ export function Breadcrumb({ crumbs }: { crumbs: Crumb[] }) {
                 {crumb.type === 'scene' && <Scroll className="w-4 h-4" />}
                 {crumb.to && !isLast ? (
                   <Link
-                    to={crumb.to}
-                    params={crumb.params}
+                    to={crumb.to as any}
+                    params={crumb.params as any}
                     className="hover:text-primary transition-colors"
                   >
                     {crumb.label}

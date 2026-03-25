@@ -11,19 +11,19 @@ const promoteToDirector = createServerFn({ method: 'POST' })
   .inputValidator((input) => z.object({ token: z.string() }).parse(input))
   .handler(async ({ data }) => {
     const session = await auth.api.getSession({ headers: getRequest().headers });
-    if (!session) throw redirect({ to: '/auth', search: { token: undefined } });
+    if (!session) throw redirect({ to: '/' as any });
 
     // Require a valid invite token stored in the environment to prevent self-promotion
     const validToken = process.env.DIRECTOR_INVITE_TOKEN;
     if (!validToken || data.token !== validToken) {
-      throw redirect({ to: '/stories' });
+      throw redirect({ to: '/' as any });
     }
 
     await db.update(users).set({ role: 'director' }).where(eq(users.id, session.user.id));
-    throw redirect({ to: '/stories' });
+    throw redirect({ to: '/' as any });
   });
 
-export const Route = createFileRoute('/auth/director-setup')({
+export const Route = createFileRoute('/($lang)/auth/director-setup')({
   validateSearch: (search: Record<string, unknown>) => ({
     token: typeof search.token === 'string' ? search.token : '',
   }),

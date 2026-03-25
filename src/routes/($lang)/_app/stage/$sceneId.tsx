@@ -1,6 +1,6 @@
 import { createFileRoute, ErrorComponent } from "@tanstack/react-router";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { lazy, useEffect, useRef, useState, useCallback, Suspense } from "react";
 import {
   LiveKitRoom,
   RoomAudioRenderer,
@@ -13,7 +13,7 @@ import { ConnectionState, LocalVideoTrack, Track } from "livekit-client";
 import type { Room } from "livekit-client";
 import { getSceneStage } from "@/lib/scenes.fns";
 import { getLiveKitToken } from "@/lib/livekit.fns";
-import { StageComponent } from "@/components/stage.component";
+import type { StageCast } from "@/components/stage.component";
 import { SessionPermissionModal } from "@/components/session-permission-modal.component";
 import { CastPreview } from "@/components/cast-preview.component";
 import { SceneNavigator } from "@/components/scene-navigator.component";
@@ -24,9 +24,12 @@ import {
 import { SoundControlBar } from "@/components/sound-control-bar.component";
 import { BgPanningTool } from "@/components/bg-panning-tool.component";
 import { useSceneSound } from "@/hooks/useSceneSound";
-import type { StageCast } from "@/components/stage.component";
 
-export const Route = createFileRoute("/_app/stage/$sceneId")({
+const StageComponent = lazy(() =>
+  import("@/components/stage.component").then((m) => ({ default: m.StageComponent })),
+);
+
+export const Route = createFileRoute("/($lang)/_app/stage/$sceneId")({
   head: () => ({ meta: [{ title: "Stage — potmagic: Live Story Theater" }] }),
   component: SceneStagePage,
   pendingComponent: () => (
@@ -258,7 +261,9 @@ function StageShell({
         ref={stageWrapperRef}
         className="border-base-300 overflow-hidden rounded-xl border-2 shadow-xl"
       >
-        <StageComponent casts={casts} room={room} speakingIds={speakingIds} />
+        <Suspense fallback={<div className="bg-base-200 flex h-180 w-7xl items-center justify-center"><span className="loading loading-spinner loading-lg text-primary" /></div>}>
+          <StageComponent casts={casts} room={room} speakingIds={speakingIds} />
+        </Suspense>
       </div>
       <div className="flex w-7xl items-center justify-between">
         <div>&nbsp;</div>

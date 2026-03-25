@@ -4,11 +4,13 @@ import { useRouter } from '@tanstack/react-router';
 import { actorSignIn } from '@/lib/actor-auth.fns';
 import { authClient } from '@/lib/auth-client';
 import { cn } from '@/lib/cn';
+import { useLanguage } from '@/hooks/useLanguage';
 
 export function ActorLogin() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { langPrefix } = useLanguage();
   // refetch() updates the shared useSession() atom — getSession() does not
   const { refetch } = authClient.useSession();
 
@@ -21,7 +23,7 @@ export function ActorLogin() {
       await actorSignIn({ data: { email: form.get('email') as string } });
       // Hydrate the shared session atom so _app.tsx sees a non-null session
       await refetch();
-      await router.navigate({ to: '/stories' });
+      await router.navigate({ to: `${langPrefix}/stories` });
     } catch (err: unknown) {
       setError((err as { message?: string })?.message ?? 'Login failed');
     } finally {

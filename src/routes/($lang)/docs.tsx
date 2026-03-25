@@ -7,41 +7,38 @@ import {
 import { LandingNavbar } from "@/components/landing-navbar.component";
 import { LandingFooter } from "@/components/landing-footer.component";
 import { BookOpen, FilePlus, Layers, Library, Ruler } from "lucide-react";
+import { useLanguage } from "@/hooks/useLanguage";
 
-export const Route = createFileRoute("/docs")({
+const BASE_URL = "https://potmagic.com";
+
+export const Route = createFileRoute("/($lang)/docs")({
+  head: ({ match }) => {
+    const locale = (match.context as { locale?: string })?.locale ?? "en";
+    return {
+      meta: [
+        { title: "Docs — potmagic: Live Story Theater" },
+      ],
+      links: [
+        { rel: "alternate", hrefLang: "en", href: `${BASE_URL}/docs` },
+        { rel: "alternate", hrefLang: "de", href: `${BASE_URL}/de/docs` },
+      ],
+    };
+  },
   component: DocsLayout,
-  notFoundComponent: () => <Navigate to="/docs" />,
+  notFoundComponent: () => <Navigate to={'/docs' as any} />,
 });
 
-const NAV_ITEMS = [
-  { to: "/docs" as const, label: "Overview", icon: BookOpen, exact: true },
-  {
-    to: "/docs/create-story" as const,
-    label: "Create a Story",
-    icon: FilePlus,
-    exact: false,
-  },
-  {
-    to: "/docs/add-scenes" as const,
-    label: "Add Scenes",
-    icon: Layers,
-    exact: false,
-  },
-  {
-    to: "/docs/props" as const,
-    label: "Props Library",
-    icon: Library,
-    exact: false,
-  },
-  {
-    to: "/docs/size-guidelines" as const,
-    label: "Size Guidelines",
-    icon: Ruler,
-    exact: false,
-  },
-];
-
 function DocsLayout() {
+  const { t, langPrefix } = useLanguage();
+
+  const navItems = [
+    { to: `${langPrefix}/docs`, label: t('nav.overview'), icon: BookOpen, exact: true },
+    { to: `${langPrefix}/docs/create-story`, label: t('nav.createStory'), icon: FilePlus, exact: false },
+    { to: `${langPrefix}/docs/add-scenes`, label: t('nav.addScenes'), icon: Layers, exact: false },
+    { to: `${langPrefix}/docs/props`, label: t('nav.propsLibrary'), icon: Library, exact: false },
+    { to: `${langPrefix}/docs/size-guidelines`, label: t('nav.sizeGuidelines'), icon: Ruler, exact: false },
+  ];
+
   return (
     <div className="bg-base-200 text-base-content flex min-h-screen flex-col">
       <LandingNavbar />
@@ -62,10 +59,10 @@ function DocsLayout() {
                 Documentation
               </p>
               <nav className="flex flex-col gap-0.5">
-                {NAV_ITEMS.map(({ to, label, icon: Icon, exact }) => (
+                {navItems.map(({ to, label, icon: Icon, exact }) => (
                   <Link
                     key={to}
-                    to={to}
+                    to={to as any}
                     activeOptions={{ exact }}
                     className="text-base-content/60 hover:bg-base-300 hover:text-base-content [&.active]:bg-primary/10 [&.active]:text-primary flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors [&.active]:font-medium"
                   >

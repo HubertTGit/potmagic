@@ -1,8 +1,19 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Layers, Clapperboard } from 'lucide-react';
 
-export const Route = createFileRoute('/docs/add-scenes')({
-  head: () => ({ meta: [{ title: 'Add Scenes — potmagic: Live Story Theater' }, { name: 'description', content: 'Learn how to add and sequence scenes within a story on potmagic to build your narrative flow.' }] }),
+const BASE_URL = 'https://potmagic.com';
+
+export const Route = createFileRoute('/($lang)/docs/add-scenes')({
+  head: () => ({
+    meta: [
+      { title: 'Add Scenes — potmagic: Live Story Theater' },
+      { name: 'description', content: 'Learn how to add and sequence scenes within a story on potmagic to build your narrative flow.' },
+    ],
+    links: [
+      { rel: 'alternate', hrefLang: 'en', href: `${BASE_URL}/docs/add-scenes` },
+      { rel: 'alternate', hrefLang: 'de', href: `${BASE_URL}/de/docs/add-scenes` },
+    ],
+  }),
   component: AddScenesPage,
 });
 

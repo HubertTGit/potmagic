@@ -1,5 +1,6 @@
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLanguage } from '@/hooks/useLanguage';
 import { useState } from 'react';
 import { deleteStory } from '@/lib/stories.fns';
 import { cn } from '@/lib/cn';
@@ -27,6 +28,7 @@ export function StoryGrid({
 }) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { langPrefix } = useLanguage();
   const [storyToDelete, setStoryToDelete] = useState<{
     id: string;
     title: string;
@@ -58,26 +60,19 @@ export function StoryGrid({
               role="button"
               tabIndex={0}
               onClick={() =>
-                navigate({
-                  to: '/stories/$storyId',
-                  params: { storyId: story.id },
-                })
+                navigate({ to: `${langPrefix}/stories/${story.id}` as any })
               }
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  navigate({
-                    to: '/stories/$storyId',
-                    params: { storyId: story.id },
-                  });
+                  navigate({ to: `${langPrefix}/stories/${story.id}` as any });
                 }
               }}
             >
               <div className="card-body p-6">
                 <div className="flex justify-between items-start mb-2">
                   <Link
-                    to="/stories/$storyId"
-                    params={{ storyId: story.id }}
+                    to={`${langPrefix}/stories/${story.id}` as any}
                     className="card-title font-medium hover:text-primary transition-colors text-lg"
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -125,8 +120,7 @@ export function StoryGrid({
                 >
                   {stageSceneId && (
                     <Link
-                      to="/stage/$sceneId"
-                      params={{ sceneId: stageSceneId }}
+                      to={`${langPrefix}/stage/${stageSceneId}` as any}
                       disabled={!canEnterStage}
                       className={cn(
                         'btn btn-sm btn-primary w-full gap-2',

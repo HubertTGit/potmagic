@@ -20,30 +20,36 @@ import {
   Library,
 } from "lucide-react";
 
-export const Route = createFileRoute("/concept")({
-  head: () => ({
-    meta: [
-      { title: "Concept — potmagic: Live Story Theater" },
-      {
-        name: "description",
-        content:
-          "Learn about the vision behind potmagic — a live story theater platform built for Directors, Actors, and Communities to create and share interactive stories in real-time.",
-      },
-      { property: "og:title", content: "The Concept Behind potmagic" },
-      {
-        property: "og:description",
-        content:
-          "A deliberate antidote to passive screen consumption. potmagic brings people together through live, collaborative storytelling.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:title", content: "The Concept Behind potmagic" },
-      {
-        name: "twitter:description",
-        content:
-          "A deliberate antidote to passive screen consumption. potmagic brings people together through live, collaborative storytelling.",
-      },
-    ],
-  }),
+const BASE_URL = "https://potmagic.com";
+
+export const Route = createFileRoute("/($lang)/concept")({
+  head: ({ match }) => {
+    const locale = (match.context as { locale?: string })?.locale ?? "en";
+    const isDE = locale === "de";
+    return {
+      meta: [
+        { title: isDE ? "Konzept — potmagic: Live Story Theater" : "Concept — potmagic: Live Story Theater" },
+        {
+          name: "description",
+          content: isDE
+            ? "Erfahre mehr über die Vision hinter potmagic — eine Live-Theater-Plattform für Regisseure, Schauspieler und Gemeinschaften."
+            : "Learn about the vision behind potmagic — a live story theater platform built for Directors, Actors, and Communities to create and share interactive stories in real-time.",
+        },
+        { property: "og:title", content: isDE ? "Das Konzept hinter potmagic" : "The Concept Behind potmagic" },
+        {
+          property: "og:description",
+          content: isDE
+            ? "Ein bewusstes Gegenmittel zu passivem Medienkonsum. potmagic bringt Menschen durch Live-Storytelling zusammen."
+            : "A deliberate antidote to passive screen consumption. potmagic brings people together through live, collaborative storytelling.",
+        },
+        { property: "og:type", content: "website" },
+      ],
+      links: [
+        { rel: "alternate", hrefLang: "en", href: `${BASE_URL}/concept` },
+        { rel: "alternate", hrefLang: "de", href: `${BASE_URL}/de/concept` },
+      ],
+    };
+  },
   component: ConceptPage,
 });
 
