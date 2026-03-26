@@ -31,6 +31,7 @@ interface StageComponentProps {
   speakingIds?: Set<string>;
   stageWidth?: number;
   stageHeight?: number;
+  backgroundRepeat?: boolean;
 }
 
 const STAGE_WIDTH = 1280;
@@ -46,6 +47,7 @@ export const StageComponent = React.forwardRef<
     speakingIds = new Set(),
     stageWidth = STAGE_WIDTH,
     stageHeight = STAGE_HEIGHT,
+    backgroundRepeat = false,
   },
   ref,
 ) {
@@ -200,6 +202,7 @@ export const StageComponent = React.forwardRef<
             if (remaining === 0) setAllLoaded(true);
           },
           ...(cast.type === 'background' && {
+            backgroundRepeat,
             onPositionChange: (x: number, bounds: { minX: number; maxX: number }) => {
               const range = bounds.maxX - bounds.minX;
               if (range <= 0) return;
@@ -228,7 +231,7 @@ export const StageComponent = React.forwardRef<
     if (typeof rafId === "number") {
       return () => cancelAnimationFrame(rafId);
     }
-  }, [casts, room, session, stageWidth, stageHeight]);
+  }, [casts, room, session, stageWidth, stageHeight, backgroundRepeat]);
 
   // Single centralized LiveKit DataReceived handler — parse once, dispatch by castId
   useEffect(() => {

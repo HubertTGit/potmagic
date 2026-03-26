@@ -65,6 +65,7 @@ interface StageContentProps {
   soundUrl: string | null;
   soundName: string | null;
   soundAutoplay: boolean;
+  backgroundRepeat: boolean;
 }
 
 // Rendered inside LiveKitRoom — can safely call useParticipants + useRoomContext
@@ -79,6 +80,7 @@ function LiveStageContent({
   soundUrl,
   soundName,
   soundAutoplay,
+  backgroundRepeat,
 }: StageContentProps) {
   const participants = useParticipants();
   const room = useRoomContext();
@@ -120,6 +122,7 @@ function LiveStageContent({
         soundUrl={soundUrl}
         soundName={soundName}
         soundAutoplay={soundAutoplay}
+        backgroundRepeat={backgroundRepeat}
         isMuted={isMuted}
         onToggleMute={onToggleMute}
       />
@@ -139,6 +142,7 @@ function OfflineStageContent({
   soundUrl,
   soundName,
   soundAutoplay,
+  backgroundRepeat,
 }: StageContentProps) {
   return (
     <StageShell
@@ -156,6 +160,7 @@ function OfflineStageContent({
       soundUrl={soundUrl}
       soundName={soundName}
       soundAutoplay={soundAutoplay}
+      backgroundRepeat={backgroundRepeat}
       isMuted={false}
       onToggleMute={() => {}}
     />
@@ -186,6 +191,7 @@ function StageShell({
   soundUrl,
   soundName,
   soundAutoplay,
+  backgroundRepeat,
   isMuted,
   onToggleMute,
 }: StageShellProps) {
@@ -268,7 +274,7 @@ function StageShell({
         className="border-base-300 overflow-hidden rounded-xl border-2 shadow-xl"
       >
         <Suspense fallback={<div className="bg-base-200 flex h-180 w-7xl items-center justify-center"><span className="loading loading-spinner loading-lg text-primary" /></div>}>
-          <StageComponent casts={casts} room={room} speakingIds={speakingIds} />
+          <StageComponent casts={casts} room={room} speakingIds={speakingIds} backgroundRepeat={backgroundRepeat} />
         </Suspense>
       </div>
       <div className="flex w-7xl items-center justify-between">
@@ -352,6 +358,7 @@ function SceneStagePage() {
   const soundUrl = data?.soundUrl ?? null;
   const soundName = data?.soundName ?? null;
   const soundAutoplay = data?.soundAutoplay ?? false;
+  const backgroundRepeat = data?.backgroundRepeat ?? false;
   const liveKitReady = !!livekitData && micResolved;
   const showMicModal =
     micState === "prompt" &&
@@ -393,6 +400,7 @@ function SceneStagePage() {
             soundUrl={soundUrl}
             soundName={soundName}
             soundAutoplay={soundAutoplay}
+            backgroundRepeat={backgroundRepeat}
           />
         </LiveKitRoom>
       ) : (
@@ -407,6 +415,7 @@ function SceneStagePage() {
           soundUrl={soundUrl}
           soundName={soundName}
           soundAutoplay={soundAutoplay}
+          backgroundRepeat={backgroundRepeat}
         />
       )}
     </>
