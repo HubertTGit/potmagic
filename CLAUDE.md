@@ -22,7 +22,7 @@ pnpm preview      # Preview production build
 
 ## Overview
 
-**potmagic** is an online collaborative theater platform for storytelling. Groups perform interactive stories together using animated Konva canvas characters, with a public LiveKit broadcast stream for audiences. See `.claude/SPEC.md` for full product specification and `.claude/SPEC_LIVEKIT.md` specifically for LiveKit implementation.
+**potmagic** is an online collaborative theater platform for storytelling. Groups perform interactive stories together using animated Konva canvas characters, with a public LiveKit broadcast stream for audiences. See `.agents/specs/SPEC.md` for full product specification and `.agents/specs/SPEC_LIVEKIT.md` specifically for LiveKit implementation.
 
 ## Tech Stack
 
@@ -399,6 +399,7 @@ When Figma MCP returns raw HTML + Tailwind, map common patterns to DaisyUI equiv
 # PixiJS Project
 
 ## Documentation
+
 For PixiJS API reference, fetch:
 https://pixijs.com/llms.txt
 
