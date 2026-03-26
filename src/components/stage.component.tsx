@@ -9,6 +9,7 @@ import { authClient } from "@/lib/auth-client";
 import type { PropType } from "@/db/schema";
 import { bgPanningAtom, bgProgressAtom } from '@/lib/bg-panning.atoms';
 import type { LiveKitMessage } from '@/lib/livekit-messages';
+import { Maximize, Minimize } from "lucide-react";
 
 const decoder = new TextDecoder();
 const encoder = new TextEncoder();
@@ -65,6 +66,7 @@ export const StageComponent = React.forwardRef<
   const prevCastIdsRef = useRef<string>('');
 
   const [allLoaded, setAllLoaded] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const bgPanning = useAtomValue(bgPanningAtom);
   const setBgPanning = useSetAtom(bgPanningAtom);
@@ -113,11 +115,41 @@ export const StageComponent = React.forwardRef<
         app.stage.hitArea = app.screen;
         container.appendChild(app.canvas);
         appReadyRef.current = true;
+        handleResize(); // Initial scale
       });
+
+    const handleResize = () => {
+      if (!app) return;
+      const parent = container.parentElement;
+      if (!parent) return;
+
+      const rect = parent.getBoundingClientRect();
+      const isFull = !!document.fullscreenElement;
+      
+      const width = isFull ? window.innerWidth : rect.width;
+      const height = isFull ? window.innerHeight : rect.height;
+
+      app.renderer.resize(width, height);
+      
+      const scale = Math.min(width / stageWidth, height / stageHeight);
+      app.stage.scale.set(scale);
+      app.stage.x = (width - stageWidth * scale) / 2;
+      app.stage.y = (height - stageHeight * scale) / 2;
+    };
+
+    const onFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+      handleResize();
+    };
+
+    window.addEventListener("resize", handleResize);
+    document.addEventListener("fullscreenchange", onFullscreenChange);
 
     return () => {
       unmounted = true;
       appReadyRef.current = false;
+      window.removeEventListener("resize", handleResize);
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
       for (const prop of props.values()) {
         prop.destroy();
       }
@@ -313,7 +345,24 @@ export const StageComponent = React.forwardRef<
           <span className="loading loading-spinner loading-lg text-primary" />
         </div>
       )}
-      <div ref={containerRef} className="h-full w-full" />
+      <div ref={containerRef} className="h-full w-full bg-black flex items-center justify-center" />
+      <button
+        type="button"
+        onClick={() => {
+          if (!document.fullscreenElement) {
+            containerRef.current?.requestFullscreen();
+          } else {
+            document.exitFullscreen();
+          }
+        }}
+        className="btn btn-circle btn-ghost btn-sm absolute bottom-4 right-4 z-20 hover:bg-neutral/20"
+      >
+        {isFullscreen ? (
+          <Minimize className="h-5 w-5 text-white shadow-sm" />
+        ) : (
+          <Maximize className="h-5 w-5 text-white shadow-sm" />
+        )}
+      </button>
     </div>
   );
 });
