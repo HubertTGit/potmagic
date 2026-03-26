@@ -17,6 +17,7 @@ interface SceneSoundSectionProps {
   isAssigning: boolean;
   autoplay: boolean;
   onToggleAutoplay: (autoplay: boolean) => void;
+  isTogglingAutoplay?: boolean;
 }
 
 const soundIcon = <Music className="text-base-content/40 size-4" />;
@@ -29,6 +30,7 @@ export function SceneSoundSection({
   isAssigning,
   autoplay,
   onToggleAutoplay,
+  isTogglingAutoplay,
 }: SceneSoundSectionProps) {
   const { t } = useLanguage();
   const picker =
@@ -69,12 +71,16 @@ export function SceneSoundSection({
           <div className="flex shrink-0 items-center gap-3">
             <label className="flex cursor-pointer items-center gap-2 select-none">
               <span className="text-base-content/50 text-xs">{t('scene.autoplay')}</span>
-              <input
-                type="checkbox"
-                className="toggle toggle-sm toggle-success"
-                checked={autoplay}
-                onChange={(e) => onToggleAutoplay(e.target.checked)}
-              />
+              {isTogglingAutoplay ? (
+                <span className="loading loading-spinner loading-sm" />
+              ) : (
+                <input
+                  type="checkbox"
+                  className="toggle toggle-sm toggle-success"
+                  checked={autoplay}
+                  onChange={(e) => onToggleAutoplay(e.target.checked)}
+                />
+              )}
             </label>
             <button
               onClick={() => onAssignSound(null)}

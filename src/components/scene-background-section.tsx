@@ -17,6 +17,7 @@ interface SceneBackgroundSectionProps {
   isAssigning?: boolean;
   backgroundRepeat: boolean;
   onToggleRepeat: (repeat: boolean) => void;
+  isTogglingRepeat?: boolean;
 }
 
 export function SceneBackgroundSection({
@@ -27,6 +28,7 @@ export function SceneBackgroundSection({
   isAssigning,
   backgroundRepeat,
   onToggleRepeat,
+  isTogglingRepeat,
 }: SceneBackgroundSectionProps) {
   const { t } = useLanguage();
   const picker =
@@ -66,12 +68,16 @@ export function SceneBackgroundSection({
           <div className="flex shrink-0 items-center gap-3">
             <label className="flex cursor-pointer items-center gap-2 select-none">
               <span className="text-base-content/50 text-xs">{t('scene.repeat')}</span>
-              <input
-                type="checkbox"
-                className="toggle toggle-sm toggle-success"
-                checked={backgroundRepeat}
-                onChange={(e) => onToggleRepeat(e.target.checked)}
-              />
+              {isTogglingRepeat ? (
+                <span className="loading loading-spinner loading-sm" />
+              ) : (
+                <input
+                  type="checkbox"
+                  className="toggle toggle-sm toggle-success"
+                  checked={backgroundRepeat}
+                  onChange={(e) => onToggleRepeat(e.target.checked)}
+                />
+              )}
             </label>
             <button
               onClick={() => onAssignBackground(null)}

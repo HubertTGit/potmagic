@@ -116,9 +116,9 @@ export function BgPanningTool({
               <>
                 {t("bg.background")}{" "}
                 {backgroundRepeat ? (
-                  <Repeat className="size-2" />
+                  <Repeat className="size-4" />
                 ) : (
-                  <MoveHorizontal className="size-2" />
+                  <MoveHorizontal className="size-4" />
                 )}
               </>
             )}
@@ -152,9 +152,9 @@ export function BgPanningTool({
         <div className="flex w-28 items-center justify-center gap-1 text-xs">
           {t("bg.background")}{" "}
           {backgroundRepeat ? (
-            <Repeat className="size-2" />
+            <Repeat className="size-4" />
           ) : (
-            <MoveHorizontal className="size-2" />
+            <MoveHorizontal className="size-4" />
           )}
         </div>
       )}

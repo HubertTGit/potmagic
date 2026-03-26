@@ -317,6 +317,7 @@ function SceneDetailPage() {
         isAssigning={assignBgMutation.isPending}
         backgroundRepeat={data?.backgroundRepeat ?? false}
         onToggleRepeat={(repeat) => backgroundRepeatMutation.mutate(repeat)}
+        isTogglingRepeat={backgroundRepeatMutation.isPending}
       />
 
       <SceneSoundSection
@@ -327,6 +328,7 @@ function SceneDetailPage() {
         isAssigning={assignSoundMutation.isPending}
         autoplay={data?.soundAutoplay ?? true}
         onToggleAutoplay={(autoplay) => autoplayMutation.mutate(autoplay)}
+        isTogglingAutoplay={autoplayMutation.isPending}
       />
 
       <ConfirmModal
