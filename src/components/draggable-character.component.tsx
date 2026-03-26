@@ -98,6 +98,9 @@ export class PixiCharacter {
       return;
     }
 
+    // Guard: destroy() may have been called while the asset was loading
+    if (this.sprite.destroyed) return;
+
     this.sprite.texture = texture;
     this.sprite.anchor.set(0.5);
     this.sprite.scale.x = initialScaleX;

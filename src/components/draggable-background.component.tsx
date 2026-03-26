@@ -77,6 +77,9 @@ export class PixiBackground {
       return;
     }
 
+    // Guard: destroy() may have been called while the asset was loading
+    if (this.container.destroyed) return;
+
     this.blurFilter = new MotionBlurFilter({
       velocity: { x: 0, y: 0 },
       kernelSize: 9,
