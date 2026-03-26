@@ -105,21 +105,23 @@ export function DirectorLogin({ token = "" }: { token?: string }) {
               validators={{
                 onChange: ({ value }) => {
                   const result = emailSchema.safeParse(value);
-                  return result.success
-                    ? undefined
-                    : result.error.issues[0].message;
+                  if (result.success) return undefined;
+                  return result.error.issues[0].code === "too_small" || value === ""
+                    ? t("auth.error.emailRequired" as any)
+                    : t("auth.error.invalidEmail" as any);
                 },
                 onBlur: ({ value }) => {
                   const result = emailSchema.safeParse(value);
-                  return result.success
-                    ? undefined
-                    : result.error.issues[0].message;
+                  if (result.success) return undefined;
+                  return result.error.issues[0].code === "too_small" || value === ""
+                    ? t("auth.error.emailRequired" as any)
+                    : t("auth.error.invalidEmail" as any);
                 },
               }}
             >
               {(field) => (
                 <fieldset className="fieldset gap-1">
-                  <legend className="fieldset-legend text-base-content/40 text-xs tracking-[0.1em]">
+                  <legend className="fieldset-legend text-base-content/40 text-xs tracking-widest">
                     {t("common.email")}
                   </legend>
                   <input
@@ -139,7 +141,7 @@ export function DirectorLogin({ token = "" }: { token?: string }) {
                   />
                   {field.state.meta.isTouched && !field.state.meta.isValid && (
                     <p role="alert" className="text-error mt-1 text-xs">
-                      {field.state.meta.errors.join(", ")}
+                      {field.state.meta.errors[0]}
                     </p>
                   )}
                 </fieldset>

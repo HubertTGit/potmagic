@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useForm } from "@tanstack/react-form";
 import { Drama } from "lucide-react";
 import { useRouter } from "@tanstack/react-router";
 import { actorSignIn } from "@/lib/actor-auth.fns";
@@ -8,39 +8,26 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { emailSchema } from "@/lib/schemas";
 
 export function ActorLogin() {
-  const [error, setError] = useState<string | null>(null);
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState("");
   const router = useRouter();
   const { langPrefix, t } = useLanguage();
   // refetch() updates the shared useSession() atom — getSession() does not
   const { refetch } = authClient.useSession();
 
-  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError(null);
-
-    const result = emailSchema.safeParse(email);
-    if (!result.success) {
-      setValidationError(result.error.issues[0].message);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await actorSignIn({ data: { email } });
-      // Hydrate the shared session atom so _app.tsx sees a non-null session
-      await refetch();
-      await router.navigate({ to: `${langPrefix}/stories` });
-    } catch (err: unknown) {
-      setError(
-        (err as { message?: string })?.message ?? t("auth.error.loginFailed"),
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+  const form = useForm({
+    defaultValues: { email: "" },
+    onSubmit: async ({ value }) => {
+      try {
+        await actorSignIn({ data: { email: value.email } });
+        // Hydrate the shared session atom so _app.tsx sees a non-null session
+        await refetch();
+        await router.navigate({ to: `${langPrefix}/stories` });
+      } catch (err: unknown) {
+        throw new Error(
+          (err as { message?: string })?.message ?? t("auth.error.loginFailed"),
+        );
+      }
+    },
+  });
 
   return (
     <div className="bg-base-100 min-w-87.5">
@@ -58,62 +45,99 @@ export function ActorLogin() {
       </div>
 
       <div className="px-8 pb-8">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {error && (
-            <p className="text-error border-error-content bg-error/10 rounded-2xl border p-3 text-center text-xs">
-              {error}
-            </p>
-          )}
-
-          <fieldset className="fieldset gap-1">
-            <legend className="fieldset-legend text-base-content/40 text-xs tracking-widest">
-              {t("common.email")}
-            </legend>
-            <input
-              name="email"
-              type="email"
-              autoComplete="email"
-              placeholder={t("auth.emailPlaceholder")}
-              value={email}
-              onChange={(e) => {
-                const val = e.target.value;
-                setEmail(val);
-                if (validationError) {
-                  const result = emailSchema.safeParse(val);
-                  if (result.success) {
-                    setValidationError(null);
-                  } else {
-                    setValidationError(result.error.issues[0].message);
-                  }
-                }
-              }}
-              onBlur={() => {
-                const result = emailSchema.safeParse(email);
-                if (!result.success) {
-                  setValidationError(result.error.issues[0].message);
-                } else {
-                  setValidationError(null);
-                }
-              }}
-              className={cn("input w-full", validationError && "input-error")}
-            />
-            {validationError && (
-              <p role="alert" className="text-error mt-1 text-xs">
-                {validationError}
-              </p>
-            )}
-          </fieldset>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className={cn(
-              "btn btn-secondary btn-block font-display mt-1 text-base tracking-[0.08em]",
-              loading && "cursor-not-allowed opacity-60",
-            )}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            void form.handleSubmit();
+          }}
+          className="flex flex-col gap-4"
+        >
+          <form.Subscribe
+            selector={(state) =>
+              state.submissionAttempts > 0 &&
+              !state.isSubmitting &&
+              state.errorMap.onSubmit
+            }
           >
-            {loading ? t("auth.loading.entering") : t("auth.actor.enter")}
-          </button>
+            {(submitError) =>
+              submitError ? (
+                <p className="text-error border-error-content bg-error/10 rounded-2xl border p-3 text-center text-xs">
+                  {`${submitError}`}
+                </p>
+              ) : null
+            }
+          </form.Subscribe>
+
+          <form.Field
+            name="email"
+            validators={{
+              onChange: ({ value }) => {
+                const result = emailSchema.safeParse(value);
+                if (result.success) return undefined;
+                return result.error.issues[0].code === "too_small" || value === ""
+                  ? t("auth.error.emailRequired" as any)
+                  : t("auth.error.invalidEmail" as any);
+              },
+              onBlur: ({ value }) => {
+                const result = emailSchema.safeParse(value);
+                if (result.success) return undefined;
+                return result.error.issues[0].code === "too_small" || value === ""
+                  ? t("auth.error.emailRequired" as any)
+                  : t("auth.error.invalidEmail" as any);
+              },
+            }}
+          >
+            {(field) => (
+              <fieldset className="fieldset gap-1">
+                <legend className="fieldset-legend text-base-content/40 text-xs tracking-widest">
+                  {t("common.email")}
+                </legend>
+                <input
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder={t("auth.emailPlaceholder")}
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  className={cn(
+                    "input w-full",
+                    field.state.meta.isTouched &&
+                      !field.state.meta.isValid &&
+                      "input-error",
+                  )}
+                />
+                {field.state.meta.isTouched && !field.state.meta.isValid && (
+                  <p role="alert" className="text-error mt-1 text-xs">
+                    {field.state.meta.errors[0]}
+                  </p>
+                )}
+              </fieldset>
+            )}
+          </form.Field>
+
+          <form.Subscribe
+            selector={(state) =>
+              [state.canSubmit, state.isSubmitting] as const
+            }
+          >
+            {([canSubmit, isSubmitting]) => (
+              <button
+                type="submit"
+                disabled={!canSubmit || isSubmitting}
+                className={cn(
+                  "btn btn-secondary btn-block font-display mt-1 text-base tracking-[0.08em]",
+                  (!canSubmit || isSubmitting) &&
+                    "cursor-not-allowed opacity-60",
+                )}
+              >
+                {isSubmitting
+                  ? t("auth.loading.entering")
+                  : t("auth.actor.enter")}
+              </button>
+            )}
+          </form.Subscribe>
         </form>
 
         <div className="mt-8 text-center">

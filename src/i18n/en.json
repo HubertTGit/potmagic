@@ -92,6 +92,8 @@
   "auth.error.failedSendLink": "Failed to send link",
   "auth.error.googleSignInFailed": "Google sign-in failed",
   "auth.error.loginFailed": "Login failed",
+  "auth.error.emailRequired": "Email is required",
+  "auth.error.invalidEmail": "Enter a valid email address",
   "auth.director.description": "Whether it's your first time or you've already registered as a director, this is the place to start. As director, the stage is yours and you are in full control.",
   "auth.actor.description": "If you've already been invited, you'll receive an invitation email from the director. Just enter your email address and you're good to go!",
 

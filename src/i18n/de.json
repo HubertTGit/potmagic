@@ -85,6 +85,8 @@
   "auth.error.failedSendLink": "Link konnte nicht gesendet werden",
   "auth.error.googleSignInFailed": "Google-Anmeldung fehlgeschlagen",
   "auth.error.loginFailed": "Anmeldung fehlgeschlagen",
+  "auth.error.emailRequired": "E-Mail ist erforderlich",
+  "auth.error.invalidEmail": "Geben Sie eine gültige E-Mail-Adresse ein",
   "auth.director.description": "Egal, ob es dein erstes Mal ist oder du bereits als Regisseur registriert bist – hier beginnt alles. Als Regisseur gehört die Bühne dir, und du hast die volle Kontrolle.",
   "auth.actor.description": "Wenn du bereits eingeladen wurdest, erhältst du eine Einladungs-E-Mail vom Regisseur. Gib einfach deine E-Mail-Adresse ein und schon kann es losgehen!",
 
