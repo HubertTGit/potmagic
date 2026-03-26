@@ -30,7 +30,11 @@ export function BgPanningTool({ isDirector, room }: BgPanningToolProps) {
       if (!room) return;
       room.localParticipant.publishData(
         encoder.encode(
-          JSON.stringify({ type: 'bg:animate', direction: nextDirection, speed: nextSpeed }),
+          JSON.stringify({
+            type: "bg:animate",
+            direction: nextDirection,
+            speed: nextSpeed,
+          }),
         ),
         { reliable: true },
       );
@@ -73,14 +77,14 @@ export function BgPanningTool({ isDirector, room }: BgPanningToolProps) {
         <div className="border-base-300 bg-base-200 flex items-center overflow-hidden rounded-xl border shadow-lg">
           <button
             type="button"
-            onClick={() => handleClick("left")}
-            disabled={leftProgress >= 100}
+            onClick={() => handleClick("right")}
+            disabled={rightProgress >= 100}
             className={cn(
               "btn btn-sm btn-ghost border-base-300 gap-1 rounded-none border-r",
-              direction === "left" && "text-primary",
+              direction === "right" && "text-primary",
             )}
           >
-            {direction === "left" && speed > 0 ? (
+            {direction === "right" && speed > 0 ? (
               <>
                 <ChevronsLeft className="size-4 animate-pulse" />
                 {`${speed}x`}
@@ -99,25 +103,25 @@ export function BgPanningTool({ isDirector, room }: BgPanningToolProps) {
             )}
           >
             {direction === "left" ? (
-              <div className="animate-wiggle">{t('bg.animatingLeft')}</div>
+              <div className="animate-wiggle">{t("bg.animatingLeft")}</div>
             ) : direction === "right" ? (
-              <div className="animate-wiggle">{t('bg.animatingRight')}</div>
+              <div className="animate-wiggle">{t("bg.animatingRight")}</div>
             ) : (
               <>
-                {t('bg.background')} <MoveHorizontal className="size-3" />
+                {t("bg.background")} <MoveHorizontal className="size-3" />
               </>
             )}
           </button>
           <button
             type="button"
-            onClick={() => handleClick("right")}
-            disabled={rightProgress >= 100}
+            onClick={() => handleClick("left")}
+            disabled={leftProgress >= 100}
             className={cn(
               "btn btn-sm btn-ghost border-base-300 gap-1 rounded-none border-l",
-              direction === "right" && "text-primary",
+              direction === "left" && "text-primary",
             )}
           >
-            {direction === "right" && speed > 0 ? (
+            {direction === "left" && speed > 0 ? (
               <>
                 {`${speed}x`}
                 <ChevronsRight className="size-4 animate-pulse" />
@@ -135,7 +139,7 @@ export function BgPanningTool({ isDirector, room }: BgPanningToolProps) {
           set is the correct new behaviour for non-directors. */}
       {!isDirector && direction && (
         <div className="flex w-28 items-center justify-center gap-1 text-xs">
-          {t('bg.background')} <MoveHorizontal className="size-2" />
+          {t("bg.background")} <MoveHorizontal className="size-2" />
         </div>
       )}
 

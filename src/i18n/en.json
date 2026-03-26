@@ -163,9 +163,9 @@
   "sound.play": "Play",
   "sound.volume": "Volume",
 
-  "bg.animatingLeft": "... animating left",
-  "bg.animatingRight": "animating right ...",
-  "bg.background": "background",
+  "bg.animatingLeft": "panning right ...",
+  "bg.animatingRight": "... panning left",
+  "bg.background": "panning",
 
   "prop.assignPlaceholder": "Assign prop…",
   "prop.searchPlaceholder": "Search…",
