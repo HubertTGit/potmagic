@@ -160,9 +160,9 @@ Auth is still mounted at `/api/auth/*` via better-auth's handler in the server e
 
 ## Skills & Agents (.claude/)
 
-### Skills (`src/.claude/skills/`)
+### Skills (`.agents/skills/`)
 
-Available skills to invoke with the `Skill` tool during development:
+Available skills to invoke during development:
 
 - `tanstack-start-best-practices` — TanStack Start execution model, server functions, routing, middleware, SEO, import protection, hosting
 - `tanstack-start-i18n` — Optional locale URL prefix, react-i18next, language switching, HTML lang, `($lang)` pattern + build workaround
@@ -173,7 +173,7 @@ Available skills to invoke with the `Skill` tool during development:
 - `tailwind-dark-mode` — Dark/light mode with Tailwind v4, `data-theme` attribute
 - `rive-best-practices` — Rive animations: `@rive-app/react-webgl2`, CJS import workaround, `useRive` hook, state machines, layout/fit, asset loading, `RiveCanvas` wrapper pattern
 
-### Agents (`.claude/agents/`)
+### Agents (`.agents/reference/`)
 
 Specialized reference agents for documentation lookup:
 
