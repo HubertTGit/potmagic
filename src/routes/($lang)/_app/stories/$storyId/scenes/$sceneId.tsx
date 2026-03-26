@@ -17,6 +17,7 @@ import {
   assignSceneBackground,
   assignSceneSound,
   setSceneSoundAutoplay,
+  setSceneBackgroundRepeat,
   addActorToScene,
   assignSceneProp,
 } from '@/lib/scenes.fns';
@@ -199,6 +200,12 @@ function SceneDetailPage() {
     onSuccess: invalidate,
   });
 
+  const backgroundRepeatMutation = useMutation({
+    mutationFn: (repeat: boolean) =>
+      setSceneBackgroundRepeat({ data: { sceneId, repeat } }),
+    onSuccess: invalidate,
+  });
+
   const isTitleDirty = title !== (scene?.title ?? '');
 
   if (!scene || !story) {
@@ -308,6 +315,8 @@ function SceneDetailPage() {
         availableBackgrounds={availableBackgrounds}
         onAssignBackground={handleAssignBackground}
         isAssigning={assignBgMutation.isPending}
+        backgroundRepeat={data?.backgroundRepeat ?? false}
+        onToggleRepeat={(repeat) => backgroundRepeatMutation.mutate(repeat)}
       />
 
       <SceneSoundSection
