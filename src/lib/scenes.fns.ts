@@ -85,6 +85,7 @@ export const getSceneDetail = createServerFn({ method: 'GET' })
         backgroundId: scenes.backgroundId,
         soundId: scenes.soundId,
         soundAutoplay: scenes.soundAutoplay,
+        backgroundRepeat: scenes.backgroundRepeat,
       })
       .from(scenes)
       .where(eq(scenes.id, data.sceneId));
@@ -185,6 +186,7 @@ export const getSceneDetail = createServerFn({ method: 'GET' })
       background: backgroundProp ?? null,
       sound: soundProp ?? null,
       soundAutoplay: scene.soundAutoplay,
+      backgroundRepeat: scene.backgroundRepeat,
     };
   });
 
@@ -209,6 +211,18 @@ export const setSceneSoundAutoplay = createServerFn({ method: 'POST' })
     await db
       .update(scenes)
       .set({ soundAutoplay: data.autoplay })
+      .where(eq(scenes.id, data.sceneId));
+  });
+
+export const setSceneBackgroundRepeat = createServerFn({ method: 'POST' })
+  .inputValidator((input) =>
+    z.object({ sceneId: z.string(), repeat: z.boolean() }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    await requireSceneOwner(data.sceneId);
+    await db
+      .update(scenes)
+      .set({ backgroundRepeat: data.repeat })
       .where(eq(scenes.id, data.sceneId));
   });
 
@@ -366,6 +380,7 @@ export const getSceneStage = createServerFn({ method: 'GET' })
         backgroundScaleX: scenes.backgroundScaleX,
         soundId: scenes.soundId,
         soundAutoplay: scenes.soundAutoplay,
+        backgroundRepeat: scenes.backgroundRepeat,
       })
       .from(scenes)
       .where(eq(scenes.id, data.sceneId));
@@ -428,6 +443,7 @@ export const getSceneStage = createServerFn({ method: 'GET' })
       soundUrl: soundProp?.imageUrl ?? null,
       soundName: soundProp?.name ?? null,
       soundAutoplay: sceneWithBg?.soundAutoplay ?? false,
+      backgroundRepeat: sceneWithBg?.backgroundRepeat ?? false,
     };
   });
 
