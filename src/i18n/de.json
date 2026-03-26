@@ -135,6 +135,7 @@
   "scene.assignSound": "Sound zuweisen…",
   "scene.noSoundInLibrary": "Noch kein Sound in der Bibliothek zugewiesen",
   "scene.autoplay": "Automatisch abspielen",
+  "scene.repeat": "Wiederholen",
   "aria.dragToReorder": "Zum Neuordnen ziehen",
   "aria.removeFromScene": "Aus Szene entfernen",
   "aria.removeBackground": "Hintergrund entfernen",

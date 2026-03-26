@@ -147,6 +147,7 @@
   "scene.assignSound": "Assign sound…",
   "scene.noSoundInLibrary": "No sound in library assigned yet",
   "scene.autoplay": "Autoplay",
+  "scene.repeat": "Repeat",
 
   "aria.dragToReorder": "Drag to reorder",
   "aria.removeFromScene": "Remove from scene",
