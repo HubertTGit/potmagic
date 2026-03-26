@@ -231,7 +231,11 @@ export const StageComponent = React.forwardRef<
     if (typeof rafId === "number") {
       return () => cancelAnimationFrame(rafId);
     }
-  }, [casts, room, session, stageWidth, stageHeight, backgroundRepeat]);
+  // backgroundRepeat intentionally excluded: it is only read at PixiBackground construction
+  // time. Changing it while the stage is live does not update already-mounted instances —
+  // directors configure it from the scene detail page before entering the stage.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [casts, room, session, stageWidth, stageHeight]);
 
   // Single centralized LiveKit DataReceived handler — parse once, dispatch by castId
   useEffect(() => {

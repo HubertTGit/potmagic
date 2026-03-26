@@ -89,6 +89,9 @@ export class PixiBackground {
         width: stageWidth,
         height: texture.height,
       });
+      // initialX stores the persisted tilePosition.x offset (saved via backgroundPosX).
+      // Note: if a scene is toggled back to non-repeat mode, the persisted value is a
+      // tile offset, not a stage-space X — it will be overwritten on the next drag/stop.
       this.tilingSprite.tilePosition.x = this.props.initialX ?? 0;
       this.tilingSprite.filters = [this.blurFilter];
       this.container.addChild(this.tilingSprite);
