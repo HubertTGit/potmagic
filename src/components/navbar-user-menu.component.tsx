@@ -19,15 +19,17 @@ export function NavbarUserMenu() {
 
   if (session) {
     const sub = session.user.subscription as SubscriptionType;
-    const subBadgeClass: Record<SubscriptionType, string | null> = {
-      standard: null,
-      pro: "badge-accent",
-      teams: "badge-accent",
-    };
+    const showBadge = sub === "pro" || sub === "teams";
+    const showUpgrade = sub === "standard" || sub === "pro";
 
     return (
       <div className="dropdown dropdown-click dropdown-start flex flex-col">
-        <div className="relative inline-flex">
+        <div className="indicator">
+          {showBadge && (
+            <span className="indicator-item badge badge-accent badge-xs capitalize">
+              {sub}
+            </span>
+          )}
           <button
             tabIndex={0}
             className={cn(
@@ -50,16 +52,6 @@ export function NavbarUserMenu() {
               })}
             </span>
           </button>
-          {subBadgeClass[sub] && (
-            <span
-              className={cn(
-                "badge badge-xs absolute -top-1.5 -right-4 capitalize",
-                subBadgeClass[sub],
-              )}
-            >
-              {sub}
-            </span>
-          )}
         </div>
         <ul
           tabIndex={0}
@@ -75,6 +67,16 @@ export function NavbarUserMenu() {
               {t("nav.profile")}
             </Link>
           </li>
+          {showUpgrade && (
+            <li>
+              <Link
+                to={`${langPrefix}/profile` as any}
+                className="btn btn-accent btn-xs font-display my-1 w-full justify-center tracking-wide"
+              >
+                {t("profile.upgrade")}
+              </Link>
+            </li>
+          )}
           <li>
             <button
               onClick={handleLogout}

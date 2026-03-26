@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Megaphone,
 } from "lucide-react";
+import type { SubscriptionType } from "@/db/schema";
 
 export function Sidebar() {
   const { data: session } = authClient.useSession();
@@ -62,6 +63,9 @@ export function Sidebar() {
     router.navigate({ to: `${langPrefix}/auth`, search: { token: "" } });
   };
 
+  const sub = session?.user.subscription as SubscriptionType | undefined;
+  const showSubDot = sub === "pro" || sub === "teams";
+
   const btnBase = cn(
     "btn btn-ghost btn-sm font-normal text-base-content/60",
     collapsed ? "btn-square" : "w-full justify-start gap-3",
@@ -77,7 +81,7 @@ export function Sidebar() {
       {collapsed && (
         <button
           onClick={handleCollapseToggle}
-          aria-label={t('ui.expandSidebar')}
+          aria-label={t("ui.expandSidebar")}
           className="btn btn-xs btn-square absolute top-3 left-full z-50"
         >
           <ChevronRight className="size-4" />
@@ -91,7 +95,10 @@ export function Sidebar() {
         )}
       >
         {collapsed ? (
-          <Link to={`${langPrefix}/` as any} className="transition-opacity hover:opacity-75">
+          <Link
+            to={`${langPrefix}/` as any}
+            className="transition-opacity hover:opacity-75"
+          >
             <img
               src={theme === Theme.dark ? "/icon-white.svg" : "/icon-red.svg"}
               alt="potmagic"
@@ -99,7 +106,10 @@ export function Sidebar() {
             />
           </Link>
         ) : (
-          <Link to={`${langPrefix}/` as any} className="transition-opacity hover:opacity-75">
+          <Link
+            to={`${langPrefix}/` as any}
+            className="transition-opacity hover:opacity-75"
+          >
             <img
               src={theme === Theme.dark ? "/logo-white.svg" : "/logo-color.svg"}
               alt="potmagic"
@@ -109,7 +119,9 @@ export function Sidebar() {
         )}
         <button
           onClick={handleCollapseToggle}
-          aria-label={collapsed ? t('ui.expandSidebar') : t('ui.collapseSidebar')}
+          aria-label={
+            collapsed ? t("ui.expandSidebar") : t("ui.collapseSidebar")
+          }
           className={cn(
             "btn btn-ghost btn-xs btn-square",
             collapsed ? "hidden" : "ml-auto",
@@ -127,7 +139,7 @@ export function Sidebar() {
           collapsed={collapsed}
           onExpand={expandOnDesktop}
         >
-          {t('nav.stories')}
+          {t("nav.stories")}
         </SidebarLink>
         {isDirector && (
           <SidebarLink
@@ -136,7 +148,7 @@ export function Sidebar() {
             collapsed={collapsed}
             onExpand={expandOnDesktop}
           >
-            {t('nav.director')}
+            {t("nav.director")}
           </SidebarLink>
         )}
       </nav>
@@ -153,25 +165,40 @@ export function Sidebar() {
           )}
           data-tip={
             collapsed
-              ? (session?.user?.name ?? session?.user?.email ?? t('nav.profile'))
+              ? (session?.user?.name ??
+                session?.user?.email ??
+                t("nav.profile"))
               : undefined
           }
         >
-          <div className="avatar shrink-0">
-            <div className="bg-base-300 size-7 overflow-hidden rounded-full">
-              {session?.user?.image ? (
-                <img
-                  src={session.user.image}
-                  alt={session.user.name ?? ""}
-                  className="size-full object-cover"
-                />
-              ) : (
-                <div className="text-base-content/50 flex size-full items-center justify-center text-xs font-semibold select-none">
-                  {(session?.user?.name ||
-                    session?.user?.email ||
-                    "?")[0].toUpperCase()}
-                </div>
-              )}
+          <div className="indicator shrink-0">
+            {showSubDot && (
+              <span className="indicator-item badge badge-accent badge-xs capitalize">
+                {sub}
+              </span>
+            )}
+            <div className="avatar">
+              <div
+                className={cn(
+                  "bg-base-300 size-7 overflow-hidden rounded-full",
+                  isDirector &&
+                    "ring-primary ring-offset-base-200 ring-2 ring-offset-1",
+                )}
+              >
+                {session?.user?.image ? (
+                  <img
+                    src={session.user.image}
+                    alt={session.user.name ?? ""}
+                    className="size-full object-cover"
+                  />
+                ) : (
+                  <div className="text-base-content/50 flex size-full items-center justify-center text-xs font-semibold select-none">
+                    {(session?.user?.name ||
+                      session?.user?.email ||
+                      "?")[0].toUpperCase()}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           {!collapsed && (
@@ -186,7 +213,7 @@ export function Sidebar() {
         <div className="flex flex-col gap-1 p-2">
           <div
             className={cn(collapsed && "tooltip tooltip-right")}
-            data-tip={collapsed ? t('ui.switchLanguage') : undefined}
+            data-tip={collapsed ? t("ui.switchLanguage") : undefined}
           >
             <LanguageSwitcher />
           </div>
@@ -196,8 +223,8 @@ export function Sidebar() {
             data-tip={
               collapsed
                 ? theme === Theme.dark
-                  ? t('ui.lightMode')
-                  : t('ui.darkMode')
+                  ? t("ui.lightMode")
+                  : t("ui.darkMode")
                 : undefined
             }
           >
@@ -208,21 +235,21 @@ export function Sidebar() {
                 <Moon className="size-4 shrink-0" />
               )}
               {!collapsed &&
-                (theme === Theme.dark ? t('ui.lightMode') : t('ui.darkMode'))}
+                (theme === Theme.dark ? t("ui.lightMode") : t("ui.darkMode"))}
             </button>
           </div>
 
           {session && (
             <div
               className={cn(collapsed && "tooltip tooltip-right")}
-              data-tip={collapsed ? t('ui.logout') : undefined}
+              data-tip={collapsed ? t("ui.logout") : undefined}
             >
               <button
                 onClick={handleLogout}
                 className={cn(btnBase, "hover:btn-error hover:text-white")}
               >
                 <LogOut className="size-4 shrink-0" />
-                {!collapsed && t('ui.logout')}
+                {!collapsed && t("ui.logout")}
               </button>
             </div>
           )}
