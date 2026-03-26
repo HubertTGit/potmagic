@@ -40,3 +40,7 @@ googleusercontent.json
 .pnpm-*
 
 *.riv
+
+.agents/*
+.agents
+.agents/**/*
