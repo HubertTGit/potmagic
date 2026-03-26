@@ -1,7 +1,14 @@
 import { createFileRoute, ErrorComponent } from "@tanstack/react-router";
 import { getMeta } from "@/i18n/meta";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { lazy, useEffect, useRef, useState, useCallback, Suspense } from "react";
+import {
+  lazy,
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  Suspense,
+} from "react";
 import {
   LiveKitRoom,
   RoomAudioRenderer,
@@ -28,7 +35,9 @@ import { BgPanningTool } from "@/components/bg-panning-tool.component";
 import { useSceneSound } from "@/hooks/useSceneSound";
 
 const StageComponent = lazy(() =>
-  import("@/components/stage.component").then((m) => ({ default: m.StageComponent })),
+  import("@/components/stage.component").then((m) => ({
+    default: m.StageComponent,
+  })),
 );
 
 export const Route = createFileRoute("/($lang)/_app/stage/$sceneId")({
@@ -247,7 +256,7 @@ function StageShell({
           <div className="bg-base-100/75 border-base-300 flex items-center gap-2.5 rounded-full border px-5 py-2 shadow-lg backdrop-blur-md">
             <span className="loading loading-dots loading-xs text-primary" />
             <span className="font-display text-base-content/50 text-[11px] tracking-[0.18em] uppercase">
-              {t('stage.changingScene')}
+              {t("stage.changingScene")}
             </span>
           </div>
         </div>
@@ -273,8 +282,19 @@ function StageShell({
         ref={stageWrapperRef}
         className="border-base-300 overflow-hidden rounded-xl border-2 shadow-xl"
       >
-        <Suspense fallback={<div className="bg-base-200 flex h-180 w-7xl items-center justify-center"><span className="loading loading-spinner loading-lg text-primary" /></div>}>
-          <StageComponent casts={casts} room={room} speakingIds={speakingIds} backgroundRepeat={backgroundRepeat} />
+        <Suspense
+          fallback={
+            <div className="bg-base-200 flex h-180 w-7xl items-center justify-center">
+              <span className="loading loading-spinner loading-lg text-primary" />
+            </div>
+          }
+        >
+          <StageComponent
+            casts={casts}
+            room={room}
+            speakingIds={speakingIds}
+            backgroundRepeat={backgroundRepeat}
+          />
         </Suspense>
       </div>
       <div className="flex w-7xl items-center justify-between">
@@ -282,6 +302,7 @@ function StageShell({
         <BgPanningTool
           isDirector={isDirector}
           room={room}
+          backgroundRepeat={backgroundRepeat}
         />
         {isDirector && soundName && (
           <SoundControlBar

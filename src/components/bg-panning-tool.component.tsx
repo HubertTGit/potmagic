@@ -3,6 +3,7 @@ import {
   ChevronLeft,
   ChevronRight,
   MoveHorizontal,
+  Repeat,
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
@@ -16,11 +17,16 @@ import { useLanguage } from "@/hooks/useLanguage";
 interface BgPanningToolProps {
   isDirector: boolean;
   room?: Room | null;
+  backgroundRepeat?: boolean;
 }
 
 const encoder = new TextEncoder();
 
-export function BgPanningTool({ isDirector, room }: BgPanningToolProps) {
+export function BgPanningTool({
+  isDirector,
+  room,
+  backgroundRepeat = false,
+}: BgPanningToolProps) {
   const { t } = useLanguage();
   const [{ direction, speed }, setBgPanning] = useAtom(bgPanningAtom);
   const { leftProgress, rightProgress } = useAtomValue(bgProgressAtom);
@@ -108,7 +114,12 @@ export function BgPanningTool({ isDirector, room }: BgPanningToolProps) {
               <div className="animate-wiggle">{t("bg.animatingRight")}</div>
             ) : (
               <>
-                {t("bg.background")} <MoveHorizontal className="size-3" />
+                {t("bg.background")}{" "}
+                {backgroundRepeat ? (
+                  <Repeat className="size-2" />
+                ) : (
+                  <MoveHorizontal className="size-2" />
+                )}
               </>
             )}
           </button>
@@ -139,7 +150,12 @@ export function BgPanningTool({ isDirector, room }: BgPanningToolProps) {
           set is the correct new behaviour for non-directors. */}
       {!isDirector && direction && (
         <div className="flex w-28 items-center justify-center gap-1 text-xs">
-          {t("bg.background")} <MoveHorizontal className="size-2" />
+          {t("bg.background")}{" "}
+          {backgroundRepeat ? (
+            <Repeat className="size-2" />
+          ) : (
+            <MoveHorizontal className="size-2" />
+          )}
         </div>
       )}
 
