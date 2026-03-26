@@ -15,6 +15,8 @@ interface SceneBackgroundSectionProps {
   availableBackgrounds: BackgroundProp[];
   onAssignBackground: (bg: BackgroundProp | null) => void;
   isAssigning?: boolean;
+  backgroundRepeat: boolean;
+  onToggleRepeat: (repeat: boolean) => void;
 }
 
 export function SceneBackgroundSection({
@@ -23,6 +25,8 @@ export function SceneBackgroundSection({
   availableBackgrounds,
   onAssignBackground,
   isAssigning,
+  backgroundRepeat,
+  onToggleRepeat,
 }: SceneBackgroundSectionProps) {
   const { t } = useLanguage();
   const picker =
@@ -59,13 +63,24 @@ export function SceneBackgroundSection({
         )}
 
         {isDirector && background && (
-          <button
-            onClick={() => onAssignBackground(null)}
-            className="text-error/60 hover:text-error hover:bg-error/10 flex items-center gap-1 rounded-lg p-2 text-xs transition-colors"
-            title={t('aria.removeBackground')}
-          >
-            <Trash2 className="size-4" />
-          </button>
+          <div className="flex shrink-0 items-center gap-3">
+            <label className="flex cursor-pointer items-center gap-2 select-none">
+              <span className="text-base-content/50 text-xs">{t('scene.repeat')}</span>
+              <input
+                type="checkbox"
+                className="toggle toggle-sm toggle-success"
+                checked={backgroundRepeat}
+                onChange={(e) => onToggleRepeat(e.target.checked)}
+              />
+            </label>
+            <button
+              onClick={() => onAssignBackground(null)}
+              className="text-error/60 hover:text-error hover:bg-error/10 flex items-center gap-1 rounded-lg p-2 text-xs transition-colors"
+              title={t('aria.removeBackground')}
+            >
+              <Trash2 className="size-4" />
+            </button>
+          </div>
         )}
       </div>
     </div>
