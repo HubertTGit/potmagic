@@ -2,13 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import { Application } from "pixi.js";
 import { RoomEvent } from "livekit-client";
 import type { Room } from "livekit-client";
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtomValue, useSetAtom } from "jotai";
 import { PixiCharacter } from "@/components/draggable-character.component";
 import { PixiBackground } from "@/components/draggable-background.component";
 import { authClient } from "@/lib/auth-client";
 import type { PropType } from "@/db/schema";
-import { bgPanningAtom, bgProgressAtom } from '@/lib/bg-panning.atoms';
-import type { LiveKitMessage } from '@/lib/livekit-messages';
+import { bgPanningAtom, bgProgressAtom } from "@/lib/bg-panning.atoms";
+import type { LiveKitMessage } from "@/lib/livekit-messages";
 import { Maximize, Minimize } from "lucide-react";
 
 const decoder = new TextDecoder();
@@ -63,7 +63,7 @@ export const StageComponent = React.forwardRef<
     new Map(),
   );
   const appReadyRef = useRef(false);
-  const prevCastIdsRef = useRef<string>('');
+  const prevCastIdsRef = useRef<string>("");
 
   const [allLoaded, setAllLoaded] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -125,12 +125,12 @@ export const StageComponent = React.forwardRef<
 
       const rect = parent.getBoundingClientRect();
       const isFull = !!document.fullscreenElement;
-      
+
       const width = isFull ? window.innerWidth : rect.width;
       const height = isFull ? window.innerHeight : rect.height;
 
       app.renderer.resize(width, height);
-      
+
       const scale = Math.min(width / stageWidth, height / stageHeight);
       app.stage.scale.set(scale);
       app.stage.x = (width - stageWidth * scale) / 2;
@@ -185,7 +185,10 @@ export const StageComponent = React.forwardRef<
           existing.delete(id);
           // Remove from castId lookup
           for (const [cid, p] of castIdMapRef.current) {
-            if (p === prop) { castIdMapRef.current.delete(cid); break; }
+            if (p === prop) {
+              castIdMapRef.current.delete(cid);
+              break;
+            }
           }
         }
       }
@@ -233,19 +236,33 @@ export const StageComponent = React.forwardRef<
             remaining -= 1;
             if (remaining === 0) setAllLoaded(true);
           },
-          ...(cast.type === 'background' && {
+          ...(cast.type === "background" && {
             backgroundRepeat,
-            onPositionChange: (x: number, bounds: { minX: number; maxX: number }) => {
+            onPositionChange: (
+              x: number,
+              bounds: { minX: number; maxX: number },
+            ) => {
               const range = bounds.maxX - bounds.minX;
               if (range <= 0) return;
-              const rightProgress = Math.round(((x - bounds.minX) / range) * 100);
-              setBgProgress({ leftProgress: 100 - rightProgress, rightProgress });
+              const rightProgress = Math.round(
+                ((x - bounds.minX) / range) * 100,
+              );
+              setBgProgress({
+                leftProgress: 100 - rightProgress,
+                rightProgress,
+              });
             },
             onAnimationComplete: () => {
               setBgPanning({ direction: null, speed: 0 });
               if (room && canDrag) {
                 room.localParticipant.publishData(
-                  encoder.encode(JSON.stringify({ type: 'bg:animate', direction: null, speed: 0 })),
+                  encoder.encode(
+                    JSON.stringify({
+                      type: "bg:animate",
+                      direction: null,
+                      speed: 0,
+                    }),
+                  ),
                   { reliable: true },
                 );
               }
@@ -263,10 +280,10 @@ export const StageComponent = React.forwardRef<
     if (typeof rafId === "number") {
       return () => cancelAnimationFrame(rafId);
     }
-  // backgroundRepeat intentionally excluded: it is only read at PixiBackground construction
-  // time. Changing it while the stage is live does not update already-mounted instances —
-  // directors configure it from the scene detail page before entering the stage.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // backgroundRepeat intentionally excluded: it is only read at PixiBackground construction
+    // time. Changing it while the stage is live does not update already-mounted instances —
+    // directors configure it from the scene detail page before entering the stage.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [casts, room, session, stageWidth, stageHeight]);
 
   // Single centralized LiveKit DataReceived handler — parse once, dispatch by castId
@@ -279,14 +296,16 @@ export const StageComponent = React.forwardRef<
       } catch {
         return;
       }
-      if (msg.type === 'prop:move') {
+      if (msg.type === "prop:move") {
         castIdMapRef.current.get(msg.castId)?.applyRemoteMove(msg);
-      } else if (msg.type === 'bg:animate') {
+      } else if (msg.type === "bg:animate") {
         setBgPanning({ direction: msg.direction, speed: msg.speed });
       }
     };
     room.on(RoomEvent.DataReceived, onDataReceived);
-    return () => { room.off(RoomEvent.DataReceived, onDataReceived); };
+    return () => {
+      room.off(RoomEvent.DataReceived, onDataReceived);
+    };
   }, [room, setBgPanning]);
 
   // Update speaking glow without recreating characters
@@ -311,7 +330,10 @@ export const StageComponent = React.forwardRef<
 
   // Reset atoms when scene (cast set) changes
   useEffect(() => {
-    const castKey = casts.map((c) => c.sceneCastId).sort().join(',');
+    const castKey = casts
+      .map((c) => c.sceneCastId)
+      .sort()
+      .join(",");
     if (castKey !== prevCastIdsRef.current) {
       prevCastIdsRef.current = castKey;
       setBgPanning({ direction: null, speed: 0 });
@@ -345,7 +367,11 @@ export const StageComponent = React.forwardRef<
           <span className="loading loading-spinner loading-lg text-primary" />
         </div>
       )}
-      <div ref={containerRef} className="h-full w-full bg-black flex items-center justify-center" />
+      <div
+        ref={containerRef}
+        className="flex h-full w-full items-center justify-center bg-black"
+      />
+      (
       <button
         type="button"
         onClick={() => {
@@ -355,7 +381,7 @@ export const StageComponent = React.forwardRef<
             document.exitFullscreen();
           }
         }}
-        className="btn btn-circle btn-ghost btn-sm absolute bottom-4 right-4 z-20 hover:bg-neutral/20"
+        className="btn btn-circle btn-ghost btn-sm hover:bg-neutral/20 absolute right-4 bottom-4 z-20"
       >
         {isFullscreen ? (
           <Minimize className="h-5 w-5 text-white shadow-sm" />
@@ -363,6 +389,7 @@ export const StageComponent = React.forwardRef<
           <Maximize className="h-5 w-5 text-white shadow-sm" />
         )}
       </button>
+      )
     </div>
   );
 });

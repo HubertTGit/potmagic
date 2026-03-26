@@ -114,6 +114,8 @@ export function ShowLivePage({ storyId }: { storyId: string }) {
     >
       <ShowLiveContent
         storyTitle={story.title}
+        directorSubscription={story.directorSubscription as any}
+        initialSceneId={story.firstSceneId}
         onShowEnded={() => setForcedOffline(true)}
       />
     </LiveKitRoom>

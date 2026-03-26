@@ -2,14 +2,14 @@ import { createServerFn } from '@tanstack/react-start';
 import { and, asc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db';
-import { cast, props, scenes, sceneCast, stories } from '@/db/schema';
-
+import { cast, props, scenes, sceneCast, stories, users } from '@/db/schema';
 export const getPublicStory = createServerFn({ method: 'GET' })
   .inputValidator((input) => z.object({ storyId: z.string() }).parse(input))
   .handler(async ({ data }) => {
     const [story] = await db
-      .select({ id: stories.id, title: stories.title, status: stories.status })
+      .select({ id: stories.id, title: stories.title, status: stories.status, directorSubscription: users.subscription })
       .from(stories)
+      .innerJoin(users, eq(users.id, stories.directorId))
       .where(eq(stories.id, data.storyId));
 
     if (!story) return null;
@@ -51,12 +51,13 @@ export const getPublicSceneStage = createServerFn({ method: 'GET' })
         backgroundPosY: scenes.backgroundPosY,
         backgroundRotation: scenes.backgroundRotation,
         backgroundScaleX: scenes.backgroundScaleX,
+        backgroundRepeat: scenes.backgroundRepeat,
         storyId: scenes.storyId,
       })
       .from(scenes)
       .where(eq(scenes.id, data.sceneId));
 
-    if (!sceneWithBg) return [];
+    if (!sceneWithBg) return { casts: [], backgroundRepeat: false };
 
     let backgroundCast = null;
     if (sceneWithBg.backgroundId) {
@@ -101,7 +102,10 @@ export const getPublicSceneStage = createServerFn({ method: 'GET' })
       allCasts.unshift(backgroundCast as (typeof allCasts)[0]);
     }
 
-    return allCasts;
+    return {
+      casts: allCasts,
+      backgroundRepeat: sceneWithBg.backgroundRepeat,
+    };
   });
 
 export const getViewerToken = createServerFn({ method: 'GET' })
