@@ -27,6 +27,7 @@ export interface PixiCharacterProps {
     bounds: { minX: number; maxX: number },
   ) => void;
   onAnimationComplete?: () => void;
+  backgroundRepeat?: boolean;
 }
 
 export type { PropMoveMessage };

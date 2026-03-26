@@ -1,4 +1,4 @@
-import { Assets, Container, Sprite } from "pixi.js";
+import { Assets, Container, Sprite, TilingSprite } from "pixi.js";
 import type { FederatedPointerEvent, Texture, Ticker } from "pixi.js";
 import { MotionBlurFilter } from "pixi-filters";
 import { saveSceneCastPosition } from "@/lib/scenes.fns";
@@ -37,7 +37,8 @@ function getMidpoint(a: { x: number; y: number }, b: { x: number; y: number }) {
 
 export class PixiBackground {
   readonly container: Container;
-  private sprite: Sprite;
+  private sprite: Sprite | null = null;
+  private tilingSprite: TilingSprite | null = null;
   private readonly props: PixiCharacterProps;
 
   private isDragging = false;
@@ -59,16 +60,15 @@ export class PixiBackground {
     this.container.x = props.initialX ?? 100;
     this.container.y = props.initialY ?? 100;
 
-    this.sprite = new Sprite();
-    this.sprite.anchor.set(0.5);
-
-    this.container.addChild(this.sprite);
-
     this.loadTexture();
   }
 
+  private get activeSprite(): Sprite | TilingSprite | null {
+    return this.tilingSprite ?? this.sprite;
+  }
+
   private async loadTexture() {
-    const { src, initialScaleX = 1, stageHeight = 720, app } = this.props;
+    const { src, initialScaleX = 1, stageHeight = 720, stageWidth = 1280, app } = this.props;
     let texture: Texture;
     try {
       texture = await Assets.load(src);
@@ -77,44 +77,62 @@ export class PixiBackground {
       return;
     }
 
-    this.sprite.texture = texture;
-    this.sprite.anchor.set(0.5);
-    this.sprite.scale.x = initialScaleX;
-    this.container.zIndex = 0;
-    this.container.y = stageHeight - texture.height / 2;
-
     this.blurFilter = new MotionBlurFilter({
       velocity: { x: 0, y: 0 },
       kernelSize: 9,
     });
-    this.sprite.filters = [this.blurFilter];
+
+    if (this.props.backgroundRepeat) {
+      // --- Tiling mode ---
+      this.tilingSprite = new TilingSprite({
+        texture,
+        width: stageWidth,
+        height: texture.height,
+      });
+      this.tilingSprite.tilePosition.x = this.props.initialX ?? 0;
+      this.tilingSprite.filters = [this.blurFilter];
+      this.container.addChild(this.tilingSprite);
+      this.container.x = 0;
+      this.container.y = stageHeight - texture.height;
+      this.container.zIndex = 0;
+    } else {
+      // --- Normal (clamped sprite) mode ---
+      this.sprite = new Sprite();
+      this.sprite.texture = texture;
+      this.sprite.anchor.set(0.5);
+      this.sprite.scale.x = initialScaleX;
+      this.sprite.filters = [this.blurFilter];
+      this.container.addChild(this.sprite);
+      this.container.zIndex = 0;
+      this.container.y = stageHeight - texture.height / 2;
+
+      // Report initial position for progress bar
+      const halfW = this.sprite.width / 2;
+      const minX = stageWidth - halfW;
+      const maxX = halfW;
+      this.props.onPositionChange?.(this.container.x, { minX, maxX });
+    }
 
     this.setupInteraction();
     this.props.onReady?.();
-
-    // Report initial position so progress atom (and button disabled state) is correct on entry
-    const { stageWidth = 1280 } = this.props;
-    const halfW = this.sprite.width / 2;
-    const minX = stageWidth - halfW;
-    const maxX = halfW;
-    this.props.onPositionChange?.(this.container.x, { minX, maxX });
 
     if (app.stage.sortableChildren) app.stage.sortChildren();
   }
 
   private setupInteraction() {
     const { canDrag } = this.props;
+    const s = this.activeSprite;
+    if (!s) return;
 
-    this.sprite.eventMode = canDrag ? "static" : "none";
-    this.sprite.cursor = canDrag ? "pointer" : "default";
+    s.eventMode = canDrag ? "static" : "none";
+    s.cursor = canDrag ? "pointer" : "default";
 
     if (!canDrag) return;
 
-    this.sprite.on("pointerdown", this.onPointerDown.bind(this));
-    this.sprite.on("pointerup", this.onPointerUp.bind(this));
-    this.sprite.on("pointerupoutside", this.onPointerUp.bind(this));
-    this.sprite.on("globalpointermove", this.onStagePointerMove.bind(this));
-    // No double-click / tap handlers — backgrounds cannot be mirrored
+    s.on("pointerdown", this.onPointerDown.bind(this));
+    s.on("pointerup", this.onPointerUp.bind(this));
+    s.on("pointerupoutside", this.onPointerUp.bind(this));
+    s.on("globalpointermove", this.onStagePointerMove.bind(this));
   }
 
   private onPointerDown(e: FederatedPointerEvent) {
@@ -124,11 +142,12 @@ export class PixiBackground {
     if (this.activePointers.size === 1) {
       this.isDragging = true;
       this.lastDragX = e.global.x;
-      this.dragOffset = {
-        x: this.container.x - e.global.x,
-        y: this.container.y - e.global.y,
-      };
-      // Backgrounds never change z-index — always stay at bottom
+      if (!this.props.backgroundRepeat) {
+        this.dragOffset = {
+          x: this.container.x - e.global.x,
+          y: this.container.y - e.global.y,
+        };
+      }
     } else {
       this.isDragging = false;
     }
@@ -155,21 +174,28 @@ export class PixiBackground {
     if (this.activePointers.size === 2) {
       const currPointers = Array.from(this.activePointers.values());
       const prevPointers = Array.from(prevStateMap.values());
-
       if (prevPointers.length < 2) return;
-
       const newMid = getMidpoint(currPointers[0], currPointers[1]);
       const oldMid = getMidpoint(prevPointers[0], prevPointers[1]);
+      const panDelta = newMid.x - oldMid.x;
 
-      // X-only pan — backgrounds do not rotate and y is locked
-      this.container.x += newMid.x - oldMid.x;
+      if (this.props.backgroundRepeat && this.tilingSprite) {
+        this.tilingSprite.tilePosition.x += panDelta;
+      } else {
+        this.container.x += panDelta;
+      }
       this.publishMove();
     } else if (this.isDragging && this.activePointers.size <= 1) {
-      const rawX = e.global.x + this.dragOffset.x;
-      this.container.x = this.clampX(rawX);
-      // y stays locked to bottom (set in loadTexture, never overridden)
       const dx = e.global.x - this.lastDragX;
       this.lastDragX = e.global.x;
+
+      if (this.props.backgroundRepeat && this.tilingSprite) {
+        this.tilingSprite.tilePosition.x += dx;
+      } else {
+        const rawX = e.global.x + this.dragOffset.x;
+        this.container.x = this.clampX(rawX);
+      }
+
       if (this.blurFilter && Math.abs(dx) > 0.5) {
         this.blurFilter.velocity = {
           x: Math.sign(dx) * DRAG_BLUR_STRENGTH,
@@ -182,6 +208,7 @@ export class PixiBackground {
 
   private clampX(x: number): number {
     const { stageWidth = 1280 } = this.props;
+    if (!this.sprite) return x;
     const halfW = this.sprite.width / 2;
     const minX = stageWidth - halfW;
     const maxX = halfW;
@@ -194,13 +221,17 @@ export class PixiBackground {
     if (!immediate && now - this.lastSendTime < 30) return;
     this.lastSendTime = now;
 
+    const x = this.props.backgroundRepeat && this.tilingSprite
+      ? this.tilingSprite.tilePosition.x
+      : this.container.x;
+
     const msg: PropMoveMessage = {
       type: "prop:move",
       castId,
-      x: this.container.x,
+      x,
       y: this.container.y,
       rotation: 0,
-      scaleX: this.sprite.scale.x,
+      scaleX: 1,
       indexZ: 0,
     };
     this.props.room?.localParticipant.publishData(
@@ -211,19 +242,21 @@ export class PixiBackground {
 
   private persistPosition() {
     if (!this.props.canDrag) return;
+    const x = this.props.backgroundRepeat && this.tilingSprite
+      ? this.tilingSprite.tilePosition.x
+      : this.container.x;
     saveSceneCastPosition({
       data: {
         sceneCastId: this.props.sceneCastId,
-        x: this.container.x,
+        x,
         y: this.container.y,
         rotation: 0,
-        scaleX: this.sprite.scale.x,
+        scaleX: 1,
       },
     });
   }
 
   setAnimation(direction: BgDirection, speed: BgSpeed) {
-    // Always remove existing ticker first to prevent duplicate adds
     if (this.animationTicker) {
       this.props.app.ticker.remove(this.animationTicker);
       this.animationTicker = null;
@@ -233,20 +266,25 @@ export class PixiBackground {
 
     if (speed === 0 || direction === null) {
       if (this.blurFilter) this.blurFilter.velocity = { x: 0, y: 0 };
-      // Re-enable drag
-      this.sprite.eventMode = this.props.canDrag ? "static" : "none";
-      this.sprite.cursor = this.props.canDrag ? "pointer" : "default";
+      const s = this.activeSprite;
+      if (s) {
+        s.eventMode = this.props.canDrag ? "static" : "none";
+        s.cursor = this.props.canDrag ? "pointer" : "default";
+      }
+      this.persistPosition();
       return;
     }
 
-    // Disable drag while animating
-    this.sprite.eventMode = "none";
-    this.sprite.cursor = "default";
+    const s = this.activeSprite;
+    if (s) {
+      s.eventMode = "none";
+      s.cursor = "default";
+    }
 
     const pxPerFrame = BG_PAN_PX_PER_FRAME[speed as 1 | 2 | 3];
     const delta = direction === "left" ? -pxPerFrame : pxPerFrame;
-
     const blurStrength = BG_BLUR_STRENGTH[speed as 1 | 2 | 3];
+
     if (this.blurFilter) {
       this.blurFilter.velocity = {
         x: direction === "left" ? -blurStrength : blurStrength,
@@ -254,39 +292,46 @@ export class PixiBackground {
       };
     }
 
-    this.animationTicker = (ticker: Ticker) => {
-      const rawX = this.container.x + delta * ticker.deltaTime;
-      const clampedX = this.clampX(rawX);
-      this.container.x = clampedX;
+    if (this.props.backgroundRepeat && this.tilingSprite) {
+      // Repeat mode: tile position scrolls indefinitely, never stops at boundary
+      this.animationTicker = (ticker: Ticker) => {
+        this.tilingSprite!.tilePosition.x += delta * ticker.deltaTime;
+        const now = Date.now();
+        this.publishMove(false, now);
+      };
+    } else {
+      // Normal mode: clamp to bounds, stop and notify when boundary reached
+      this.animationTicker = (ticker: Ticker) => {
+        const rawX = this.container.x + delta * ticker.deltaTime;
+        const clampedX = this.clampX(rawX);
+        this.container.x = clampedX;
 
-      // Boundary reached — self-stop and notify
-      if (Math.abs(rawX - clampedX) > 1e-6) {
-        this.props.app.ticker.remove(this.animationTicker!);
-        this.animationTicker = null;
-        this.animationSpeed = 0;
-        if (this.blurFilter) this.blurFilter.velocity = { x: 0, y: 0 };
-        this.sprite.eventMode = this.props.canDrag ? "static" : "none";
-        this.sprite.cursor = this.props.canDrag ? "pointer" : "default";
-        this.props.onAnimationComplete?.();
-        return;
-      }
+        if (Math.abs(rawX - clampedX) > 1e-6) {
+          this.props.app.ticker.remove(this.animationTicker!);
+          this.animationTicker = null;
+          this.animationSpeed = 0;
+          if (this.blurFilter) this.blurFilter.velocity = { x: 0, y: 0 };
+          if (this.sprite) {
+            this.sprite.eventMode = this.props.canDrag ? "static" : "none";
+            this.sprite.cursor = this.props.canDrag ? "pointer" : "default";
+          }
+          this.props.onAnimationComplete?.();
+          return;
+        }
 
-      // Share a single timestamp for both throttle checks
-      const now = Date.now();
+        const now = Date.now();
+        this.publishMove(false, now);
 
-      // Publish position to remote participants (director/canDrag only, throttled)
-      this.publishMove(false, now);
-
-      // Update progress for all clients (throttled independently at 60ms)
-      if (now - this.lastProgressTime >= 60) {
-        this.lastProgressTime = now;
-        const { stageWidth = 1280 } = this.props;
-        const halfW = this.sprite.width / 2;
-        const minX = stageWidth - halfW;
-        const maxX = halfW;
-        this.props.onPositionChange?.(this.container.x, { minX, maxX });
-      }
-    };
+        if (now - this.lastProgressTime >= 60) {
+          this.lastProgressTime = now;
+          const { stageWidth = 1280 } = this.props;
+          const halfW = this.sprite!.width / 2;
+          const minX = stageWidth - halfW;
+          const maxX = halfW;
+          this.props.onPositionChange?.(this.container.x, { minX, maxX });
+        }
+      };
+    }
 
     this.props.app.ticker.add(this.animationTicker);
   }
@@ -295,8 +340,11 @@ export class PixiBackground {
   updateSpeaking(_isSpeaking: boolean) {}
 
   applyRemoteMove(msg: PropMoveMessage) {
-    this.container.x = msg.x;
-    // y is locked to bottom — intentionally not applied
+    if (this.props.backgroundRepeat && this.tilingSprite) {
+      this.tilingSprite.tilePosition.x = msg.x;
+    } else {
+      this.container.x = msg.x;
+    }
   }
 
   saveCurrentPosition() {
