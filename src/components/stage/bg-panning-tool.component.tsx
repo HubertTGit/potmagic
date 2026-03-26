@@ -8,25 +8,17 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import { useAtom, useAtomValue } from "jotai";
-import type { Room } from "livekit-client";
 import { cn } from "@/lib/cn";
 import { bgPanningAtom, bgProgressAtom } from "@/lib/bg-panning.atoms";
 import type { BgDirection, BgSpeed } from "@/lib/livekit-messages";
 import { useLanguage } from "@/hooks/useLanguage";
-
-interface BgPanningToolProps {
-  isDirector: boolean;
-  room?: Room | null;
-  backgroundRepeat?: boolean;
-}
+import { useStage, useStagePresence } from "./stage.context";
 
 const encoder = new TextEncoder();
 
-export function BgPanningTool({
-  isDirector,
-  room,
-  backgroundRepeat = false,
-}: BgPanningToolProps) {
+export function BgPanningTool() {
+  const { backgroundRepeat } = useStage();
+  const { isDirector, room } = useStagePresence();
   const { t } = useLanguage();
   const [{ direction, speed }, setBgPanning] = useAtom(bgPanningAtom);
   const { leftProgress, rightProgress } = useAtomValue(bgProgressAtom);

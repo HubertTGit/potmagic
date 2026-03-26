@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { RoomEvent } from 'livekit-client';
-import type { Room } from 'livekit-client';
 import { authClient } from '@/lib/auth-client';
 import { useLanguage } from '@/hooks/useLanguage';
 import { updateStoryStatus } from '@/lib/story-detail.fns';
 import { Play, Pause, RefreshCw } from 'lucide-react';
+import { useStage, useStagePresence } from './stage.context';
 
 export type StoryStatus = 'draft' | 'active' | 'ended';
 
@@ -14,28 +14,18 @@ interface StatusMessage {
   status: StoryStatus;
 }
 
-interface StoryStatusButtonProps {
-  storyId: string;
-  status: StoryStatus;
-  room?: Room | null;
-}
-
-export function StoryStatusButton({
-  storyId,
-  status: initialStatus,
-  room,
-}: StoryStatusButtonProps) {
+export function StoryStatusButton() {
+  const { storyId, status: initialStatus } = useStage();
+  const { room } = useStagePresence();
   const { t } = useLanguage();
   const { data: session } = authClient.useSession();
   const queryClient = useQueryClient();
   const [status, setStatus] = useState<StoryStatus>(initialStatus);
 
-  // Sync when prop changes (e.g. after page refetch)
   useEffect(() => {
     setStatus(initialStatus);
   }, [initialStatus]);
 
-  // Subscribe to live status broadcasts from director
   useEffect(() => {
     if (!room) return;
 

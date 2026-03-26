@@ -7,22 +7,13 @@ import {
   useRoomContext,
 } from "@livekit/components-react";
 import { ConnectionState } from "livekit-client";
-import { StageShell, type StageContentProps } from "./stage-shell.component";
+import { StageShell } from "./stage-shell.component";
+import { StagePresenceProvider } from "./stage.context";
+import { useStage } from "./stage.context";
 
 // Rendered inside LiveKitRoom — can safely call useParticipants + useRoomContext
-export function LiveStageContent({
-  sceneId,
-  casts,
-  directorId,
-  directorName,
-  storyId,
-  status,
-  isSwitching,
-  soundUrl,
-  soundName,
-  soundAutoplay,
-  backgroundRepeat,
-}: StageContentProps) {
+export function LiveStageContent() {
+  const { directorId } = useStage();
   const participants = useParticipants();
   const room = useRoomContext();
   const connectionState = useConnectionState();
@@ -46,27 +37,16 @@ export function LiveStageContent({
   }, [localParticipant, isMicrophoneEnabled, connectionState]);
 
   return (
-    <>
+    <StagePresenceProvider
+      room={room}
+      isDirector={isDirector}
+      onlineIds={onlineIds}
+      speakingIds={speakingIds}
+      isMuted={isMuted}
+      onToggleMute={onToggleMute}
+    >
       <RoomAudioRenderer />
-      <StageShell
-        sceneId={sceneId}
-        casts={casts}
-        directorId={directorId}
-        directorName={directorName}
-        storyId={storyId}
-        status={status}
-        onlineIds={onlineIds}
-        speakingIds={speakingIds}
-        isSwitching={isSwitching}
-        room={room}
-        isDirector={isDirector}
-        soundUrl={soundUrl}
-        soundName={soundName}
-        soundAutoplay={soundAutoplay}
-        backgroundRepeat={backgroundRepeat}
-        isMuted={isMuted}
-        onToggleMute={onToggleMute}
-      />
-    </>
+      <StageShell />
+    </StagePresenceProvider>
   );
 }

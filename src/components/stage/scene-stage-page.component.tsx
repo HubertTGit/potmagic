@@ -7,6 +7,7 @@ import { LiveKitRoom } from "@livekit/components-react";
 import type { StoryStatus } from "@/components/stage/story-status-button.component";
 import { LiveStageContent } from "./live-stage-content.component";
 import { OfflineStageContent } from "./offline-stage-content.component";
+import { StageProvider } from "./stage.context";
 
 type MicState = "checking" | "prompt" | "granted" | "denied";
 
@@ -78,8 +79,25 @@ export function SceneStagePage({ sceneId }: SceneStagePageProps) {
     !micResolved &&
     (status === "draft" || status === "active");
 
+  const stageData = {
+    sceneId,
+    casts,
+    directorId,
+    directorName,
+    storyId,
+    status,
+    isSwitching,
+    soundUrl,
+    soundName,
+    soundAutoplay,
+    backgroundRepeat,
+  };
+
+  // Optional LiveKit hooks inside StageProvider might need the room safely, 
+  // but since scene-stage-page doesn't have it, we just pass what we have.
+  // The actual sound hooks inside StageProvider use it safely if omitted or null.
   return (
-    <>
+    <StageProvider {...stageData}>
       {showMicModal && (
         <SessionPermissionModal
           onEnter={() => {
@@ -102,35 +120,11 @@ export function SceneStagePage({ sceneId }: SceneStagePageProps) {
           video={false}
           connect={true}
         >
-          <LiveStageContent
-            sceneId={sceneId}
-            casts={casts}
-            directorId={directorId}
-            directorName={directorName}
-            storyId={storyId}
-            status={status}
-            isSwitching={isSwitching}
-            soundUrl={soundUrl}
-            soundName={soundName}
-            soundAutoplay={soundAutoplay}
-            backgroundRepeat={backgroundRepeat}
-          />
+          <LiveStageContent />
         </LiveKitRoom>
       ) : (
-        <OfflineStageContent
-          sceneId={sceneId}
-          casts={casts}
-          directorId={directorId}
-          directorName={directorName}
-          storyId={storyId}
-          status={status}
-          isSwitching={isSwitching}
-          soundUrl={soundUrl}
-          soundName={soundName}
-          soundAutoplay={soundAutoplay}
-          backgroundRepeat={backgroundRepeat}
-        />
+        <OfflineStageContent />
       )}
-    </>
+    </StageProvider>
   );
 }

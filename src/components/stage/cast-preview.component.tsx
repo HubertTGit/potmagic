@@ -2,33 +2,16 @@ import { Clapperboard, Users, MicOff } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/cn";
 import { VIEWER_PREFIX } from "@/lib/livekit.fns";
-import type { StageCast } from "@/components/stage.component";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useStage, useStagePresence } from "./stage.context";
 
-interface CastPreviewProps {
-  casts: StageCast[];
-  directorId: string;
-  directorName: string;
-  onlineIds?: Set<string>;
-  speakingIds?: Set<string>;
-  isMuted?: boolean;
-  onToggleMute?: () => void;
-  canMute?: boolean;
-}
-
-export function CastPreview({
-  casts,
-  directorId,
-  directorName,
-  onlineIds = new Set(),
-  speakingIds = new Set(),
-  isMuted = false,
-  onToggleMute,
-  canMute = false,
-}: CastPreviewProps) {
+export function CastPreview() {
+  const { casts, directorId, directorName, status } = useStage();
+  const { onlineIds, speakingIds, isMuted, onToggleMute } = useStagePresence();
   const { data: session } = authClient.useSession();
   const { t } = useLanguage();
   const currentUserId = session?.user?.id;
+  const canMute = status === "draft" || status === "active";
 
   if (!currentUserId) return null;
 
@@ -45,7 +28,6 @@ export function CastPreview({
 
   return (
     <div className="bg-base-200 border-base-300 flex items-center gap-2 rounded-xl border px-3 py-2 shadow-lg">
-      {/* Director avatar — first in list */}
       <div className="indicator">
         {(isDirectorOnline || isDirectorSpeaking) && (
           <span
@@ -148,10 +130,8 @@ export function CastPreview({
           );
         })}
 
-      {/* Viewer group — shown when at least one viewer is online */}
       {viewerCount > 0 && (
         <div className="indicator">
-          {/* Online dot — top-right; bounces purple when any viewer is speaking */}
           <span
             className={cn(
               "indicator-item badge min-w-0 rounded-full p-0 transition-all duration-300",
@@ -160,7 +140,6 @@ export function CastPreview({
                 : "badge-success size-2",
             )}
           />
-          {/* Viewer count — top-left */}
           <span className="indicator-item indicator-start badge badge-sm badge-neutral min-w-0 px-1 text-[7px]">
             {viewerCount}
           </span>

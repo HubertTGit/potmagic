@@ -1,38 +1,18 @@
-import { StageShell, type StageContentProps } from "./stage-shell.component";
+import { StageShell } from "./stage-shell.component";
+import { StagePresenceProvider } from "./stage.context";
 
 // Rendered outside LiveKitRoom (before token is ready) — no presence or data sync
-export function OfflineStageContent({
-  sceneId,
-  casts,
-  directorId,
-  directorName,
-  storyId,
-  status,
-  isSwitching,
-  soundUrl,
-  soundName,
-  soundAutoplay,
-  backgroundRepeat,
-}: StageContentProps) {
+export function OfflineStageContent() {
   return (
-    <StageShell
-      sceneId={sceneId}
-      casts={casts}
-      directorId={directorId}
-      directorName={directorName}
-      storyId={storyId}
-      status={status}
-      onlineIds={new Set()}
-      speakingIds={new Set()}
-      isSwitching={isSwitching}
+    <StagePresenceProvider
       room={null}
       isDirector={false}
-      soundUrl={soundUrl}
-      soundName={soundName}
-      soundAutoplay={soundAutoplay}
-      backgroundRepeat={backgroundRepeat}
+      onlineIds={new Set()}
+      speakingIds={new Set()}
       isMuted={false}
       onToggleMute={() => {}}
-    />
+    >
+      <StageShell />
+    </StagePresenceProvider>
   );
 }

@@ -3,24 +3,20 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
 import { useLanguage } from '@/hooks/useLanguage';
 import { RoomEvent } from 'livekit-client';
-import type { Room } from 'livekit-client';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 import { getSceneNavigation } from '@/lib/scenes.fns';
 import { updateSelectedScene } from '@/lib/story-detail.fns';
+import { useStage, useStagePresence } from './stage.context';
 
 interface SceneNavigateMessage {
   type: 'scene:navigate';
   sceneId: string;
 }
 
-interface SceneNavigatorProps {
-  sceneId: string;
-  storyId: string;
-  room?: Room | null;
-}
-
-export function SceneNavigator({ sceneId, storyId, room }: SceneNavigatorProps) {
+export function SceneNavigator() {
+  const { sceneId, storyId } = useStage();
+  const { room } = useStagePresence();
   const router = useRouter();
   const { langPrefix, t } = useLanguage();
   const { data: session } = authClient.useSession();

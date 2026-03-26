@@ -1,37 +1,12 @@
 import { useRef, useEffect, Suspense, lazy } from "react";
-import { StoryStatusButton, type StoryStatus } from "@/components/stage/story-status-button.component";
+import { StoryStatusButton } from "@/components/stage/story-status-button.component";
 import { SceneNavigator } from "@/components/stage/scene-navigator.component";
 import { CastPreview } from "@/components/stage/cast-preview.component";
 import { BgPanningTool } from "@/components/stage/bg-panning-tool.component";
 import { SoundControlBar } from "@/components/stage/sound-control-bar.component";
 import { useLanguage } from "@/hooks/useLanguage";
-import { useSceneSound } from "@/hooks/useSceneSound";
 import { LocalVideoTrack, Track } from "livekit-client";
-import type { Room } from "livekit-client";
-import type { StageCast } from "@/components/stage.component";
-
-export interface StageContentProps {
-  sceneId: string;
-  casts: StageCast[];
-  directorId: string;
-  directorName: string;
-  storyId: string;
-  status: StoryStatus;
-  isSwitching: boolean;
-  soundUrl: string | null;
-  soundName: string | null;
-  soundAutoplay: boolean;
-  backgroundRepeat: boolean;
-}
-
-export interface StageShellProps extends StageContentProps {
-  onlineIds: Set<string>;
-  speakingIds: Set<string>;
-  room: Room | null;
-  isDirector: boolean;
-  isMuted: boolean;
-  onToggleMute: () => void;
-}
+import { useStage, useStagePresence } from "./stage.context";
 
 const StageComponent = lazy(() =>
   import("@/components/stage.component").then((m) => ({
@@ -39,34 +14,16 @@ const StageComponent = lazy(() =>
   })),
 );
 
-export function StageShell({
-  sceneId,
-  casts,
-  directorId,
-  directorName,
-  storyId,
-  status,
-  onlineIds,
-  speakingIds,
-  isSwitching,
-  room,
-  isDirector,
-  soundUrl,
-  soundName,
-  soundAutoplay,
-  backgroundRepeat,
-  isMuted,
-  onToggleMute,
-}: StageShellProps) {
+export function StageShell() {
+  const {
+    isSwitching,
+    casts,
+    soundName,
+    backgroundRepeat,
+  } = useStage();
+  const { room, isDirector, speakingIds } = useStagePresence();
   const { t } = useLanguage();
   const stageWrapperRef = useRef<HTMLDivElement>(null);
-
-  const { playing, volume, setPlaying, setVolume } = useSceneSound({
-    room,
-    isDirector,
-    soundUrl,
-    soundAutoplay,
-  });
 
   useEffect(() => {
     if (!isDirector || !room) return;
@@ -117,20 +74,11 @@ export function StageShell({
       )}
 
       <div className="flex w-7xl items-center justify-between">
-        <StoryStatusButton storyId={storyId} status={status} room={room} />
+        <StoryStatusButton />
         <div className="flex items-center gap-3">
-          <SceneNavigator sceneId={sceneId} storyId={storyId} room={room} />
+          <SceneNavigator />
         </div>
-        <CastPreview
-          casts={casts}
-          directorId={directorId}
-          directorName={directorName}
-          onlineIds={onlineIds}
-          speakingIds={speakingIds}
-          isMuted={isMuted}
-          onToggleMute={onToggleMute}
-          canMute={status === "draft" || status === "active"}
-        />
+        <CastPreview />
       </div>
       <div
         ref={stageWrapperRef}
@@ -153,20 +101,8 @@ export function StageShell({
       </div>
       <div className="flex w-7xl items-center justify-between">
         <div>&nbsp;</div>
-        <BgPanningTool
-          isDirector={isDirector}
-          room={room}
-          backgroundRepeat={backgroundRepeat}
-        />
-        {isDirector && soundName && (
-          <SoundControlBar
-            soundName={soundName}
-            playing={playing}
-            volume={volume}
-            onTogglePlay={() => setPlaying(!playing)}
-            onVolumeChange={setVolume}
-          />
-        )}
+        <BgPanningTool />
+        {isDirector && soundName && <SoundControlBar />}
       </div>
     </div>
   );
