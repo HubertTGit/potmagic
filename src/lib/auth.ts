@@ -24,6 +24,10 @@ export const auth = betterAuth({
         type: 'string',
         defaultValue: 'director',
       },
+      subscription: {
+        type: 'string',
+        defaultValue: 'standard',
+      },
     },
   },
   socialProviders: {

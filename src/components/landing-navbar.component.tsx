@@ -1,26 +1,17 @@
-import { Link, useRouter, useRouterState } from "@tanstack/react-router";
-import { Sun, Moon, Menu, Clapperboard, Drama } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Sun, Moon, Menu } from "lucide-react";
 import { useTheme, Theme } from "@/hooks/useTheme";
-import { authClient } from "@/lib/auth-client";
-import { cn } from "@/lib/cn";
 import { LanguageSwitcher } from "@/components/language-switcher.component";
 import { useLanguage } from "@/hooks/useLanguage";
+import { NavbarUserMenu } from "@/components/navbar-user-menu.component";
+import { NavbarMobileUserMenu } from "@/components/navbar-mobile-user-menu.component";
 
 const navLinkClass =
   "decoration-primary hover:text-primary [&.active]:text-primary text-sm font-medium underline-offset-4 hover:underline hover:decoration-2 [&.active]:underline [&.active]:decoration-2";
 
 export function LandingNavbar() {
   const { theme, toggle } = useTheme();
-  const { data: session } = authClient.useSession();
   const { t, langPrefix } = useLanguage();
-  const router = useRouter();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isAuthPage = pathname === "/auth" || pathname === "/de/auth";
-
-  const handleLogout = async () => {
-    await authClient.signOut();
-    router.navigate({ to: `${langPrefix}/` as any });
-  };
 
   return (
     <nav className="navbar bg-base-100 px-4 py-3 sm:px-6 lg:px-8">
@@ -122,71 +113,13 @@ export function LandingNavbar() {
 
           {/* Desktop auth buttons */}
           <div className="hidden gap-2 md:flex">
-            {session ? (
-              <div className="dropdown dropdown-click dropdown-start flex flex-col">
-                <button
-                  tabIndex={0}
-                  className={cn(
-                    "btn btn-sm font-display gap-2 px-4 tracking-wide",
-                    session.user.role === "director"
-                      ? "btn-primary"
-                      : "btn-secondary",
-                  )}
-                >
-                  {session.user.role === "director" ? (
-                    <Clapperboard className="size-4" />
-                  ) : (
-                    <Drama className="size-4" />
-                  )}
-                  <span>
-                    {t("nav.welcome", {
-                      name:
-                        session.user.name || session.user.email.split("@")[0],
-                    })}
-                  </span>
-                </button>
-                <ul
-                  tabIndex={0}
-                  className="dropdown-content menu bg-base-100 border-base-300 top-7 z-50 mt-2 w-48 rounded-xl border p-1.5 shadow-lg before:absolute before:-top-2 before:right-0 before:left-0 before:h-2 before:content-['']"
-                >
-                  <li>
-                    <Link to={`${langPrefix}/stories` as any} className="py-2">
-                      {t("nav.goToStage")}
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to={`${langPrefix}/profile` as any} className="py-2">
-                      {t("nav.profile")}
-                    </Link>
-                  </li>
-                  <li>
-                    <button
-                      onClick={handleLogout}
-                      className="text-error hover:bg-error/10 py-2"
-                    >
-                      {t("ui.logout")}
-                    </button>
-                  </li>
-                </ul>
-              </div>
-            ) : (
-              <Link
-                to={`${langPrefix}/auth` as any}
-                search={{ token: undefined } as any}
-                className={cn(
-                  "btn btn-primary btn-sm font-display px-5 tracking-wide",
-                  isAuthPage && "btn-active",
-                )}
-              >
-                {t("nav.joinTheatre")}
-              </Link>
-            )}
             <Link
               to={`${langPrefix}/show` as any}
               className="btn btn-accent btn-sm font-display px-5 tracking-wide"
             >
               {t("nav.watchLive")}
             </Link>
+            <NavbarUserMenu />
             <LanguageSwitcher />
             {/* Theme toggle — always visible */}
             <button
@@ -242,58 +175,7 @@ export function LandingNavbar() {
                   {t("nav.docs")}
                 </Link>
               </li>
-              {session ? (
-                <>
-                  <li className="menu-title mt-1 text-xs">
-                    {t("nav.welcome", {
-                      name:
-                        session.user.name || session.user.email.split("@")[0],
-                    })}
-                  </li>
-                  <li>
-                    <Link
-                      to={`${langPrefix}/stories` as any}
-                      className="btn btn-sm font-display justify-start tracking-wide"
-                    >
-                      {t("nav.goToStage")}
-                    </Link>
-                  </li>
-                  <li className="mt-1">
-                    <Link
-                      to={`${langPrefix}/profile` as any}
-                      className="btn btn-sm font-display justify-start tracking-wide"
-                    >
-                      {t("nav.profile")}
-                    </Link>
-                  </li>
-                  <li className="mt-1">
-                    <button
-                      onClick={handleLogout}
-                      className="btn btn-sm btn-error btn-outline font-display justify-start tracking-wide"
-                    >
-                      {t("ui.logout")}
-                    </button>
-                  </li>
-                </>
-              ) : (
-                <>
-                  <li className="menu-title mt-1 text-xs">
-                    {t("nav.account")}
-                  </li>
-                  <li>
-                    <Link
-                      to={`${langPrefix}/auth` as any}
-                      search={{ token: undefined } as any}
-                      className={cn(
-                        "btn btn-primary btn-sm font-display tracking-wide",
-                        isAuthPage && "btn-active",
-                      )}
-                    >
-                      {t("nav.joinTheatre")}
-                    </Link>
-                  </li>
-                </>
-              )}
+              <NavbarMobileUserMenu />
               <li className="mt-1">
                 <Link
                   to={`${langPrefix}/show` as any}

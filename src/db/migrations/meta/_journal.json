@@ -169,6 +169,13 @@
       "when": 1774456799500,
       "tag": "0023_dazzling_bloodstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1774509702064,
+      "tag": "0024_cool_infant_terrible",
+      "breakpoints": true
     }
   ]
 }
