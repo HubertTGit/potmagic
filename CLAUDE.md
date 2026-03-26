@@ -27,11 +27,12 @@ pnpm preview      # Preview production build
 ## Tech Stack
 
 - **React 19** + **TypeScript 5** — UI
-- **Konva / react-konva** — 2D canvas rendering and interaction
+- **PixiJS** — 2D canvas rendering and interaction
 - **Vite 7** — build tool
 - **TanStack Start** — fullstack framework (SSR, server functions, file-based routing)
 - **TanStack Router** — file-based routing with `beforeLoad` auth guards
 - **TanStack Query** — data fetching/caching
+- **TanStack Form** — form state management
 - **Tailwind CSS v4** + Sass — styling
 - **better-auth** — email/password + magic link authentication, Drizzle adapter (PostgreSQL)
 - **Drizzle ORM** — type-safe PostgreSQL schema and queries
