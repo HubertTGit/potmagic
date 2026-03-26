@@ -27,9 +27,9 @@ export const propTypeEnum = pgEnum("prop_type", [
 export const subscriptionEnum = pgEnum("subscription", [
   "standard",
   "pro",
-  "teams",
+  "advance",
 ]);
-export type SubscriptionType = "standard" | "pro" | "teams";
+export type SubscriptionType = "standard" | "pro" | "advance";
 export type PropType = "character" | "background" | "animation" | "sound";
 
 export const users = pgTable("users", {

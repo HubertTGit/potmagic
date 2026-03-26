@@ -21,7 +21,7 @@ export function NavbarMobileUserMenu() {
     const subBadgeClass: Record<SubscriptionType, string | null> = {
       standard: null,
       pro: "badge-accent",
-      teams: "badge-success",
+      advance: "badge-success",
     };
 
     return (

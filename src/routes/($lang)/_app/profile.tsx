@@ -61,7 +61,7 @@ function ProfilePage() {
 
   const initials = (user?.name || user?.email || "?")[0].toUpperCase();
   const sub = user?.subscription as SubscriptionType | undefined;
-  const showSubDot = sub === "pro" || sub === "teams";
+  const showSubDot = sub === "pro" || sub === "advance";
 
   return (
     <div className="max-w-lg p-8">

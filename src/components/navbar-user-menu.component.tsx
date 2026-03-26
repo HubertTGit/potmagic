@@ -19,7 +19,7 @@ export function NavbarUserMenu() {
 
   if (session) {
     const sub = session.user.subscription as SubscriptionType;
-    const showBadge = sub === "pro" || sub === "teams";
+    const showBadge = sub === "pro" || sub === "advance";
     const showUpgrade = sub === "standard" || sub === "pro";
 
     return (
@@ -37,7 +37,7 @@ export function NavbarUserMenu() {
               session.user.role === "director"
                 ? "btn-primary"
                 : "btn-secondary",
-              sub === "teams" &&
+              sub === "advance" &&
                 "ring-primary ring-offset-base-100 ring-2 ring-offset-2",
             )}
           >

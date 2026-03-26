@@ -64,7 +64,7 @@ export function Sidebar() {
   };
 
   const sub = session?.user.subscription as SubscriptionType | undefined;
-  const showSubDot = sub === "pro" || sub === "teams";
+  const showSubDot = sub === "pro" || sub === "advance";
 
   const btnBase = cn(
     "btn btn-ghost btn-sm font-normal text-base-content/60",
