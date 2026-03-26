@@ -4,12 +4,7 @@ import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/cn";
 import { useLanguage } from "@/hooks/useLanguage";
 
-function validateEmail(value: string): string | undefined {
-  if (!value) return "Email is required";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
-    return "Enter a valid email address";
-  return undefined;
-}
+import { emailSchema } from "@/lib/schemas";
 
 export function DirectorLogin({ token = "" }: { token?: string }) {
   const { t } = useLanguage();
@@ -108,8 +103,18 @@ export function DirectorLogin({ token = "" }: { token?: string }) {
             <form.Field
               name="email"
               validators={{
-                onChange: ({ value }) => validateEmail(value),
-                onBlur: ({ value }) => validateEmail(value),
+                onChange: ({ value }) => {
+                  const result = emailSchema.safeParse(value);
+                  return result.success
+                    ? undefined
+                    : result.error.issues[0].message;
+                },
+                onBlur: ({ value }) => {
+                  const result = emailSchema.safeParse(value);
+                  return result.success
+                    ? undefined
+                    : result.error.issues[0].message;
+                },
               }}
             >
               {(field) => (

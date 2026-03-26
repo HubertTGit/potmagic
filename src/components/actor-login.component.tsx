@@ -1,14 +1,17 @@
 import { useState } from "react";
-import { Drama, Spotlight } from "lucide-react";
+import { Drama } from "lucide-react";
 import { useRouter } from "@tanstack/react-router";
 import { actorSignIn } from "@/lib/actor-auth.fns";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/cn";
 import { useLanguage } from "@/hooks/useLanguage";
+import { emailSchema } from "@/lib/schemas";
 
 export function ActorLogin() {
   const [error, setError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
   const router = useRouter();
   const { langPrefix, t } = useLanguage();
   // refetch() updates the shared useSession() atom — getSession() does not
@@ -17,10 +20,16 @@ export function ActorLogin() {
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+
+    const result = emailSchema.safeParse(email);
+    if (!result.success) {
+      setValidationError(result.error.issues[0].message);
+      return;
+    }
+
     setLoading(true);
-    const form = new FormData(e.currentTarget);
     try {
-      await actorSignIn({ data: { email: form.get("email") as string } });
+      await actorSignIn({ data: { email } });
       // Hydrate the shared session atom so _app.tsx sees a non-null session
       await refetch();
       await router.navigate({ to: `${langPrefix}/stories` });
@@ -65,9 +74,34 @@ export function ActorLogin() {
               type="email"
               autoComplete="email"
               placeholder={t("auth.emailPlaceholder")}
-              required
-              className="input w-full"
+              value={email}
+              onChange={(e) => {
+                const val = e.target.value;
+                setEmail(val);
+                if (validationError) {
+                  const result = emailSchema.safeParse(val);
+                  if (result.success) {
+                    setValidationError(null);
+                  } else {
+                    setValidationError(result.error.issues[0].message);
+                  }
+                }
+              }}
+              onBlur={() => {
+                const result = emailSchema.safeParse(email);
+                if (!result.success) {
+                  setValidationError(result.error.issues[0].message);
+                } else {
+                  setValidationError(null);
+                }
+              }}
+              className={cn("input w-full", validationError && "input-error")}
             />
+            {validationError && (
+              <p role="alert" className="text-error mt-1 text-xs">
+                {validationError}
+              </p>
+            )}
           </fieldset>
 
           <button
