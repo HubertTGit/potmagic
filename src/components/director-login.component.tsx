@@ -11,7 +11,7 @@ export function DirectorLogin({ token = "" }: { token?: string }) {
 
   const callbackURL = token
     ? `/auth/director-setup?token=${encodeURIComponent(token)}`
-    : "/stories";
+    : "/";
 
   const form = useForm({
     defaultValues: { email: "" },

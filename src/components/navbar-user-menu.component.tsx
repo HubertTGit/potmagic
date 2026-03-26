@@ -22,7 +22,7 @@ export function NavbarUserMenu() {
     const subBadgeClass: Record<SubscriptionType, string | null> = {
       standard: null,
       pro: "badge-accent",
-      teams: "badge-success",
+      teams: "badge-accent",
     };
 
     return (
@@ -35,7 +35,8 @@ export function NavbarUserMenu() {
               session.user.role === "director"
                 ? "btn-primary"
                 : "btn-secondary",
-              sub === "teams" && "ring-2 ring-primary ring-offset-2 ring-offset-base-100",
+              sub === "teams" &&
+                "ring-primary ring-offset-base-100 ring-2 ring-offset-2",
             )}
           >
             {session.user.role === "director" ? (
@@ -52,7 +53,7 @@ export function NavbarUserMenu() {
           {subBadgeClass[sub] && (
             <span
               className={cn(
-                "badge badge-xs absolute -top-1.5 -right-3 capitalize",
+                "badge badge-xs absolute -top-1.5 -right-4 capitalize",
                 subBadgeClass[sub],
               )}
             >
