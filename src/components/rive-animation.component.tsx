@@ -2,27 +2,37 @@ import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/cn";
 
 /**
- * RiveAnimation component with dynamic import and SSR guard.
+ * RiveAnimation component with implicit canvas creation.
+ * Creates the canvas element via document.createElement for isolated WebGL lifecycle management.
  * Uses the vanilla @rive-app/webgl2 API for maximum stability with dynamic imports.
  */
-export function RiveAnimation(props: any) {
+export function RiveAnimation(props: {
+  src?: string | null;
+  buffer?: ArrayBuffer;
+  className?: string;
+}) {
   // Be extremely defensive against null props
   if (!props) return null;
 
   const { src, buffer, className } = props;
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
+    if (typeof window === "undefined" || !containerRef.current) return;
+
     let riveInstance: any = null;
     let isCancelled = false;
 
-    async function init() {
-      if (!canvasRef.current) return;
+    // Create canvas implicitly
+    const canvas = document.createElement("canvas");
+    canvas.className = "h-full w-full pointer-events-none"; // Isolated styling
+    containerRef.current.appendChild(canvas);
 
+    async function init() {
       try {
         const { Rive, Layout, Fit } = await import("@rive-app/webgl2");
-        if (isCancelled || !canvasRef.current) return;
+        if (isCancelled || !containerRef.current) return;
 
         const isCover = className?.includes("object-cover");
         const fit = isCover ? Fit.Cover : Fit.Contain;
@@ -30,11 +40,15 @@ export function RiveAnimation(props: any) {
         riveInstance = new Rive({
           src: src || undefined,
           buffer: buffer || undefined,
-          canvas: canvasRef.current,
+          canvas: canvas,
           autoplay: true,
           layout: new Layout({ fit }),
           onLoad: () => {
-            if (!isCancelled) setIsLoaded(true);
+            if (!isCancelled) {
+              setIsLoaded(true);
+              // Ensure drawing surface matches initial size
+              riveInstance?.resizeDrawingSurfaceToCanvas();
+            }
           },
         });
       } catch (error) {
@@ -50,20 +64,23 @@ export function RiveAnimation(props: any) {
         try {
           riveInstance.cleanup();
         } catch (e) {
-          // Ignore cleanup errors on destroy (e.g. WebGL context already lost)
-          console.warn("Rive cleanup error:", e);
+          // Ignore cleanup errors on destroy
         }
+      }
+      if (canvas.parentNode) {
+        canvas.remove();
       }
     };
   }, [src, buffer, className]);
 
   return (
-    <div className={cn(className, "relative overflow-hidden")}>
-      {!isLoaded && <div className="absolute inset-0 bg-base-300 animate-pulse" />}
-      <canvas
-        ref={canvasRef}
-        className={cn("h-full w-full", !isLoaded && "opacity-0")}
-      />
+    <div
+      ref={containerRef}
+      className={cn(className, "relative overflow-hidden")}
+    >
+      {!isLoaded && (
+        <div className="absolute inset-0 bg-base-300 animate-pulse" />
+      )}
     </div>
   );
 }
