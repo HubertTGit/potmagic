@@ -62,6 +62,7 @@ export class PixiAnimation {
 
   private riveInstance: Rive | null = null;
   private riveCanvas: HTMLCanvasElement | null = null;
+  private texture: Texture | null = null;
   private tickerFn: (() => void) | null = null;
   private destroyed = false;
 
@@ -185,13 +186,13 @@ export class PixiAnimation {
     }
 
     // Create PixiJS texture backed by the Rive canvas
-    const texture = Texture.from(riveCanvas);
-    this.sprite.texture = texture;
+    this.texture = Texture.from(riveCanvas);
+    this.sprite.texture = this.texture;
 
     // Stream Rive frames into PixiJS each tick
     this.tickerFn = () => {
       if (!this.destroyed && riveCanvas.width > 0 && riveCanvas.height > 0) {
-        texture.source.update();
+        this.texture?.source.update();
       }
     };
     this.props.app.ticker.add(this.tickerFn);
@@ -418,6 +419,10 @@ export class PixiAnimation {
     if (this.riveCanvas && this.riveCanvas.parentNode) {
       document.body.removeChild(this.riveCanvas);
       this.riveCanvas = null;
+    }
+    if (this.texture) {
+      this.texture.destroy(true);
+      this.texture = null;
     }
     this.container.destroy({ children: true });
   }
