@@ -3,15 +3,15 @@ import { useEffect, useRef } from "react";
 
 export function RiveCanvas() {
   const pixiRef = useRef<HTMLCanvasElement>(null);
-  const riveRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     let app: any;
     let riveInstance: Rive | null = null;
     let isCancelled = false;
+    let riveCanvas: HTMLCanvasElement | null = null;
 
     async function init() {
-      if (!pixiRef.current || !riveRef.current) return;
+      if (!pixiRef.current) return;
 
       const [{ Application, Sprite, Texture }, { Rive }] = await Promise.all([
         import("pixi.js"),
@@ -33,14 +33,28 @@ export function RiveCanvas() {
 
       app = newApp;
 
+      riveCanvas = document.createElement("canvas");
+      // Required for WebGL internal buffering and offscreen frame tracking limits
+      riveCanvas.style.position = "absolute";
+      riveCanvas.style.visibility = "hidden";
+      riveCanvas.style.pointerEvents = "none";
+      document.body.appendChild(riveCanvas);
+
       await new Promise<void>((resolve) => {
         riveInstance = new Rive({
           src: "/fox.riv",
-          canvas: riveRef.current!,
+          canvas: riveCanvas!,
           autoplay: true,
           onLoad: () => resolve(),
         });
       });
+
+      if (riveInstance) {
+        console.log(
+          "viewModelInstance:",
+          (riveInstance as any).viewModelInstance
+        );
+      }
 
       let riveWidth = 0;
       let riveHeight = 0;
@@ -50,18 +64,19 @@ export function RiveCanvas() {
         riveWidth = bounds.maxX - bounds.minX;
         riveHeight = bounds.maxY - bounds.minY;
 
-        riveRef.current!.width = riveWidth;
-        riveRef.current!.height = riveHeight;
-        riveRef.current!.style.width = `${riveWidth}px`;
-        riveRef.current!.style.height = `${riveHeight}px`;
-        riveInstance.resizeDrawingSurfaceToCanvas();
+      riveCanvas.width = riveWidth;
+      riveCanvas.height = riveHeight;
+      riveCanvas.style.width = `${riveWidth}px`;
+      riveCanvas.style.height = `${riveHeight}px`;
+      riveInstance.resizeDrawingSurfaceToCanvas();
+      riveInstance.startRendering();
 
-        app.renderer.resize(500, 500);
+      app.renderer.resize(500, 500);
       }
 
       if (isCancelled) return;
 
-      const texture = Texture.from(riveRef.current);
+      const texture = Texture.from(riveCanvas);
       const sprite = new Sprite(texture);
 
       if (riveWidth && riveHeight) {
@@ -76,7 +91,9 @@ export function RiveCanvas() {
       app.stage.addChild(sprite);
 
       app.ticker.add(() => {
-        texture.source.update();
+        if (riveCanvas && riveCanvas.width > 0 && riveCanvas.height > 0) {
+          texture.source.update();
+        }
       });
     }
 
@@ -90,14 +107,26 @@ export function RiveCanvas() {
       if (riveInstance) {
         riveInstance.cleanup();
       }
+      if (riveCanvas && riveCanvas.parentNode) {
+        document.body.removeChild(riveCanvas);
+      }
     };
   }, []);
 
   // Using className or h-full / w-full logic so the element flexes with its parent correctly
   return (
-    <>
+    <div className="flex flex-col items-center justify-center">
       <canvas ref={pixiRef} />
-      <canvas ref={riveRef} className="invisible" />
-    </>
+      <div>
+        <button className="btn btn-primary">Talk</button>
+        <button className="btn btn-primary">Laugh</button>
+        <button className="btn btn-primary">Blink</button>
+        <button className="btn btn-primary">Idle</button>
+        <label>
+          Talk
+          <input type="checkbox" className="toggle" />
+        </label>
+      </div>
+    </div>
   );
 }
