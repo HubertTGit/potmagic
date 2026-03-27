@@ -25,7 +25,6 @@ function CareersPage() {
 
       <main className="flex flex-1 items-center justify-center">
         <ClientOnly>
-          <h1>Careers</h1>
           <RiveCanvas />
         </ClientOnly>
       </main>
