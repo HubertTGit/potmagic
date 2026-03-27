@@ -44,3 +44,7 @@ googleusercontent.json
 .agents/*
 .agents
 .agents/**/*
+
+docs
+docs/*
+docs/**/*
