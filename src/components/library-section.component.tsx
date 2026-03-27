@@ -2,9 +2,14 @@ import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/cn";
 import { Image, X, ChevronLeft, ChevronRight, Music } from "lucide-react";
 import { toast } from "@/lib/toast";
-import type { PropType } from "@/db/schema";
+import { PropType } from "@/db/schema";
 import { useLanguage } from "@/hooks/useLanguage";
-import { RiveAnimation } from "./rive-animation.component";
+import {
+  RiveAnimation,
+  type RiveRef,
+  type VMProperty,
+} from "./rive-animation.component";
+import { forwardRef } from "react";
 
 export interface LibraryItem {
   id: string;
@@ -12,53 +17,67 @@ export interface LibraryItem {
   imageUrl: string | null;
 }
 
-function MediaPreview({
-  src,
-  buffer,
-  name,
-  className,
-  isRive,
-  isSound,
-}: {
-  src?: string | null;
-  buffer?: ArrayBuffer;
-  name?: string;
-  className?: string;
-  isRive?: boolean;
-  isSound?: boolean;
-}) {
-  if (isSound) {
-    return (
-      <div
-        className={cn(
-          "bg-base-300 flex flex-col items-center justify-center gap-4 p-6",
-          className,
-        )}
-      >
-        <Music className="text-base-content/40 size-8" />
-        {/* audio preview — captions not required for a short preview clip */}
-        {src && (
-          <audio
-            controls
-            src={src}
-            className="w-50"
-            onClick={(e) => e.stopPropagation()}
-          />
-        )}
-      </div>
+const MediaPreview = forwardRef<
+  RiveRef,
+  {
+    src?: string | null;
+    buffer?: ArrayBuffer;
+    name?: string;
+    className?: string;
+    isRive?: boolean;
+    isSound?: boolean;
+    onPropertiesLoaded?: (props: {
+      enumValues: VMProperty[];
+      boolValues: VMProperty[];
+      triggerValues: VMProperty[];
+    }) => void;
+  }
+>(
+  (
+    { src, buffer, name, className, isRive, isSound, onPropertiesLoaded },
+    ref,
+  ) => {
+    if (isSound) {
+      return (
+        <div
+          className={cn(
+            "bg-base-300 flex flex-col items-center justify-center gap-4 p-6",
+            className,
+          )}
+        >
+          <Music className="text-base-content/40 size-8" />
+          {/* audio preview — captions not required for a short preview clip */}
+          {src && (
+            <audio
+              controls
+              src={src}
+              className="w-50"
+              onClick={(e) => e.stopPropagation()}
+            />
+          )}
+        </div>
+      );
+    }
+
+    if (isRive) {
+      return (
+        <RiveAnimation
+          ref={ref}
+          src={src}
+          buffer={buffer}
+          className={className}
+          onPropertiesLoaded={onPropertiesLoaded}
+        />
+      );
+    }
+
+    return src ? (
+      <img src={src} alt={name} className={className} />
+    ) : (
+      <div className={className} />
     );
-  }
-
-  if (isRive) {
-    return <RiveAnimation src={src} buffer={buffer} className={className} />;
-  }
-
-  return src ? (
-    <img src={src} alt={name} className={className} />
-  ) : (
-    <div className={className} />
-  );
-}
+  },
+);
 
 export function LibrarySection({
   label,
@@ -87,6 +106,18 @@ export function LibrarySection({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const riveRef = useRef<RiveRef>(null);
+  const [discoveredProps, setDiscoveredProps] = useState<{
+    enumValues: VMProperty[];
+    boolValues: VMProperty[];
+    triggerValues: VMProperty[];
+  } | null>(null);
+
+  useEffect(() => {
+    if (selectedIndex === null) {
+      setDiscoveredProps(null);
+    }
+  }, [selectedIndex]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -398,20 +429,85 @@ export function LibrarySection({
 
             <div className="bg-base-100/5 relative flex min-h-[50vh] max-w-full min-w-[50vw] flex-col items-center justify-center overflow-hidden rounded-2xl p-2">
               <MediaPreview
+                ref={riveRef}
                 src={items[selectedIndex].imageUrl!}
                 name={items[selectedIndex].name}
                 isRive={isRive}
                 isSound={isSound}
                 className="bg-base-100/80 max-h-[80vh] w-auto max-w-full overflow-hidden rounded-xl object-contain shadow-2xl"
+                onPropertiesLoaded={setDiscoveredProps}
               />
               {isRive && (
-                <p className="text-base-content/50 bg-base-content/5 rounded-full px-2 py-0.5 text-xs font-normal">
-                  Rive
+                <p className="text-base-content/50 bg-base-content/5 mt-4 rounded-full px-2 py-0.5 text-xs font-normal">
+                  Rive Interactive {discoveredProps?.triggerValues.length}
                 </p>
               )}
             </div>
 
             <div className="mt-4 flex flex-col items-center pb-8">
+              {discoveredProps && (
+                <div className="mb-6 flex flex-col items-center gap-4">
+                  {/* Enums */}
+                  {discoveredProps.enumValues.map((prop) => (
+                    <div
+                      key={prop.name}
+                      className="flex flex-col items-center gap-2"
+                    >
+                      <span className="text-base-content/40 text-[10px] font-bold tracking-widest uppercase">
+                        {prop.name}
+                      </span>
+                      <div className="flex flex-wrap justify-center gap-1">
+                        {prop.enums?.map((val) => (
+                          <button
+                            key={val}
+                            onClick={() =>
+                              riveRef.current?.setEnum(prop.name, val)
+                            }
+                            className="btn btn-xs btn-primary font-display"
+                          >
+                            {val}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Booleans & Triggers */}
+                  <div className="flex flex-wrap justify-center gap-4">
+                    {discoveredProps.boolValues.map((prop) => (
+                      <label
+                        key={prop.name}
+                        className="flex cursor-pointer items-center gap-2"
+                      >
+                        <span className="text-base-content/60 text-xs font-medium capitalize">
+                          {prop.name}
+                        </span>
+                        <input
+                          type="checkbox"
+                          className="toggle toggle-primary toggle-xs"
+                          onChange={(e) =>
+                            riveRef.current?.setBool(
+                              prop.name,
+                              e.target.checked,
+                            )
+                          }
+                        />
+                      </label>
+                    ))}
+
+                    {discoveredProps.triggerValues.map((prop) => (
+                      <button
+                        key={prop.name}
+                        onClick={() => riveRef.current?.fireTrigger(prop.name)}
+                        className="btn btn-xs btn-accent font-display"
+                      >
+                        {prop.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <p className="bg-base-100/80 text-base-content inline-flex items-center gap-2 rounded-full px-6 py-2 text-sm font-medium shadow-lg backdrop-blur-md">
                 {items[selectedIndex].name}
                 <span className="text-base-content/50 bg-base-content/5 rounded-full px-2 py-0.5 text-xs font-normal">

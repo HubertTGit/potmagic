@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import { cn } from "@/lib/cn";
 import { ViewModelProperty } from "@rive-app/webgl2/rive_advanced.mjs";
 
@@ -12,30 +12,71 @@ export interface VMProperty extends ViewModelProperty {
   enums?: string[];
 }
 
+export interface RiveRef {
+  enumValues: VMProperty[];
+  boolValues: VMProperty[];
+  triggerValues: VMProperty[];
+  setEnum: (name: string, value: string) => void;
+  setBool: (name: string, value: boolean) => void;
+  fireTrigger: (name: string) => void;
+}
+
 /**
  * RiveAnimation component with implicit canvas creation.
  * Creates the canvas element via document.createElement for isolated WebGL lifecycle management.
  * Uses the vanilla @rive-app/webgl2 API for maximum stability with dynamic imports.
  */
-export function RiveAnimation(props: {
-  src?: string | null;
-  buffer?: ArrayBuffer;
-  className?: string;
-}) {
+export const RiveAnimation = forwardRef<
+  RiveRef,
+  {
+    src?: string | null;
+    buffer?: ArrayBuffer;
+    className?: string;
+    onPropertiesLoaded?: (props: {
+      enumValues: VMProperty[];
+      boolValues: VMProperty[];
+      triggerValues: VMProperty[];
+    }) => void;
+  }
+>((props, ref) => {
   // Be extremely defensive against null props
   if (!props) return null;
 
-  const { src, buffer, className } = props;
+  const { src, buffer, className, onPropertiesLoaded } = props;
   const containerRef = useRef<HTMLDivElement>(null);
+  const riveInstanceRef = useRef<any>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [enumValues, setEnumValues] = useState<VMProperty[]>([]);
   const [boolValues, setBoolValues] = useState<VMProperty[]>([]);
   const [triggerValues, setTriggerValues] = useState<VMProperty[]>([]);
 
+  useImperativeHandle(ref, () => ({
+    enumValues,
+    boolValues,
+    triggerValues,
+    setEnum: (name, value) => {
+      const vmi = riveInstanceRef.current?.viewModelInstance;
+      if (vmi) {
+        const p = vmi.enum(name);
+        if (p) p.value = value;
+      }
+    },
+    setBool: (name, value) => {
+      const vmi = riveInstanceRef.current?.viewModelInstance;
+      if (vmi) {
+        const p = vmi.boolean(name);
+        if (p) p.value = value;
+      }
+    },
+    fireTrigger: (name) => {
+      const vmi = riveInstanceRef.current?.viewModelInstance;
+      if (vmi) vmi.trigger(name)?.trigger();
+    },
+  }));
+
   useEffect(() => {
     if (typeof window === "undefined" || !containerRef.current) return;
 
-    let riveInstance: any = null;
     let isCancelled = false;
 
     // Create canvas implicitly
@@ -52,7 +93,7 @@ export function RiveAnimation(props: {
         const isCover = className?.includes("object-cover");
         const fit = isCover ? Fit.Cover : Fit.Contain;
 
-        riveInstance = new Rive({
+        riveInstanceRef.current = new Rive({
           src: src || undefined,
           buffer: buffer || undefined,
           canvas: canvas,
@@ -64,13 +105,13 @@ export function RiveAnimation(props: {
             if (!isCancelled) {
               setIsLoaded(true);
               // Ensure drawing surface matches initial size
-              riveInstance?.resizeDrawingSurfaceToCanvas();
+              riveInstanceRef.current?.resizeDrawingSurfaceToCanvas();
             }
           },
         });
 
-        if (riveInstance) {
-          const vmi = riveInstance.viewModelInstance;
+        if (riveInstanceRef.current) {
+          const vmi = riveInstanceRef.current.viewModelInstance;
 
           if (vmi) {
             // Dynamic discovery
@@ -103,6 +144,14 @@ export function RiveAnimation(props: {
             if (triggerPropMeta) {
               setTriggerValues(triggerPropMeta);
             }
+
+            if (onPropertiesLoaded) {
+              onPropertiesLoaded({
+                enumValues: enumPropMeta || [],
+                boolValues: boolPropMeta || [],
+                triggerValues: triggerPropMeta || [],
+              });
+            }
           }
         }
       } catch (error) {
@@ -114,10 +163,10 @@ export function RiveAnimation(props: {
 
     return () => {
       isCancelled = true;
-      if (riveInstance) {
+      if (riveInstanceRef.current) {
         try {
-          riveInstance.cleanup();
-          riveInstance = null;
+          riveInstanceRef.current.cleanup();
+          riveInstanceRef.current = null;
         } catch (e) {
           // Ignore cleanup errors on destroy
         }
@@ -138,4 +187,4 @@ export function RiveAnimation(props: {
       )}
     </div>
   );
-}
+});
