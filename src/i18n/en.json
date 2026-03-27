@@ -20,7 +20,7 @@
   "nav.aboutUs": "About Us",
   "nav.termsPolicy": "Terms & Policy",
   "nav.privacyPolicy": "Privacy Policy",
-  "nav.careers": "Careers",
+
   "nav.help": "Help",
 
   "ui.lightMode": "Light mode",
@@ -276,16 +276,7 @@
   "privacy.rights.body": "You have the right to access, correct, or delete your personal information at any time through your account settings or by contacting us.",
   "privacy.contact.title": "7. Privacy Contact",
   "privacy.contact.body": "For privacy-related questions, please contact our stage crew at privacy@potmagic.live.",
-  "careers.title": "Join the Stage Crew",
-  "careers.subtitle": "Help us build the future of live story theater.",
-  "careers.why.title": "Why join potmagic?",
-  "careers.why.body": "We're a small, passionate team building the next generation of creative tools. If you're excited about the intersection of art, technology, and real-time performance, you'll fit right in.",
-  "careers.culture.title": "Our Culture",
-  "careers.culture.creativity": "Artists first. We build tools that empower creators.",
-  "careers.culture.collaboration": "Remote-first, collaborative, and deeply connected.",
-  "careers.culture.innovation": "We're not afraid to try the impossible.",
-  "careers.roles.title": "Open Roles",
-  "careers.roles.comingSoon": "We're not currently hiring for specific roles, but we're always looking for talented misfits. Tell us how you can help at careers@potmagic.live.",
+
   "help.title": "Help Center",
   "help.subtitle": "How can we help you create magic today?",
   "help.search.placeholder": "Search for help...",
