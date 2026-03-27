@@ -119,7 +119,7 @@ export function RiveCanvas({ src }: { src: string }) {
       app.stage.addChild(sprite);
 
       app.ticker.add(() => {
-        if (riveCanvas && riveCanvas.width > 0 && riveCanvas.height > 0) {
+        if (!isCancelled && riveCanvas && riveCanvas.width > 0 && riveCanvas.height > 0) {
           texture.source.update();
         }
       });
