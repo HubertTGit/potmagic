@@ -1,5 +1,5 @@
 import { Rive, ViewModelInstance } from "@rive-app/webgl2";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ViewModelProperty } from "@rive-app/webgl2/rive_advanced.mjs";
 
 enum DataType {
@@ -16,9 +16,9 @@ export function RiveCanvas({ src }: { src: string }) {
   const pixiRef = useRef<HTMLCanvasElement>(null);
   const riveAppRef = useRef<any>(null);
   const vmiRef = useRef<ViewModelInstance>(null);
-  const enumPropertyNameRef = useRef<string | null>(null);
-  const boolPropertyNameRef = useRef<string | null>(null);
-  const triggerPropertyNameRef = useRef<string | null>(null);
+  const [enumValues, setEnumValues] = useState<VMProperty[]>([]);
+  const [boolValues, setBoolValues] = useState<VMProperty[]>([]);
+  const [triggerValues, setTriggerValues] = useState<VMProperty[]>([]);
 
   useEffect(() => {
     let app: any;
@@ -95,15 +95,15 @@ export function RiveCanvas({ src }: { src: string }) {
               p.enums = vmi.enum(p.name)?.values;
             });
 
-            enumPropertyNameRef.current = enumPropMeta[1].name;
+            setEnumValues(enumPropMeta);
           }
 
           if (boolPropMeta) {
-            boolPropertyNameRef.current = boolPropMeta[0].name;
+            setBoolValues(boolPropMeta);
           }
 
           if (triggerPropMeta) {
-            triggerPropertyNameRef.current = triggerPropMeta[0].name;
+            setTriggerValues(triggerPropMeta);
           }
         }
       }
@@ -175,71 +175,55 @@ export function RiveCanvas({ src }: { src: string }) {
     };
   }, [src]);
 
-  // Using className or h-full / w-full logic so the element flexes with its parent correctly
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center justify-center gap-4">
       <canvas ref={pixiRef} />
-      <div>
-        <button
-          className="btn btn-primary mr-2"
-          onClick={() => {
-            if (enumPropertyNameRef.current) {
-              const prop = vmiRef.current?.enum(enumPropertyNameRef.current);
-              if (prop) prop.value = "talk";
-            }
-          }}
+
+      {enumValues.map((prop) => (
+        <div key={prop.name} className="flex flex-wrap gap-2">
+          {prop.enums?.map((value) => (
+            <button
+              key={value}
+              className="btn btn-primary btn-sm"
+              onClick={() => {
+                const p = vmiRef.current?.enum(prop.name);
+                if (p) p.value = value;
+              }}
+            >
+              {value}
+            </button>
+          ))}
+        </div>
+      ))}
+
+      {boolValues.map((prop) => (
+        <label
+          key={prop.name}
+          className="flex cursor-pointer items-center gap-2"
         >
-          Talk
-        </button>
-        <button
-          className="btn btn-primary mr-2"
-          onClick={() => {
-            if (enumPropertyNameRef.current) {
-              const prop = vmiRef.current?.enum(enumPropertyNameRef.current);
-              if (prop) prop.value = "laugh";
-            }
-          }}
-        >
-          Laugh
-        </button>
-        <button
-          className="btn btn-primary mr-2"
-          onClick={() => {
-            if (enumPropertyNameRef.current) {
-              const prop = vmiRef.current?.enum(enumPropertyNameRef.current);
-              if (prop) prop.value = "blink";
-            }
-          }}
-        >
-          Blink
-        </button>
-        <button
-          className="btn btn-primary mr-2"
-          onClick={() => {
-            if (enumPropertyNameRef.current) {
-              const prop = vmiRef.current?.enum(enumPropertyNameRef.current);
-              if (prop) prop.value = "normal";
-            }
-          }}
-        >
-          Idle
-        </button>
-        <label className="mt-4 flex cursor-pointer items-center gap-2">
-          <span className="label-text">Dance</span>
+          <span className="label-text capitalize">{prop.name}</span>
           <input
             type="checkbox"
             className="toggle"
             onChange={(e) => {
-              if (boolPropertyNameRef.current) {
-                const boolProp = vmiRef.current?.boolean(
-                  boolPropertyNameRef.current,
-                );
-                if (boolProp) boolProp.value = e.target.checked;
-              }
+              const p = vmiRef.current?.boolean(prop.name);
+              if (p) p.value = e.target.checked;
             }}
           />
         </label>
-      </div>
+      ))}
+
+      {triggerValues.map((prop) => (
+        <button
+          key={prop.name}
+          className="btn btn-secondary btn-sm"
+          onClick={() => {
+            vmiRef.current?.trigger(prop.name)?.trigger();
+          }}
+        >
+          {prop.name}
+        </button>
+      ))}
     </div>
   );
 }
