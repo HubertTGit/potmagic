@@ -175,14 +175,14 @@ export function LibrarySection({
 
   return (
     <div>
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-base-content/40 text-xs font-semibold tracking-widest uppercase">
+      <div className="mb-3 flex justify-between">
+        <h3 className="text-base-content/40 text-sm font-semibold tracking-widest uppercase">
           {label} <span className="text-base-content/25">({items.length})</span>
         </h3>
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="btn btn-xs btn-primary font-display tracking-wide"
+          className="btn btn-primary font-display tracking-wide"
         >
           {t("library.upload")}
         </button>

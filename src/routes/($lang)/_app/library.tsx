@@ -126,7 +126,8 @@ function LibraryPage() {
             onClick={() => setActiveSection(section.id)}
             className={cn(
               "card bg-base-200 border-base-300 hover:border-primary/50 group cursor-pointer border transition-all",
-              activeSection === section.id && "border-primary bg-primary/5 ring-1 ring-primary/20",
+              activeSection === section.id &&
+                "border-primary bg-primary/5 ring-primary/20 ring-1",
             )}
           >
             <div className="card-body p-6">
@@ -141,7 +142,7 @@ function LibraryPage() {
               <h2 className="card-title mb-1 text-xl">{section.title}</h2>
               <p className="text-base-content/60 text-sm">
                 {isLoading ? (
-                  <span className="skeleton h-4 w-12 inline-block rounded" />
+                  <span className="skeleton inline-block h-4 w-12 rounded" />
                 ) : (
                   section.count
                 )}{" "}
@@ -152,7 +153,7 @@ function LibraryPage() {
         ))}
       </div>
 
-      <div className="bg-base-200 border-base-300 min-h-[400px] rounded-2xl border p-8">
+      <div className="bg-base-200 border-base-300 min-h-[400px] rounded-2xl border p-5">
         <LibrarySection
           label={activeLabel}
           type={activeSection}
@@ -175,4 +176,3 @@ function LibraryPage() {
     </div>
   );
 }
-

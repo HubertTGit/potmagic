@@ -48,7 +48,7 @@ export function StoryGrid({
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
         {stories.map((story) => {
           const firstScene = story.scenes[0];
           const stageSceneId = (!isDirector && story.selectedSceneId) ? story.selectedSceneId : firstScene?.id;
