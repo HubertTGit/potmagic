@@ -5,6 +5,9 @@ export function RiveCanvas({ src }: { src: string }) {
   const pixiRef = useRef<HTMLCanvasElement>(null);
   const riveAppRef = useRef<any>(null);
   const vmiRef = useRef<ViewModelInstance>(null);
+  const enumPropertyNameRef = useRef<string | null>(null);
+  const boolPropertyNameRef = useRef<string | null>(null);
+  const triggerPropertyNameRef = useRef<string | null>(null);
 
   useEffect(() => {
     let app: any;
@@ -57,26 +60,26 @@ export function RiveCanvas({ src }: { src: string }) {
 
       if (riveInstance) {
         const vmi = (riveInstance as any).viewModelInstance;
+
         if (vmi) {
           vmiRef.current = vmi;
-          const enumProp = vmi.enum("enumProperty");
-          if (enumProp) enumProp.value = "talk";
 
-          const singBool = vmi.boolean("singBool");
-          if (singBool) singBool.value = true;
-          console.log("Found VMI through viewModelInstance property:", vmi);
-        } else {
-          // Fallback to manual lookup if property getter fails
-          const vm = (riveInstance as any).viewModelByIndex?.(0);
-          const vmiFallback = vm?.instance();
-          if (vmiFallback) {
-            vmiRef.current = vmiFallback;
-            const enumProp = vmiFallback.enum("enumProperty");
-            if (enumProp) enumProp.value = "talk";
+          // Dynamic discovery
+          const props = vmi.properties || [];
+          const enumPropMeta = props.find((p: any) => p.type === "enumType"); // DataType.enumType
+          const boolPropMeta = props.find((p: any) => p.type === "boolean"); // DataType.boolean
+          const triggerPropMeta = props.find((p: any) => p.type === "trigger"); // DataType.trigger
 
-            const singBool = vmiFallback.boolean("singBool");
-            if (singBool) singBool.value = true;
-            console.log("Found VMI through fallback manual lookup:", vmiFallback);
+          if (enumPropMeta) {
+            enumPropertyNameRef.current = enumPropMeta.name;
+          }
+
+          if (boolPropMeta) {
+            boolPropertyNameRef.current = boolPropMeta.name;
+          }
+
+          if (triggerPropMeta) {
+            triggerPropertyNameRef.current = triggerPropMeta.name;
           }
         }
       }
@@ -146,8 +149,10 @@ export function RiveCanvas({ src }: { src: string }) {
         <button
           className="btn btn-primary mr-2"
           onClick={() => {
-            const prop = vmiRef.current?.enum("enumProperty");
-            if (prop) prop.value = "talk";
+            if (enumPropertyNameRef.current) {
+              const prop = vmiRef.current?.enum(enumPropertyNameRef.current);
+              if (prop) prop.value = "talk";
+            }
           }}
         >
           Talk
@@ -155,8 +160,10 @@ export function RiveCanvas({ src }: { src: string }) {
         <button
           className="btn btn-primary mr-2"
           onClick={() => {
-            const prop = vmiRef.current?.enum("enumProperty");
-            if (prop) prop.value = "laugh";
+            if (enumPropertyNameRef.current) {
+              const prop = vmiRef.current?.enum(enumPropertyNameRef.current);
+              if (prop) prop.value = "laugh";
+            }
           }}
         >
           Laugh
@@ -164,8 +171,10 @@ export function RiveCanvas({ src }: { src: string }) {
         <button
           className="btn btn-primary mr-2"
           onClick={() => {
-            const prop = vmiRef.current?.enum("enumProperty");
-            if (prop) prop.value = "blink";
+            if (enumPropertyNameRef.current) {
+              const prop = vmiRef.current?.enum(enumPropertyNameRef.current);
+              if (prop) prop.value = "blink";
+            }
           }}
         >
           Blink
@@ -173,8 +182,10 @@ export function RiveCanvas({ src }: { src: string }) {
         <button
           className="btn btn-primary mr-2"
           onClick={() => {
-            const prop = vmiRef.current?.enum("enumProperty");
-            if (prop) prop.value = "normal";
+            if (enumPropertyNameRef.current) {
+              const prop = vmiRef.current?.enum(enumPropertyNameRef.current);
+              if (prop) prop.value = "normal";
+            }
           }}
         >
           Idle
@@ -185,8 +196,12 @@ export function RiveCanvas({ src }: { src: string }) {
             type="checkbox"
             className="toggle"
             onChange={(e) => {
-              const boolProp = vmiRef.current?.boolean("singBool");
-              if (boolProp) boolProp.value = e.target.checked;
+              if (boolPropertyNameRef.current) {
+                const boolProp = vmiRef.current?.boolean(
+                  boolPropertyNameRef.current,
+                );
+                if (boolProp) boolProp.value = e.target.checked;
+              }
             }}
           />
         </label>
