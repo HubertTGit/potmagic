@@ -73,29 +73,32 @@ export function RiveCanvas({ src }: { src: string }) {
 
           // Dynamic discovery
           const props = vmi.properties || [];
-          const enumPropMeta = props.find(
+          const enumPropMeta = props.filter(
             (p: ViewModelProperty) =>
               (p.type as unknown as DataType) === DataType.enumType,
           );
-          const boolPropMeta = props.find(
+          const boolPropMeta = props.filter(
             (p: ViewModelProperty) =>
               (p.type as unknown as DataType) === DataType.boolean,
           );
-          const triggerPropMeta = props.find(
+          const triggerPropMeta = props.filter(
             (p: ViewModelProperty) =>
               (p.type as unknown as DataType) === DataType.trigger,
           );
 
           if (enumPropMeta) {
-            enumPropertyNameRef.current = enumPropMeta.name;
+            console.log("enumPropMeta", enumPropMeta);
+            enumPropertyNameRef.current = enumPropMeta[0].name;
           }
 
           if (boolPropMeta) {
-            boolPropertyNameRef.current = boolPropMeta.name;
+            console.log("boolPropMeta", boolPropMeta);
+            boolPropertyNameRef.current = boolPropMeta[0].name;
           }
 
           if (triggerPropMeta) {
-            triggerPropertyNameRef.current = triggerPropMeta.name;
+            console.log("triggerPropMeta", triggerPropMeta);
+            triggerPropertyNameRef.current = triggerPropMeta[0].name;
           }
         }
       }
