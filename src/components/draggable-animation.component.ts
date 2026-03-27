@@ -3,7 +3,6 @@ import type { FederatedPointerEvent } from "pixi.js";
 import { GlowFilter } from "pixi-filters/glow";
 import { Rive } from "@rive-app/webgl2";
 import type { ViewModelProperty } from "@rive-app/webgl2/rive_advanced.mjs";
-import type { Room } from "livekit-client";
 import { saveSceneCastPosition } from "@/lib/scenes.fns";
 import type { PropMoveMessage } from "@/lib/livekit-messages";
 import type { PixiCharacterProps } from "@/components/draggable-character.component";
@@ -63,7 +62,6 @@ export class PixiAnimation {
 
   private riveInstance: Rive | null = null;
   private riveCanvas: HTMLCanvasElement | null = null;
-  private texture: Texture | null = null;
   private tickerFn: (() => void) | null = null;
   private destroyed = false;
 
@@ -188,7 +186,6 @@ export class PixiAnimation {
 
     // Create PixiJS texture backed by the Rive canvas
     const texture = Texture.from(riveCanvas);
-    this.texture = texture;
     this.sprite.texture = texture;
 
     // Stream Rive frames into PixiJS each tick
