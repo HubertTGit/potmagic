@@ -62,7 +62,9 @@ export function RiveAnimation(props: {
       isCancelled = true;
       if (riveInstance) {
         try {
+          riveInstance.stopRendering();
           riveInstance.cleanup();
+          riveInstance = null;
         } catch (e) {
           // Ignore cleanup errors on destroy
         }
@@ -79,7 +81,7 @@ export function RiveAnimation(props: {
       className={cn(className, "relative overflow-hidden")}
     >
       {!isLoaded && (
-        <div className="absolute inset-0 bg-base-300 animate-pulse" />
+        <div className="bg-base-300 absolute inset-0 animate-pulse" />
       )}
     </div>
   );
