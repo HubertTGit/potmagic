@@ -1,5 +1,6 @@
 import { Rive, ViewModelInstance } from "@rive-app/webgl2";
 import { useEffect, useRef } from "react";
+import type { ViewModelProperty } from "@rive-app/webgl2/rive_advanced.mjs";
 
 export function RiveCanvas({ src }: { src: string }) {
   const pixiRef = useRef<HTMLCanvasElement>(null);
@@ -119,7 +120,12 @@ export function RiveCanvas({ src }: { src: string }) {
       app.stage.addChild(sprite);
 
       app.ticker.add(() => {
-        if (!isCancelled && riveCanvas && riveCanvas.width > 0 && riveCanvas.height > 0) {
+        if (
+          !isCancelled &&
+          riveCanvas &&
+          riveCanvas.width > 0 &&
+          riveCanvas.height > 0
+        ) {
           texture.source.update();
         }
       });
@@ -130,7 +136,12 @@ export function RiveCanvas({ src }: { src: string }) {
     return () => {
       isCancelled = true;
       if (app) {
-        app.destroy(false, { children: true, texture: true });
+        app.ticker.stop();
+        try {
+          app.destroy(false, { children: true, texture: true });
+        } catch {
+          // WebGL context may already be lost if the canvas was removed from DOM
+        }
       }
       if (riveInstance) {
         riveInstance.cleanup();
