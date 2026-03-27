@@ -2,6 +2,12 @@ import { Rive, ViewModelInstance } from "@rive-app/webgl2";
 import { useEffect, useRef } from "react";
 import type { ViewModelProperty } from "@rive-app/webgl2/rive_advanced.mjs";
 
+enum DataType {
+  boolean = "boolean",
+  enumType = "enumType",
+  trigger = "trigger",
+}
+
 export function RiveCanvas({ src }: { src: string }) {
   const pixiRef = useRef<HTMLCanvasElement>(null);
   const riveAppRef = useRef<any>(null);
@@ -60,16 +66,25 @@ export function RiveCanvas({ src }: { src: string }) {
       riveAppRef.current = riveInstance;
 
       if (riveInstance) {
-        const vmi = (riveInstance as any).viewModelInstance;
+        const vmi = riveInstance.viewModelInstance;
 
         if (vmi) {
           vmiRef.current = vmi;
 
           // Dynamic discovery
           const props = vmi.properties || [];
-          const enumPropMeta = props.find((p: any) => p.type === "enumType"); // DataType.enumType
-          const boolPropMeta = props.find((p: any) => p.type === "boolean"); // DataType.boolean
-          const triggerPropMeta = props.find((p: any) => p.type === "trigger"); // DataType.trigger
+          const enumPropMeta = props.find(
+            (p: ViewModelProperty) =>
+              (p.type as unknown as DataType) === DataType.enumType,
+          );
+          const boolPropMeta = props.find(
+            (p: ViewModelProperty) =>
+              (p.type as unknown as DataType) === DataType.boolean,
+          );
+          const triggerPropMeta = props.find(
+            (p: ViewModelProperty) =>
+              (p.type as unknown as DataType) === DataType.trigger,
+          );
 
           if (enumPropMeta) {
             enumPropertyNameRef.current = enumPropMeta.name;
