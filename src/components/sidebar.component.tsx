@@ -13,6 +13,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Megaphone,
+  Shapes,
+  LibraryBig,
 } from "lucide-react";
 import type { SubscriptionType } from "@/db/schema";
 
@@ -149,6 +151,16 @@ export function Sidebar() {
             onExpand={expandOnDesktop}
           >
             {t("nav.director")}
+          </SidebarLink>
+        )}
+        {isDirector && (
+          <SidebarLink
+            to={`${langPrefix}/library`}
+            icon={<LibraryBig className="size-4" />}
+            collapsed={collapsed}
+            onExpand={expandOnDesktop}
+          >
+            {t("nav.library")}
           </SidebarLink>
         )}
       </nav>
