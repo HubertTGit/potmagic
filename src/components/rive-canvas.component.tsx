@@ -1,8 +1,10 @@
-import { Rive } from "@rive-app/webgl2";
+import { Rive, ViewModelInstance } from "@rive-app/webgl2";
 import { useEffect, useRef } from "react";
 
 export function RiveCanvas({ src }: { src: string }) {
   const pixiRef = useRef<HTMLCanvasElement>(null);
+  const riveAppRef = useRef<any>(null);
+  const vmiRef = useRef<ViewModelInstance>(null);
 
   useEffect(() => {
     let app: any;
@@ -45,15 +47,38 @@ export function RiveCanvas({ src }: { src: string }) {
           src,
           canvas: riveCanvas!,
           autoplay: true,
+          autoBind: true,
+          stateMachines: "pmStateMachine",
           onLoad: () => resolve(),
         });
       });
 
+      riveAppRef.current = riveInstance;
+
       if (riveInstance) {
-        console.log(
-          "viewModelInstance:",
-          (riveInstance as any).viewModelInstance
-        );
+        const vmi = (riveInstance as any).viewModelInstance;
+        if (vmi) {
+          vmiRef.current = vmi;
+          const enumProp = vmi.enum("enumProperty");
+          if (enumProp) enumProp.value = "talk";
+
+          const singBool = vmi.boolean("singBool");
+          if (singBool) singBool.value = true;
+          console.log("Found VMI through viewModelInstance property:", vmi);
+        } else {
+          // Fallback to manual lookup if property getter fails
+          const vm = (riveInstance as any).viewModelByIndex?.(0);
+          const vmiFallback = vm?.instance();
+          if (vmiFallback) {
+            vmiRef.current = vmiFallback;
+            const enumProp = vmiFallback.enum("enumProperty");
+            if (enumProp) enumProp.value = "talk";
+
+            const singBool = vmiFallback.boolean("singBool");
+            if (singBool) singBool.value = true;
+            console.log("Found VMI through fallback manual lookup:", vmiFallback);
+          }
+        }
       }
 
       let riveWidth = 0;
@@ -64,14 +89,14 @@ export function RiveCanvas({ src }: { src: string }) {
         riveWidth = bounds.maxX - bounds.minX;
         riveHeight = bounds.maxY - bounds.minY;
 
-      riveCanvas.width = riveWidth;
-      riveCanvas.height = riveHeight;
-      riveCanvas.style.width = `${riveWidth}px`;
-      riveCanvas.style.height = `${riveHeight}px`;
-      riveInstance.resizeDrawingSurfaceToCanvas();
-      riveInstance.startRendering();
+        riveCanvas.width = riveWidth;
+        riveCanvas.height = riveHeight;
+        riveCanvas.style.width = `${riveWidth}px`;
+        riveCanvas.style.height = `${riveHeight}px`;
+        riveInstance.resizeDrawingSurfaceToCanvas();
+        riveInstance.startRendering();
 
-      app.renderer.resize(500, 500);
+        app.renderer.resize(500, 500);
       }
 
       if (isCancelled) return;
@@ -118,13 +143,52 @@ export function RiveCanvas({ src }: { src: string }) {
     <div className="flex flex-col items-center justify-center">
       <canvas ref={pixiRef} />
       <div>
-        <button className="btn btn-primary">Talk</button>
-        <button className="btn btn-primary">Laugh</button>
-        <button className="btn btn-primary">Blink</button>
-        <button className="btn btn-primary">Idle</button>
-        <label>
+        <button
+          className="btn btn-primary mr-2"
+          onClick={() => {
+            const prop = vmiRef.current?.enum("enumProperty");
+            if (prop) prop.value = "talk";
+          }}
+        >
           Talk
-          <input type="checkbox" className="toggle" />
+        </button>
+        <button
+          className="btn btn-primary mr-2"
+          onClick={() => {
+            const prop = vmiRef.current?.enum("enumProperty");
+            if (prop) prop.value = "laugh";
+          }}
+        >
+          Laugh
+        </button>
+        <button
+          className="btn btn-primary mr-2"
+          onClick={() => {
+            const prop = vmiRef.current?.enum("enumProperty");
+            if (prop) prop.value = "blink";
+          }}
+        >
+          Blink
+        </button>
+        <button
+          className="btn btn-primary mr-2"
+          onClick={() => {
+            const prop = vmiRef.current?.enum("enumProperty");
+            if (prop) prop.value = "normal";
+          }}
+        >
+          Idle
+        </button>
+        <label className="mt-4 flex cursor-pointer items-center gap-2">
+          <span className="label-text">Dance</span>
+          <input
+            type="checkbox"
+            className="toggle"
+            onChange={(e) => {
+              const boolProp = vmiRef.current?.boolean("singBool");
+              if (boolProp) boolProp.value = e.target.checked;
+            }}
+          />
         </label>
       </div>
     </div>
