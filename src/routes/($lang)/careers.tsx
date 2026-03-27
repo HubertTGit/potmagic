@@ -25,7 +25,7 @@ function CareersPage() {
 
       <main className="flex flex-1 items-center justify-center">
         <ClientOnly>
-          <RiveCanvas />
+          <RiveCanvas src="/fox.riv" />
         </ClientOnly>
       </main>
 

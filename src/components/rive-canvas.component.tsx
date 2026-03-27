@@ -1,7 +1,7 @@
 import { Rive } from "@rive-app/webgl2";
 import { useEffect, useRef } from "react";
 
-export function RiveCanvas() {
+export function RiveCanvas({ src }: { src: string }) {
   const pixiRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -27,7 +27,7 @@ export function RiveCanvas() {
       });
 
       if (isCancelled) {
-        newApp.destroy(true, { children: true, texture: true });
+        newApp.destroy(false, { children: true, texture: true });
         return;
       }
 
@@ -42,7 +42,7 @@ export function RiveCanvas() {
 
       await new Promise<void>((resolve) => {
         riveInstance = new Rive({
-          src: "/fox.riv",
+          src,
           canvas: riveCanvas!,
           autoplay: true,
           onLoad: () => resolve(),
@@ -102,7 +102,7 @@ export function RiveCanvas() {
     return () => {
       isCancelled = true;
       if (app) {
-        app.destroy(true, { children: true, texture: true });
+        app.destroy(false, { children: true, texture: true });
       }
       if (riveInstance) {
         riveInstance.cleanup();
@@ -111,7 +111,7 @@ export function RiveCanvas() {
         document.body.removeChild(riveCanvas);
       }
     };
-  }, []);
+  }, [src]);
 
   // Using className or h-full / w-full logic so the element flexes with its parent correctly
   return (
