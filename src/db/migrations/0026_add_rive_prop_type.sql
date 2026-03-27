@@ -1,1 +1,0 @@
-ALTER TYPE "public"."prop_type" ADD VALUE 'rive';
