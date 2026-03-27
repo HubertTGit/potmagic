@@ -1,6 +1,7 @@
 import { ClientOnly, createFileRoute } from "@tanstack/react-router";
 import { LandingNavbar } from "@/components/landing-navbar.component";
 import { LandingFooter } from "@/components/landing-footer.component";
+import { RiveCanvas } from "@/components/rive-canvas.component";
 
 export const Route = createFileRoute("/($lang)/careers")({
   head: () => {
@@ -25,7 +26,7 @@ function CareersPage() {
       <main className="flex flex-1 items-center justify-center">
         <ClientOnly>
           <h1>Careers</h1>
-          {/* <RiveCanvas /> */}
+          <RiveCanvas />
         </ClientOnly>
       </main>
 

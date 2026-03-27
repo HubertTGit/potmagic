@@ -1,8 +1,9 @@
+import { Rive } from "@rive-app/webgl2";
 import { useEffect, useRef } from "react";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-import pkg from "@rive-app/webgl2";
-import type { Rive as RiveType } from "@rive-app/webgl2";
-const { Rive } = pkg as any;
+// import pkg from "@rive-app/webgl2";
+// import type { Rive as RiveType } from "@rive-app/webgl2";
+// const { Rive } = pkg as any;
 
 export function RiveCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -44,15 +45,21 @@ export function RiveCanvas() {
   }, []);
 
   useEffect(() => {
-    let riveInstance: RiveType | null = null;
+    let riveInstance: Rive | null = null;
 
-    if (riveRef.current) {
+    async function initRive() {
+      if (!riveRef.current) return;
+
+      const { Rive } = await import("@rive-app/webgl2");
+
       riveInstance = new Rive({
         src: "/fox.riv",
         canvas: riveRef.current,
         autoplay: true,
       });
     }
+
+    initRive();
 
     return () => {
       if (riveInstance) {
