@@ -8,6 +8,10 @@ enum DataType {
   trigger = "trigger",
 }
 
+interface VMProperty extends ViewModelProperty {
+  enums?: string[];
+}
+
 export function RiveCanvas({ src }: { src: string }) {
   const pixiRef = useRef<HTMLCanvasElement>(null);
   const riveAppRef = useRef<any>(null);
@@ -74,30 +78,31 @@ export function RiveCanvas({ src }: { src: string }) {
           // Dynamic discovery
           const props = vmi.properties || [];
           const enumPropMeta = props.filter(
-            (p: ViewModelProperty) =>
+            (p: VMProperty) =>
               (p.type as unknown as DataType) === DataType.enumType,
           );
           const boolPropMeta = props.filter(
-            (p: ViewModelProperty) =>
+            (p: VMProperty) =>
               (p.type as unknown as DataType) === DataType.boolean,
           );
           const triggerPropMeta = props.filter(
-            (p: ViewModelProperty) =>
+            (p: VMProperty) =>
               (p.type as unknown as DataType) === DataType.trigger,
           );
 
           if (enumPropMeta) {
-            console.log("enumPropMeta", enumPropMeta);
-            enumPropertyNameRef.current = enumPropMeta[0].name;
+            enumPropMeta.forEach((p: VMProperty) => {
+              p.enums = vmi.enum(p.name)?.values;
+            });
+
+            enumPropertyNameRef.current = enumPropMeta[1].name;
           }
 
           if (boolPropMeta) {
-            console.log("boolPropMeta", boolPropMeta);
             boolPropertyNameRef.current = boolPropMeta[0].name;
           }
 
           if (triggerPropMeta) {
-            console.log("triggerPropMeta", triggerPropMeta);
             triggerPropertyNameRef.current = triggerPropMeta[0].name;
           }
         }
