@@ -20,6 +20,7 @@ const ALLOWED_MIME_TYPES = [
   "audio/ogg",
   "audio/aac",
   "application/octet-stream", // .riv Rive animations
+  "", // Fallback for browsers that don't provide a mime type for .riv
 ] as const;
 
 async function getSessionOrThrow() {
@@ -44,7 +45,7 @@ export const uploadProp = createServerFn({ method: "POST" })
     z
       .object({
         name: z.string().min(1).max(200),
-        type: z.enum(["character", "background", "animation", "sound"]),
+        type: z.enum(["character", "background", "animation", "sound", "rive"]),
         fileName: z.string().min(1).max(255),
         contentType: z
           .string()
@@ -143,7 +144,7 @@ export const listAllProps = createServerFn({ method: "GET" }).handler(
       character: rows.filter((r) => r.type === "character"),
       background: rows.filter((r) => r.type === "background"),
       sound: rows.filter((r) => r.type === "sound"),
-      animation: rows.filter((r) => r.type === "animation"),
+      rive: rows.filter((r) => r.type === "rive"),
     };
   },
 );

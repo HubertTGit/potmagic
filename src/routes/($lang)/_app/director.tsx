@@ -58,9 +58,11 @@ function DirectorPage() {
   const characters = allProps?.character ?? [];
   const backgrounds = allProps?.background ?? [];
   const sounds = allProps?.sound ?? [];
+  const animations = allProps?.rive ?? [];
   const loadingChars = loadingProps;
   const loadingBgs = loadingProps;
   const loadingSounds = loadingProps;
+  const loadingAnims = loadingProps;
 
   const { data: invitedActors = [], isLoading: loadingActors } = useQuery({
     queryKey: ["invitedActors"],
@@ -74,7 +76,7 @@ function DirectorPage() {
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["invitedActors"] }),
     onError: (err: any) =>
-      toast.error(err?.message ?? t('director.error.failedInvite')),
+      toast.error(err?.message ?? t("director.error.failedInvite")),
   });
 
   const removeActorMutation = useMutation({
@@ -103,7 +105,9 @@ function DirectorPage() {
           name,
           type,
           fileName: file.name,
-          contentType: file.type,
+          contentType:
+            file.type ||
+            (file.name.endsWith(".riv") ? "application/octet-stream" : ""),
           base64,
           size: file.size,
         },
@@ -123,29 +127,26 @@ function DirectorPage() {
 
   return (
     <div className="max-w-3xl p-8">
-      <h1 className="mb-2 text-2xl font-semibold">{t('director.heading')}</h1>
+      <h1 className="mb-2 text-2xl font-semibold">{t("director.heading")}</h1>
       <p className="text-base-content/40 mb-6 text-sm">
-        {t('director.subtitle')}
+        {t("director.subtitle")}
       </p>
 
       {/* Tabs */}
       <div
         role="tablist"
-        className="tabs tabs-border mb-8 border-b border-base-300 [--tab-color:var(--color-primary)]"
+        className="tabs tabs-border border-base-300 mb-8 border-b [--tab-color:var(--color-primary)]"
       >
-        {([
-          { id: "dashboard" as Tab, label: t('director.tab.dashboard') },
-          { id: "library" as Tab, label: t('director.tab.library') },
-          { id: "actors" as Tab, label: t('director.tab.actors') },
-        ]).map(({ id: tabId, label }) => (
+        {[
+          { id: "dashboard" as Tab, label: t("director.tab.dashboard") },
+          { id: "library" as Tab, label: t("director.tab.library") },
+          { id: "actors" as Tab, label: t("director.tab.actors") },
+        ].map(({ id: tabId, label }) => (
           <button
             key={tabId}
             role="tab"
             onClick={() => setTab(tabId)}
-            className={cn(
-              "tab",
-              tab === tabId && "tab-active text-primary",
-            )}
+            className={cn("tab", tab === tabId && "tab-active text-primary")}
           >
             {label}
             {tabId === "actors" && acceptedCount > 0 && (
@@ -162,9 +163,21 @@ function DirectorPage() {
           {/* Stats row */}
           <div className="mb-10 grid grid-cols-3 gap-4">
             {[
-              { label: t('director.stat.active'), count: active.length, color: "text-success" },
-              { label: t('status.draft'), count: draft.length, color: "text-base-content/60" },
-              { label: t('status.ended'), count: ended.length, color: "text-base-content/30" },
+              {
+                label: t("director.stat.active"),
+                count: active.length,
+                color: "text-success",
+              },
+              {
+                label: t("status.draft"),
+                count: draft.length,
+                color: "text-base-content/60",
+              },
+              {
+                label: t("status.ended"),
+                count: ended.length,
+                color: "text-base-content/30",
+              },
             ].map(({ label, count, color }) => (
               <div
                 key={label}
@@ -197,10 +210,10 @@ function DirectorPage() {
               <table className="table-sm table w-full">
                 <thead>
                   <tr className="text-base-content/50 text-xs tracking-wider uppercase">
-                    <th>{t('director.table.story')}</th>
-                    <th>{t('director.table.cast')}</th>
-                    <th>{t('table.status')}</th>
-                    <th>{t('director.table.session')}</th>
+                    <th>{t("director.table.story")}</th>
+                    <th>{t("director.table.cast")}</th>
+                    <th>{t("table.status")}</th>
+                    <th>{t("director.table.session")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -243,11 +256,11 @@ function DirectorPage() {
       {tab === "library" && (
         <>
           <p className="text-base-content/40 mb-6 text-sm">
-            {t('director.library.description')}
+            {t("director.library.description")}
           </p>
           <div className="flex flex-col gap-8">
             <LibrarySection
-              label={t('director.library.characters')}
+              label={t("director.library.characters")}
               type="character"
               items={characters}
               isLoading={loadingChars}
@@ -255,7 +268,7 @@ function DirectorPage() {
               onRemove={(id) => handleRemoveProp("character", id)}
             />
             <LibrarySection
-              label={t('director.library.backgrounds')}
+              label={t("director.library.backgrounds")}
               type="background"
               items={backgrounds}
               isLoading={loadingBgs}
@@ -263,7 +276,7 @@ function DirectorPage() {
               onRemove={(id) => handleRemoveProp("background", id)}
             />
             <LibrarySection
-              label={t('director.library.sounds')}
+              label={t("director.library.sounds")}
               type="sound"
               items={sounds}
               isLoading={loadingSounds}
@@ -271,14 +284,14 @@ function DirectorPage() {
               onRemove={(id) => handleRemoveProp("sound", id)}
             />
             {/* Animations section hidden until feature is ready */}
-            {/* <LibrarySection
-              label="Animations"
-              type="animation"
+            <LibrarySection
+              label="Rive Animation"
+              type="rive"
               items={animations}
               isLoading={loadingAnims}
-              onAdd={(file, name) => handleAddProp('animation', file, name)}
-              onRemove={(id) => handleRemoveProp('animation', id)}
-            /> */}
+              onAdd={(file, name) => handleAddProp("rive", file, name)}
+              onRemove={(id) => handleRemoveProp("rive", id)}
+            />
           </div>
         </>
       )}
@@ -310,7 +323,7 @@ function SessionControls({
         onClick={() => onSetStatus(story.id, "active")}
         className="btn btn-xs btn-success font-display tracking-wide"
       >
-        {t('director.session.start')}
+        {t("director.session.start")}
       </button>
     );
   }
@@ -320,7 +333,7 @@ function SessionControls({
         onClick={() => onSetStatus(story.id, "ended")}
         className="btn btn-xs btn-error btn-outline font-display tracking-wide"
       >
-        {t('director.session.end')}
+        {t("director.session.end")}
       </button>
     );
   }
@@ -329,7 +342,7 @@ function SessionControls({
       onClick={() => onSetStatus(story.id, "draft")}
       className="btn btn-xs btn-outline font-display tracking-wide"
     >
-      {t('director.session.setToDraft')}
+      {t("director.session.setToDraft")}
     </button>
   );
 }

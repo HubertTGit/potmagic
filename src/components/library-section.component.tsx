@@ -4,6 +4,7 @@ import { Image, X, ChevronLeft, ChevronRight, Music } from "lucide-react";
 import { toast } from "@/lib/toast";
 import type { PropType } from "@/db/schema";
 import { useLanguage } from "@/hooks/useLanguage";
+import { RiveAnimation } from "./rive-animation.component";
 
 export interface LibraryItem {
   id: string;
@@ -16,14 +17,14 @@ function MediaPreview({
   buffer,
   name,
   className,
-  isAnimation,
+  isRive,
   isSound,
 }: {
   src?: string | null;
   buffer?: ArrayBuffer;
   name?: string;
   className?: string;
-  isAnimation?: boolean;
+  isRive?: boolean;
   isSound?: boolean;
 }) {
   if (isSound) {
@@ -46,6 +47,10 @@ function MediaPreview({
         )}
       </div>
     );
+  }
+
+  if (isRive) {
+    return <RiveAnimation src={src} buffer={buffer} className={className} />;
   }
 
   return src ? (
@@ -102,9 +107,9 @@ export function LibrarySection({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedIndex, items.length]);
 
-  const isAnimation = type === "animation";
+  const isRive = type === "rive";
   const isSound = type === "sound";
-  const acceptMime = isAnimation
+  const acceptMime = isRive
     ? "application/octet-stream,.riv"
     : isSound
       ? "audio/mp4,.mp4,audio/*"
@@ -114,7 +119,7 @@ export function LibrarySection({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (isAnimation) {
+    if (isRive) {
       // For animations, we read as buffer for immediate Rive preview
       const reader = new FileReader();
       reader.onload = (event) => {
@@ -196,7 +201,7 @@ export function LibrarySection({
           <MediaPreview
             src={pending.preview}
             buffer={pending.buffer}
-            isAnimation={isAnimation}
+            isRive={isRive}
             isSound={isSound}
             className="bg-base-300 size-14 shrink-0 overflow-hidden rounded-lg object-cover"
           />
@@ -277,7 +282,7 @@ export function LibrarySection({
               <MediaPreview
                 src={item.imageUrl}
                 name={item.name}
-                isAnimation={isAnimation}
+                isRive={isRive}
                 isSound={isSound}
                 className="h-full w-full object-cover"
               />
@@ -395,7 +400,7 @@ export function LibrarySection({
               <MediaPreview
                 src={items[selectedIndex].imageUrl!}
                 name={items[selectedIndex].name}
-                isAnimation={isAnimation}
+                isRive={isRive}
                 isSound={isSound}
                 className="bg-base-100/80 max-h-[80vh] w-auto max-w-full overflow-hidden rounded-xl object-contain shadow-2xl"
               />
