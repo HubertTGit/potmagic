@@ -1,61 +1,50 @@
-// @rive-app/react-webgl2 is a CJS module; destructure from the default export to avoid
-// Vite's "named export not found" error when the package is pre-bundled.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-import pkg from '@rive-app/react-webgl2';
-const { useRive, Layout, Fit } = pkg as any;
-import { useState, useEffect } from 'react';
-import { cn } from '@/lib/cn';
+import { useEffect, useRef } from "react";
 
-function RivePlayer({
-  src,
-  buffer,
-  artboard,
-  className,
-}: {
-  src?: string;
-  buffer?: ArrayBuffer;
-  artboard?: string;
-  className?: string;
-}) {
-  const isCover = className?.includes('object-cover');
-  const fit = isCover ? Fit.Cover : Fit.Contain;
-
-  const { RiveComponent } = useRive({
-    src,
-    buffer,
-    artboard: artboard ?? 'potmagicArtboard',
-    stateMachines: 'potmagicStateMachine',
-    layout: new Layout({ fit }),
-    autoplay: true,
-  });
-
-  return (
-    <div className={cn(className, 'overflow-hidden')}>
-      <RiveComponent className="w-full h-full" />
-    </div>
-  );
-}
-
-export function RiveCanvas({
-  src,
-  buffer,
-  artboard,
-  className,
-}: {
-  src?: string;
-  buffer?: ArrayBuffer;
-  artboard?: string;
-  className?: string;
-}) {
-  const [isClient, setIsClient] = useState(false);
+export function RiveCanvas() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    setIsClient(true);
+    async function initPixi() {
+      // Dynamic import prevents 'navigator is not defined' SSR errors
+      const { Application, Assets } = await import("pixi.js");
+      const { RiveSprite, Fit, Alignment } = await import("@qva/pixi-rive");
+
+      const app = new Application();
+      await app.init({
+        canvas: canvasRef.current,
+        backgroundAlpha: 0, // Transparent background for Rive animation
+        resizeTo: canvasRef.current.parentElement || window,
+      });
+
+      Assets.load(
+        "https://za89zydjitp7xtkq.public.blob.vercel-storage.com/props/fox.riv",
+      ).then((riveFile) => {
+        const riveSprite = new RiveSprite({
+          asset: riveFile,
+          autoPlay: true,
+          debug: true,
+          onReady: () => {
+            console.log("Rive animation ready!");
+          },
+        });
+
+        app.stage.addChild(riveSprite);
+      });
+    }
+
+    initPixi();
+
+    return () => {
+      if (app) {
+        app.destroy(true, { children: true, texture: true });
+      }
+    };
   }, []);
 
-  if (!isClient) {
-    return <div className={className} />;
-  }
-
-  return <RivePlayer src={src} buffer={buffer} artboard={artboard} className={className} />;
+  // Using className or h-full / w-full logic so the element flexes with its parent correctly
+  return (
+    <>
+      <canvas ref={canvasRef} className="h-1/4 w-1/4" />
+    </>
+  );
 }

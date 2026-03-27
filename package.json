@@ -21,6 +21,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@livekit/components-react": "^2.9.20",
     "@livekit/components-styles": "^1.2.0",
+    "@qva/pixi-rive": "^0.0.1",
     "@rive-app/react-webgl2": "^4.27.1",
     "@rive-app/webgl2": "^2.35.3",
     "@tanstack/react-form": "^1.28.5",

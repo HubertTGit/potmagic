@@ -3,14 +3,8 @@ import { LandingNavbar } from "@/components/landing-navbar.component";
 import { LandingFooter } from "@/components/landing-footer.component";
 import { getMeta } from "@/i18n/meta";
 import { useLanguage } from "@/hooks/useLanguage";
-import {
-  Briefcase,
-  Users,
-  Cpu,
-  Palette,
-  Mail,
-  ArrowRight,
-} from "lucide-react";
+import { Briefcase, Users, Cpu, Palette, Mail, ArrowRight } from "lucide-react";
+import { RiveCanvas } from "@/components/rive-canvas.component";
 
 export const Route = createFileRoute("/($lang)/careers")({
   head: ({ match }) => {
@@ -55,13 +49,15 @@ function CareersPage() {
       <LandingNavbar />
 
       <main className="flex-1">
+        <RiveCanvas />
+
         {/* Hero Section */}
         <section className="bg-base-100 py-24">
           <div className="mx-auto max-w-4xl px-6 text-center">
             <div className="bg-primary/10 text-primary mx-auto mb-8 flex size-16 items-center justify-center rounded-2xl">
               <Briefcase className="size-10" />
             </div>
-            <h1 className="font-display mb-6 text-5xl font-bold leading-tight">
+            <h1 className="font-display mb-6 text-5xl leading-tight font-bold">
               {t("careers.title")}
             </h1>
             <p className="text-base-content/60 mx-auto max-w-2xl text-xl leading-relaxed">
@@ -105,7 +101,7 @@ function CareersPage() {
             <h2 className="font-display mb-8 text-3xl font-bold">
               {t("careers.roles.title")}
             </h2>
-            <div className="card bg-white/5 border-white/10 border p-12 text-center">
+            <div className="card border border-white/10 bg-white/5 p-12 text-center">
               <p className="mx-auto max-w-2xl text-lg leading-relaxed opacity-80">
                 {t("careers.roles.comingSoon")}
               </p>
