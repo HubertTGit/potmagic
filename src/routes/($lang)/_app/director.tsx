@@ -15,10 +15,12 @@ import { ActorsTab } from "@/components/actors-tab.component";
 import { updateStoryStatus } from "@/lib/story-detail.fns";
 import type { PropType } from "@/db/schema";
 import { toast } from "@/lib/toast";
+import { requireDirector } from "@/lib/auth-guard";
 import { getMeta } from "@/i18n/meta";
 import { useLanguage } from "@/hooks/useLanguage";
 
 export const Route = createFileRoute("/($lang)/_app/director")({
+  beforeLoad: () => requireDirector(),
   head: ({ match }) => {
     const locale = (match.context as { locale?: string })?.locale ?? "en";
     return { meta: [{ title: getMeta(locale, "meta.director.title") }] };

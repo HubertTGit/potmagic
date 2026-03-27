@@ -9,7 +9,10 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
+import { requireDirector } from "@/lib/auth-guard";
+
 export const Route = createFileRoute("/($lang)/_app/library")({
+  beforeLoad: () => requireDirector(),
   component: LibraryPage,
 });
 
