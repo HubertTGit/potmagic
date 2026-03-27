@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { ClientOnly, createFileRoute } from "@tanstack/react-router";
 import { LandingNavbar } from "@/components/landing-navbar.component";
 import { LandingFooter } from "@/components/landing-footer.component";
 
@@ -23,7 +23,10 @@ function CareersPage() {
       <LandingNavbar />
 
       <main className="flex flex-1 items-center justify-center">
-        <h1>Careers Page</h1>
+        <ClientOnly>
+          <h1>Careers</h1>
+          {/* <RiveCanvas /> */}
+        </ClientOnly>
       </main>
 
       <LandingFooter />

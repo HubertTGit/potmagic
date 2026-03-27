@@ -1,35 +1,37 @@
 import { useEffect, useRef } from "react";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+import pkg from "@rive-app/webgl2";
+import type { Rive as RiveType } from "@rive-app/webgl2";
+const { Rive } = pkg as any;
 
 export function RiveCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const riveRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    async function initPixi() {
-      // Dynamic import prevents 'navigator is not defined' SSR errors
-      const { Application, Assets } = await import("pixi.js");
-      const { RiveSprite, Fit, Alignment } = await import("@qva/pixi-rive");
+    let app: any;
 
-      const app = new Application();
+    async function initPixi() {
+      if (!canvasRef.current) return;
+
+      // Dynamic import prevents 'navigator is not defined' SSR errors
+      const { Application, Assets, Sprite } = await import("pixi.js");
+
+      app = new Application();
       await app.init({
         canvas: canvasRef.current,
-        backgroundAlpha: 0, // Transparent background for Rive animation
+        backgroundAlpha: 0,
         resizeTo: canvasRef.current.parentElement || window,
       });
 
-      Assets.load(
-        "https://za89zydjitp7xtkq.public.blob.vercel-storage.com/props/fox.riv",
-      ).then((riveFile) => {
-        const riveSprite = new RiveSprite({
-          asset: riveFile,
-          autoPlay: true,
-          debug: true,
-          onReady: () => {
-            console.log("Rive animation ready!");
-          },
-        });
+      const texture = await Assets.load("/teaser1.png");
+      const sprite = new Sprite(texture);
 
-        app.stage.addChild(riveSprite);
-      });
+      sprite.anchor.set(0.5);
+      sprite.x = app.screen.width / 2;
+      sprite.y = app.screen.height / 2;
+
+      app.stage.addChild(sprite);
     }
 
     initPixi();
@@ -41,10 +43,29 @@ export function RiveCanvas() {
     };
   }, []);
 
+  useEffect(() => {
+    let riveInstance: RiveType | null = null;
+
+    if (riveRef.current) {
+      riveInstance = new Rive({
+        src: "/fox.riv",
+        canvas: riveRef.current,
+        autoplay: true,
+      });
+    }
+
+    return () => {
+      if (riveInstance) {
+        riveInstance.cleanup();
+      }
+    };
+  }, []);
+
   // Using className or h-full / w-full logic so the element flexes with its parent correctly
   return (
     <>
       <canvas ref={canvasRef} className="h-1/4 w-1/4" />
+      <canvas ref={riveRef} className="h-1/4 w-1/4"></canvas>
     </>
   );
 }
