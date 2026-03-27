@@ -2,13 +2,13 @@ import { Rive, ViewModelInstance } from "@rive-app/webgl2";
 import { useEffect, useRef, useState } from "react";
 import type { ViewModelProperty } from "@rive-app/webgl2/rive_advanced.mjs";
 
-enum DataType {
+export enum DataType {
   boolean = "boolean",
   enumType = "enumType",
   trigger = "trigger",
 }
 
-interface VMProperty extends ViewModelProperty {
+export interface VMProperty extends ViewModelProperty {
   enums?: string[];
 }
 
