@@ -396,7 +396,7 @@ export function LibrarySection({
               </button>
             )}
 
-            <div className="bg-base-100/5 relative flex min-h-[50vh] max-w-full min-w-[50vw] items-center justify-center overflow-hidden rounded-2xl p-2">
+            <div className="bg-base-100/5 relative flex min-h-[50vh] max-w-full min-w-[50vw] flex-col items-center justify-center overflow-hidden rounded-2xl p-2">
               <MediaPreview
                 src={items[selectedIndex].imageUrl!}
                 name={items[selectedIndex].name}
@@ -404,6 +404,11 @@ export function LibrarySection({
                 isSound={isSound}
                 className="bg-base-100/80 max-h-[80vh] w-auto max-w-full overflow-hidden rounded-xl object-contain shadow-2xl"
               />
+              {isRive && (
+                <p className="text-base-content/50 bg-base-content/5 rounded-full px-2 py-0.5 text-xs font-normal">
+                  Rive
+                </p>
+              )}
             </div>
 
             <div className="mt-4 flex flex-col items-center pb-8">

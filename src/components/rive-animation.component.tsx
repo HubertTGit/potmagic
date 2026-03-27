@@ -1,5 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/cn";
+import { ViewModelProperty } from "@rive-app/webgl2/rive_advanced.mjs";
+
+export enum DataType {
+  boolean = "boolean",
+  enumType = "enumType",
+  trigger = "trigger",
+}
+
+export interface VMProperty extends ViewModelProperty {
+  enums?: string[];
+}
 
 /**
  * RiveAnimation component with implicit canvas creation.
@@ -17,6 +28,9 @@ export function RiveAnimation(props: {
   const { src, buffer, className } = props;
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [enumValues, setEnumValues] = useState<VMProperty[]>([]);
+  const [boolValues, setBoolValues] = useState<VMProperty[]>([]);
+  const [triggerValues, setTriggerValues] = useState<VMProperty[]>([]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !containerRef.current) return;
@@ -26,6 +40,7 @@ export function RiveAnimation(props: {
 
     // Create canvas implicitly
     const canvas = document.createElement("canvas");
+
     canvas.className = "h-full w-full pointer-events-none"; // Isolated styling
     containerRef.current.appendChild(canvas);
 
@@ -53,6 +68,43 @@ export function RiveAnimation(props: {
             }
           },
         });
+
+        if (riveInstance) {
+          const vmi = riveInstance.viewModelInstance;
+
+          if (vmi) {
+            // Dynamic discovery
+            const props = vmi.properties || [];
+            const enumPropMeta = props.filter(
+              (p: VMProperty) =>
+                (p.type as unknown as DataType) === DataType.enumType,
+            );
+            const boolPropMeta = props.filter(
+              (p: VMProperty) =>
+                (p.type as unknown as DataType) === DataType.boolean,
+            );
+            const triggerPropMeta = props.filter(
+              (p: VMProperty) =>
+                (p.type as unknown as DataType) === DataType.trigger,
+            );
+
+            if (enumPropMeta) {
+              enumPropMeta.forEach((p: VMProperty) => {
+                p.enums = vmi.enum(p.name)?.values;
+              });
+
+              setEnumValues(enumPropMeta);
+            }
+
+            if (boolPropMeta) {
+              setBoolValues(boolPropMeta);
+            }
+
+            if (triggerPropMeta) {
+              setTriggerValues(triggerPropMeta);
+            }
+          }
+        }
       } catch (error) {
         console.error("Failed to load Rive:", error);
       }
