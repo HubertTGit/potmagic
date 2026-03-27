@@ -42,6 +42,8 @@ export function RiveAnimation(props: {
           buffer: buffer || undefined,
           canvas: canvas,
           autoplay: true,
+          autoBind: true,
+          stateMachines: "pmStateMachine",
           layout: new Layout({ fit }),
           onLoad: () => {
             if (!isCancelled) {
@@ -62,7 +64,6 @@ export function RiveAnimation(props: {
       isCancelled = true;
       if (riveInstance) {
         try {
-          riveInstance.stopRendering();
           riveInstance.cleanup();
           riveInstance = null;
         } catch (e) {
