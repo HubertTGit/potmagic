@@ -6,6 +6,7 @@ import { listStories, createStory } from '@/lib/stories.fns';
 import { StoryGrid } from '@/components/story-grid';
 import { getMeta } from '@/i18n/meta';
 import { useLanguage } from '@/hooks/useLanguage';
+import { Layers3 } from 'lucide-react';
 
 export const Route = createFileRoute('/($lang)/_app/stories/')({
   head: ({ match }) => {
@@ -46,9 +47,21 @@ function StoriesPage() {
   };
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold">{t('stories.heading')}</h1>
+    <div className="max-w-5xl p-8">
+      <header className="mb-8 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="bg-primary/10 rounded-xl p-3">
+            <Layers3 className="text-primary size-8" />
+          </div>
+          <div>
+            <h1 className="font-display text-3xl font-bold">
+              {t('stories.heading')}
+            </h1>
+            <p className="text-base-content/60">
+              Manage your stories and productions.
+            </p>
+          </div>
+        </div>
         {isDirector && (
           <button
             onClick={() => setAdding(true)}
@@ -57,7 +70,7 @@ function StoriesPage() {
             {t('stories.newStory')}
           </button>
         )}
-      </div>
+      </header>
 
       {/* Inline add form */}
       {adding && (

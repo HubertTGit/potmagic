@@ -3,7 +3,7 @@ import { useState, useRef } from "react";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/cn";
 import { uploadAvatar } from "@/lib/avatar.fns";
-import { Camera } from "lucide-react";
+import { Camera, User } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import type { SubscriptionType } from "@/db/schema";
 
@@ -64,8 +64,22 @@ function ProfilePage() {
   const showSubDot = sub === "pro" || sub === "advance";
 
   return (
-    <div className="max-w-lg p-8">
-      <h1 className="mb-6 text-2xl font-semibold">{t("profile.heading")}</h1>
+    <div className="max-w-5xl p-8">
+      <header className="mb-8 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="bg-primary/10 rounded-xl p-3">
+            <User className="text-primary size-8" />
+          </div>
+          <div>
+            <h1 className="font-display text-3xl font-bold">
+              {t("profile.heading")}
+            </h1>
+            <p className="text-base-content/60">
+              Manage your account settings and profile.
+            </p>
+          </div>
+        </div>
+      </header>
 
       {/* Avatar */}
       <div className="mb-8 flex items-center gap-4">

@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listStories } from "@/lib/stories.fns";
-import { uploadProp, listAllProps, deleteProp } from "@/lib/props.fns";
 import {
   listInvitedActors,
   addInvitedActor,
@@ -10,14 +9,13 @@ import {
 } from "@/lib/actor-auth.fns";
 import { StatusBadge } from "@/components/status-badge.component";
 import { cn } from "@/lib/cn";
-import { LibrarySection } from "@/components/library-section.component";
 import { ActorsTab } from "@/components/actors-tab.component";
 import { updateStoryStatus } from "@/lib/story-detail.fns";
-import type { PropType } from "@/db/schema";
 import { toast } from "@/lib/toast";
 import { requireDirector } from "@/lib/auth-guard";
 import { getMeta } from "@/i18n/meta";
 import { useLanguage } from "@/hooks/useLanguage";
+import { Megaphone } from "lucide-react";
 
 export const Route = createFileRoute("/($lang)/_app/director")({
   beforeLoad: () => requireDirector(),
@@ -28,7 +26,7 @@ export const Route = createFileRoute("/($lang)/_app/director")({
   component: DirectorPage,
 });
 
-type Tab = "dashboard" | "library" | "actors";
+type Tab = "dashboard" | "actors";
 
 function DirectorPage() {
   const { t } = useLanguage();
@@ -51,27 +49,12 @@ function DirectorPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["stories"] }),
   });
 
-  const { data: allProps, isLoading: loadingProps } = useQuery({
-    queryKey: ["props"],
-    queryFn: () => listAllProps(),
-    enabled: tab === "library",
-  });
-
-  const characters = allProps?.character ?? [];
-  const backgrounds = allProps?.background ?? [];
-  const sounds = allProps?.sound ?? [];
-  const animations = allProps?.rive ?? [];
-  const loadingChars = loadingProps;
-  const loadingBgs = loadingProps;
-  const loadingSounds = loadingProps;
-  const loadingAnims = loadingProps;
-
   const { data: invitedActors = [], isLoading: loadingActors } = useQuery({
     queryKey: ["invitedActors"],
     queryFn: () => listInvitedActors(),
   });
 
-  const acceptedCount = invitedActors.filter((a) => a.accepted).length;
+  const acceptedCount = invitedActors.filter((a: any) => a.accepted).length;
 
   const addActorMutation = useMutation({
     mutationFn: (email: string) => addInvitedActor({ data: { email } }),
@@ -91,48 +74,23 @@ function DirectorPage() {
   const draft = stories.filter((s) => s.status === "draft");
   const ended = stories.filter((s) => s.status === "ended");
 
-  const handleAddProp = async (type: PropType, file: File, name: string) => {
-    try {
-      const arrayBuffer = await file.arrayBuffer();
-      const bytes = new Uint8Array(arrayBuffer);
-      let binary = "";
-      const CHUNK = 8192;
-      for (let i = 0; i < bytes.length; i += CHUNK) {
-        binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
-      }
-      const base64 = btoa(binary);
-
-      await uploadProp({
-        data: {
-          name,
-          type,
-          fileName: file.name,
-          contentType:
-            file.type ||
-            (file.name.endsWith(".riv") ? "application/octet-stream" : ""),
-          base64,
-          size: file.size,
-        },
-      });
-
-      queryClient.invalidateQueries({ queryKey: ["props"] });
-    } catch (error: any) {
-      toast.error(error.message ?? "Upload failed");
-      throw error;
-    }
-  };
-
-  const handleRemoveProp = async (_type: PropType, id: string) => {
-    await deleteProp({ data: { id } });
-    queryClient.invalidateQueries({ queryKey: ["props"] });
-  };
-
   return (
-    <div className="max-w-3xl p-8">
-      <h1 className="mb-2 text-2xl font-semibold">{t("director.heading")}</h1>
-      <p className="text-base-content/40 mb-6 text-sm">
-        {t("director.subtitle")}
-      </p>
+    <div className="max-w-5xl p-8">
+      <header className="mb-8 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="bg-primary/10 rounded-xl p-3">
+            <Megaphone className="text-primary size-8" />
+          </div>
+          <div>
+            <h1 className="font-display text-3xl font-bold">
+              {t("director.heading")}
+            </h1>
+            <p className="text-base-content/60">
+              {t("director.subtitle")}
+            </p>
+          </div>
+        </div>
+      </header>
 
       {/* Tabs */}
       <div
@@ -141,7 +99,6 @@ function DirectorPage() {
       >
         {[
           { id: "dashboard" as Tab, label: t("director.tab.dashboard") },
-          { id: "library" as Tab, label: t("director.tab.library") },
           { id: "actors" as Tab, label: t("director.tab.actors") },
         ].map(({ id: tabId, label }) => (
           <button
@@ -252,49 +209,6 @@ function DirectorPage() {
               </table>
             </div>
           )}
-        </>
-      )}
-
-      {tab === "library" && (
-        <>
-          <p className="text-base-content/40 mb-6 text-sm">
-            {t("director.library.description")}
-          </p>
-          <div className="flex flex-col gap-8">
-            <LibrarySection
-              label={t("director.library.characters")}
-              type="character"
-              items={characters}
-              isLoading={loadingChars}
-              onAdd={(file, name) => handleAddProp("character", file, name)}
-              onRemove={(id) => handleRemoveProp("character", id)}
-            />
-            <LibrarySection
-              label={t("director.library.backgrounds")}
-              type="background"
-              items={backgrounds}
-              isLoading={loadingBgs}
-              onAdd={(file, name) => handleAddProp("background", file, name)}
-              onRemove={(id) => handleRemoveProp("background", id)}
-            />
-            <LibrarySection
-              label={t("director.library.sounds")}
-              type="sound"
-              items={sounds}
-              isLoading={loadingSounds}
-              onAdd={(file, name) => handleAddProp("sound", file, name)}
-              onRemove={(id) => handleRemoveProp("sound", id)}
-            />
-            {/* Animations section hidden until feature is ready */}
-            <LibrarySection
-              label="Rive Animation"
-              type="rive"
-              items={animations}
-              isLoading={loadingAnims}
-              onAdd={(file, name) => handleAddProp("rive", file, name)}
-              onRemove={(id) => handleRemoveProp("rive", id)}
-            />
-          </div>
         </>
       )}
 
