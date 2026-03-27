@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { scenes, stories, props, cast, users, sceneCast, invitedActors } from '@/db/schema';
+import { isDirectorOnStage } from '@/lib/livekit.fns';
 
 export type StageContext = {
   storyId: string
@@ -84,6 +85,7 @@ export const getSceneDetail = createServerFn({ method: 'GET' })
         backgroundId: scenes.backgroundId,
         soundId: scenes.soundId,
         soundAutoplay: scenes.soundAutoplay,
+        backgroundRepeat: scenes.backgroundRepeat,
       })
       .from(scenes)
       .where(eq(scenes.id, data.sceneId));
@@ -94,6 +96,10 @@ export const getSceneDetail = createServerFn({ method: 'GET' })
       .select({
         id: stories.id,
         title: stories.title,
+        selectedSceneId: stories.selectedSceneId,
+        directorId: stories.directorId,
+        livekitRoomName: stories.livekitRoomName,
+        status: stories.status,
         totalScenes: sql<number>`(select count(*) from "scenes" where "scenes".story_id = stories.id)::int`,
       })
       .from(stories)
@@ -165,15 +171,22 @@ export const getSceneDetail = createServerFn({ method: 'GET' })
           .where(eq(props.id, scene.soundId))
       : [null];
 
+    const directorOnStage = storyRow
+      ? storyRow.status === 'draft' || storyRow.status === 'active'
+        ? await isDirectorOnStage(storyRow.id, storyRow.directorId)
+        : false
+      : false;
+
     return {
       scene,
-      story: storyRow ?? null,
+      story: storyRow ? { ...storyRow, directorOnStage } : null,
       props: storyProps,
       assignedCast,
       availableActors,
       background: backgroundProp ?? null,
       sound: soundProp ?? null,
       soundAutoplay: scene.soundAutoplay,
+      backgroundRepeat: scene.backgroundRepeat,
     };
   });
 
@@ -198,6 +211,18 @@ export const setSceneSoundAutoplay = createServerFn({ method: 'POST' })
     await db
       .update(scenes)
       .set({ soundAutoplay: data.autoplay })
+      .where(eq(scenes.id, data.sceneId));
+  });
+
+export const setSceneBackgroundRepeat = createServerFn({ method: 'POST' })
+  .inputValidator((input) =>
+    z.object({ sceneId: z.string(), repeat: z.boolean() }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    await requireSceneOwner(data.sceneId);
+    await db
+      .update(scenes)
+      .set({ backgroundRepeat: data.repeat })
       .where(eq(scenes.id, data.sceneId));
   });
 
@@ -355,6 +380,7 @@ export const getSceneStage = createServerFn({ method: 'GET' })
         backgroundScaleX: scenes.backgroundScaleX,
         soundId: scenes.soundId,
         soundAutoplay: scenes.soundAutoplay,
+        backgroundRepeat: scenes.backgroundRepeat,
       })
       .from(scenes)
       .where(eq(scenes.id, data.sceneId));
@@ -417,6 +443,7 @@ export const getSceneStage = createServerFn({ method: 'GET' })
       soundUrl: soundProp?.imageUrl ?? null,
       soundName: soundProp?.name ?? null,
       soundAutoplay: sceneWithBg?.soundAutoplay ?? false,
+      backgroundRepeat: sceneWithBg?.backgroundRepeat ?? false,
     };
   });
 

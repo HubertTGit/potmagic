@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/cn';
+import { useLanguage } from '@/hooks/useLanguage';
 
 interface ForgotPasswordFormProps {
   loading: boolean;
@@ -16,6 +17,7 @@ export default function ForgotPasswordForm({
   onSubmit,
   onBack,
 }: ForgotPasswordFormProps) {
+  const { t } = useLanguage();
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
       {error && (
@@ -24,13 +26,13 @@ export default function ForgotPasswordForm({
 
       <fieldset className="fieldset gap-1">
         <legend className="fieldset-legend text-xs tracking-[0.1em] text-base-content/40">
-          Email
+          {t('common.email')}
         </legend>
         <input
           name="email"
           type="email"
           autoComplete="email"
-          placeholder="you@example.com"
+          placeholder={t('auth.emailPlaceholder')}
           required
           className="input w-full bg-base-200 border-base-300 text-sm focus:border-primary/60 focus:ring-2 focus:ring-primary/10"
         />
@@ -44,7 +46,7 @@ export default function ForgotPasswordForm({
           (loading || resetSent) && 'opacity-60 cursor-not-allowed',
         )}
       >
-        {loading ? 'Sending…' : resetSent ? 'Link sent ✓' : 'Send reset link'}
+        {loading ? t('auth.loading.sending') : resetSent ? t('auth.confirmation.resetLinkSent') : t('auth.password.sendResetLink')}
       </button>
 
       <p className="text-center text-xs text-base-content/40 mt-1">
@@ -53,7 +55,7 @@ export default function ForgotPasswordForm({
           onClick={onBack}
           className="text-primary cursor-pointer font-inherit text-xs"
         >
-          ← Back to sign in
+          {t('auth.action.backToSignIn')}
         </button>
       </p>
     </form>

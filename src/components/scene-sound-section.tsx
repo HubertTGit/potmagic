@@ -1,6 +1,6 @@
 import { Trash2, Music } from "lucide-react";
 import { PropPicker } from "@/components/prop-picker";
-import { Link } from "@tanstack/react-router";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export type SoundProp = {
   id: string;
@@ -17,6 +17,7 @@ interface SceneSoundSectionProps {
   isAssigning: boolean;
   autoplay: boolean;
   onToggleAutoplay: (autoplay: boolean) => void;
+  isTogglingAutoplay?: boolean;
 }
 
 const soundIcon = <Music className="text-base-content/40 size-4" />;
@@ -29,7 +30,9 @@ export function SceneSoundSection({
   isAssigning,
   autoplay,
   onToggleAutoplay,
+  isTogglingAutoplay,
 }: SceneSoundSectionProps) {
+  const { t } = useLanguage();
   const picker =
     (isDirector && availableSounds.length > 0) || sound ? (
       <PropPicker
@@ -39,7 +42,7 @@ export function SceneSoundSection({
         propImageUrl={null}
         propType={sound ? "sound" : null}
         availableProps={availableSounds}
-        placeholder={sound ? "Change sound…" : "Assign sound…"}
+        placeholder={sound ? t('scene.changeSound') : t('scene.assignSound')}
         fallbackIcon={soundIcon}
         readOnly={!isDirector}
         onAssign={(propId) => {
@@ -54,36 +57,36 @@ export function SceneSoundSection({
   return (
     <div className="mb-8">
       <h2 className="text-base-content/40 mb-3 text-xs font-semibold tracking-widest uppercase">
-        Sound
+        {t('scene.sound')}
       </h2>
 
       <div className="bg-base-200 border-base-300 flex items-center justify-between rounded-lg border px-4 py-3">
         {picker ?? (
           <span className="text-base-content/40 text-sm">
-            No sound in
-            <Link to="/director" className="text-primary hover:underline">
-              library
-            </Link>{" "}
-            to assigned yet
+            {t('scene.noSoundInLibrary')}
           </span>
         )}
 
         {isDirector && sound && (
           <div className="flex shrink-0 items-center gap-3">
             <label className="flex cursor-pointer items-center gap-2 select-none">
-              <span className="text-base-content/50 text-xs">Autoplay</span>
-              <input
-                type="checkbox"
-                className="toggle toggle-sm toggle-success"
-                checked={autoplay}
-                onChange={(e) => onToggleAutoplay(e.target.checked)}
-              />
+              <span className="text-base-content/50 text-xs">{t('scene.autoplay')}</span>
+              {isTogglingAutoplay ? (
+                <span className="loading loading-spinner loading-sm" />
+              ) : (
+                <input
+                  type="checkbox"
+                  className="toggle toggle-sm toggle-success"
+                  checked={autoplay}
+                  onChange={(e) => onToggleAutoplay(e.target.checked)}
+                />
+              )}
             </label>
             <button
               onClick={() => onAssignSound(null)}
               disabled={isAssigning}
               className="text-error/60 hover:text-error hover:bg-error/10 flex items-center gap-1 rounded-lg p-2 text-xs transition-colors"
-              title="Remove sound"
+              title={t('aria.removeSound')}
             >
               {isAssigning && (
                 <span className="loading loading-spinner loading-xs" />

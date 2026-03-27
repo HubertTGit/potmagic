@@ -1,7 +1,9 @@
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLanguage } from '@/hooks/useLanguage';
 import { useState } from 'react';
 import { deleteStory } from '@/lib/stories.fns';
+import { cn } from '@/lib/cn';
 import { StatusBadge } from '@/components/status-badge.component';
 import { ConfirmModal } from '@/components/confirm-modal';
 import { Theater, Trash2 } from 'lucide-react';
@@ -12,6 +14,8 @@ type Story = {
   status: any; // Type accurately if exposed from your fns or types
   castCount: number;
   sceneCount: number;
+  selectedSceneId: string | null;
+  directorOnStage: boolean;
   scenes: { id: string }[];
 };
 
@@ -24,6 +28,7 @@ export function StoryGrid({
 }) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { langPrefix, t } = useLanguage();
   const [storyToDelete, setStoryToDelete] = useState<{
     id: string;
     title: string;
@@ -38,7 +43,7 @@ export function StoryGrid({
   });
 
   if (stories.length === 0) {
-    return <p className="text-base-content/40 text-sm">No stories yet.</p>;
+    return <p className="text-base-content/40 text-sm">{t('stories.empty')}</p>;
   }
 
   return (
@@ -46,6 +51,8 @@ export function StoryGrid({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {stories.map((story) => {
           const firstScene = story.scenes[0];
+          const stageSceneId = (!isDirector && story.selectedSceneId) ? story.selectedSceneId : firstScene?.id;
+          const canEnterStage = isDirector || (story.directorOnStage && (story.status === 'draft' || story.status === 'active'));
           return (
             <div
               key={story.id}
@@ -53,26 +60,19 @@ export function StoryGrid({
               role="button"
               tabIndex={0}
               onClick={() =>
-                navigate({
-                  to: '/stories/$storyId',
-                  params: { storyId: story.id },
-                })
+                navigate({ to: `${langPrefix}/stories/${story.id}` as any })
               }
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  navigate({
-                    to: '/stories/$storyId',
-                    params: { storyId: story.id },
-                  });
+                  navigate({ to: `${langPrefix}/stories/${story.id}` as any });
                 }
               }}
             >
               <div className="card-body p-6">
                 <div className="flex justify-between items-start mb-2">
                   <Link
-                    to="/stories/$storyId"
-                    params={{ storyId: story.id }}
+                    to={`${langPrefix}/stories/${story.id}` as any}
                     className="card-title font-medium hover:text-primary transition-colors text-lg"
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -91,7 +91,7 @@ export function StoryGrid({
                         }}
                         disabled={deleteMutation.isPending}
                         className="text-xs text-error/60 hover:text-error transition-colors"
-                        title="Delete Story"
+                        title={t('story.deleteStory')}
                       >
                         <Trash2 className="size-4" />
                       </button>
@@ -104,13 +104,13 @@ export function StoryGrid({
                     <span className="font-semibold text-base-content/80">
                       {story.castCount}
                     </span>{' '}
-                    Actors
+                    {story.castCount === 1 ? t('story.actor') : t('story.actors')}
                   </div>
                   <div>
                     <span className="font-semibold text-base-content/80">
                       {story.sceneCount}
                     </span>{' '}
-                    Scenes
+                    {story.sceneCount === 1 ? t('story.scene') : t('story.scenes')}
                   </div>
                 </div>
 
@@ -118,13 +118,17 @@ export function StoryGrid({
                   className="flex flex-col gap-2 mt-auto w-full"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  {firstScene && (
+                  {stageSceneId && (
                     <Link
-                      to="/stage/$sceneId"
-                      params={{ sceneId: firstScene.id }}
-                      className="btn btn-sm btn-primary w-full gap-2"
+                      to={`${langPrefix}/stage/${stageSceneId}` as any}
+                      disabled={!canEnterStage}
+                      className={cn(
+                        'btn btn-sm btn-primary w-full gap-2',
+                        !canEnterStage && 'btn-disabled pointer-events-none opacity-50',
+                      )}
+                      aria-disabled={!canEnterStage}
                     >
-                      Enter Stage <Theater className="size-4" />
+                      {t('story.enterStage')} <Theater className="size-4" />
                     </Link>
                   )}
                 </div>
@@ -137,15 +141,10 @@ export function StoryGrid({
       {/* Delete Confirmation Modal */}
       <ConfirmModal
         isOpen={!!storyToDelete}
-        title="Confirm Deletion"
-        message={
-          <>
-            Are you sure you want to delete the story "{storyToDelete?.title}"?
-            This action cannot be undone.
-          </>
-        }
-        confirmText="Delete"
-        pendingText="Deleting..."
+        title={t('modal.confirmDeletion')}
+        message={t('modal.deleteStoryMessage', { title: storyToDelete?.title ?? '' })}
+        confirmText={t('action.delete')}
+        pendingText={t('action.deleting')}
         onConfirm={() =>
           storyToDelete && deleteMutation.mutate(storyToDelete.id)
         }

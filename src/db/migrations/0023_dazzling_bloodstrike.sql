@@ -1,0 +1,1 @@
+CREATE INDEX "stories_access_pin_idx" ON "stories" USING btree ("access_pin");

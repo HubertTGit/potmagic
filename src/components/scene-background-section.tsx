@@ -1,6 +1,6 @@
 import { PropPicker } from "@/components/prop-picker";
 import { Trash2 } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export type BackgroundProp = {
   id: string;
@@ -15,6 +15,9 @@ interface SceneBackgroundSectionProps {
   availableBackgrounds: BackgroundProp[];
   onAssignBackground: (bg: BackgroundProp | null) => void;
   isAssigning?: boolean;
+  backgroundRepeat: boolean;
+  onToggleRepeat: (repeat: boolean) => void;
+  isTogglingRepeat?: boolean;
 }
 
 export function SceneBackgroundSection({
@@ -23,7 +26,11 @@ export function SceneBackgroundSection({
   availableBackgrounds,
   onAssignBackground,
   isAssigning,
+  backgroundRepeat,
+  onToggleRepeat,
+  isTogglingRepeat,
 }: SceneBackgroundSectionProps) {
+  const { t } = useLanguage();
   const picker =
     (isDirector && availableBackgrounds.length > 0) || background ? (
       <PropPicker
@@ -33,7 +40,7 @@ export function SceneBackgroundSection({
         propImageUrl={background?.imageUrl ?? null}
         propType={background ? "background" : null}
         availableProps={availableBackgrounds}
-        placeholder={background ? "Change background…" : "Assign background…"}
+        placeholder={background ? t('scene.changeBackground') : t('scene.assignBackground')}
         readOnly={!isDirector}
         onAssign={(propId) => {
           const bg = propId
@@ -47,28 +54,39 @@ export function SceneBackgroundSection({
   return (
     <div className="mb-8">
       <h2 className="text-base-content/40 mb-3 text-xs font-semibold tracking-widest uppercase">
-        Background
+        {t('scene.background')}
       </h2>
 
       <div className="bg-base-200 border-base-300 flex items-center justify-between rounded-lg border px-4 py-3">
         {picker ?? (
           <span className="text-base-content/40 text-sm">
-            No background in{" "}
-            <Link to="/director" className="text-primary hover:underline">
-              library
-            </Link>{" "}
-            to assigned yet.
+            {t('scene.noBackgroundInLibrary')}
           </span>
         )}
 
         {isDirector && background && (
-          <button
-            onClick={() => onAssignBackground(null)}
-            className="text-error/60 hover:text-error hover:bg-error/10 flex items-center gap-1 rounded-lg p-2 text-xs transition-colors"
-            title="Remove background"
-          >
-            <Trash2 className="size-4" />
-          </button>
+          <div className="flex shrink-0 items-center gap-3">
+            <label className="flex cursor-pointer items-center gap-2 select-none">
+              <span className="text-base-content/50 text-xs">{t('scene.repeat')}</span>
+              {isTogglingRepeat ? (
+                <span className="loading loading-spinner loading-sm" />
+              ) : (
+                <input
+                  type="checkbox"
+                  className="toggle toggle-sm toggle-success"
+                  checked={backgroundRepeat}
+                  onChange={(e) => onToggleRepeat(e.target.checked)}
+                />
+              )}
+            </label>
+            <button
+              onClick={() => onAssignBackground(null)}
+              className="text-error/60 hover:text-error hover:bg-error/10 flex items-center gap-1 rounded-lg p-2 text-xs transition-colors"
+              title={t('aria.removeBackground')}
+            >
+              <Trash2 className="size-4" />
+            </button>
+          </div>
         )}
       </div>
     </div>

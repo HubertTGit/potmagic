@@ -1,9 +1,18 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Application } from 'pixi.js';
-import type { Room } from 'livekit-client';
-import { PixiCharacter } from '@/components/draggable-character.component';
-import { authClient } from '@/lib/auth-client';
-import type { PropType } from '@/db/schema';
+import React, { useEffect, useRef, useState } from "react";
+import { Application } from "pixi.js";
+import { RoomEvent } from "livekit-client";
+import type { Room } from "livekit-client";
+import { useAtomValue, useSetAtom } from "jotai";
+import { PixiCharacter } from "@/components/draggable-character.component";
+import { PixiBackground } from "@/components/draggable-background.component";
+import { authClient } from "@/lib/auth-client";
+import type { PropType } from "@/db/schema";
+import { bgPanningAtom, bgProgressAtom } from "@/lib/bg-panning.atoms";
+import type { LiveKitMessage } from "@/lib/livekit-messages";
+import { Maximize, Minimize } from "lucide-react";
+
+const decoder = new TextDecoder();
+const encoder = new TextEncoder();
 
 export interface StageCast {
   sceneCastId: string;
@@ -23,192 +32,364 @@ interface StageComponentProps {
   speakingIds?: Set<string>;
   stageWidth?: number;
   stageHeight?: number;
+  backgroundRepeat?: boolean;
 }
 
 const STAGE_WIDTH = 1280;
 const STAGE_HEIGHT = 720;
 
-export const StageComponent = React.forwardRef<HTMLDivElement, StageComponentProps>(
-  function StageComponent(
-    {
-      casts,
-      room,
-      speakingIds = new Set(),
-      stageWidth = STAGE_WIDTH,
-      stageHeight = STAGE_HEIGHT,
-    },
-    ref,
-  ) {
-    const { data: session } = authClient.useSession();
-    const containerRef = useRef<HTMLDivElement>(null);
-    const appRef = useRef<Application | null>(null);
-    const charactersRef = useRef<Map<string, PixiCharacter>>(new Map());
-    const appReadyRef = useRef(false);
+export const StageComponent = React.forwardRef<
+  HTMLDivElement,
+  StageComponentProps
+>(function StageComponent(
+  {
+    casts,
+    room,
+    speakingIds = new Set(),
+    stageWidth = STAGE_WIDTH,
+    stageHeight = STAGE_HEIGHT,
+    backgroundRepeat = false,
+  },
+  ref,
+) {
+  const { data: session } = authClient.useSession();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const appRef = useRef<Application | null>(null);
+  const propsRef = useRef<Map<string, PixiCharacter | PixiBackground>>(
+    new Map(),
+  );
+  // castId → prop lookup for O(1) dispatch of incoming LiveKit data messages
+  const castIdMapRef = useRef<Map<string, PixiCharacter | PixiBackground>>(
+    new Map(),
+  );
+  const appReadyRef = useRef(false);
+  const prevCastIdsRef = useRef<string>("");
 
-    const [allLoaded, setAllLoaded] = useState(false);
+  const [allLoaded, setAllLoaded] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
-    // Expose the container div via forwardRef
-    useEffect(() => {
-      if (!ref) return;
-      if (typeof ref === 'function') {
-        ref(containerRef.current);
-      } else {
-        (ref as { current: HTMLDivElement | null }).current = containerRef.current;
-      }
-    });
+  const bgPanning = useAtomValue(bgPanningAtom);
+  const setBgPanning = useSetAtom(bgPanningAtom);
+  const setBgProgress = useSetAtom(bgProgressAtom);
 
-    // Initialize PixiJS app once on mount
-    useEffect(() => {
-      const container = containerRef.current;
-      if (!container) return;
+  // Expose the container div via forwardRef
+  useEffect(() => {
+    if (!ref) return;
+    if (typeof ref === "function") {
+      ref(containerRef.current);
+    } else {
+      (ref as { current: HTMLDivElement | null }).current =
+        containerRef.current;
+    }
+  });
 
-      const app = new Application();
-      appRef.current = app;
-      const chars = charactersRef.current;
-      let unmounted = false;
-      let initDone = false;
+  // Initialize PixiJS app once on mount
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
 
-      app
-        .init({
-          width: stageWidth,
-          height: stageHeight,
-          backgroundAlpha: 0,
-          antialias: true,
-          preference: 'webgl',
-        })
-        .then(() => {
-          initDone = true;
-          if (unmounted) {
-            // Component unmounted before init finished — safe to destroy now
-            app.destroy(true);
-            return;
-          }
-          app.stage.sortableChildren = true;
-          app.stage.eventMode = 'static';
-          app.stage.hitArea = app.screen;
-          container.appendChild(app.canvas);
-          appReadyRef.current = true;
-        });
+    const app = new Application();
+    appRef.current = app;
+    const props = propsRef.current;
+    const castIdMap = castIdMapRef.current;
+    let unmounted = false;
+    let initDone = false;
 
-      return () => {
-        unmounted = true;
-        appReadyRef.current = false;
-        for (const char of chars.values()) {
-          char.destroy();
-        }
-        chars.clear();
-        appRef.current = null;
-        // If init already finished, destroy immediately; otherwise the .then() above handles it
-        if (initDone) app.destroy(true);
-      };
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    // Sync casts onto the PixiJS stage
-    useEffect(() => {
-      const app = appRef.current;
-      if (!app) return;
-
-      // Retry on RAF until the PixiJS canvas is appended
-      const sync = (): number | void => {
-        if (!appReadyRef.current) {
-          return requestAnimationFrame(sync);
-        }
-
-        const existing = charactersRef.current;
-        const nextIds = new Set(casts.map((c) => c.sceneCastId));
-
-        // Remove characters no longer in scene
-        for (const [id, char] of existing) {
-          if (!nextIds.has(id)) {
-            char.saveCurrentPosition();
-            char.destroy();
-            app.stage.removeChild(char.container);
-            existing.delete(id);
-          }
-        }
-
-        // Find casts that need a new PixiCharacter
-        const newCasts = casts.filter(
-          (c) => c.path && c.type && !existing.has(c.sceneCastId),
-        );
-
-        if (newCasts.length === 0) {
-          setAllLoaded(true);
+    app
+      .init({
+        width: stageWidth,
+        height: stageHeight,
+        backgroundAlpha: 0,
+        antialias: true,
+        preference: "webgl",
+      })
+      .then(() => {
+        initDone = true;
+        if (unmounted) {
+          // Component unmounted before init finished — safe to destroy now
+          app.destroy(true);
           return;
         }
+        app.stage.sortableChildren = true;
+        app.stage.eventMode = "static";
+        app.stage.hitArea = app.screen;
+        container.appendChild(app.canvas);
+        appReadyRef.current = true;
+        handleResize(); // Initial scale
+      });
 
-        let remaining = newCasts.length;
-        setAllLoaded(false);
+    const handleResize = () => {
+      if (!app) return;
+      const parent = container.parentElement;
+      if (!parent) return;
 
-        for (let i = 0; i < casts.length; i++) {
-          const cast = casts[i];
-          if (!cast.path || !cast.type) continue;
-          if (existing.has(cast.sceneCastId)) continue;
+      const rect = parent.getBoundingClientRect();
+      const isFull = !!document.fullscreenElement;
 
-          const canDrag =
-            session?.user?.id === cast.userId || session?.user?.role === 'director';
+      const width = isFull ? window.innerWidth : rect.width;
+      const height = isFull ? window.innerHeight : rect.height;
 
-          const char = new PixiCharacter({
-            sceneCastId: cast.sceneCastId,
-            castId: cast.castId,
-            src: cast.path,
-            userId: cast.userId,
-            type: cast.type,
-            initialX: cast.posX ?? 100 + i * 200,
-            initialY: cast.posY ?? 100,
-            initialRotation: cast.rotation ?? 0,
-            initialScaleX: cast.scaleX ?? 1,
-            room,
-            canDrag,
-            stageWidth,
-            stageHeight,
-            app,
-            onReady: () => {
-              remaining -= 1;
-              if (remaining === 0) setAllLoaded(true);
+      app.renderer.resize(width, height);
+
+      const scale = Math.min(width / stageWidth, height / stageHeight);
+      app.stage.scale.set(scale);
+      app.stage.x = (width - stageWidth * scale) / 2;
+      app.stage.y = (height - stageHeight * scale) / 2;
+    };
+
+    const onFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+      handleResize();
+    };
+
+    window.addEventListener("resize", handleResize);
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+
+    return () => {
+      unmounted = true;
+      appReadyRef.current = false;
+      window.removeEventListener("resize", handleResize);
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
+      for (const prop of props.values()) {
+        prop.destroy();
+      }
+      props.clear();
+      castIdMap.clear();
+      appRef.current = null;
+      // If init already finished, destroy immediately; otherwise the .then() above handles it
+      if (initDone) app.destroy(true);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Sync casts onto the PixiJS stage
+  useEffect(() => {
+    const app = appRef.current;
+    if (!app) return;
+
+    // Retry on RAF until the PixiJS canvas is appended
+    const sync = (): number | void => {
+      if (!appReadyRef.current) {
+        return requestAnimationFrame(sync);
+      }
+
+      const existing = propsRef.current;
+      const nextIds = new Set(casts.map((c) => c.sceneCastId));
+
+      // Remove characters no longer in scene
+      for (const [id, prop] of existing) {
+        if (!nextIds.has(id)) {
+          prop.saveCurrentPosition();
+          prop.destroy();
+          app.stage.removeChild(prop.container);
+          existing.delete(id);
+          // Remove from castId lookup
+          for (const [cid, p] of castIdMapRef.current) {
+            if (p === prop) {
+              castIdMapRef.current.delete(cid);
+              break;
+            }
+          }
+        }
+      }
+
+      // Find casts that need a new PixiCharacter
+      const newCasts = casts.filter(
+        (c) => c.path && c.type && !existing.has(c.sceneCastId),
+      );
+
+      if (newCasts.length === 0) {
+        setAllLoaded(true);
+        return;
+      }
+
+      let remaining = newCasts.length;
+      setAllLoaded(false);
+
+      for (let i = 0; i < casts.length; i++) {
+        const cast = casts[i];
+        if (!cast.path || !cast.type) continue;
+        if (existing.has(cast.sceneCastId)) continue;
+
+        const canDrag =
+          session?.user?.id === cast.userId ||
+          session?.user?.role === "director";
+
+        const PropClass =
+          cast.type === "background" ? PixiBackground : PixiCharacter;
+        const prop = new PropClass({
+          sceneCastId: cast.sceneCastId,
+          castId: cast.castId,
+          src: cast.path,
+          userId: cast.userId,
+          type: cast.type,
+          initialX: cast.posX ?? 100 + i * 200,
+          initialY: cast.posY ?? 100,
+          initialRotation: cast.rotation ?? 0,
+          initialScaleX: cast.scaleX ?? 1,
+          room,
+          canDrag,
+          stageWidth,
+          stageHeight,
+          app,
+          onReady: () => {
+            remaining -= 1;
+            if (remaining === 0) setAllLoaded(true);
+          },
+          ...(cast.type === "background" && {
+            backgroundRepeat,
+            onPositionChange: (
+              x: number,
+              bounds: { minX: number; maxX: number },
+            ) => {
+              const range = bounds.maxX - bounds.minX;
+              if (range <= 0) return;
+              const rightProgress = Math.round(
+                ((x - bounds.minX) / range) * 100,
+              );
+              setBgProgress({
+                leftProgress: 100 - rightProgress,
+                rightProgress,
+              });
             },
-          });
+            onAnimationComplete: () => {
+              setBgPanning({ direction: null, speed: 0 });
+              if (room && canDrag) {
+                room.localParticipant.publishData(
+                  encoder.encode(
+                    JSON.stringify({
+                      type: "bg:animate",
+                      direction: null,
+                      speed: 0,
+                    }),
+                  ),
+                  { reliable: true },
+                );
+              }
+            },
+          }),
+        });
 
-          app.stage.addChild(char.container);
-          existing.set(cast.sceneCastId, char);
-        }
-      };
-
-      const rafId = sync();
-      if (typeof rafId === 'number') {
-        return () => cancelAnimationFrame(rafId);
+        app.stage.addChild(prop.container);
+        existing.set(cast.sceneCastId, prop);
+        castIdMapRef.current.set(cast.castId, prop);
       }
-    }, [casts, room, session, stageWidth, stageHeight]);
+    };
 
-    // Update speaking glow without recreating characters
-    useEffect(() => {
-      const chars = charactersRef.current;
-      for (const [, char] of chars) {
-        const cast = casts.find((c) => c.sceneCastId === char.container.label);
-        if (cast) char.updateSpeaking(speakingIds.has(cast.userId));
+    const rafId = sync();
+    if (typeof rafId === "number") {
+      return () => cancelAnimationFrame(rafId);
+    }
+    // backgroundRepeat intentionally excluded: it is only read at PixiBackground construction
+    // time. Changing it while the stage is live does not update already-mounted instances —
+    // directors configure it from the scene detail page before entering the stage.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [casts, room, session, stageWidth, stageHeight]);
+
+  // Single centralized LiveKit DataReceived handler — parse once, dispatch by castId
+  useEffect(() => {
+    if (!room) return;
+    const onDataReceived = (payload: Uint8Array) => {
+      let msg: LiveKitMessage;
+      try {
+        msg = JSON.parse(decoder.decode(payload)) as LiveKitMessage;
+      } catch {
+        return;
       }
-    }, [speakingIds, casts]);
+      if (msg.type === "prop:move") {
+        castIdMapRef.current.get(msg.castId)?.applyRemoteMove(msg);
+      } else if (msg.type === "bg:animate") {
+        setBgPanning({ direction: msg.direction, speed: msg.speed });
+      }
+    };
+    room.on(RoomEvent.DataReceived, onDataReceived);
+    return () => {
+      room.off(RoomEvent.DataReceived, onDataReceived);
+    };
+  }, [room, setBgPanning]);
 
-    // Persist positions on unmount
-    useEffect(() => {
-      const chars = charactersRef.current;
-      return () => {
-        for (const char of chars.values()) {
-          char.saveCurrentPosition();
-        }
-      };
-    }, []);
+  // Update speaking glow without recreating characters
+  useEffect(() => {
+    const props = propsRef.current;
+    const castUserMap = new Map(casts.map((c) => [c.sceneCastId, c.userId]));
+    for (const [, prop] of props) {
+      const userId = castUserMap.get(prop.container.label);
+      if (userId) prop.updateSpeaking(speakingIds.has(userId));
+    }
+  }, [speakingIds, casts]);
 
-    return (
-      <div className="relative w-7xl h-180 overflow-hidden">
-        {!allLoaded && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-base-200">
-            <span className="loading loading-spinner loading-lg text-primary" />
-          </div>
+  // Drive PixiBackground setAnimation when bgPanningAtom changes
+  useEffect(() => {
+    for (const prop of propsRef.current.values()) {
+      if (prop instanceof PixiBackground) {
+        prop.setAnimation(bgPanning.direction, bgPanning.speed);
+        break; // one background per scene
+      }
+    }
+  }, [bgPanning]);
+
+  // Reset atoms when scene (cast set) changes
+  useEffect(() => {
+    const castKey = casts
+      .map((c) => c.sceneCastId)
+      .sort()
+      .join(",");
+    if (castKey !== prevCastIdsRef.current) {
+      prevCastIdsRef.current = castKey;
+      setBgPanning({ direction: null, speed: 0 });
+      setBgProgress({ leftProgress: 0, rightProgress: 0 });
+    }
+  }, [casts, setBgPanning, setBgProgress]);
+
+  // Reset atoms on unmount
+  useEffect(() => {
+    return () => {
+      setBgPanning({ direction: null, speed: 0 });
+      setBgProgress({ leftProgress: 0, rightProgress: 0 });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist positions on unmount
+  useEffect(() => {
+    const props = propsRef.current;
+    return () => {
+      for (const prop of props.values()) {
+        prop.saveCurrentPosition();
+      }
+    };
+  }, []);
+
+  return (
+    <div className="relative h-180 w-7xl overflow-hidden">
+      {!allLoaded && (
+        <div className="bg-base-200 absolute inset-0 z-10 flex items-center justify-center">
+          <span className="loading loading-spinner loading-lg text-primary" />
+        </div>
+      )}
+      <div
+        ref={containerRef}
+        className="flex h-full w-full items-center justify-center bg-black"
+      />
+      (
+      <button
+        type="button"
+        onClick={() => {
+          if (!document.fullscreenElement) {
+            containerRef.current?.requestFullscreen();
+          } else {
+            document.exitFullscreen();
+          }
+        }}
+        className="btn btn-circle btn-ghost btn-sm hover:bg-neutral/20 absolute right-4 bottom-4 z-20"
+      >
+        {isFullscreen ? (
+          <Minimize className="h-5 w-5 text-white shadow-sm" />
+        ) : (
+          <Maximize className="h-5 w-5 text-white shadow-sm" />
         )}
-        <div ref={containerRef} className="w-full h-full" />
-      </div>
-    );
-  },
-);
+      </button>
+      )
+    </div>
+  );
+});

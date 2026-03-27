@@ -9,513 +9,795 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as UnderConstructionRouteImport } from './routes/under-construction'
-import { Route as PricingRouteImport } from './routes/pricing'
-import { Route as DocsRouteImport } from './routes/docs'
-import { Route as ConceptRouteImport } from './routes/concept'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AppRouteImport } from './routes/_app'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as ShowIndexRouteImport } from './routes/show/index'
-import { Route as DocsIndexRouteImport } from './routes/docs/index'
-import { Route as ShowStoryIdRouteImport } from './routes/show/$storyId'
-import { Route as DocsSizeGuidelinesRouteImport } from './routes/docs/size-guidelines'
-import { Route as DocsPropsRouteImport } from './routes/docs/props'
-import { Route as DocsCreateStoryRouteImport } from './routes/docs/create-story'
-import { Route as DocsAddScenesRouteImport } from './routes/docs/add-scenes'
-import { Route as AuthDirectorSetupRouteImport } from './routes/auth.director-setup'
-import { Route as AppProfileRouteImport } from './routes/_app/profile'
-import { Route as AppDirectorRouteImport } from './routes/_app/director'
-import { Route as AppStoriesIndexRouteImport } from './routes/_app/stories/index'
-import { Route as AppStageIndexRouteImport } from './routes/_app/stage/index'
-import { Route as AppStageSceneIdRouteImport } from './routes/_app/stage/$sceneId'
-import { Route as AppStoriesStoryIdIndexRouteImport } from './routes/_app/stories/$storyId/index'
-import { Route as AppStoriesStoryIdScenesSceneIdRouteImport } from './routes/_app/stories/$storyId/scenes/$sceneId'
+import { Route as LangRouteImport } from './routes/($lang)'
+import { Route as LangShowIndexRouteImport } from './routes/($lang)/show/index'
+import { Route as LangShowStoryIdRouteImport } from './routes/($lang)/show/$storyId'
+import { Route as LangIndexRouteImport } from './routes/($lang)/index'
+import { Route as LangPricingRouteImport } from './routes/($lang)/pricing'
+import { Route as LangUnderConstructionRouteImport } from './routes/($lang)/under-construction'
+import { Route as LangConceptRouteImport } from './routes/($lang)/concept'
+import { Route as LangAuthRouteImport } from './routes/($lang)/auth'
+import { Route as LangDocsRouteImport } from './routes/($lang)/docs'
+import { Route as LangAppRouteImport } from './routes/($lang)/_app'
+import { Route as LangAuthDirectorSetupRouteImport } from './routes/($lang)/auth.director-setup'
+import { Route as LangAboutRouteImport } from './routes/($lang)/about'
+import { Route as LangTermsRouteImport } from './routes/($lang)/terms'
+import { Route as LangPrivacyRouteImport } from './routes/($lang)/privacy'
+import { Route as LangCareersRouteImport } from './routes/($lang)/careers'
+import { Route as LangHelpRouteImport } from './routes/($lang)/help'
+import { Route as LangDocsIndexRouteImport } from './routes/($lang)/docs/index'
+import { Route as LangDocsAddScenesRouteImport } from './routes/($lang)/docs/add-scenes'
+import { Route as LangDocsCreateStoryRouteImport } from './routes/($lang)/docs/create-story'
+import { Route as LangDocsPropsRouteImport } from './routes/($lang)/docs/props'
+import { Route as LangDocsSizeGuidelinesRouteImport } from './routes/($lang)/docs/size-guidelines'
+import { Route as LangAppDirectorRouteImport } from './routes/($lang)/_app/director'
+import { Route as LangAppProfileRouteImport } from './routes/($lang)/_app/profile'
+import { Route as LangAppStageIndexRouteImport } from './routes/($lang)/_app/stage/index'
+import { Route as LangAppStageSceneIdRouteImport } from './routes/($lang)/_app/stage/$sceneId'
+import { Route as LangAppStoriesIndexRouteImport } from './routes/($lang)/_app/stories/index'
+import { Route as LangAppStoriesStoryIdIndexRouteImport } from './routes/($lang)/_app/stories/$storyId/index'
+import { Route as LangAppStoriesStoryIdScenesSceneIdRouteImport } from './routes/($lang)/_app/stories/$storyId/scenes/$sceneId'
 
-const UnderConstructionRoute = UnderConstructionRouteImport.update({
-  id: '/under-construction',
-  path: '/under-construction',
+const LangRoute = LangRouteImport.update({
+  id: '/($lang)',
+  path: '/{-$lang}',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PricingRoute = PricingRouteImport.update({
-  id: '/pricing',
-  path: '/pricing',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DocsRoute = DocsRouteImport.update({
-  id: '/docs',
-  path: '/docs',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConceptRoute = ConceptRouteImport.update({
-  id: '/concept',
-  path: '/concept',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppRoute = AppRouteImport.update({
-  id: '/_app',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ShowIndexRoute = ShowIndexRouteImport.update({
+const LangShowIndexRoute = LangShowIndexRouteImport.update({
   id: '/show/',
   path: '/show/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => LangRoute,
 } as any)
-const DocsIndexRoute = DocsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => DocsRoute,
-} as any)
-const ShowStoryIdRoute = ShowStoryIdRouteImport.update({
+const LangShowStoryIdRoute = LangShowStoryIdRouteImport.update({
   id: '/show/$storyId',
   path: '/show/$storyId',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => LangRoute,
 } as any)
-const DocsSizeGuidelinesRoute = DocsSizeGuidelinesRouteImport.update({
-  id: '/size-guidelines',
-  path: '/size-guidelines',
-  getParentRoute: () => DocsRoute,
+const LangIndexRoute = LangIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LangRoute,
 } as any)
-const DocsPropsRoute = DocsPropsRouteImport.update({
-  id: '/props',
-  path: '/props',
-  getParentRoute: () => DocsRoute,
+const LangPricingRoute = LangPricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => LangRoute,
 } as any)
-const DocsCreateStoryRoute = DocsCreateStoryRouteImport.update({
-  id: '/create-story',
-  path: '/create-story',
-  getParentRoute: () => DocsRoute,
+const LangUnderConstructionRoute = LangUnderConstructionRouteImport.update({
+  id: '/under-construction',
+  path: '/under-construction',
+  getParentRoute: () => LangRoute,
 } as any)
-const DocsAddScenesRoute = DocsAddScenesRouteImport.update({
-  id: '/add-scenes',
-  path: '/add-scenes',
-  getParentRoute: () => DocsRoute,
+const LangConceptRoute = LangConceptRouteImport.update({
+  id: '/concept',
+  path: '/concept',
+  getParentRoute: () => LangRoute,
 } as any)
-const AuthDirectorSetupRoute = AuthDirectorSetupRouteImport.update({
+const LangAuthRoute = LangAuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangDocsRoute = LangDocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangAppRoute = LangAppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangAboutRoute = LangAboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangTermsRoute = LangTermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangPrivacyRoute = LangPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangCareersRoute = LangCareersRouteImport.update({
+  id: '/careers',
+  path: '/careers',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangHelpRoute = LangHelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangAuthDirectorSetupRoute = LangAuthDirectorSetupRouteImport.update({
   id: '/director-setup',
   path: '/director-setup',
-  getParentRoute: () => AuthRoute,
+  getParentRoute: () => LangAuthRoute,
 } as any)
-const AppProfileRoute = AppProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => AppRoute,
+const LangDocsIndexRoute = LangDocsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LangDocsRoute,
 } as any)
-const AppDirectorRoute = AppDirectorRouteImport.update({
+const LangDocsAddScenesRoute = LangDocsAddScenesRouteImport.update({
+  id: '/add-scenes',
+  path: '/add-scenes',
+  getParentRoute: () => LangDocsRoute,
+} as any)
+const LangDocsCreateStoryRoute = LangDocsCreateStoryRouteImport.update({
+  id: '/create-story',
+  path: '/create-story',
+  getParentRoute: () => LangDocsRoute,
+} as any)
+const LangDocsPropsRoute = LangDocsPropsRouteImport.update({
+  id: '/props',
+  path: '/props',
+  getParentRoute: () => LangDocsRoute,
+} as any)
+const LangDocsSizeGuidelinesRoute = LangDocsSizeGuidelinesRouteImport.update({
+  id: '/size-guidelines',
+  path: '/size-guidelines',
+  getParentRoute: () => LangDocsRoute,
+} as any)
+const LangAppDirectorRoute = LangAppDirectorRouteImport.update({
   id: '/director',
   path: '/director',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => LangAppRoute,
 } as any)
-const AppStoriesIndexRoute = AppStoriesIndexRouteImport.update({
-  id: '/stories/',
-  path: '/stories/',
-  getParentRoute: () => AppRoute,
+const LangAppProfileRoute = LangAppProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => LangAppRoute,
 } as any)
-const AppStageIndexRoute = AppStageIndexRouteImport.update({
+const LangAppStageIndexRoute = LangAppStageIndexRouteImport.update({
   id: '/stage/',
   path: '/stage/',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => LangAppRoute,
 } as any)
-const AppStageSceneIdRoute = AppStageSceneIdRouteImport.update({
+const LangAppStageSceneIdRoute = LangAppStageSceneIdRouteImport.update({
   id: '/stage/$sceneId',
   path: '/stage/$sceneId',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => LangAppRoute,
 } as any)
-const AppStoriesStoryIdIndexRoute = AppStoriesStoryIdIndexRouteImport.update({
-  id: '/stories/$storyId/',
-  path: '/stories/$storyId/',
-  getParentRoute: () => AppRoute,
+const LangAppStoriesIndexRoute = LangAppStoriesIndexRouteImport.update({
+  id: '/stories/',
+  path: '/stories/',
+  getParentRoute: () => LangAppRoute,
 } as any)
-const AppStoriesStoryIdScenesSceneIdRoute =
-  AppStoriesStoryIdScenesSceneIdRouteImport.update({
+const LangAppStoriesStoryIdIndexRoute =
+  LangAppStoriesStoryIdIndexRouteImport.update({
+    id: '/stories/$storyId/',
+    path: '/stories/$storyId/',
+    getParentRoute: () => LangAppRoute,
+  } as any)
+const LangAppStoriesStoryIdScenesSceneIdRoute =
+  LangAppStoriesStoryIdScenesSceneIdRouteImport.update({
     id: '/stories/$storyId/scenes/$sceneId',
     path: '/stories/$storyId/scenes/$sceneId',
-    getParentRoute: () => AppRoute,
+    getParentRoute: () => LangAppRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/auth': typeof AuthRouteWithChildren
-  '/concept': typeof ConceptRoute
-  '/docs': typeof DocsRouteWithChildren
-  '/pricing': typeof PricingRoute
-  '/under-construction': typeof UnderConstructionRoute
-  '/director': typeof AppDirectorRoute
-  '/profile': typeof AppProfileRoute
-  '/auth/director-setup': typeof AuthDirectorSetupRoute
-  '/docs/add-scenes': typeof DocsAddScenesRoute
-  '/docs/create-story': typeof DocsCreateStoryRoute
-  '/docs/props': typeof DocsPropsRoute
-  '/docs/size-guidelines': typeof DocsSizeGuidelinesRoute
-  '/show/$storyId': typeof ShowStoryIdRoute
-  '/docs/': typeof DocsIndexRoute
-  '/show/': typeof ShowIndexRoute
-  '/stage/$sceneId': typeof AppStageSceneIdRoute
-  '/stage/': typeof AppStageIndexRoute
-  '/stories/': typeof AppStoriesIndexRoute
-  '/stories/$storyId/': typeof AppStoriesStoryIdIndexRoute
-  '/stories/$storyId/scenes/$sceneId': typeof AppStoriesStoryIdScenesSceneIdRoute
+  '/($lang)': typeof LangRouteWithChildren
+  '/($lang)/show/': typeof LangShowIndexRoute
+  '/($lang)/show/$storyId': typeof LangShowStoryIdRoute
+  '/($lang)/': typeof LangIndexRoute
+  '/($lang)/pricing': typeof LangPricingRoute
+  '/($lang)/under-construction': typeof LangUnderConstructionRoute
+  '/($lang)/concept': typeof LangConceptRoute
+  '/($lang)/about': typeof LangAboutRoute
+  '/($lang)/terms': typeof LangTermsRoute
+  '/($lang)/privacy': typeof LangPrivacyRoute
+  '/($lang)/careers': typeof LangCareersRoute
+  '/($lang)/help': typeof LangHelpRoute
+  '/($lang)/auth': typeof LangAuthRouteWithChildren
+  '/($lang)/docs': typeof LangDocsRouteWithChildren
+  '/($lang)/auth/director-setup': typeof LangAuthDirectorSetupRoute
+  '/($lang)/docs/': typeof LangDocsIndexRoute
+  '/($lang)/docs/add-scenes': typeof LangDocsAddScenesRoute
+  '/($lang)/docs/create-story': typeof LangDocsCreateStoryRoute
+  '/($lang)/docs/props': typeof LangDocsPropsRoute
+  '/($lang)/docs/size-guidelines': typeof LangDocsSizeGuidelinesRoute
+  '/($lang)/director': typeof LangAppDirectorRoute
+  '/($lang)/profile': typeof LangAppProfileRoute
+  '/($lang)/stage/': typeof LangAppStageIndexRoute
+  '/($lang)/stage/$sceneId': typeof LangAppStageSceneIdRoute
+  '/($lang)/stories/': typeof LangAppStoriesIndexRoute
+  '/($lang)/stories/$storyId/': typeof LangAppStoriesStoryIdIndexRoute
+  '/($lang)/stories/$storyId/scenes/$sceneId': typeof LangAppStoriesStoryIdScenesSceneIdRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/auth': typeof AuthRouteWithChildren
-  '/concept': typeof ConceptRoute
-  '/pricing': typeof PricingRoute
-  '/under-construction': typeof UnderConstructionRoute
-  '/director': typeof AppDirectorRoute
-  '/profile': typeof AppProfileRoute
-  '/auth/director-setup': typeof AuthDirectorSetupRoute
-  '/docs/add-scenes': typeof DocsAddScenesRoute
-  '/docs/create-story': typeof DocsCreateStoryRoute
-  '/docs/props': typeof DocsPropsRoute
-  '/docs/size-guidelines': typeof DocsSizeGuidelinesRoute
-  '/show/$storyId': typeof ShowStoryIdRoute
-  '/docs': typeof DocsIndexRoute
-  '/show': typeof ShowIndexRoute
-  '/stage/$sceneId': typeof AppStageSceneIdRoute
-  '/stage': typeof AppStageIndexRoute
-  '/stories': typeof AppStoriesIndexRoute
-  '/stories/$storyId': typeof AppStoriesStoryIdIndexRoute
-  '/stories/$storyId/scenes/$sceneId': typeof AppStoriesStoryIdScenesSceneIdRoute
+  '/($lang)/show': typeof LangShowIndexRoute
+  '/($lang)/show/$storyId': typeof LangShowStoryIdRoute
+  '/($lang)': typeof LangIndexRoute
+  '/($lang)/pricing': typeof LangPricingRoute
+  '/($lang)/under-construction': typeof LangUnderConstructionRoute
+  '/($lang)/concept': typeof LangConceptRoute
+  '/($lang)/about': typeof LangAboutRoute
+  '/($lang)/terms': typeof LangTermsRoute
+  '/($lang)/privacy': typeof LangPrivacyRoute
+  '/($lang)/careers': typeof LangCareersRoute
+  '/($lang)/help': typeof LangHelpRoute
+  '/($lang)/auth': typeof LangAuthRouteWithChildren
+  '/($lang)/auth/director-setup': typeof LangAuthDirectorSetupRoute
+  '/($lang)/docs': typeof LangDocsIndexRoute
+  '/($lang)/docs/add-scenes': typeof LangDocsAddScenesRoute
+  '/($lang)/docs/create-story': typeof LangDocsCreateStoryRoute
+  '/($lang)/docs/props': typeof LangDocsPropsRoute
+  '/($lang)/docs/size-guidelines': typeof LangDocsSizeGuidelinesRoute
+  '/($lang)/director': typeof LangAppDirectorRoute
+  '/($lang)/profile': typeof LangAppProfileRoute
+  '/($lang)/stage': typeof LangAppStageIndexRoute
+  '/($lang)/stage/$sceneId': typeof LangAppStageSceneIdRoute
+  '/($lang)/stories': typeof LangAppStoriesIndexRoute
+  '/($lang)/stories/$storyId': typeof LangAppStoriesStoryIdIndexRoute
+  '/($lang)/stories/$storyId/scenes/$sceneId': typeof LangAppStoriesStoryIdScenesSceneIdRoute
+  // Short-form aliases resolved via optional ($lang) segment at runtime
+  '/'?: typeof LangIndexRoute
+  '/de/'?: typeof LangIndexRoute
+  '/pricing'?: typeof LangPricingRoute
+  '/de/pricing'?: typeof LangPricingRoute
+  '/concept'?: typeof LangConceptRoute
+  '/de/concept'?: typeof LangConceptRoute
+  '/under-construction'?: typeof LangUnderConstructionRoute
+  '/de/under-construction'?: typeof LangUnderConstructionRoute
+  '/auth'?: typeof LangAuthRouteWithChildren
+  '/de/auth'?: typeof LangAuthRouteWithChildren
+  '/auth/director-setup'?: typeof LangAuthDirectorSetupRoute
+  '/de/auth/director-setup'?: typeof LangAuthDirectorSetupRoute
+  '/docs'?: typeof LangDocsIndexRoute
+  '/de/docs'?: typeof LangDocsIndexRoute
+  '/docs/add-scenes'?: typeof LangDocsAddScenesRoute
+  '/de/docs/add-scenes'?: typeof LangDocsAddScenesRoute
+  '/docs/create-story'?: typeof LangDocsCreateStoryRoute
+  '/de/docs/create-story'?: typeof LangDocsCreateStoryRoute
+  '/docs/props'?: typeof LangDocsPropsRoute
+  '/de/docs/props'?: typeof LangDocsPropsRoute
+  '/docs/size-guidelines'?: typeof LangDocsSizeGuidelinesRoute
+  '/de/docs/size-guidelines'?: typeof LangDocsSizeGuidelinesRoute
+  '/director'?: typeof LangAppDirectorRoute
+  '/de/director'?: typeof LangAppDirectorRoute
+  '/profile'?: typeof LangAppProfileRoute
+  '/de/profile'?: typeof LangAppProfileRoute
+  '/stories'?: typeof LangAppStoriesIndexRoute
+  '/de/stories'?: typeof LangAppStoriesIndexRoute
+  '/stories/$storyId'?: typeof LangAppStoriesStoryIdIndexRoute
+  '/de/stories/$storyId'?: typeof LangAppStoriesStoryIdIndexRoute
+  '/stories/$storyId/scenes/$sceneId'?: typeof LangAppStoriesStoryIdScenesSceneIdRoute
+  '/de/stories/$storyId/scenes/$sceneId'?: typeof LangAppStoriesStoryIdScenesSceneIdRoute
+  '/stage'?: typeof LangAppStageIndexRoute
+  '/de/stage'?: typeof LangAppStageIndexRoute
+  '/stage/$sceneId'?: typeof LangAppStageSceneIdRoute
+  '/de/stage/$sceneId'?: typeof LangAppStageSceneIdRoute
+  '/show'?: typeof LangShowIndexRoute
+  '/de/show'?: typeof LangShowIndexRoute
+  '/show/$storyId'?: typeof LangShowStoryIdRoute
+  '/de/show/$storyId'?: typeof LangShowStoryIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/_app': typeof AppRouteWithChildren
-  '/auth': typeof AuthRouteWithChildren
-  '/concept': typeof ConceptRoute
-  '/docs': typeof DocsRouteWithChildren
-  '/pricing': typeof PricingRoute
-  '/under-construction': typeof UnderConstructionRoute
-  '/_app/director': typeof AppDirectorRoute
-  '/_app/profile': typeof AppProfileRoute
-  '/auth/director-setup': typeof AuthDirectorSetupRoute
-  '/docs/add-scenes': typeof DocsAddScenesRoute
-  '/docs/create-story': typeof DocsCreateStoryRoute
-  '/docs/props': typeof DocsPropsRoute
-  '/docs/size-guidelines': typeof DocsSizeGuidelinesRoute
-  '/show/$storyId': typeof ShowStoryIdRoute
-  '/docs/': typeof DocsIndexRoute
-  '/show/': typeof ShowIndexRoute
-  '/_app/stage/$sceneId': typeof AppStageSceneIdRoute
-  '/_app/stage/': typeof AppStageIndexRoute
-  '/_app/stories/': typeof AppStoriesIndexRoute
-  '/_app/stories/$storyId/': typeof AppStoriesStoryIdIndexRoute
-  '/_app/stories/$storyId/scenes/$sceneId': typeof AppStoriesStoryIdScenesSceneIdRoute
+  '/($lang)': typeof LangRouteWithChildren
+  '/($lang)/show/': typeof LangShowIndexRoute
+  '/($lang)/show/$storyId': typeof LangShowStoryIdRoute
+  '/($lang)/': typeof LangIndexRoute
+  '/($lang)/pricing': typeof LangPricingRoute
+  '/($lang)/under-construction': typeof LangUnderConstructionRoute
+  '/($lang)/concept': typeof LangConceptRoute
+  '/($lang)/about': typeof LangAboutRoute
+  '/($lang)/terms': typeof LangTermsRoute
+  '/($lang)/privacy': typeof LangPrivacyRoute
+  '/($lang)/careers': typeof LangCareersRoute
+  '/($lang)/help': typeof LangHelpRoute
+  '/($lang)/auth': typeof LangAuthRouteWithChildren
+  '/($lang)/docs': typeof LangDocsRouteWithChildren
+  '/($lang)/_app': typeof LangAppRouteWithChildren
+  '/($lang)/auth/director-setup': typeof LangAuthDirectorSetupRoute
+  '/($lang)/docs/': typeof LangDocsIndexRoute
+  '/($lang)/docs/add-scenes': typeof LangDocsAddScenesRoute
+  '/($lang)/docs/create-story': typeof LangDocsCreateStoryRoute
+  '/($lang)/docs/props': typeof LangDocsPropsRoute
+  '/($lang)/docs/size-guidelines': typeof LangDocsSizeGuidelinesRoute
+  '/($lang)/_app/director': typeof LangAppDirectorRoute
+  '/($lang)/_app/profile': typeof LangAppProfileRoute
+  '/($lang)/_app/stage/': typeof LangAppStageIndexRoute
+  '/($lang)/_app/stage/$sceneId': typeof LangAppStageSceneIdRoute
+  '/($lang)/_app/stories/': typeof LangAppStoriesIndexRoute
+  '/($lang)/_app/stories/$storyId/': typeof LangAppStoriesStoryIdIndexRoute
+  '/($lang)/_app/stories/$storyId/scenes/$sceneId': typeof LangAppStoriesStoryIdScenesSceneIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
-    | '/auth'
-    | '/concept'
-    | '/docs'
-    | '/pricing'
-    | '/under-construction'
-    | '/director'
-    | '/profile'
-    | '/auth/director-setup'
-    | '/docs/add-scenes'
-    | '/docs/create-story'
-    | '/docs/props'
-    | '/docs/size-guidelines'
-    | '/show/$storyId'
-    | '/docs/'
-    | '/show/'
-    | '/stage/$sceneId'
-    | '/stage/'
-    | '/stories/'
-    | '/stories/$storyId/'
-    | '/stories/$storyId/scenes/$sceneId'
+    | '/($lang)'
+    | '/($lang)/show/'
+    | '/($lang)/show/$storyId'
+    | '/($lang)/'
+    | '/($lang)/pricing'
+    | '/($lang)/under-construction'
+    | '/($lang)/concept'
+    | '/($lang)/about'
+    | '/($lang)/terms'
+    | '/($lang)/privacy'
+    | '/($lang)/careers'
+    | '/($lang)/help'
+    | '/($lang)/auth'
+    | '/($lang)/docs'
+    | '/($lang)/auth/director-setup'
+    | '/($lang)/docs/'
+    | '/($lang)/docs/add-scenes'
+    | '/($lang)/docs/create-story'
+    | '/($lang)/docs/props'
+    | '/($lang)/docs/size-guidelines'
+    | '/($lang)/director'
+    | '/($lang)/profile'
+    | '/($lang)/stage/'
+    | '/($lang)/stage/$sceneId'
+    | '/($lang)/stories/'
+    | '/($lang)/stories/$storyId/'
+    | '/($lang)/stories/$storyId/scenes/$sceneId'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/($lang)/show'
+    | '/($lang)/show/$storyId'
+    | '/($lang)'
+    | '/($lang)/pricing'
+    | '/($lang)/under-construction'
+    | '/($lang)/concept'
+    | '/($lang)/about'
+    | '/($lang)/terms'
+    | '/($lang)/privacy'
+    | '/($lang)/careers'
+    | '/($lang)/help'
+    | '/($lang)/auth'
+    | '/($lang)/auth/director-setup'
+    | '/($lang)/docs'
+    | '/($lang)/docs/add-scenes'
+    | '/($lang)/docs/create-story'
+    | '/($lang)/docs/props'
+    | '/($lang)/docs/size-guidelines'
+    | '/($lang)/director'
+    | '/($lang)/profile'
+    | '/($lang)/stage'
+    | '/($lang)/stage/$sceneId'
+    | '/($lang)/stories'
+    | '/($lang)/stories/$storyId'
+    | '/($lang)/stories/$storyId/scenes/$sceneId'
+    // Short-form aliases (resolved via optional $lang segment at runtime)
     | '/'
-    | '/auth'
-    | '/concept'
+    | '/de/'
     | '/pricing'
+    | '/de/pricing'
+    | '/concept'
+    | '/de/concept'
+    | '/about'
+    | '/de/about'
+    | '/terms'
+    | '/de/terms'
+    | '/privacy'
+    | '/de/privacy'
+    | '/careers'
+    | '/de/careers'
+    | '/help'
+    | '/de/help'
     | '/under-construction'
-    | '/director'
-    | '/profile'
+    | '/de/under-construction'
+    | '/auth'
+    | '/de/auth'
     | '/auth/director-setup'
-    | '/docs/add-scenes'
-    | '/docs/create-story'
-    | '/docs/props'
-    | '/docs/size-guidelines'
-    | '/show/$storyId'
+    | '/de/auth/director-setup'
     | '/docs'
-    | '/show'
-    | '/stage/$sceneId'
-    | '/stage'
+    | '/de/docs'
+    | '/docs/add-scenes'
+    | '/de/docs/add-scenes'
+    | '/docs/create-story'
+    | '/de/docs/create-story'
+    | '/docs/props'
+    | '/de/docs/props'
+    | '/docs/size-guidelines'
+    | '/de/docs/size-guidelines'
+    | '/director'
+    | '/de/director'
+    | '/profile'
+    | '/de/profile'
     | '/stories'
+    | '/de/stories'
     | '/stories/$storyId'
+    | '/de/stories/$storyId'
     | '/stories/$storyId/scenes/$sceneId'
+    | '/de/stories/$storyId/scenes/$sceneId'
+    | '/stage'
+    | '/de/stage'
+    | '/stage/$sceneId'
+    | '/de/stage/$sceneId'
+    | '/show'
+    | '/de/show'
+    | '/show/$storyId'
+    | '/de/show/$storyId'
   id:
     | '__root__'
-    | '/'
-    | '/_app'
-    | '/auth'
-    | '/concept'
-    | '/docs'
-    | '/pricing'
-    | '/under-construction'
-    | '/_app/director'
-    | '/_app/profile'
-    | '/auth/director-setup'
-    | '/docs/add-scenes'
-    | '/docs/create-story'
-    | '/docs/props'
-    | '/docs/size-guidelines'
-    | '/show/$storyId'
-    | '/docs/'
-    | '/show/'
-    | '/_app/stage/$sceneId'
-    | '/_app/stage/'
-    | '/_app/stories/'
-    | '/_app/stories/$storyId/'
-    | '/_app/stories/$storyId/scenes/$sceneId'
+    | '/($lang)'
+    | '/($lang)/show/'
+    | '/($lang)/show/$storyId'
+    | '/($lang)/'
+    | '/($lang)/pricing'
+    | '/($lang)/under-construction'
+    | '/($lang)/concept'
+    | '/($lang)/about'
+    | '/($lang)/terms'
+    | '/($lang)/privacy'
+    | '/($lang)/careers'
+    | '/($lang)/help'
+    | '/($lang)/auth'
+    | '/($lang)/docs'
+    | '/($lang)/_app'
+    | '/($lang)/auth/director-setup'
+    | '/($lang)/docs/'
+    | '/($lang)/docs/add-scenes'
+    | '/($lang)/docs/create-story'
+    | '/($lang)/docs/props'
+    | '/($lang)/docs/size-guidelines'
+    | '/($lang)/_app/director'
+    | '/($lang)/_app/profile'
+    | '/($lang)/_app/stage/'
+    | '/($lang)/_app/stage/$sceneId'
+    | '/($lang)/_app/stories/'
+    | '/($lang)/_app/stories/$storyId/'
+    | '/($lang)/_app/stories/$storyId/scenes/$sceneId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AppRoute: typeof AppRouteWithChildren
-  AuthRoute: typeof AuthRouteWithChildren
-  ConceptRoute: typeof ConceptRoute
-  DocsRoute: typeof DocsRouteWithChildren
-  PricingRoute: typeof PricingRoute
-  UnderConstructionRoute: typeof UnderConstructionRoute
-  ShowStoryIdRoute: typeof ShowStoryIdRoute
-  ShowIndexRoute: typeof ShowIndexRoute
+  LangRoute: typeof LangRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/under-construction': {
-      id: '/under-construction'
-      path: '/under-construction'
-      fullPath: '/under-construction'
-      preLoaderRoute: typeof UnderConstructionRouteImport
+    '/($lang)': {
+      id: '/($lang)'
+      path: '/($lang)'
+      fullPath: '/($lang)'
+      preLoaderRoute: typeof LangRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pricing': {
-      id: '/pricing'
-      path: '/pricing'
-      fullPath: '/pricing'
-      preLoaderRoute: typeof PricingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/docs': {
-      id: '/docs'
-      path: '/docs'
-      fullPath: '/docs'
-      preLoaderRoute: typeof DocsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/concept': {
-      id: '/concept'
-      path: '/concept'
-      fullPath: '/concept'
-      preLoaderRoute: typeof ConceptRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_app': {
-      id: '/_app'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AppRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/show/': {
+    '/($lang)/show/': {
       id: '/show/'
       path: '/show'
-      fullPath: '/show/'
-      preLoaderRoute: typeof ShowIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/($lang)/show/'
+      preLoaderRoute: typeof LangShowIndexRouteImport
+      parentRoute: typeof LangRoute
     }
-    '/docs/': {
-      id: '/docs/'
-      path: '/'
-      fullPath: '/docs/'
-      preLoaderRoute: typeof DocsIndexRouteImport
-      parentRoute: typeof DocsRoute
-    }
-    '/show/$storyId': {
+    '/($lang)/show/$storyId': {
       id: '/show/$storyId'
       path: '/show/$storyId'
-      fullPath: '/show/$storyId'
-      preLoaderRoute: typeof ShowStoryIdRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/($lang)/show/$storyId'
+      preLoaderRoute: typeof LangShowStoryIdRouteImport
+      parentRoute: typeof LangRoute
     }
-    '/docs/size-guidelines': {
-      id: '/docs/size-guidelines'
-      path: '/size-guidelines'
-      fullPath: '/docs/size-guidelines'
-      preLoaderRoute: typeof DocsSizeGuidelinesRouteImport
-      parentRoute: typeof DocsRoute
+    '/($lang)/': {
+      id: '/($lang)/'
+      path: '/'
+      fullPath: '/($lang)/'
+      preLoaderRoute: typeof LangIndexRouteImport
+      parentRoute: typeof LangRoute
     }
-    '/docs/props': {
-      id: '/docs/props'
-      path: '/props'
-      fullPath: '/docs/props'
-      preLoaderRoute: typeof DocsPropsRouteImport
-      parentRoute: typeof DocsRoute
+    '/($lang)/pricing': {
+      id: '/($lang)/pricing'
+      path: '/pricing'
+      fullPath: '/($lang)/pricing'
+      preLoaderRoute: typeof LangPricingRouteImport
+      parentRoute: typeof LangRoute
     }
-    '/docs/create-story': {
-      id: '/docs/create-story'
-      path: '/create-story'
-      fullPath: '/docs/create-story'
-      preLoaderRoute: typeof DocsCreateStoryRouteImport
-      parentRoute: typeof DocsRoute
+    '/($lang)/under-construction': {
+      id: '/($lang)/under-construction'
+      path: '/under-construction'
+      fullPath: '/($lang)/under-construction'
+      preLoaderRoute: typeof LangUnderConstructionRouteImport
+      parentRoute: typeof LangRoute
     }
-    '/docs/add-scenes': {
-      id: '/docs/add-scenes'
-      path: '/add-scenes'
-      fullPath: '/docs/add-scenes'
-      preLoaderRoute: typeof DocsAddScenesRouteImport
-      parentRoute: typeof DocsRoute
+    '/($lang)/concept': {
+      id: '/($lang)/concept'
+      path: '/concept'
+      fullPath: '/($lang)/concept'
+      preLoaderRoute: typeof LangConceptRouteImport
+      parentRoute: typeof LangRoute
     }
-    '/auth/director-setup': {
-      id: '/auth/director-setup'
+    '/($lang)/about': {
+      id: '/($lang)/about'
+      path: '/about'
+      fullPath: '/($lang)/about'
+      preLoaderRoute: typeof LangAboutRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/($lang)/terms': {
+      id: '/($lang)/terms'
+      path: '/terms'
+      fullPath: '/($lang)/terms'
+      preLoaderRoute: typeof LangTermsRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/($lang)/privacy': {
+      id: '/($lang)/privacy'
+      path: '/privacy'
+      fullPath: '/($lang)/privacy'
+      preLoaderRoute: typeof LangPrivacyRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/($lang)/careers': {
+      id: '/($lang)/careers'
+      path: '/careers'
+      fullPath: '/($lang)/careers'
+      preLoaderRoute: typeof LangCareersRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/($lang)/help': {
+      id: '/($lang)/help'
+      path: '/help'
+      fullPath: '/($lang)/help'
+      preLoaderRoute: typeof LangHelpRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/($lang)/auth': {
+      id: '/($lang)/auth'
+      path: '/auth'
+      fullPath: '/($lang)/auth'
+      preLoaderRoute: typeof LangAuthRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/($lang)/docs': {
+      id: '/($lang)/docs'
+      path: '/docs'
+      fullPath: '/($lang)/docs'
+      preLoaderRoute: typeof LangDocsRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/($lang)/_app': {
+      id: '/($lang)/_app'
+      path: ''
+      fullPath: '/($lang)'
+      preLoaderRoute: typeof LangAppRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/($lang)/auth/director-setup': {
+      id: '/($lang)/auth/director-setup'
       path: '/director-setup'
-      fullPath: '/auth/director-setup'
-      preLoaderRoute: typeof AuthDirectorSetupRouteImport
-      parentRoute: typeof AuthRoute
+      fullPath: '/($lang)/auth/director-setup'
+      preLoaderRoute: typeof LangAuthDirectorSetupRouteImport
+      parentRoute: typeof LangAuthRoute
     }
-    '/_app/profile': {
-      id: '/_app/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof AppProfileRouteImport
-      parentRoute: typeof AppRoute
+    '/($lang)/docs/': {
+      id: '/($lang)/docs/'
+      path: '/'
+      fullPath: '/($lang)/docs/'
+      preLoaderRoute: typeof LangDocsIndexRouteImport
+      parentRoute: typeof LangDocsRoute
     }
-    '/_app/director': {
-      id: '/_app/director'
+    '/($lang)/docs/add-scenes': {
+      id: '/($lang)/docs/add-scenes'
+      path: '/add-scenes'
+      fullPath: '/($lang)/docs/add-scenes'
+      preLoaderRoute: typeof LangDocsAddScenesRouteImport
+      parentRoute: typeof LangDocsRoute
+    }
+    '/($lang)/docs/create-story': {
+      id: '/($lang)/docs/create-story'
+      path: '/create-story'
+      fullPath: '/($lang)/docs/create-story'
+      preLoaderRoute: typeof LangDocsCreateStoryRouteImport
+      parentRoute: typeof LangDocsRoute
+    }
+    '/($lang)/docs/props': {
+      id: '/($lang)/docs/props'
+      path: '/props'
+      fullPath: '/($lang)/docs/props'
+      preLoaderRoute: typeof LangDocsPropsRouteImport
+      parentRoute: typeof LangDocsRoute
+    }
+    '/($lang)/docs/size-guidelines': {
+      id: '/($lang)/docs/size-guidelines'
+      path: '/size-guidelines'
+      fullPath: '/($lang)/docs/size-guidelines'
+      preLoaderRoute: typeof LangDocsSizeGuidelinesRouteImport
+      parentRoute: typeof LangDocsRoute
+    }
+    '/($lang)/_app/director': {
+      id: '/($lang)/_app/director'
       path: '/director'
-      fullPath: '/director'
-      preLoaderRoute: typeof AppDirectorRouteImport
-      parentRoute: typeof AppRoute
+      fullPath: '/($lang)/director'
+      preLoaderRoute: typeof LangAppDirectorRouteImport
+      parentRoute: typeof LangAppRoute
     }
-    '/_app/stories/': {
-      id: '/_app/stories/'
-      path: '/stories'
-      fullPath: '/stories/'
-      preLoaderRoute: typeof AppStoriesIndexRouteImport
-      parentRoute: typeof AppRoute
+    '/($lang)/_app/profile': {
+      id: '/($lang)/_app/profile'
+      path: '/profile'
+      fullPath: '/($lang)/profile'
+      preLoaderRoute: typeof LangAppProfileRouteImport
+      parentRoute: typeof LangAppRoute
     }
-    '/_app/stage/': {
-      id: '/_app/stage/'
+    '/($lang)/_app/stage/': {
+      id: '/($lang)/_app/stage/'
       path: '/stage'
-      fullPath: '/stage/'
-      preLoaderRoute: typeof AppStageIndexRouteImport
-      parentRoute: typeof AppRoute
+      fullPath: '/($lang)/stage/'
+      preLoaderRoute: typeof LangAppStageIndexRouteImport
+      parentRoute: typeof LangAppRoute
     }
-    '/_app/stage/$sceneId': {
-      id: '/_app/stage/$sceneId'
+    '/($lang)/_app/stage/$sceneId': {
+      id: '/($lang)/_app/stage/$sceneId'
       path: '/stage/$sceneId'
-      fullPath: '/stage/$sceneId'
-      preLoaderRoute: typeof AppStageSceneIdRouteImport
-      parentRoute: typeof AppRoute
+      fullPath: '/($lang)/stage/$sceneId'
+      preLoaderRoute: typeof LangAppStageSceneIdRouteImport
+      parentRoute: typeof LangAppRoute
     }
-    '/_app/stories/$storyId/': {
-      id: '/_app/stories/$storyId/'
+    '/($lang)/_app/stories/': {
+      id: '/($lang)/_app/stories/'
+      path: '/stories'
+      fullPath: '/($lang)/stories/'
+      preLoaderRoute: typeof LangAppStoriesIndexRouteImport
+      parentRoute: typeof LangAppRoute
+    }
+    '/($lang)/_app/stories/$storyId/': {
+      id: '/($lang)/_app/stories/$storyId/'
       path: '/stories/$storyId'
-      fullPath: '/stories/$storyId/'
-      preLoaderRoute: typeof AppStoriesStoryIdIndexRouteImport
-      parentRoute: typeof AppRoute
+      fullPath: '/($lang)/stories/$storyId/'
+      preLoaderRoute: typeof LangAppStoriesStoryIdIndexRouteImport
+      parentRoute: typeof LangAppRoute
     }
-    '/_app/stories/$storyId/scenes/$sceneId': {
-      id: '/_app/stories/$storyId/scenes/$sceneId'
+    '/($lang)/_app/stories/$storyId/scenes/$sceneId': {
+      id: '/($lang)/_app/stories/$storyId/scenes/$sceneId'
       path: '/stories/$storyId/scenes/$sceneId'
-      fullPath: '/stories/$storyId/scenes/$sceneId'
-      preLoaderRoute: typeof AppStoriesStoryIdScenesSceneIdRouteImport
-      parentRoute: typeof AppRoute
+      fullPath: '/($lang)/stories/$storyId/scenes/$sceneId'
+      preLoaderRoute: typeof LangAppStoriesStoryIdScenesSceneIdRouteImport
+      parentRoute: typeof LangAppRoute
     }
   }
 }
 
-interface AppRouteChildren {
-  AppDirectorRoute: typeof AppDirectorRoute
-  AppProfileRoute: typeof AppProfileRoute
-  AppStageSceneIdRoute: typeof AppStageSceneIdRoute
-  AppStageIndexRoute: typeof AppStageIndexRoute
-  AppStoriesIndexRoute: typeof AppStoriesIndexRoute
-  AppStoriesStoryIdIndexRoute: typeof AppStoriesStoryIdIndexRoute
-  AppStoriesStoryIdScenesSceneIdRoute: typeof AppStoriesStoryIdScenesSceneIdRoute
+// Short-form path aliases so Link/navigate work without explicitly typing ($lang) params.
+// parentRoute: rootRouteImport means no ancestor "lang)" param is required.
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/': { id: '/'; path: '/'; fullPath: '/'; preLoaderRoute: typeof LangIndexRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/': { id: '/de/'; path: '/de/'; fullPath: '/de/'; preLoaderRoute: typeof LangIndexRouteImport; parentRoute: typeof rootRouteImport }
+    '/pricing': { id: '/pricing'; path: '/pricing'; fullPath: '/pricing'; preLoaderRoute: typeof LangPricingRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/pricing': { id: '/de/pricing'; path: '/de/pricing'; fullPath: '/de/pricing'; preLoaderRoute: typeof LangPricingRouteImport; parentRoute: typeof rootRouteImport }
+    '/concept': { id: '/concept'; path: '/concept'; fullPath: '/concept'; preLoaderRoute: typeof LangConceptRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/concept': { id: '/de/concept'; path: '/de/concept'; fullPath: '/de/concept'; preLoaderRoute: typeof LangConceptRouteImport; parentRoute: typeof rootRouteImport }
+    '/about': { id: '/about'; path: '/about'; fullPath: '/about'; preLoaderRoute: typeof LangAboutRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/about': { id: '/de/about'; path: '/de/about'; fullPath: '/de/about'; preLoaderRoute: typeof LangAboutRouteImport; parentRoute: typeof rootRouteImport }
+    '/terms': { id: '/terms'; path: '/terms'; fullPath: '/terms'; preLoaderRoute: typeof LangTermsRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/terms': { id: '/de/terms'; path: '/de/terms'; fullPath: '/de/terms'; preLoaderRoute: typeof LangTermsRouteImport; parentRoute: typeof rootRouteImport }
+    '/privacy': { id: '/privacy'; path: '/privacy'; fullPath: '/privacy'; preLoaderRoute: typeof LangPrivacyRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/privacy': { id: '/de/privacy'; path: '/de/privacy'; fullPath: '/de/privacy'; preLoaderRoute: typeof LangPrivacyRouteImport; parentRoute: typeof rootRouteImport }
+    '/careers': { id: '/careers'; path: '/careers'; fullPath: '/careers'; preLoaderRoute: typeof LangCareersRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/careers': { id: '/de/careers'; path: '/de/careers'; fullPath: '/de/careers'; preLoaderRoute: typeof LangCareersRouteImport; parentRoute: typeof rootRouteImport }
+    '/help': { id: '/help'; path: '/help'; fullPath: '/help'; preLoaderRoute: typeof LangHelpRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/help': { id: '/de/help'; path: '/de/help'; fullPath: '/de/help'; preLoaderRoute: typeof LangHelpRouteImport; parentRoute: typeof rootRouteImport }
+    '/under-construction': { id: '/under-construction'; path: '/under-construction'; fullPath: '/under-construction'; preLoaderRoute: typeof LangUnderConstructionRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/under-construction': { id: '/de/under-construction'; path: '/de/under-construction'; fullPath: '/de/under-construction'; preLoaderRoute: typeof LangUnderConstructionRouteImport; parentRoute: typeof rootRouteImport }
+    '/auth': { id: '/auth'; path: '/auth'; fullPath: '/auth'; preLoaderRoute: typeof LangAuthRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/auth': { id: '/de/auth'; path: '/de/auth'; fullPath: '/de/auth'; preLoaderRoute: typeof LangAuthRouteImport; parentRoute: typeof rootRouteImport }
+    '/auth/director-setup': { id: '/auth/director-setup'; path: '/auth/director-setup'; fullPath: '/auth/director-setup'; preLoaderRoute: typeof LangAuthDirectorSetupRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/auth/director-setup': { id: '/de/auth/director-setup'; path: '/de/auth/director-setup'; fullPath: '/de/auth/director-setup'; preLoaderRoute: typeof LangAuthDirectorSetupRouteImport; parentRoute: typeof rootRouteImport }
+    '/docs': { id: '/docs'; path: '/docs'; fullPath: '/docs'; preLoaderRoute: typeof LangDocsRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/docs': { id: '/de/docs'; path: '/de/docs'; fullPath: '/de/docs'; preLoaderRoute: typeof LangDocsRouteImport; parentRoute: typeof rootRouteImport }
+    '/docs/add-scenes': { id: '/docs/add-scenes'; path: '/docs/add-scenes'; fullPath: '/docs/add-scenes'; preLoaderRoute: typeof LangDocsAddScenesRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/docs/add-scenes': { id: '/de/docs/add-scenes'; path: '/de/docs/add-scenes'; fullPath: '/de/docs/add-scenes'; preLoaderRoute: typeof LangDocsAddScenesRouteImport; parentRoute: typeof rootRouteImport }
+    '/docs/create-story': { id: '/docs/create-story'; path: '/docs/create-story'; fullPath: '/docs/create-story'; preLoaderRoute: typeof LangDocsCreateStoryRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/docs/create-story': { id: '/de/docs/create-story'; path: '/de/docs/create-story'; fullPath: '/de/docs/create-story'; preLoaderRoute: typeof LangDocsCreateStoryRouteImport; parentRoute: typeof rootRouteImport }
+    '/docs/props': { id: '/docs/props'; path: '/docs/props'; fullPath: '/docs/props'; preLoaderRoute: typeof LangDocsPropsRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/docs/props': { id: '/de/docs/props'; path: '/de/docs/props'; fullPath: '/de/docs/props'; preLoaderRoute: typeof LangDocsPropsRouteImport; parentRoute: typeof rootRouteImport }
+    '/docs/size-guidelines': { id: '/docs/size-guidelines'; path: '/docs/size-guidelines'; fullPath: '/docs/size-guidelines'; preLoaderRoute: typeof LangDocsSizeGuidelinesRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/docs/size-guidelines': { id: '/de/docs/size-guidelines'; path: '/de/docs/size-guidelines'; fullPath: '/de/docs/size-guidelines'; preLoaderRoute: typeof LangDocsSizeGuidelinesRouteImport; parentRoute: typeof rootRouteImport }
+    '/director': { id: '/director'; path: '/director'; fullPath: '/director'; preLoaderRoute: typeof LangAppDirectorRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/director': { id: '/de/director'; path: '/de/director'; fullPath: '/de/director'; preLoaderRoute: typeof LangAppDirectorRouteImport; parentRoute: typeof rootRouteImport }
+    '/profile': { id: '/profile'; path: '/profile'; fullPath: '/profile'; preLoaderRoute: typeof LangAppProfileRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/profile': { id: '/de/profile'; path: '/de/profile'; fullPath: '/de/profile'; preLoaderRoute: typeof LangAppProfileRouteImport; parentRoute: typeof rootRouteImport }
+    '/stories': { id: '/stories'; path: '/stories'; fullPath: '/stories'; preLoaderRoute: typeof LangAppStoriesIndexRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/stories': { id: '/de/stories'; path: '/de/stories'; fullPath: '/de/stories'; preLoaderRoute: typeof LangAppStoriesIndexRouteImport; parentRoute: typeof rootRouteImport }
+    '/stories/$storyId': { id: '/stories/$storyId'; path: '/stories/$storyId'; fullPath: '/stories/$storyId'; preLoaderRoute: typeof LangAppStoriesStoryIdIndexRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/stories/$storyId': { id: '/de/stories/$storyId'; path: '/de/stories/$storyId'; fullPath: '/de/stories/$storyId'; preLoaderRoute: typeof LangAppStoriesStoryIdIndexRouteImport; parentRoute: typeof rootRouteImport }
+    '/stories/$storyId/scenes/$sceneId': { id: '/stories/$storyId/scenes/$sceneId'; path: '/stories/$storyId/scenes/$sceneId'; fullPath: '/stories/$storyId/scenes/$sceneId'; preLoaderRoute: typeof LangAppStoriesStoryIdScenesSceneIdRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/stories/$storyId/scenes/$sceneId': { id: '/de/stories/$storyId/scenes/$sceneId'; path: '/de/stories/$storyId/scenes/$sceneId'; fullPath: '/de/stories/$storyId/scenes/$sceneId'; preLoaderRoute: typeof LangAppStoriesStoryIdScenesSceneIdRouteImport; parentRoute: typeof rootRouteImport }
+    '/stage': { id: '/stage'; path: '/stage'; fullPath: '/stage'; preLoaderRoute: typeof LangAppStageIndexRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/stage': { id: '/de/stage'; path: '/de/stage'; fullPath: '/de/stage'; preLoaderRoute: typeof LangAppStageIndexRouteImport; parentRoute: typeof rootRouteImport }
+    '/stage/$sceneId': { id: '/stage/$sceneId'; path: '/stage/$sceneId'; fullPath: '/stage/$sceneId'; preLoaderRoute: typeof LangAppStageSceneIdRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/stage/$sceneId': { id: '/de/stage/$sceneId'; path: '/de/stage/$sceneId'; fullPath: '/de/stage/$sceneId'; preLoaderRoute: typeof LangAppStageSceneIdRouteImport; parentRoute: typeof rootRouteImport }
+    '/show': { id: '/show'; path: '/show'; fullPath: '/show'; preLoaderRoute: typeof LangShowIndexRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/show': { id: '/de/show'; path: '/de/show'; fullPath: '/de/show'; preLoaderRoute: typeof LangShowIndexRouteImport; parentRoute: typeof rootRouteImport }
+    '/show/$storyId': { id: '/show/$storyId'; path: '/show/$storyId'; fullPath: '/show/$storyId'; preLoaderRoute: typeof LangShowStoryIdRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/show/$storyId': { id: '/de/show/$storyId'; path: '/de/show/$storyId'; fullPath: '/de/show/$storyId'; preLoaderRoute: typeof LangShowStoryIdRouteImport; parentRoute: typeof rootRouteImport }
+  }
 }
 
-const AppRouteChildren: AppRouteChildren = {
-  AppDirectorRoute: AppDirectorRoute,
-  AppProfileRoute: AppProfileRoute,
-  AppStageSceneIdRoute: AppStageSceneIdRoute,
-  AppStageIndexRoute: AppStageIndexRoute,
-  AppStoriesIndexRoute: AppStoriesIndexRoute,
-  AppStoriesStoryIdIndexRoute: AppStoriesStoryIdIndexRoute,
-  AppStoriesStoryIdScenesSceneIdRoute: AppStoriesStoryIdScenesSceneIdRoute,
+interface LangAuthRouteChildren {
+  LangAuthDirectorSetupRoute: typeof LangAuthDirectorSetupRoute
 }
 
-const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
-
-interface AuthRouteChildren {
-  AuthDirectorSetupRoute: typeof AuthDirectorSetupRoute
+const LangAuthRouteChildren: LangAuthRouteChildren = {
+  LangAuthDirectorSetupRoute: LangAuthDirectorSetupRoute,
 }
 
-const AuthRouteChildren: AuthRouteChildren = {
-  AuthDirectorSetupRoute: AuthDirectorSetupRoute,
+const LangAuthRouteWithChildren = LangAuthRoute._addFileChildren(LangAuthRouteChildren)
+
+interface LangDocsRouteChildren {
+  LangDocsAddScenesRoute: typeof LangDocsAddScenesRoute
+  LangDocsCreateStoryRoute: typeof LangDocsCreateStoryRoute
+  LangDocsPropsRoute: typeof LangDocsPropsRoute
+  LangDocsSizeGuidelinesRoute: typeof LangDocsSizeGuidelinesRoute
+  LangDocsIndexRoute: typeof LangDocsIndexRoute
 }
 
-const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
-
-interface DocsRouteChildren {
-  DocsAddScenesRoute: typeof DocsAddScenesRoute
-  DocsCreateStoryRoute: typeof DocsCreateStoryRoute
-  DocsPropsRoute: typeof DocsPropsRoute
-  DocsSizeGuidelinesRoute: typeof DocsSizeGuidelinesRoute
-  DocsIndexRoute: typeof DocsIndexRoute
+const LangDocsRouteChildren: LangDocsRouteChildren = {
+  LangDocsAddScenesRoute: LangDocsAddScenesRoute,
+  LangDocsCreateStoryRoute: LangDocsCreateStoryRoute,
+  LangDocsPropsRoute: LangDocsPropsRoute,
+  LangDocsSizeGuidelinesRoute: LangDocsSizeGuidelinesRoute,
+  LangDocsIndexRoute: LangDocsIndexRoute,
 }
 
-const DocsRouteChildren: DocsRouteChildren = {
-  DocsAddScenesRoute: DocsAddScenesRoute,
-  DocsCreateStoryRoute: DocsCreateStoryRoute,
-  DocsPropsRoute: DocsPropsRoute,
-  DocsSizeGuidelinesRoute: DocsSizeGuidelinesRoute,
-  DocsIndexRoute: DocsIndexRoute,
+const LangDocsRouteWithChildren = LangDocsRoute._addFileChildren(LangDocsRouteChildren)
+
+interface LangAppRouteChildren {
+  LangAppDirectorRoute: typeof LangAppDirectorRoute
+  LangAppProfileRoute: typeof LangAppProfileRoute
+  LangAppStageSceneIdRoute: typeof LangAppStageSceneIdRoute
+  LangAppStageIndexRoute: typeof LangAppStageIndexRoute
+  LangAppStoriesIndexRoute: typeof LangAppStoriesIndexRoute
+  LangAppStoriesStoryIdIndexRoute: typeof LangAppStoriesStoryIdIndexRoute
+  LangAppStoriesStoryIdScenesSceneIdRoute: typeof LangAppStoriesStoryIdScenesSceneIdRoute
 }
 
-const DocsRouteWithChildren = DocsRoute._addFileChildren(DocsRouteChildren)
+const LangAppRouteChildren: LangAppRouteChildren = {
+  LangAppDirectorRoute: LangAppDirectorRoute,
+  LangAppProfileRoute: LangAppProfileRoute,
+  LangAppStageSceneIdRoute: LangAppStageSceneIdRoute,
+  LangAppStageIndexRoute: LangAppStageIndexRoute,
+  LangAppStoriesIndexRoute: LangAppStoriesIndexRoute,
+  LangAppStoriesStoryIdIndexRoute: LangAppStoriesStoryIdIndexRoute,
+  LangAppStoriesStoryIdScenesSceneIdRoute: LangAppStoriesStoryIdScenesSceneIdRoute,
+}
+
+const LangAppRouteWithChildren = LangAppRoute._addFileChildren(LangAppRouteChildren)
+
+interface LangRouteChildren {
+  LangIndexRoute: typeof LangIndexRoute
+  LangPricingRoute: typeof LangPricingRoute
+  LangUnderConstructionRoute: typeof LangUnderConstructionRoute
+  LangConceptRoute: typeof LangConceptRoute
+  LangAboutRoute: typeof LangAboutRoute
+  LangTermsRoute: typeof LangTermsRoute
+  LangPrivacyRoute: typeof LangPrivacyRoute
+  LangCareersRoute: typeof LangCareersRoute
+  LangHelpRoute: typeof LangHelpRoute
+  LangAuthRoute: typeof LangAuthRouteWithChildren
+  LangDocsRoute: typeof LangDocsRouteWithChildren
+  LangAppRoute: typeof LangAppRouteWithChildren
+  LangShowIndexRoute: typeof LangShowIndexRoute
+  LangShowStoryIdRoute: typeof LangShowStoryIdRoute
+}
+
+const LangRouteChildren: LangRouteChildren = {
+  LangIndexRoute: LangIndexRoute,
+  LangPricingRoute: LangPricingRoute,
+  LangUnderConstructionRoute: LangUnderConstructionRoute,
+  LangConceptRoute: LangConceptRoute,
+  LangAboutRoute: LangAboutRoute,
+  LangTermsRoute: LangTermsRoute,
+  LangPrivacyRoute: LangPrivacyRoute,
+  LangCareersRoute: LangCareersRoute,
+  LangHelpRoute: LangHelpRoute,
+  LangAuthRoute: LangAuthRouteWithChildren,
+  LangDocsRoute: LangDocsRouteWithChildren,
+  LangAppRoute: LangAppRouteWithChildren,
+  LangShowIndexRoute: LangShowIndexRoute,
+  LangShowStoryIdRoute: LangShowStoryIdRoute,
+}
+
+const LangRouteWithChildren = LangRoute._addFileChildren(LangRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AppRoute: AppRouteWithChildren,
-  AuthRoute: AuthRouteWithChildren,
-  ConceptRoute: ConceptRoute,
-  DocsRoute: DocsRouteWithChildren,
-  PricingRoute: PricingRoute,
-  UnderConstructionRoute: UnderConstructionRoute,
-  ShowStoryIdRoute: ShowStoryIdRoute,
-  ShowIndexRoute: ShowIndexRoute,
+  LangRoute: LangRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

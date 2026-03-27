@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 import { PropTypePill } from '@/components/prop-type-pill';
 import type { PropType } from '@/db/schema';
+import { useLanguage } from '@/hooks/useLanguage';
 
 export type PickableProp = {
   id: string;
@@ -39,6 +40,7 @@ export function PropPicker({
   fallbackIcon,
   readOnly = false,
 }: PropPickerProps) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const ref = useRef<HTMLDivElement>(null);
@@ -133,7 +135,7 @@ export function PropPicker({
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search…"
+              placeholder={t('prop.searchPlaceholder')}
               className="input input-sm w-full"
               autoFocus
             />
@@ -143,7 +145,7 @@ export function PropPicker({
           <div className="overflow-y-auto min-h-0 flex-1">
             {filtered.length === 0 ? (
               <p className="text-xs text-base-content/40 px-3 py-3">
-                {search ? 'No matches' : 'No props available'}
+                {search ? t('prop.noMatches') : t('prop.noPropsAvailable')}
               </p>
             ) : (
               filtered.map((p) => (
@@ -190,7 +192,7 @@ export function PropPicker({
                 }}
                 className="btn btn-xs btn-primary self-end m-3"
               >
-                Unassign
+                {t('prop.unassign')}
               </button>
             </>
           )}

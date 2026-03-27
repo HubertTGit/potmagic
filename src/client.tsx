@@ -1,3 +1,4 @@
+import '@/i18n'
 import { StartClient } from '@tanstack/react-start/client'
 import { StrictMode } from 'react'
 import { hydrateRoot } from 'react-dom/client'

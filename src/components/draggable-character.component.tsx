@@ -1,12 +1,12 @@
-import { Application, Assets, Container, Sprite } from 'pixi.js';
-import type { FederatedPointerEvent, Texture } from 'pixi.js';
-import { GlowFilter } from 'pixi-filters/glow';
-import { RoomEvent } from 'livekit-client';
-import type { Room } from 'livekit-client';
-import { saveSceneCastPosition } from '@/lib/scenes.fns';
-import type { PropType } from '@/db/schema';
+import { Application, Assets, Container, Sprite } from "pixi.js";
+import type { FederatedPointerEvent, Texture } from "pixi.js";
+import { GlowFilter } from "pixi-filters/glow";
+import type { Room } from "livekit-client";
+import { saveSceneCastPosition } from "@/lib/scenes.fns";
+import type { PropType } from "@/db/schema";
+import type { PropMoveMessage } from "@/lib/livekit-messages";
 
-interface PixiCharacterProps {
+export interface PixiCharacterProps {
   sceneCastId: string;
   castId: string;
   src: string;
@@ -22,17 +22,17 @@ interface PixiCharacterProps {
   stageHeight?: number;
   app: Application;
   onReady?: () => void;
+  onPositionChange?: (
+    x: number,
+    bounds: { minX: number; maxX: number },
+  ) => void;
+  onAnimationComplete?: () => void;
+  backgroundRepeat?: boolean;
 }
 
-interface PropMoveMessage {
-  type: 'prop:move';
-  castId: string;
-  x: number;
-  y: number;
-  rotation: number;
-  scaleX: number;
-  indexZ: number;
-}
+export type { PropMoveMessage };
+
+const encoder = new TextEncoder();
 
 function getAngle(a: { x: number; y: number }, b: { x: number; y: number }) {
   return Math.atan2(b.y - a.y, b.x - a.x) * (180 / Math.PI);
@@ -59,14 +59,14 @@ export class PixiCharacter {
   // Suppress spurious taps fired when fingers lift after a multi-touch gesture
   private suppressNextNTaps = 0;
 
-  private readonly onDataReceived: (payload: Uint8Array) => void;
+  private onKeyDown: ((e: KeyboardEvent) => void) | null = null;
 
   constructor(props: PixiCharacterProps) {
     this.props = props;
 
     this.container = new Container();
     this.container.label = props.sceneCastId;
-    this.container.zIndex = props.type === 'background' ? 0 : 1;
+    this.container.zIndex = 1;
     this.container.x = props.initialX ?? 100;
     this.container.y = props.initialY ?? 100;
 
@@ -85,30 +85,11 @@ export class PixiCharacter {
 
     this.container.addChild(this.sprite);
 
-    // Listen for remote moves via LiveKit
-    this.onDataReceived = (payload: Uint8Array) => {
-      let msg: PropMoveMessage;
-      try {
-        msg = JSON.parse(new TextDecoder().decode(payload)) as PropMoveMessage;
-      } catch {
-        return;
-      }
-      if (msg.type !== 'prop:move' || msg.castId !== props.castId) return;
-      this.container.x = msg.x;
-      this.container.y = msg.y;
-      this.container.rotation = msg.rotation * (Math.PI / 180);
-      this.sprite.scale.x = msg.scaleX;
-    };
-
-    if (props.room) {
-      props.room.on(RoomEvent.DataReceived, this.onDataReceived);
-    }
-
     this.loadTexture();
   }
 
   private async loadTexture() {
-    const { src, type, initialRotation = 0, initialScaleX = 1, stageHeight = 720, app } = this.props;
+    const { src, initialRotation = 0, initialScaleX = 1, app } = this.props;
     let texture: Texture;
     try {
       texture = await Assets.load(src);
@@ -117,17 +98,15 @@ export class PixiCharacter {
       return;
     }
 
+    // Guard: destroy() may have been called while the asset was loading
+    if (this.sprite.destroyed) return;
+
     this.sprite.texture = texture;
     this.sprite.anchor.set(0.5);
     this.sprite.scale.x = initialScaleX;
     this.container.rotation = initialRotation * (Math.PI / 180);
 
-    if (type === 'background') {
-      this.container.y = stageHeight - texture.height / 2;
-      this.container.zIndex = 0;
-    } else {
-      this.container.zIndex = 1;
-    }
+    this.container.zIndex = 1;
 
     this.drawGlow();
     this.setupInteraction();
@@ -138,43 +117,41 @@ export class PixiCharacter {
   }
 
   private drawGlow() {
-    this.glowFilter.enabled = this.isSpeaking && this.props.type !== 'background';
+    this.glowFilter.enabled = this.isSpeaking;
   }
 
   private setupInteraction() {
-    const { canDrag, type } = this.props;
+    const { canDrag } = this.props;
 
-    this.sprite.eventMode = canDrag ? 'static' : 'none';
-    this.sprite.cursor = canDrag ? 'pointer' : 'default';
+    this.sprite.eventMode = canDrag ? "static" : "none";
+    this.sprite.cursor = canDrag ? "pointer" : "default";
 
     if (!canDrag) return;
 
-    this.sprite.on('pointerdown', this.onPointerDown.bind(this));
-    this.sprite.on('pointerup', this.onPointerUp.bind(this));
-    this.sprite.on('pointerupoutside', this.onPointerUp.bind(this));
-    this.sprite.on('globalpointermove', this.onStagePointerMove.bind(this));
+    this.sprite.on("pointerdown", this.onPointerDown.bind(this));
+    this.sprite.on("pointerup", this.onPointerUp.bind(this));
+    this.sprite.on("pointerupoutside", this.onPointerUp.bind(this));
+    this.sprite.on("globalpointermove", this.onStagePointerMove.bind(this));
 
-    if (type !== 'background') {
-      this.sprite.on('click', (e: FederatedPointerEvent) => {
-        if (e.detail === 2) this.handleDoubleClick();
-      });
-      this.sprite.on('tap', () => {
-        // Eat taps generated by fingers lifting after a multi-touch gesture
-        if (this.suppressNextNTaps > 0) {
-          this.suppressNextNTaps--;
-          this.lastTapTime = 0;
-          return;
-        }
-        const now = Date.now();
-        if (now - this.lastTapTime < 300) this.handleDoubleClick();
-        this.lastTapTime = now;
-      });
-    }
+    this.onKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Space" && this.activePointers.size > 0)
+        this.handleHorizontalFlip();
+    };
+    window.addEventListener("keydown", this.onKeyDown);
+    this.sprite.on("tap", () => {
+      // Eat taps generated by fingers lifting after a multi-touch gesture
+      if (this.suppressNextNTaps > 0) {
+        this.suppressNextNTaps--;
+        this.lastTapTime = 0;
+        return;
+      }
+      const now = Date.now();
+      if (now - this.lastTapTime < 300) this.handleHorizontalFlip();
+      this.lastTapTime = now;
+    });
   }
 
   private onPointerDown(e: FederatedPointerEvent) {
-    const { type } = this.props;
-
     this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
     if (this.activePointers.size === 1) {
@@ -184,7 +161,7 @@ export class PixiCharacter {
         x: this.container.x - e.global.x,
         y: this.container.y - e.global.y,
       };
-      if (type !== 'background') this.bringToTop();
+      this.bringToTop();
     } else {
       // Multi-finger — stop drag, start gesture
       this.isDragging = false;
@@ -210,6 +187,7 @@ export class PixiCharacter {
 
   private onStagePointerMove(e: FederatedPointerEvent) {
     if (!this.props.canDrag) return;
+    if (!this.activePointers.has(e.pointerId)) return;
 
     // Snapshot full previous state BEFORE updating the moved pointer so both
     // oldAngle and oldMid are computed from a consistent pre-event baseline.
@@ -225,22 +203,18 @@ export class PixiCharacter {
       if (prevPointers.length < 2) return;
 
       const newAngle = getAngle(currPointers[0], currPointers[1]);
-      const newMid   = getMidpoint(currPointers[0], currPointers[1]);
+      const newMid = getMidpoint(currPointers[0], currPointers[1]);
       const oldAngle = getAngle(prevPointers[0], prevPointers[1]);
-      const oldMid   = getMidpoint(prevPointers[0], prevPointers[1]);
+      const oldMid = getMidpoint(prevPointers[0], prevPointers[1]);
 
-      if (this.props.type !== 'background') {
-        // Normalize to [-180, 180] to prevent wrap-around flip at the ±180° boundary
-        let angleDelta = newAngle - oldAngle;
-        if (angleDelta >  180) angleDelta -= 360;
-        if (angleDelta < -180) angleDelta += 360;
-        this.container.rotation += angleDelta * (Math.PI / 180);
-      }
+      // Normalize to [-180, 180] to prevent wrap-around flip at the ±180° boundary
+      let angleDelta = newAngle - oldAngle;
+      if (angleDelta > 180) angleDelta -= 360;
+      if (angleDelta < -180) angleDelta += 360;
+      this.container.rotation += angleDelta * (Math.PI / 180);
 
       this.container.x += newMid.x - oldMid.x;
-      if (this.props.type !== 'background') {
-        this.container.y += newMid.y - oldMid.y;
-      }
+      this.container.y += newMid.y - oldMid.y;
 
       this.publishMove();
     } else if (this.isDragging && this.activePointers.size <= 1) {
@@ -254,27 +228,17 @@ export class PixiCharacter {
   }
 
   private clampX(x: number): number {
-    const { type, stageWidth = 1280 } = this.props;
-    if (type === 'background') {
-      const halfW = this.sprite.width / 2;
-      const minX = stageWidth - halfW;
-      const maxX = halfW;
-      return maxX > minX ? Math.min(Math.max(x, minX), maxX) : x;
-    }
+    const { stageWidth = 1280 } = this.props;
     return Math.min(Math.max(x, 0), stageWidth);
   }
 
   private clampY(y: number): number {
-    const { type, stageHeight = 720 } = this.props;
-    if (type === 'background') {
-      // Locked to bottom
-      return stageHeight - this.sprite.height / 2;
-    }
+    const { stageHeight = 720 } = this.props;
     return Math.min(Math.max(y, 0), stageHeight);
   }
 
-  private handleDoubleClick() {
-    if (!this.props.canDrag || this.props.type === 'background') return;
+  private handleHorizontalFlip() {
+    if (!this.props.canDrag) return;
     this.sprite.scale.x *= -1;
     this.drawGlow(); // redraw glow as width sign changed
     this.publishMove(true);
@@ -289,7 +253,7 @@ export class PixiCharacter {
     this.lastSendTime = now;
 
     const msg: PropMoveMessage = {
-      type: 'prop:move',
+      type: "prop:move",
       castId,
       x: this.container.x,
       y: this.container.y,
@@ -298,7 +262,7 @@ export class PixiCharacter {
       indexZ: 0,
     };
     this.props.room?.localParticipant.publishData(
-      new TextEncoder().encode(JSON.stringify(msg)),
+      encoder.encode(JSON.stringify(msg)),
       { reliable: false },
     );
   }
@@ -341,9 +305,7 @@ export class PixiCharacter {
   }
 
   destroy() {
-    if (this.props.room) {
-      this.props.room.off(RoomEvent.DataReceived, this.onDataReceived);
-    }
+    if (this.onKeyDown) window.removeEventListener("keydown", this.onKeyDown);
     this.container.destroy({ children: true });
   }
 }

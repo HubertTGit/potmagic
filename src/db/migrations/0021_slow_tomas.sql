@@ -1,0 +1,2 @@
+ALTER TABLE "stories" ADD COLUMN "selected_scene_id" text;--> statement-breakpoint
+ALTER TABLE "stories" ADD CONSTRAINT "stories_selected_scene_id_fk" FOREIGN KEY ("selected_scene_id") REFERENCES "public"."scenes"("id") ON DELETE SET NULL;

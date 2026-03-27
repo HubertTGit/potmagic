@@ -4,7 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-always use pnpm never use npm
+**ALWAYS use `pnpm` for ALL package operations (add, install, remove). NEVER use `npm` under any circumstances. This is non-negotiable.**
+
+- `pnpm add <pkg>` — install a dependency
+- `pnpm add -D <pkg>` — install a dev dependency
+- `pnpm remove <pkg>` — remove a dependency
+- `pnpm install` — install all dependencies
 
 **Never commit changes unless the user explicitly asks you to.** Always show what would be committed and wait for confirmation first.
 
@@ -17,16 +22,17 @@ pnpm preview      # Preview production build
 
 ## Overview
 
-**potmagic** is an online collaborative theater platform for storytelling. Groups perform interactive stories together using animated Konva canvas characters, with a public LiveKit broadcast stream for audiences. See `.claude/SPEC.md` for full product specification and `.claude/SPEC_LIVEKIT.md` specifically for LiveKit implementation.
+**potmagic** is an online collaborative theater platform for storytelling. Groups perform interactive stories together using animated Konva canvas characters, with a public LiveKit broadcast stream for audiences. See `.agents/specs/SPEC.md` for full product specification and `.agents/specs/SPEC_LIVEKIT.md` specifically for LiveKit implementation.
 
 ## Tech Stack
 
 - **React 19** + **TypeScript 5** — UI
-- **Konva / react-konva** — 2D canvas rendering and interaction
+- **PixiJS** — 2D canvas rendering and interaction
 - **Vite 7** — build tool
 - **TanStack Start** — fullstack framework (SSR, server functions, file-based routing)
 - **TanStack Router** — file-based routing with `beforeLoad` auth guards
 - **TanStack Query** — data fetching/caching
+- **TanStack Form** — form state management
 - **Tailwind CSS v4** + Sass — styling
 - **better-auth** — email/password + magic link authentication, Drizzle adapter (PostgreSQL)
 - **Drizzle ORM** — type-safe PostgreSQL schema and queries
@@ -155,17 +161,20 @@ Auth is still mounted at `/api/auth/*` via better-auth's handler in the server e
 
 ## Skills & Agents (.claude/)
 
-### Skills (`src/.claude/skills/`)
+### Skills (`.agents/skills/`)
 
-Available skills to invoke with the `Skill` tool during development:
+Available skills to invoke during development:
 
 - `tanstack-start-best-practices` — TanStack Start execution model, server functions, routing, middleware, SEO, import protection, hosting
+- `tanstack-start-i18n` — Optional locale URL prefix, react-i18next, language switching, HTML lang, `($lang)` pattern + build workaround
+- `tanstack-form-best-practices` — `useForm` setup, field validation timing, async initial values with TanStack Query, reactivity (`useStore`/`form.Subscribe`), listeners, custom error objects, SSR with TanStack Start
+- `tanstack-query-best-practices` — `useQuery`, query keys factory pattern, `queryOptions` helper, caching lifecycle (`staleTime`/`gcTime`), parallel queries with `useQueries`, render optimizations (`select`, `notifyOnChangeProps`), network mode, SSR hydration
 - `livekit-best-practices` — LiveKit rooms, tokens, multi-user video/voice/data exchange patterns
 - `react-best-practices` — Function components, Context API over prop drilling
 - `tailwind-dark-mode` — Dark/light mode with Tailwind v4, `data-theme` attribute
 - `rive-best-practices` — Rive animations: `@rive-app/react-webgl2`, CJS import workaround, `useRive` hook, state machines, layout/fit, asset loading, `RiveCanvas` wrapper pattern
 
-### Agents (`.claude/agents/`)
+### Agents (`.agents/reference/`)
 
 Specialized reference agents for documentation lookup:
 
@@ -390,6 +399,7 @@ When Figma MCP returns raw HTML + Tailwind, map common patterns to DaisyUI equiv
 # PixiJS Project
 
 ## Documentation
+
 For PixiJS API reference, fetch:
 https://pixijs.com/llms.txt
 

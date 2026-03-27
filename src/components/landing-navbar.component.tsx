@@ -1,54 +1,66 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { Sun, Moon, Menu } from "lucide-react";
 import { useTheme, Theme } from "@/hooks/useTheme";
-import { authClient } from "@/lib/auth-client";
-import { cn } from "@/lib/cn";
+import { LanguageSwitcher } from "@/components/language-switcher.component";
+import { useLanguage } from "@/hooks/useLanguage";
+import { NavbarUserMenu } from "@/components/navbar-user-menu.component";
+import { NavbarMobileUserMenu } from "@/components/navbar-mobile-user-menu.component";
 
 const navLinkClass =
   "decoration-primary hover:text-primary [&.active]:text-primary text-sm font-medium underline-offset-4 hover:underline hover:decoration-2 [&.active]:underline [&.active]:decoration-2";
 
 export function LandingNavbar() {
   const { theme, toggle } = useTheme();
-  const { data: session } = authClient.useSession();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isAuthPage = pathname === "/auth";
+  const { t, langPrefix } = useLanguage();
 
   return (
-    <div className="navbar bg-base-100 px-4 py-3 sm:px-6 lg:px-8">
+    <nav className="navbar bg-base-100 px-4 py-3 sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full max-w-7xl items-center">
         {/* Logo */}
         <div className="navbar-start">
-          <Link to="/" className="flex items-center gap-2">
-            <img
-              src={theme === Theme.dark ? "/logo-white.svg" : "/logo-color.svg"}
-              alt="potmagic"
-              className="hidden h-7 md:block"
-            />
-            <img
-              src={theme === Theme.dark ? "/icon-white.svg" : "/icon-red.svg"}
-              alt="potmagic"
-              className="h-7 md:hidden"
-            />
-          </Link>
+          <div className="relative inline-flex">
+            <Link
+              to={`${langPrefix}/` as any}
+              className="flex items-center gap-2"
+            >
+              <img
+                src={
+                  theme === Theme.dark ? "/logo-white.svg" : "/logo-color.svg"
+                }
+                alt="potmagic"
+                className="hidden h-7 md:block"
+              />
+              <img
+                src={theme === Theme.dark ? "/icon-white.svg" : "/icon-red.svg"}
+                alt="potmagic"
+                className="h-7 md:hidden"
+              />
+            </Link>
+            {import.meta.env.VITE_UNDER_CONSTRUCTION === "true" && (
+              <span className="badge badge-xs border-error/30 bg-warning/10 text-error/80 absolute -top-2 -right-2 translate-x-full tracking-wide uppercase">
+                {t("ui.previewOnly")}
+              </span>
+            )}
+          </div>
         </div>
 
-        <div className="navbar-end flex items-center gap-2">
+        <div className="navbar-end flex items-center gap-5">
           {/* Desktop nav links */}
           <div className="hidden items-center gap-5 md:flex">
-            <Link to="/pricing" className={navLinkClass}>
-              Pricing
+            <Link to={`${langPrefix}/pricing` as any} className={navLinkClass}>
+              {t("nav.pricing")}
             </Link>
-            <Link to="/concept" className={navLinkClass}>
-              Concept
+            <Link to={`${langPrefix}/concept` as any} className={navLinkClass}>
+              {t("nav.concept")}
             </Link>
-            <div className="dropdown dropdown-hover flex flex-col">
+            <div className="dropdown dropdown-click dropdown-start flex flex-col">
               <Link
                 tabIndex={0}
-                to="/docs"
+                to={`${langPrefix}/docs` as any}
                 activeOptions={{ exact: false }}
                 className={navLinkClass}
               >
-                Docs
+                {t("nav.docs")}
               </Link>
               <ul
                 tabIndex={0}
@@ -56,43 +68,43 @@ export function LandingNavbar() {
               >
                 <li>
                   <Link
-                    to="/docs"
+                    to={`${langPrefix}/docs` as any}
                     activeOptions={{ exact: true }}
                     className="[&.active]:text-primary text-sm [&.active]:font-medium"
                   >
-                    Overview
+                    {t("nav.overview")}
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/docs/create-story"
+                    to={`${langPrefix}/docs/create-story` as any}
                     className="[&.active]:text-primary text-sm [&.active]:font-medium"
                   >
-                    Create a Story
+                    {t("nav.createStory")}
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/docs/add-scenes"
+                    to={`${langPrefix}/docs/add-scenes` as any}
                     className="[&.active]:text-primary text-sm [&.active]:font-medium"
                   >
-                    Add Scenes
+                    {t("nav.addScenes")}
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/docs/props"
+                    to={`${langPrefix}/docs/props` as any}
                     className="[&.active]:text-primary text-sm [&.active]:font-medium"
                   >
-                    Props Library
+                    {t("nav.propsLibrary")}
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/docs/size-guidelines"
+                    to={`${langPrefix}/docs/size-guidelines` as any}
                     className="[&.active]:text-primary text-sm [&.active]:font-medium"
                   >
-                    Size Guidelines
+                    {t("nav.sizeGuidelines")}
                   </Link>
                 </li>
               </ul>
@@ -102,36 +114,27 @@ export function LandingNavbar() {
           {/* Desktop auth buttons */}
           <div className="hidden gap-2 md:flex">
             <Link
-              to="/auth"
-              search={{ token: undefined }}
-              className={cn(
-                "btn btn-primary btn-sm font-display px-5 tracking-wide",
-                isAuthPage && "btn-active",
-              )}
-            >
-              {session ? "Start Curating" : "Join Theatre"}
-            </Link>
-            <Link
-              to="/show"
+              to={`${langPrefix}/show` as any}
               className="btn btn-accent btn-sm font-display px-5 tracking-wide"
             >
-              Watch Live
+              {t("nav.watchLive")}
             </Link>
+            <NavbarUserMenu />
+            <LanguageSwitcher />
+            {/* Theme toggle — always visible */}
+            <button
+              type="button"
+              onClick={toggle}
+              className="btn btn-ghost btn-sm btn-square"
+              aria-label={t("ui.toggleTheme")}
+            >
+              {theme === Theme.dark ? (
+                <Sun className="size-4" />
+              ) : (
+                <Moon className="size-4" />
+              )}
+            </button>
           </div>
-
-          {/* Theme toggle — always visible */}
-          <button
-            type="button"
-            onClick={toggle}
-            className="btn btn-ghost btn-sm btn-square"
-            aria-label="Toggle theme"
-          >
-            {theme === Theme.dark ? (
-              <Sun className="size-4" />
-            ) : (
-              <Moon className="size-4" />
-            )}
-          </button>
 
           {/* Mobile burger */}
           <div className="dropdown dropdown-end md:hidden">
@@ -139,7 +142,7 @@ export function LandingNavbar() {
               tabIndex={0}
               type="button"
               className="btn btn-ghost btn-sm btn-square"
-              aria-label="Open menu"
+              aria-label={t("ui.openMenu")}
             >
               <Menu className="size-5" />
             </button>
@@ -148,49 +151,46 @@ export function LandingNavbar() {
               className="dropdown-content menu bg-base-100 border-base-300 z-50 mt-2 w-56 rounded-xl border p-2 shadow-lg"
             >
               <li>
-                <Link to="/pricing" className="[&.active]:text-primary text-sm">
-                  Pricing
-                </Link>
-              </li>
-              <li>
-                <Link to="/concept" className="[&.active]:text-primary text-sm">
-                  Concept
+                <Link
+                  to={`${langPrefix}/pricing` as any}
+                  className="[&.active]:text-primary text-sm"
+                >
+                  {t("nav.pricing")}
                 </Link>
               </li>
               <li>
                 <Link
-                  to="/docs"
+                  to={`${langPrefix}/concept` as any}
+                  className="[&.active]:text-primary text-sm"
+                >
+                  {t("nav.concept")}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to={`${langPrefix}/docs` as any}
                   activeOptions={{ exact: false }}
                   className="[&.active]:text-primary text-sm"
                 >
-                  Docs
+                  {t("nav.docs")}
                 </Link>
               </li>
-              <li className="menu-title mt-1 text-xs">Account</li>
-              <li>
-                <Link
-                  to="/auth"
-                  search={{ token: undefined }}
-                  className={cn(
-                    "btn btn-primary btn-sm font-display tracking-wide",
-                    isAuthPage && "btn-active",
-                  )}
-                >
-                  {session ? "Start Curating" : "Join Theatre"}
-                </Link>
-              </li>
+              <NavbarMobileUserMenu />
               <li className="mt-1">
                 <Link
-                  to="/show"
+                  to={`${langPrefix}/show` as any}
                   className="btn btn-accent btn-sm font-display tracking-wide"
                 >
-                  Watch Live
+                  {t("nav.watchLive")}
                 </Link>
+              </li>
+              <li className="mt-1 flex justify-between px-2">
+                <LanguageSwitcher />
               </li>
             </ul>
           </div>
         </div>
       </div>
-    </div>
+    </nav>
   );
 }

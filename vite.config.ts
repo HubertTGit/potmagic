@@ -10,7 +10,15 @@ export default defineConfig({
     tsconfigPaths({ projects: [path.resolve(__dirname, 'tsconfig.json')] }),
     tailwindcss(),
     nitro({ preset: 'vercel' }),
-    tanstackStart(),
+    tanstackStart({
+      router: {
+        // ($lang) files trigger TanStack Router's route-group error in v1.166+.
+        // We maintain routeTree.gen.ts manually, so we skip auto-generation for
+        // files/dirs starting with '(' and redirect generator output elsewhere.
+        routeFileIgnorePrefix: '(',
+        generatedRouteTree: './src/routeTree.ignored.gen.ts',
+      },
+    }),
   ],
   server: {
     host: true,
