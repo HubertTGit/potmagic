@@ -238,8 +238,10 @@ export class PixiRiveAnimation {
     this.sprite.on("globalpointermove", this.onStagePointerMove.bind(this));
 
     this.onKeyDown = (e: KeyboardEvent) => {
-      if (e.code === "Space" && this.activePointers.size > 0)
+      if (e.code === "Space" && this.activePointers.size > 0) {
+        e.preventDefault();
         this.handleHorizontalFlip();
+      }
     };
     window.addEventListener("keydown", this.onKeyDown);
 
