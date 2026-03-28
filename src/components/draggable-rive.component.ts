@@ -152,21 +152,18 @@ export class PixiRiveAnimation {
     const riveInstance = this.riveInstance!;
     const riveCanvas = this.riveCanvas!;
 
-    // Size the offscreen canvas from Rive artboard bounds (mirrors rive-canvas.component.tsx)
-    if (riveInstance.bounds) {
-      const bounds = riveInstance.bounds;
-      const riveWidth = bounds.maxX - bounds.minX;
-      const riveHeight = bounds.maxY - bounds.minY;
+    // Size the offscreen canvas from Rive artboard dimensions
+    const artboardHeight = riveInstance.artboardHeight;
+    const artboardWidth = riveInstance.artboardWidth;
 
-      if (riveWidth > 0 && riveHeight > 0) {
-        // Set pixel dimensions explicitly first, then let resizeDrawingSurfaceToCanvas
-        // scale up by devicePixelRatio for crisp rendering.
-        riveCanvas.width = riveWidth;
-        riveCanvas.height = riveHeight;
-        riveCanvas.style.width = `${riveWidth}px`;
-        riveCanvas.style.height = `${riveHeight}px`;
-        riveInstance.resizeDrawingSurfaceToCanvas();
-      }
+    if (artboardWidth > 0 && artboardHeight > 0) {
+      const dpr = window.devicePixelRatio || 1;
+      // Set CSS size to artboard/DPR so resizeDrawingSurfaceToCanvas()
+      // (which multiplies clientWidth × DPR) lands exactly on artboard dimensions.
+      riveCanvas.style.width = `${artboardWidth / dpr}px`;
+      riveCanvas.style.height = `${artboardHeight / dpr}px`;
+      riveInstance.resizeDrawingSurfaceToCanvas();
+      // canvas.width/height are now exactly artboardWidth × artboardHeight
     }
 
     riveInstance.startRendering();
