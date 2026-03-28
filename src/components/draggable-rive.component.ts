@@ -153,11 +153,13 @@ export class PixiRiveAnimation {
     const artboardWidth = riveInstance.artboardWidth;
 
     if (artboardWidth > 0 && artboardHeight > 0) {
-      riveCanvas.width = artboardWidth;
-      riveCanvas.height = artboardHeight;
-      riveCanvas.style.width = `${artboardWidth}px`;
-      riveCanvas.style.height = `${artboardHeight}px`;
+      const dpr = window.devicePixelRatio || 1;
+      // Set CSS size to artboard/DPR so resizeDrawingSurfaceToCanvas()
+      // (which multiplies clientWidth × DPR) lands exactly on artboard dimensions.
+      riveCanvas.style.width = `${artboardWidth / dpr}px`;
+      riveCanvas.style.height = `${artboardHeight / dpr}px`;
       riveInstance.resizeDrawingSurfaceToCanvas();
+      // canvas.width/height are now exactly artboardWidth × artboardHeight
     }
 
     riveInstance.startRendering();
