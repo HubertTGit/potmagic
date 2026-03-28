@@ -148,15 +148,15 @@ export class PixiRiveAnimation {
     const riveInstance = this.riveInstance!;
     const riveCanvas = this.riveCanvas!;
 
-    // Size the offscreen canvas from Rive bounds
-    if (riveInstance.bounds) {
-      const { minX, maxX, minY, maxY } = riveInstance.bounds;
-      const w = maxX - minX;
-      const h = maxY - minY;
-      riveCanvas.width = w;
-      riveCanvas.height = h;
-      riveCanvas.style.width = `${w}px`;
-      riveCanvas.style.height = `${h}px`;
+    // Size the offscreen canvas from Rive artboard dimensions
+    const artboardHeight = riveInstance.artboardHeight;
+    const artboardWidth = riveInstance.artboardWidth;
+
+    if (artboardWidth > 0 && artboardHeight > 0) {
+      riveCanvas.width = artboardWidth;
+      riveCanvas.height = artboardHeight;
+      riveCanvas.style.width = `${artboardWidth}px`;
+      riveCanvas.style.height = `${artboardHeight}px`;
       riveInstance.resizeDrawingSurfaceToCanvas();
     }
 
