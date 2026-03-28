@@ -290,8 +290,8 @@ export const assignSceneProp = createServerFn({ method: 'POST' })
     await requireSceneCastOwner(data.sceneCastId);
     if (data.propId) {
       const [prop] = await db.select({ type: props.type }).from(props).where(eq(props.id, data.propId));
-      if (!prop || prop.type !== 'character') {
-        throw new Error('Only characters can be assigned to actors');
+      if (!prop || (prop.type !== 'character' && prop.type !== 'rive')) {
+        throw new Error('Only characters and rive animations can be assigned to actors');
       }
     }
     await db

@@ -134,7 +134,7 @@ function SceneDetailPage() {
   }));
   const availableActors = data?.availableActors ?? [];
   const availableProps = (data?.props ?? []).filter(
-    (p) => p.type === 'character',
+    (p) => p.type === 'character' || p.type === 'rive',
   );
   const background: BackgroundProp | null =
     data?.background as BackgroundProp | null;

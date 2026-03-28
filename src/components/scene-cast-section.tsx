@@ -1,5 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { Trash2, CircleHelp } from "lucide-react";
+import { Trash2, CircleHelp, Cat } from "lucide-react";
+
+const riveIcon = <Cat className="text-base-content/40 size-4" />;
 import { cn } from "@/lib/cn";
 import { DataList, DataListItem } from "@/components/data-list";
 import { PropPicker } from "@/components/prop-picker";
@@ -81,7 +83,7 @@ export function SceneCastSection({
     <div className="mb-8">
       <div className="my-3 flex items-center justify-between">
         <h2 className="text-base-content/40 text-xs font-semibold tracking-widest uppercase">
-          {t('scene.cast')}
+          {t("scene.cast")}
         </h2>
 
         <SceneNavigator
@@ -96,7 +98,7 @@ export function SceneCastSection({
       <DataList>
         {assignedCast.length === 0 ? (
           <DataListItem className="text-base-content/40 p-4 text-sm italic">
-            {t('scene.noActorToCast')}
+            {t("scene.noActorToCast")}
           </DataListItem>
         ) : (
           [...assignedCast]
@@ -129,7 +131,7 @@ export function SceneCastSection({
                     {c.userId === currentUserId && (
                       <div
                         className="tooltip tooltip-top absolute -top-2 -right-2 flex size-5 items-center justify-center"
-                        data-tip={t('tooltip.thisIsYou')}
+                        data-tip={t("tooltip.thisIsYou")}
                       >
                         <CircleHelp className="text-primary bg-base-100 size-4 rounded-full" />
                       </div>
@@ -139,7 +141,7 @@ export function SceneCastSection({
                     <span className="text-sm font-semibold">{c.userName}</span>
                     <div className="flex items-center gap-2">
                       <span className="text-base-content/40 text-[10px] font-bold tracking-widest uppercase">
-                        {t('role.actor')}
+                        {t("role.actor")}
                       </span>
                     </div>
                   </div>
@@ -155,6 +157,7 @@ export function SceneCastSection({
                       propType={c.propType ?? null}
                       availableProps={availableProps}
                       usedPropIds={usedPropIds}
+                      fallbackIcon={riveIcon}
                       onAssign={(propId) => onAssignProp(c.sceneCastId, propId)}
                     />
                   ) : (
@@ -176,7 +179,7 @@ export function SceneCastSection({
                           {c.userId === currentUserId && (
                             <div
                               className="tooltip tooltip-right flex items-center"
-                              data-tip={t('tooltip.characterAssigned')}
+                              data-tip={t("tooltip.characterAssigned")}
                             >
                               <CircleHelp className="text-base-content/20 hover:text-base-content/40 size-3.5 cursor-help transition-colors" />
                             </div>
@@ -184,7 +187,7 @@ export function SceneCastSection({
                         </div>
                       ) : (
                         <span className="text-base-content/30 text-sm italic">
-                          {t('scene.noCharacterAssigned')}
+                          {t("scene.noCharacterAssigned")}
                         </span>
                       )}
                     </div>
@@ -197,7 +200,7 @@ export function SceneCastSection({
                       onClick={() => onRemoveCast(c)}
                       disabled={isRemovingCast}
                       className="text-error/60 hover:text-error hover:bg-error/10 rounded-lg p-2 text-xs transition-colors"
-                      title={t('aria.removeFromScene')}
+                      title={t("aria.removeFromScene")}
                     >
                       <Trash2 className="size-4" />
                     </button>
@@ -213,7 +216,7 @@ export function SceneCastSection({
           availableActors={availableActors}
           onAdd={onAddCast}
           isLoading={isAddingCast}
-          addLabel={t('scene.addCastMember')}
+          addLabel={t("scene.addCastMember")}
         />
       )}
     </div>
