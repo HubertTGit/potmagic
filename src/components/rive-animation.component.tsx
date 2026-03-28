@@ -25,24 +25,15 @@ export const RiveAnimation = ({
   buffer,
   className,
   isInteractive,
-  onPropertiesLoaded,
 }: {
   src?: string | null;
   buffer?: ArrayBuffer;
   className?: string;
   isInteractive?: boolean;
-  onPropertiesLoaded?: (props: {
-    enumValues: VMProperty[];
-    boolValues: VMProperty[];
-    triggerValues: VMProperty[];
-  }) => void;
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const setRiveApi = useSetAtom(riveApiAtom);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [enumValues, setEnumValues] = useState<VMProperty[]>([]);
-  const [boolValues, setBoolValues] = useState<VMProperty[]>([]);
-  const [triggerValues, setTriggerValues] = useState<VMProperty[]>([]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !containerRef.current) return;
@@ -107,28 +98,11 @@ export const RiveAnimation = ({
               enumPropMeta.forEach((p: VMProperty) => {
                 p.enums = vmi.enum(p.name)?.values;
               });
-              setEnumValues(enumPropMeta);
-            }
-
-            if (boolPropMeta) {
-              setBoolValues(boolPropMeta);
-            }
-
-            if (triggerPropMeta) {
-              setTriggerValues(triggerPropMeta);
             }
 
             const currentEnumMeta = enumPropMeta || [];
             const currentBoolMeta = boolPropMeta || [];
             const currentTriggerMeta = triggerPropMeta || [];
-
-            if (onPropertiesLoaded) {
-              onPropertiesLoaded({
-                enumValues: currentEnumMeta,
-                boolValues: currentBoolMeta,
-                triggerValues: currentTriggerMeta,
-              });
-            }
 
             // Expose API via Jotai if interactive
             if (isInteractive) {

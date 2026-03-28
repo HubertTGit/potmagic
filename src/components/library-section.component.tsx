@@ -5,10 +5,7 @@ import { Image, X, ChevronLeft, ChevronRight, Music } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { PropType } from "@/db/schema";
 import { useLanguage } from "@/hooks/useLanguage";
-import {
-  RiveAnimation,
-  type VMProperty,
-} from "./rive-animation.component";
+import { RiveAnimation, type VMProperty } from "./rive-animation.component";
 import { riveApiAtom } from "@/lib/rive.atoms";
 
 export interface LibraryItem {
@@ -17,62 +14,61 @@ export interface LibraryItem {
   imageUrl: string | null;
 }
 
-const MediaPreview = (
-  { src, buffer, name, className, isRive, isSound, isInteractive, onPropertiesLoaded }:
-  {
-    src?: string | null;
-    buffer?: ArrayBuffer;
-    name?: string;
-    className?: string;
-    isRive?: boolean;
-    isSound?: boolean;
-    isInteractive?: boolean;
-    onPropertiesLoaded?: (props: {
-      enumValues: VMProperty[];
-      boolValues: VMProperty[];
-      triggerValues: VMProperty[];
-    }) => void;
-  }
-) => {
-    if (isSound) {
-      return (
-        <div
-          className={cn(
-            "bg-base-300 flex flex-col items-center justify-center gap-4 p-6",
-            className,
-          )}
-        >
-          <Music className="text-base-content/40 size-8" />
-          {/* audio preview — captions not required for a short preview clip */}
-          {src && (
-            <audio
-              controls
-              src={src}
-              className="w-50"
-              onClick={(e) => e.stopPropagation()}
-            />
-          )}
-        </div>
-      );
-    }
-
-    if (isRive) {
-      return (
-        <RiveAnimation
-          src={src}
-          buffer={buffer}
-          className={className}
-          isInteractive={isInteractive}
-          onPropertiesLoaded={onPropertiesLoaded}
-        />
-      );
-    }
-
-    return src ? (
-      <img src={src} alt={name} className={className} />
-    ) : (
-      <div className={className} />
+const MediaPreview = ({
+  src,
+  buffer,
+  name,
+  className,
+  isRive,
+  isSound,
+  isInteractive,
+}: {
+  src?: string | null;
+  buffer?: ArrayBuffer;
+  name?: string;
+  className?: string;
+  isRive?: boolean;
+  isSound?: boolean;
+  isInteractive?: boolean;
+}) => {
+  if (isSound) {
+    return (
+      <div
+        className={cn(
+          "bg-base-300 flex flex-col items-center justify-center gap-4 p-6",
+          className,
+        )}
+      >
+        <Music className="text-base-content/40 size-8" />
+        {/* audio preview — captions not required for a short preview clip */}
+        {src && (
+          <audio
+            controls
+            src={src}
+            className="w-50"
+            onClick={(e) => e.stopPropagation()}
+          />
+        )}
+      </div>
     );
+  }
+
+  if (isRive) {
+    return (
+      <RiveAnimation
+        src={src}
+        buffer={buffer}
+        className={className}
+        isInteractive={isInteractive}
+      />
+    );
+  }
+
+  return src ? (
+    <img src={src} alt={name} className={className} />
+  ) : (
+    <div className={className} />
+  );
 };
 
 export function LibrarySection({
@@ -103,17 +99,6 @@ export function LibrarySection({
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const riveApi = useAtomValue(riveApiAtom);
-  const [discoveredProps, setDiscoveredProps] = useState<{
-    enumValues: VMProperty[];
-    boolValues: VMProperty[];
-    triggerValues: VMProperty[];
-  } | null>(null);
-
-  useEffect(() => {
-    if (selectedIndex === null) {
-      setDiscoveredProps(null);
-    }
-  }, [selectedIndex]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -431,20 +416,19 @@ export function LibrarySection({
                 isSound={isSound}
                 isInteractive={true}
                 className="bg-base-100/80 max-h-[80vh] w-auto max-w-full overflow-hidden rounded-xl object-contain shadow-2xl"
-                onPropertiesLoaded={setDiscoveredProps}
               />
-              {isRive && (
+              {isRive && riveApi && (
                 <p className="text-base-content/50 bg-base-content/5 mt-4 rounded-full px-2 py-0.5 text-xs font-normal">
-                  Rive Interactive {discoveredProps?.triggerValues.length}
+                  Rive Interactive
                 </p>
               )}
             </div>
 
             <div className="mt-4 flex flex-col items-center pb-8">
-              {discoveredProps && (
+              {riveApi && (
                 <div className="mb-6 flex flex-col items-center gap-4">
                   {/* Enums */}
-                  {discoveredProps.enumValues.map((prop) => (
+                  {riveApi.enumValues.map((prop) => (
                     <div
                       key={prop.name}
                       className="flex flex-col items-center gap-2"
@@ -456,9 +440,7 @@ export function LibrarySection({
                         {prop.enums?.map((val) => (
                           <button
                             key={val}
-                            onClick={() =>
-                              riveApi?.setEnum(prop.name, val)
-                            }
+                            onClick={() => riveApi?.setEnum(prop.name, val)}
                             className="btn btn-xs btn-primary font-display"
                           >
                             {val}
@@ -470,7 +452,7 @@ export function LibrarySection({
 
                   {/* Booleans & Triggers */}
                   <div className="flex flex-wrap justify-center gap-4">
-                    {discoveredProps.boolValues.map((prop) => (
+                    {riveApi.boolValues.map((prop) => (
                       <label
                         key={prop.name}
                         className="flex cursor-pointer items-center gap-2"
@@ -482,16 +464,13 @@ export function LibrarySection({
                           type="checkbox"
                           className="toggle toggle-primary toggle-xs"
                           onChange={(e) =>
-                            riveApi?.setBool(
-                              prop.name,
-                              e.target.checked,
-                            )
+                            riveApi?.setBool(prop.name, e.target.checked)
                           }
                         />
                       </label>
                     ))}
 
-                    {discoveredProps.triggerValues.map((prop) => (
+                    {riveApi.triggerValues.map((prop) => (
                       <button
                         key={prop.name}
                         onClick={() => riveApi?.fireTrigger(prop.name)}
