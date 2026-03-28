@@ -21,6 +21,7 @@ export interface StageCast {
   userId: string;
   path: string | null;
   type: PropType | null;
+  propName: string | null;
   posX: number | null;
   posY: number | null;
   rotation: number | null;

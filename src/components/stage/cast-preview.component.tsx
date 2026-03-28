@@ -1,4 +1,4 @@
-import { Clapperboard, Users, MicOff } from "lucide-react";
+import { Clapperboard, Users, MicOff, Cat } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/cn";
 import { VIEWER_PREFIX } from "@/lib/livekit.fns";
@@ -79,7 +79,18 @@ export function CastPreview() {
               "ring-2 ring-primary ring-offset-2 ring-offset-base-200 scale-110";
           }
 
-          const avatarContent = cast.path ? (
+          const avatarContent =
+            cast.type === "rive" ? (
+              <div
+                className={cn(
+                  "tooltip tooltip-bottom bg-base-300 flex size-8 items-center justify-center rounded-full transition-all duration-300",
+                  ringClass,
+                )}
+                data-tip={cast.propName}
+              >
+                <Cat className="text-base-content/50 size-4" />
+              </div>
+            ) : cast.path ? (
             <img
               src={cast.path}
               alt=""
