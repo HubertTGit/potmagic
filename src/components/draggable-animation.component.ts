@@ -117,7 +117,7 @@ export class PixiAnimation {
   // Rive initialisation
   // -------------------------------------------------------------------------
 
-  private initRive() {
+  private async initRive() {
     const { src } = this.props;
 
     const riveCanvas = document.createElement("canvas");
@@ -127,13 +127,20 @@ export class PixiAnimation {
     document.body.appendChild(riveCanvas);
     this.riveCanvas = riveCanvas;
 
-    this.riveInstance = new Rive({
-      src,
-      canvas: riveCanvas,
-      autoplay: true,
-      autoBind: true,
-      stateMachines: "pmStateMachine",
-      onLoad: () => this.onRiveLoad(),
+    await new Promise<void>((resolve) => {
+      this.riveInstance = new Rive({
+        src,
+        canvas: riveCanvas,
+        autoplay: true,
+        autoBind: true,
+        stateMachines: "pmStateMachine",
+        onLoad: () => {
+          if (!this.destroyed) {
+            resolve();
+            this.onRiveLoad();
+          }
+        },
+      });
     });
   }
 
