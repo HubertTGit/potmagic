@@ -44,7 +44,7 @@ export const RiveAnimation = ({
     // Create canvas implicitly
     const canvas = document.createElement("canvas");
 
-    canvas.className = "h-full w-full pointer-events-none"; // Isolated styling
+    canvas.className = "pointer-events-none";
     containerRef.current.appendChild(canvas);
 
     async function init() {
@@ -77,6 +77,15 @@ export const RiveAnimation = ({
 
         if (riveInstance) {
           const vmi = riveInstance.viewModelInstance;
+          const artboardHeight = riveInstance.artboardHeight;
+          const artboardWidth = riveInstance.artboardWidth;
+
+          canvas.width = artboardWidth;
+          canvas.height = artboardHeight;
+          canvas.style.width = `${artboardWidth}px`;
+          canvas.style.height = `${artboardHeight}px`;
+          riveInstance.resizeDrawingSurfaceToCanvas();
+          riveInstance.layout = new Layout({ fit });
 
           if (vmi) {
             // Dynamic discovery
@@ -154,7 +163,7 @@ export const RiveAnimation = ({
   return (
     <div
       ref={containerRef}
-      className={cn(className, "relative overflow-hidden")}
+      className={cn(className, "relative overflow-hidden flex items-center justify-center")}
     >
       {!isLoaded && (
         <div className="bg-base-300 absolute inset-0 animate-pulse" />
