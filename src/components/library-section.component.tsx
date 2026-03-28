@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useAtomValue } from "jotai";
 import { cn } from "@/lib/cn";
 import { Image, X, ChevronLeft, ChevronRight, Music } from "lucide-react";
 import { toast } from "@/lib/toast";
@@ -6,10 +7,9 @@ import { PropType } from "@/db/schema";
 import { useLanguage } from "@/hooks/useLanguage";
 import {
   RiveAnimation,
-  type RiveRef,
   type VMProperty,
 } from "./rive-animation.component";
-import { forwardRef } from "react";
+import { riveApiAtom } from "@/lib/rive.atoms";
 
 export interface LibraryItem {
   id: string;
@@ -17,8 +17,8 @@ export interface LibraryItem {
   imageUrl: string | null;
 }
 
-const MediaPreview = forwardRef<
-  RiveRef,
+const MediaPreview = (
+  { src, buffer, name, className, isRive, isSound, isInteractive, onPropertiesLoaded }:
   {
     src?: string | null;
     buffer?: ArrayBuffer;
@@ -26,17 +26,14 @@ const MediaPreview = forwardRef<
     className?: string;
     isRive?: boolean;
     isSound?: boolean;
+    isInteractive?: boolean;
     onPropertiesLoaded?: (props: {
       enumValues: VMProperty[];
       boolValues: VMProperty[];
       triggerValues: VMProperty[];
     }) => void;
   }
->(
-  (
-    { src, buffer, name, className, isRive, isSound, onPropertiesLoaded },
-    ref,
-  ) => {
+) => {
     if (isSound) {
       return (
         <div
@@ -62,10 +59,10 @@ const MediaPreview = forwardRef<
     if (isRive) {
       return (
         <RiveAnimation
-          ref={ref}
           src={src}
           buffer={buffer}
           className={className}
+          isInteractive={isInteractive}
           onPropertiesLoaded={onPropertiesLoaded}
         />
       );
@@ -76,8 +73,7 @@ const MediaPreview = forwardRef<
     ) : (
       <div className={className} />
     );
-  },
-);
+};
 
 export function LibrarySection({
   label,
@@ -106,7 +102,7 @@ export function LibrarySection({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const riveRef = useRef<RiveRef>(null);
+  const riveApi = useAtomValue(riveApiAtom);
   const [discoveredProps, setDiscoveredProps] = useState<{
     enumValues: VMProperty[];
     boolValues: VMProperty[];
@@ -429,11 +425,11 @@ export function LibrarySection({
 
             <div className="bg-base-100/5 relative flex min-h-[50vh] max-w-full min-w-[50vw] flex-col items-center justify-center overflow-hidden rounded-2xl p-2">
               <MediaPreview
-                ref={riveRef}
                 src={items[selectedIndex].imageUrl!}
                 name={items[selectedIndex].name}
                 isRive={isRive}
                 isSound={isSound}
+                isInteractive={true}
                 className="bg-base-100/80 max-h-[80vh] w-auto max-w-full overflow-hidden rounded-xl object-contain shadow-2xl"
                 onPropertiesLoaded={setDiscoveredProps}
               />
@@ -461,7 +457,7 @@ export function LibrarySection({
                           <button
                             key={val}
                             onClick={() =>
-                              riveRef.current?.setEnum(prop.name, val)
+                              riveApi?.setEnum(prop.name, val)
                             }
                             className="btn btn-xs btn-primary font-display"
                           >
@@ -486,7 +482,7 @@ export function LibrarySection({
                           type="checkbox"
                           className="toggle toggle-primary toggle-xs"
                           onChange={(e) =>
-                            riveRef.current?.setBool(
+                            riveApi?.setBool(
                               prop.name,
                               e.target.checked,
                             )
@@ -498,7 +494,7 @@ export function LibrarySection({
                     {discoveredProps.triggerValues.map((prop) => (
                       <button
                         key={prop.name}
-                        onClick={() => riveRef.current?.fireTrigger(prop.name)}
+                        onClick={() => riveApi?.fireTrigger(prop.name)}
                         className="btn btn-xs btn-accent font-display"
                       >
                         {prop.name}

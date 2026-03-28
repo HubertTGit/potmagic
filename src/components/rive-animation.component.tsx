@@ -1,6 +1,9 @@
-import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSetAtom } from "jotai";
 import { cn } from "@/lib/cn";
 import { ViewModelProperty } from "@rive-app/webgl2/rive_advanced.mjs";
+import { riveApiAtom } from "@/lib/rive.atoms";
+import { Rive } from "@rive-app/webgl2";
 
 export enum DataType {
   boolean = "boolean",
@@ -12,72 +15,40 @@ export interface VMProperty extends ViewModelProperty {
   enums?: string[];
 }
 
-export interface RiveRef {
-  enumValues: VMProperty[];
-  boolValues: VMProperty[];
-  triggerValues: VMProperty[];
-  setEnum: (name: string, value: string) => void;
-  setBool: (name: string, value: boolean) => void;
-  fireTrigger: (name: string) => void;
-}
-
 /**
  * RiveAnimation component with implicit canvas creation.
  * Creates the canvas element via document.createElement for isolated WebGL lifecycle management.
  * Uses the vanilla @rive-app/webgl2 API for maximum stability with dynamic imports.
  */
-export const RiveAnimation = forwardRef<
-  RiveRef,
-  {
-    src?: string | null;
-    buffer?: ArrayBuffer;
-    className?: string;
-    onPropertiesLoaded?: (props: {
-      enumValues: VMProperty[];
-      boolValues: VMProperty[];
-      triggerValues: VMProperty[];
-    }) => void;
-  }
->((props, ref) => {
-  // Be extremely defensive against null props
-  if (!props) return null;
-
-  const { src, buffer, className, onPropertiesLoaded } = props;
+export const RiveAnimation = ({
+  src,
+  buffer,
+  className,
+  isInteractive,
+  onPropertiesLoaded,
+}: {
+  src?: string | null;
+  buffer?: ArrayBuffer;
+  className?: string;
+  isInteractive?: boolean;
+  onPropertiesLoaded?: (props: {
+    enumValues: VMProperty[];
+    boolValues: VMProperty[];
+    triggerValues: VMProperty[];
+  }) => void;
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const riveInstanceRef = useRef<any>(null);
+  const setRiveApi = useSetAtom(riveApiAtom);
   const [isLoaded, setIsLoaded] = useState(false);
   const [enumValues, setEnumValues] = useState<VMProperty[]>([]);
   const [boolValues, setBoolValues] = useState<VMProperty[]>([]);
   const [triggerValues, setTriggerValues] = useState<VMProperty[]>([]);
 
-  useImperativeHandle(ref, () => ({
-    enumValues,
-    boolValues,
-    triggerValues,
-    setEnum: (name, value) => {
-      const vmi = riveInstanceRef.current?.viewModelInstance;
-      if (vmi) {
-        const p = vmi.enum(name);
-        if (p) p.value = value;
-      }
-    },
-    setBool: (name, value) => {
-      const vmi = riveInstanceRef.current?.viewModelInstance;
-      if (vmi) {
-        const p = vmi.boolean(name);
-        if (p) p.value = value;
-      }
-    },
-    fireTrigger: (name) => {
-      const vmi = riveInstanceRef.current?.viewModelInstance;
-      if (vmi) vmi.trigger(name)?.trigger();
-    },
-  }));
-
   useEffect(() => {
     if (typeof window === "undefined" || !containerRef.current) return;
 
     let isCancelled = false;
+    let riveInstance: Rive | null = null;
 
     // Create canvas implicitly
     const canvas = document.createElement("canvas");
@@ -93,25 +64,28 @@ export const RiveAnimation = forwardRef<
         const isCover = className?.includes("object-cover");
         const fit = isCover ? Fit.Cover : Fit.Contain;
 
-        riveInstanceRef.current = new Rive({
-          src: src || undefined,
-          buffer: buffer || undefined,
-          canvas: canvas,
-          autoplay: true,
-          autoBind: true,
-          stateMachines: "pmStateMachine",
-          layout: new Layout({ fit }),
-          onLoad: () => {
-            if (!isCancelled) {
-              setIsLoaded(true);
-              // Ensure drawing surface matches initial size
-              riveInstanceRef.current?.resizeDrawingSurfaceToCanvas();
-            }
-          },
+        await new Promise<void>((resolve) => {
+          riveInstance = new Rive({
+            src: src || undefined,
+            buffer: buffer || undefined,
+            canvas: canvas,
+            autoplay: true,
+            autoBind: true,
+            stateMachines: "pmStateMachine",
+            layout: new Layout({ fit }),
+            onLoad: () => {
+              if (!isCancelled) {
+                resolve();
+                setIsLoaded(true);
+                // Ensure drawing surface matches initial size
+                riveInstance?.resizeDrawingSurfaceToCanvas();
+              }
+            },
+          });
         });
 
-        if (riveInstanceRef.current) {
-          const vmi = riveInstanceRef.current.viewModelInstance;
+        if (riveInstance) {
+          const vmi = riveInstance.viewModelInstance;
 
           if (vmi) {
             // Dynamic discovery
@@ -133,7 +107,6 @@ export const RiveAnimation = forwardRef<
               enumPropMeta.forEach((p: VMProperty) => {
                 p.enums = vmi.enum(p.name)?.values;
               });
-
               setEnumValues(enumPropMeta);
             }
 
@@ -145,11 +118,35 @@ export const RiveAnimation = forwardRef<
               setTriggerValues(triggerPropMeta);
             }
 
+            const currentEnumMeta = enumPropMeta || [];
+            const currentBoolMeta = boolPropMeta || [];
+            const currentTriggerMeta = triggerPropMeta || [];
+
             if (onPropertiesLoaded) {
               onPropertiesLoaded({
-                enumValues: enumPropMeta || [],
-                boolValues: boolPropMeta || [],
-                triggerValues: triggerPropMeta || [],
+                enumValues: currentEnumMeta,
+                boolValues: currentBoolMeta,
+                triggerValues: currentTriggerMeta,
+              });
+            }
+
+            // Expose API via Jotai if interactive
+            if (isInteractive) {
+              setRiveApi({
+                enumValues: currentEnumMeta,
+                boolValues: currentBoolMeta,
+                triggerValues: currentTriggerMeta,
+                setEnum: (name, value) => {
+                  const p = riveInstance?.viewModelInstance?.enum(name);
+                  if (p) p.value = value;
+                },
+                setBool: (name, value) => {
+                  const p = riveInstance?.viewModelInstance?.boolean(name);
+                  if (p) p.value = value;
+                },
+                fireTrigger: (name) => {
+                  riveInstance?.viewModelInstance?.trigger(name)?.trigger();
+                },
               });
             }
           }
@@ -163,10 +160,13 @@ export const RiveAnimation = forwardRef<
 
     return () => {
       isCancelled = true;
-      if (riveInstanceRef.current) {
+      if (isInteractive) {
+        setRiveApi(null);
+      }
+      if (riveInstance) {
         try {
-          riveInstanceRef.current.cleanup();
-          riveInstanceRef.current = null;
+          riveInstance.cleanup();
+          riveInstance = null;
         } catch (e) {
           // Ignore cleanup errors on destroy
         }
@@ -175,7 +175,7 @@ export const RiveAnimation = forwardRef<
         canvas.remove();
       }
     };
-  }, [src, buffer, className]);
+  }, [src, buffer, className, isInteractive, setRiveApi]);
 
   return (
     <div
@@ -187,4 +187,4 @@ export const RiveAnimation = forwardRef<
       )}
     </div>
   );
-});
+};
