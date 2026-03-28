@@ -203,6 +203,8 @@ export class PixiRiveAnimation {
     };
     this.props.app.ticker.add(this.tickerFn);
 
+    this.container.zIndex = 1;
+
     this.drawGlow();
     this.setupInteraction();
     this.props.onReady?.();
