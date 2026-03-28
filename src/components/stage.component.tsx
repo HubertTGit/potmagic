@@ -5,7 +5,7 @@ import type { Room } from "livekit-client";
 import { useAtomValue, useSetAtom } from "jotai";
 import { PixiCharacter } from "@/components/draggable-character.component";
 import { PixiBackground } from "@/components/draggable-background.component";
-import { PixiAnimation } from "@/components/draggable-animation.component";
+import { PixiRiveAnimation } from "@/components/draggable-rive.component";
 import { authClient } from "@/lib/auth-client";
 import type { PropType } from "@/db/schema";
 import { bgPanningAtom, bgProgressAtom } from "@/lib/bg-panning.atoms";
@@ -56,13 +56,13 @@ export const StageComponent = React.forwardRef<
   const { data: session } = authClient.useSession();
   const containerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<Application | null>(null);
-  const propsRef = useRef<Map<string, PixiCharacter | PixiBackground | PixiAnimation>>(
-    new Map(),
-  );
+  const propsRef = useRef<
+    Map<string, PixiCharacter | PixiBackground | PixiRiveAnimation>
+  >(new Map());
   // castId → prop lookup for O(1) dispatch of incoming LiveKit data messages
-  const castIdMapRef = useRef<Map<string, PixiCharacter | PixiBackground | PixiAnimation>>(
-    new Map(),
-  );
+  const castIdMapRef = useRef<
+    Map<string, PixiCharacter | PixiBackground | PixiRiveAnimation>
+  >(new Map());
   const appReadyRef = useRef(false);
   const prevCastIdsRef = useRef<string>("");
 
@@ -220,7 +220,7 @@ export const StageComponent = React.forwardRef<
           cast.type === "background"
             ? PixiBackground
             : cast.type === "rive"
-              ? PixiAnimation
+              ? PixiRiveAnimation
               : PixiCharacter;
         const prop = new PropClass({
           sceneCastId: cast.sceneCastId,

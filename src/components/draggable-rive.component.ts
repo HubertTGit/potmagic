@@ -43,18 +43,15 @@ function getAngle(a: { x: number; y: number }, b: { x: number; y: number }) {
   return Math.atan2(b.y - a.y, b.x - a.x) * (180 / Math.PI);
 }
 
-function getMidpoint(
-  a: { x: number; y: number },
-  b: { x: number; y: number },
-) {
+function getMidpoint(a: { x: number; y: number }, b: { x: number; y: number }) {
   return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
 }
 
 // ---------------------------------------------------------------------------
-// PixiAnimation
+// PixiRiveAnimation
 // ---------------------------------------------------------------------------
 
-export class PixiAnimation {
+export class PixiRiveAnimation {
   readonly container: Container;
   private sprite: Sprite;
   private glowFilter: GlowFilter;
