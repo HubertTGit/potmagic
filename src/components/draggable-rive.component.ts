@@ -399,6 +399,8 @@ export class PixiRiveAnimation {
     if (this.isSpeaking === isSpeaking) return;
     this.isSpeaking = isSpeaking;
     this.drawGlow();
+    const triggerName = isSpeaking ? "talk" : "idle";
+    this.riveInstance?.viewModelInstance?.trigger(triggerName)?.trigger();
   }
 
   applyRemoteMove(msg: PropMoveMessage) {
