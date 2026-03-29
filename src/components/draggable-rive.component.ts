@@ -1,6 +1,5 @@
 import { Container, Sprite, Texture } from "pixi.js";
 import type { FederatedPointerEvent } from "pixi.js";
-import { GlowFilter } from "pixi-filters/glow";
 import { Rive } from "@rive-app/webgl2";
 import type { ViewModelProperty } from "@rive-app/webgl2/rive_advanced.mjs";
 import { saveSceneCastPosition } from "@/lib/scenes.fns";
@@ -54,7 +53,7 @@ function getMidpoint(a: { x: number; y: number }, b: { x: number; y: number }) {
 export class PixiRiveAnimation {
   readonly container: Container;
   private sprite: Sprite;
-  private glowFilter: GlowFilter;
+
   private readonly props: PixiAnimationProps;
 
   private riveInstance: Rive | null = null;
@@ -91,19 +90,9 @@ export class PixiRiveAnimation {
     this.container.y = props.initialY ?? 100;
     this.container.rotation = (props.initialRotation ?? 0) * (Math.PI / 180);
 
-    this.glowFilter = new GlowFilter({
-      color: 0xa855f7,
-      outerStrength: 4,
-      innerStrength: 0,
-      distance: 15,
-      quality: 0.5,
-    });
-    this.glowFilter.enabled = false;
-
     this.sprite = new Sprite();
     this.sprite.anchor.set(0.5);
     this.sprite.scale.x = props.initialScaleX ?? 1;
-    this.sprite.filters = [this.glowFilter];
 
     this.container.addChild(this.sprite);
 
@@ -195,35 +184,33 @@ export class PixiRiveAnimation {
       });
     }
 
-    // Create PixiJS texture backed by the Rive canvas
-    this.texture = Texture.from(riveCanvas);
-    this.sprite.texture = this.texture;
+    // Defer texture creation by one RAF so Rive has drawn at least one frame
+    // before PixiJS snapshots the canvas (canvas is blank immediately after startRendering).
+    requestAnimationFrame(() => {
+      if (this.destroyed) return;
 
-    // Stream Rive frames into PixiJS each tick
-    this.tickerFn = () => {
-      if (!this.destroyed && riveCanvas.width > 0 && riveCanvas.height > 0) {
-        this.texture?.source.update();
+      // Create PixiJS texture backed by the Rive canvas
+      this.texture = Texture.from(riveCanvas);
+      this.sprite.texture = this.texture;
+
+      // Stream Rive frames into PixiJS each tick
+      this.tickerFn = () => {
+        if (!this.destroyed && riveCanvas.width > 0 && riveCanvas.height > 0) {
+          this.texture?.source.update();
+        }
+      };
+      this.props.app.ticker.add(this.tickerFn);
+
+      this.container.zIndex = 1;
+
+  
+      this.setupInteraction();
+      this.props.onReady?.();
+
+      if (this.props.app.stage.sortableChildren) {
+        this.props.app.stage.sortChildren();
       }
-    };
-    this.props.app.ticker.add(this.tickerFn);
-
-    this.container.zIndex = 1;
-
-    this.drawGlow();
-    this.setupInteraction();
-    this.props.onReady?.();
-
-    if (this.props.app.stage.sortableChildren) {
-      this.props.app.stage.sortChildren();
-    }
-  }
-
-  // -------------------------------------------------------------------------
-  // Glow
-  // -------------------------------------------------------------------------
-
-  private drawGlow() {
-    this.glowFilter.enabled = this.isSpeaking;
+    });
   }
 
   // -------------------------------------------------------------------------
@@ -351,7 +338,7 @@ export class PixiRiveAnimation {
   private handleHorizontalFlip() {
     if (!this.props.canDrag) return;
     this.sprite.scale.x *= -1;
-    this.drawGlow();
+
     this.publishMove(true);
     this.persistPosition();
   }
@@ -404,7 +391,7 @@ export class PixiRiveAnimation {
   updateSpeaking(isSpeaking: boolean) {
     if (this.isSpeaking === isSpeaking) return;
     this.isSpeaking = isSpeaking;
-    this.drawGlow();
+
     const triggerName = isSpeaking ? "talk" : "idle";
     this.riveInstance?.viewModelInstance?.trigger(triggerName)?.trigger();
   }
