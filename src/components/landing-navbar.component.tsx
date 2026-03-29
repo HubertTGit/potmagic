@@ -53,7 +53,7 @@ export function LandingNavbar() {
             <Link to={`${langPrefix}/concept` as any} className={navLinkClass}>
               {t("nav.concept")}
             </Link>
-            <div className="dropdown dropdown-click dropdown-start flex flex-col">
+            <div className="dropdown dropdown-hover dropdown-start flex flex-col">
               <Link
                 tabIndex={0}
                 to={`${langPrefix}/docs` as any}

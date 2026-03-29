@@ -23,15 +23,16 @@ export function NavbarUserMenu() {
     const showUpgrade = sub === "standard" || sub === "pro";
 
     return (
-      <div className="dropdown dropdown-click dropdown-start flex flex-col">
+      <div className="dropdown dropdown-hover dropdown-start flex flex-col">
         <div className="indicator">
           {showBadge && (
             <span className="indicator-item badge badge-accent badge-xs capitalize">
               {sub}
             </span>
           )}
-          <button
+          <Link
             tabIndex={0}
+            to={`${langPrefix}/stories` as any}
             className={cn(
               "btn btn-sm font-display gap-2 px-4 tracking-wide",
               session.user.role === "director"
@@ -51,7 +52,7 @@ export function NavbarUserMenu() {
                 name: session.user.name || session.user.email.split("@")[0],
               })}
             </span>
-          </button>
+          </Link>
         </div>
         <ul
           tabIndex={0}
