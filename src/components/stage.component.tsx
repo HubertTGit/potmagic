@@ -70,6 +70,9 @@ export const StageComponent = React.forwardRef<
   const [allLoaded, setAllLoaded] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  const [activeRiveProp, setActiveRiveProp] =
+    useState<PixiRiveAnimation | null>(null);
+
   const bgPanning = useAtomValue(bgPanningAtom);
   const setBgPanning = useSetAtom(bgPanningAtom);
   const setBgProgress = useSetAtom(bgProgressAtom);
@@ -242,6 +245,17 @@ export const StageComponent = React.forwardRef<
             remaining -= 1;
             if (remaining === 0) setAllLoaded(true);
           },
+          ...(cast.type === "rive" && {
+            onSelect: (selected: boolean) => {
+              if (selected) {
+                setActiveRiveProp(prop as PixiRiveAnimation);
+              } else {
+                setActiveRiveProp((current) =>
+                  current === prop ? null : current,
+                );
+              }
+            },
+          }),
           ...(cast.type === "background" && {
             backgroundRepeat,
             onPositionChange: (
@@ -306,6 +320,11 @@ export const StageComponent = React.forwardRef<
         castIdMapRef.current.get(msg.castId)?.applyRemoteMove(msg);
       } else if (msg.type === "bg:animate") {
         setBgPanning({ direction: msg.direction, speed: msg.speed });
+      } else if (msg.type === "prop:trigger") {
+        const prop = castIdMapRef.current.get(msg.castId);
+        if (prop instanceof PixiRiveAnimation) {
+          prop.applyRemoteTrigger(msg.triggerName);
+        }
       }
     };
     room.on(RoomEvent.DataReceived, onDataReceived);
@@ -377,7 +396,26 @@ export const StageComponent = React.forwardRef<
         ref={containerRef}
         className="flex h-full w-full items-center justify-center bg-black"
       />
-      (
+      {activeRiveProp && activeRiveProp.triggerValues.length > 0 && (
+        <div className="bg-base-300/80 border-base-300 pointer-events-auto absolute bottom-0 left-1/2 flex -translate-x-1/2 flex-wrap justify-center gap-2 rounded-xl border p-3 shadow-xl backdrop-blur-md">
+          {activeRiveProp.triggerValues.slice(0, 6).map((trigger, idx) => {
+            const keys = ["Q", "W", "E", "A", "S", "D"];
+            return (
+              <button
+                key={trigger.name}
+                type="button"
+                onClick={() => activeRiveProp.handleTrigger(idx)}
+                className="btn btn-xs btn-outline font-display border-base-content/20 hover:border-accent hover:bg-accent/10 hover:text-accent flex items-center gap-1.5 tracking-wider uppercase"
+              >
+                <span className="bg-base-content/10 text-base-content/60 rounded px-1 text-[10px] font-bold">
+                  {keys[idx]}
+                </span>
+                {trigger.name}
+              </button>
+            );
+          })}
+        </div>
+      )}
       <button
         type="button"
         onClick={() => {

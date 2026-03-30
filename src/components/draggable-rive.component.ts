@@ -3,7 +3,7 @@ import type { FederatedPointerEvent } from "pixi.js";
 import { Rive } from "@rive-app/webgl2";
 import type { ViewModelProperty } from "@rive-app/webgl2/rive_advanced.mjs";
 import { saveSceneCastPosition } from "@/lib/scenes.fns";
-import type { PropMoveMessage } from "@/lib/livekit-messages";
+import type { PropMoveMessage, PropTriggerMessage } from "@/lib/livekit-messages";
 import type { PixiCharacterProps } from "@/components/draggable-character.component";
 
 // ---------------------------------------------------------------------------
@@ -30,6 +30,7 @@ export interface PixiAnimationProps extends PixiCharacterProps {
     boolValues: VMProperty[];
     triggerValues: VMProperty[];
   }) => void;
+  onSelect?: (active: boolean) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -45,6 +46,15 @@ function getAngle(a: { x: number; y: number }, b: { x: number; y: number }) {
 function getMidpoint(a: { x: number; y: number }, b: { x: number; y: number }) {
   return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
 }
+
+const KEY_MAP: Record<string, number> = {
+  KeyQ: 0,
+  KeyW: 1,
+  KeyE: 2,
+  KeyA: 3,
+  KeyS: 4,
+  KeyD: 5,
+};
 
 // ---------------------------------------------------------------------------
 // PixiRiveAnimation
@@ -173,9 +183,22 @@ export class PixiRiveAnimation {
       this.boolValues = props.filter(
         (p) => (p.type as unknown as DataType) === DataType.boolean,
       );
-      this.triggerValues = props.filter(
+      const triggers = props.filter(
         (p) => (p.type as unknown as DataType) === DataType.trigger,
       );
+
+      // Reorder triggers: 'walk' at index 0, 'idle' at index 1
+      const walk = triggers.find((t) => t.name.toLowerCase() === "walk");
+      const idle = triggers.find((t) => t.name.toLowerCase() === "idle");
+      const others = triggers.filter(
+        (t) => t !== walk && t !== idle,
+      );
+
+      this.triggerValues = [
+        ...(walk ? [walk] : []),
+        ...(idle ? [idle] : []),
+        ...others,
+      ].slice(0, 6);
 
       this.props.onPropertiesReady?.({
         enumValues: this.enumValues,
@@ -231,9 +254,20 @@ export class PixiRiveAnimation {
     this.sprite.on("globalpointermove", this.onStagePointerMove.bind(this));
 
     this.onKeyDown = (e: KeyboardEvent) => {
-      if (e.code === "Space" && this.activePointers.size > 0) {
+      if (this.activePointers.size === 0) return;
+
+      if (e.code === "Space") {
         e.preventDefault();
         this.handleHorizontalFlip();
+        return;
+      }
+
+      const index = KEY_MAP[e.code];
+      if (index !== undefined && this.triggerValues[index]) {
+        e.preventDefault();
+        const trigger = this.triggerValues[index];
+        this.riveInstance?.viewModelInstance?.trigger(trigger.name)?.trigger();
+        this.publishTrigger(trigger.name);
       }
     };
     window.addEventListener("keydown", this.onKeyDown);
@@ -259,6 +293,9 @@ export class PixiRiveAnimation {
     this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
     if (this.activePointers.size === 1) {
+      if (this.props.canDrag) {
+        this.props.onSelect?.(true);
+      }
       this.isDragging = true;
       this.dragOffset = {
         x: this.container.x - e.global.x,
@@ -281,6 +318,7 @@ export class PixiRiveAnimation {
 
     if (this.activePointers.size === 0) {
       this.isDragging = false;
+      this.props.onSelect?.(false);
       this.persistPosition();
     }
   }
@@ -378,6 +416,21 @@ export class PixiRiveAnimation {
     });
   }
 
+  private publishTrigger(triggerName: string) {
+    const { room, canDrag, castId } = this.props;
+    if (!room || !canDrag) return;
+
+    const msg: PropTriggerMessage = {
+      type: "prop:trigger",
+      castId,
+      triggerName,
+    };
+    this.props.room?.localParticipant.publishData(
+      encoder.encode(JSON.stringify(msg)),
+      { reliable: true },
+    );
+  }
+
   private bringToTop() {
     const stage = this.props.app.stage;
     this.container.zIndex = stage.children.length + 1;
@@ -401,6 +454,18 @@ export class PixiRiveAnimation {
     this.container.y = msg.y;
     this.container.rotation = msg.rotation * (Math.PI / 180);
     this.sprite.scale.x = msg.scaleX;
+  }
+
+  applyRemoteTrigger(triggerName: string) {
+    this.riveInstance?.viewModelInstance?.trigger(triggerName)?.trigger();
+  }
+
+  handleTrigger(index: number) {
+    const trigger = this.triggerValues[index];
+    if (trigger) {
+      this.riveInstance?.viewModelInstance?.trigger(trigger.name)?.trigger();
+      this.publishTrigger(trigger.name);
+    }
   }
 
   saveCurrentPosition() {
