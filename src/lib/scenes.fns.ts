@@ -290,8 +290,8 @@ export const assignSceneProp = createServerFn({ method: 'POST' })
     await requireSceneCastOwner(data.sceneCastId);
     if (data.propId) {
       const [prop] = await db.select({ type: props.type }).from(props).where(eq(props.id, data.propId));
-      if (!prop || (prop.type !== 'character' && prop.type !== 'rive')) {
-        throw new Error('Only characters and rive animations can be assigned to actors');
+      if (!prop || (prop.type !== 'character' && prop.type !== 'rive' && prop.type !== 'composite')) {
+        throw new Error('Only characters, composite characters and rive animations can be assigned to actors');
       }
     }
     await db
@@ -334,7 +334,8 @@ export const getSceneStage = createServerFn({ method: 'GET' })
         sceneCastId: sceneCast.id,
         castId: cast.id,
         userId: cast.userId,
-        path: props.imageUrl,
+        imageUrl: props.imageUrl,
+        propId: props.id,
         type: props.type,
         propName: props.name,
         posX: sceneCast.posX,
@@ -391,6 +392,7 @@ export const getSceneStage = createServerFn({ method: 'GET' })
       const [bgProp] = await db
         .select({
           imageUrl: props.imageUrl,
+          id: props.id,
           type: props.type,
           name: props.name,
         })
@@ -402,7 +404,7 @@ export const getSceneStage = createServerFn({ method: 'GET' })
           sceneCastId: `bg-${data.sceneId}`,
           castId: 'background',
           userId: storyRow.directorId,
-          path: bgProp.imageUrl,
+          path: bgProp.type === 'composite' ? bgProp.id : bgProp.imageUrl,
           type: bgProp.type,
           propName: bgProp.name,
           posX: sceneWithBg.backgroundPosX ?? 0,
@@ -417,7 +419,7 @@ export const getSceneStage = createServerFn({ method: 'GET' })
       sceneCastId: r.sceneCastId,
       castId: r.castId,
       userId: r.userId,
-      path: r.path,
+      path: r.type === 'composite' ? r.propId : r.imageUrl,
       type: r.type,
       propName: r.propName,
       posX: r.posX,

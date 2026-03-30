@@ -605,5 +605,16 @@
   "show.backToEntry": "← Zurück zur Show-Eingabe",
   "show.ended": "Die Show ist beendet",
   "show.notLiveYet": "Noch nicht live",
-  "show.checkBackSoon": "{{title}} — schau bald wieder vorbei"
+  "show.checkBackSoon": "{{title}} — schau bald wieder vorbei",
+  "characterBuilder.heading": "Charakter-Editor",
+  "characterBuilder.newCharacter": "Neuer Charakter",
+  "characterBuilder.namePlaceholder": "Charaktername...",
+  "characterBuilder.uploadMain": "Hauptbild",
+  "characterBuilder.uploadAlt": "Alternativ",
+  "characterBuilder.publish": "Charakter veröffentlichen",
+  "characterBuilder.published": "Charakter veröffentlicht!",
+  "characterBuilder.publishError": "Fehler beim Veröffentlichen",
+  "characterBuilder.bodyParts": "Körperteile",
+  "characterBuilder.activePart": "Aktives Teil",
+  "characterBuilder.removePart": "Teil entfernen?"
 }

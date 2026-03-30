@@ -16,7 +16,9 @@ export function PropTypePill({ type, className }: PropTypePillProps) {
           ? 'badge-soft badge-primary'
           : type === 'background'
             ? 'badge-soft badge-info'
-            : 'badge-soft badge-secondary',
+            : type === 'composite'
+              ? 'badge-soft badge-accent'
+              : 'badge-soft badge-secondary',
         className,
       )}
     >

@@ -13,6 +13,7 @@ import {
   updateCharacter
 } from "@/lib/character-builder.fns";
 import { cn } from "@/lib/cn";
+import { toast } from "@/lib/toast";
 import {
   ChevronLeft,
   Upload,
@@ -91,7 +92,12 @@ export function CharacterBuilderStudio() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-characters"] });
       queryClient.invalidateQueries({ queryKey: ["all-props"] });
+      queryClient.invalidateQueries({ queryKey: ["character", characterId] });
+      toast.success(t("characterBuilder.published") || "Character published successfully!");
     },
+    onError: () => {
+      toast.error("Failed to publish character");
+    }
   });
 
   const updateCharacterMutation = useMutation({

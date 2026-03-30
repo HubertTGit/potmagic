@@ -351,7 +351,7 @@ export const StageComponent = React.forwardRef<
     };
     room.on(RoomEvent.DataReceived, onDataReceived);
     return () => {
-      room.off(RoomEvent.DataReceived, onDataReceived);
+      room?.off(RoomEvent.DataReceived, onDataReceived);
     };
   }, [room, setBgPanning]);
 
@@ -388,7 +388,7 @@ export const StageComponent = React.forwardRef<
 
     app.stage.on("globalpointermove", onMove);
     return () => {
-      app.stage.off("globalpointermove", onMove);
+      app?.stage?.off("globalpointermove", onMove);
     };
   }, [allLoaded]);
 
@@ -482,7 +482,6 @@ export const StageComponent = React.forwardRef<
           <Maximize className="h-5 w-5 text-white shadow-sm" />
         )}
       </button>
-      )
     </div>
   );
 });

@@ -19,8 +19,28 @@ export const toast = {
       notify()
     }, 5000)
   },
+  success(message: string) {
+    const id = ++next
+    toasts = [...toasts, { id, message, type: 'success' }]
+    notify()
+    setTimeout(() => {
+      toasts = toasts.filter((t) => t.id !== id)
+      notify()
+    }, 5000)
+  },
+  info(message: string) {
+    const id = ++next
+    toasts = [...toasts, { id, message, type: 'info' }]
+    notify()
+    setTimeout(() => {
+      toasts = toasts.filter((t) => t.id !== id)
+      notify()
+    }, 5000)
+  },
   subscribe(listener: Listener) {
     listeners.add(listener)
-    return () => { listeners.delete(listener) }
+    return () => {
+      listeners.delete(listener)
+    }
   },
 }

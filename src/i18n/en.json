@@ -678,6 +678,8 @@
   "characterBuilder.uploadMain": "Main",
   "characterBuilder.uploadAlt": "Alt",
   "characterBuilder.publish": "Publish Character",
+  "characterBuilder.published": "Character published!",
+  "characterBuilder.publishError": "Failed to publish character",
   "characterBuilder.bodyParts": "Body Parts",
   "characterBuilder.activePart": "Active Part",
   "characterBuilder.removePart": "Remove part?"

@@ -292,7 +292,17 @@ export const publishCharacter = createServerFn({ method: "POST" })
     if (!char) throw new Error("Character not found");
     const session = await requireStoryParticipant(char.storyId);
 
-    // If already published, update name if needed, but we keep the same propId
+    // Fetch all parts to find a thumbnail
+    const parts = await db
+      .select({ imageUrl: characterParts.imageUrl, partRole: characterParts.partRole })
+      .from(characterParts)
+      .where(eq(characterParts.characterId, data.characterId));
+
+    const bodyPart = parts.find(p => p.partRole === 'body');
+    const headPart = parts.find(p => p.partRole === 'head');
+    const thumbnail = bodyPart?.imageUrl ?? headPart?.imageUrl ?? parts[0]?.imageUrl ?? null;
+
+    // If already published, update name and thumbnail if needed, but we keep the same propId
     let propId = char.compositePropId;
 
     if (!propId) {
@@ -303,6 +313,7 @@ export const publishCharacter = createServerFn({ method: "POST" })
         createdBy: session.user.id,
         name: char.name,
         type: "composite",
+        imageUrl: thumbnail,
       });
 
       await db
@@ -312,7 +323,7 @@ export const publishCharacter = createServerFn({ method: "POST" })
     } else {
       await db
         .update(props)
-        .set({ name: char.name })
+        .set({ name: char.name, imageUrl: thumbnail })
         .where(eq(props.id, propId));
     }
 
