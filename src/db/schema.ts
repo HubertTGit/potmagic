@@ -285,9 +285,9 @@ export const characters = pgTable(
   "characters",
   {
     id: text("id").primaryKey(),
-    storyId: text("story_id")
-      .notNull()
-      .references(() => stories.id, { onDelete: "cascade" }),
+    storyId: text("story_id").references(() => stories.id, {
+      onDelete: "set null",
+    }),
     createdBy: text("created_by")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),

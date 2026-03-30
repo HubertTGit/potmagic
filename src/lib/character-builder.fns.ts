@@ -1,7 +1,7 @@
 // src/lib/character-builder.fns.ts
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
-import { eq, and, asc } from "drizzle-orm";
+import { eq, and, asc, isNotNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
@@ -9,9 +9,6 @@ import {
   characters,
   characterParts,
   props,
-  stories,
-  cast,
-  users,
 } from "@/db/schema";
 
 async function getSessionOrThrow() {
@@ -20,48 +17,29 @@ async function getSessionOrThrow() {
   return session;
 }
 
-async function requireStoryParticipant(storyId: string) {
-  const session = await getSessionOrThrow();
-  const [story] = await db
-    .select({ directorId: stories.directorId })
-    .from(stories)
-    .where(eq(stories.id, storyId));
-
-  if (!story) throw new Error("Story not found");
-
-  if (story.directorId === session.user.id) return session;
-
-  const [castRecord] = await db
-    .select({ id: cast.id })
-    .from(cast)
-    .where(and(eq(cast.storyId, storyId), eq(cast.userId, session.user.id)));
-
-  if (!castRecord) throw new Error("Forbidden");
-  return session;
-}
-
 export const listCharacters = createServerFn({ method: "GET" })
-  .inputValidator((input) => z.object({ storyId: z.string() }).parse(input))
-  .handler(async ({ data }) => {
-    await requireStoryParticipant(data.storyId);
+  .handler(async () => {
+    const session = await getSessionOrThrow();
 
     return await db
       .select()
       .from(characters)
-      .where(eq(characters.storyId, data.storyId))
+      .where(eq(characters.createdBy, session.user.id))
       .orderBy(asc(characters.createdAt));
   });
 
 export const getCharacter = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ characterId: z.string() }).parse(input))
   .handler(async ({ data }) => {
+    const session = await getSessionOrThrow();
+
     const [char] = await db
       .select()
       .from(characters)
       .where(eq(characters.id, data.characterId));
 
     if (!char) throw new Error("Character not found");
-    await requireStoryParticipant(char.storyId);
+    if (char.createdBy !== session.user.id) throw new Error("Forbidden");
 
     const parts = await db
       .select({
@@ -145,17 +123,16 @@ export const getCharacterByProp = createServerFn({ method: "GET" })
 
 export const createCharacter = createServerFn({ method: "POST" })
   .inputValidator((input) =>
-    z.object({ storyId: z.string(), name: z.string().min(1) }).parse(input),
+    z.object({ name: z.string().min(1) }).parse(input),
   )
   .handler(async ({ data }) => {
-    const session = await requireStoryParticipant(data.storyId);
+    const session = await getSessionOrThrow();
 
     const id = crypto.randomUUID();
     const [char] = await db
       .insert(characters)
       .values({
         id,
-        storyId: data.storyId,
         createdBy: session.user.id,
         name: data.name,
       })
@@ -189,17 +166,19 @@ export const upsertCharacterPart = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data }) => {
+    const session = await getSessionOrThrow();
+
     const [char] = await db
-      .select({ storyId: characters.storyId })
+      .select({ createdBy: characters.createdBy })
       .from(characters)
       .where(eq(characters.id, data.characterId));
     if (!char) throw new Error("Character not found");
-    await requireStoryParticipant(char.storyId);
+    if (char.createdBy !== session.user.id) throw new Error("Forbidden");
 
     const id = crypto.randomUUID();
     const { characterId, partRole, propId, altPropId, ...values } = data;
 
-    // Fetch image URLs for denormalization (user visibility request)
+    // Fetch image URLs for denormalization
     const [prop] = await db.select({ url: props.imageUrl }).from(props).where(eq(props.id, propId));
     let altImageUrl: string | null = null;
     if (altPropId) {
@@ -236,20 +215,20 @@ export const updateCharacter = createServerFn({ method: "POST" })
     z.object({ characterId: z.string(), name: z.string().min(1) }).parse(input),
   )
   .handler(async ({ data }) => {
+    const session = await getSessionOrThrow();
+
     const [char] = await db
       .select()
       .from(characters)
       .where(eq(characters.id, data.characterId));
     if (!char) throw new Error("Character not found");
-    await requireStoryParticipant(char.storyId);
+    if (char.createdBy !== session.user.id) throw new Error("Forbidden");
 
-    // Update character name
     await db
       .update(characters)
       .set({ name: data.name })
       .where(eq(characters.id, data.characterId));
 
-    // If it has a composite prop, update that name too
     if (char.compositePropId) {
       await db
         .update(props)
@@ -265,12 +244,14 @@ export const removeCharacterPart = createServerFn({ method: "POST" })
     z.object({ characterId: z.string(), partRole: z.string() }).parse(input),
   )
   .handler(async ({ data }) => {
+    const session = await getSessionOrThrow();
+
     const [char] = await db
-      .select({ storyId: characters.storyId })
+      .select({ createdBy: characters.createdBy })
       .from(characters)
       .where(eq(characters.id, data.characterId));
     if (!char) throw new Error("Character not found");
-    await requireStoryParticipant(char.storyId);
+    if (char.createdBy !== session.user.id) throw new Error("Forbidden");
 
     await db
       .delete(characterParts)
@@ -285,14 +266,15 @@ export const removeCharacterPart = createServerFn({ method: "POST" })
 export const publishCharacter = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ characterId: z.string() }).parse(input))
   .handler(async ({ data }) => {
+    const session = await getSessionOrThrow();
+
     const [char] = await db
       .select()
       .from(characters)
       .where(eq(characters.id, data.characterId));
     if (!char) throw new Error("Character not found");
-    const session = await requireStoryParticipant(char.storyId);
+    if (char.createdBy !== session.user.id) throw new Error("Forbidden");
 
-    // Fetch all parts to find a thumbnail
     const parts = await db
       .select({ imageUrl: characterParts.imageUrl, partRole: characterParts.partRole })
       .from(characterParts)
@@ -302,14 +284,12 @@ export const publishCharacter = createServerFn({ method: "POST" })
     const headPart = parts.find(p => p.partRole === 'head');
     const thumbnail = bodyPart?.imageUrl ?? headPart?.imageUrl ?? parts[0]?.imageUrl ?? null;
 
-    // If already published, update name and thumbnail if needed, but we keep the same propId
     let propId = char.compositePropId;
 
     if (!propId) {
       propId = crypto.randomUUID();
       await db.insert(props).values({
         id: propId,
-        storyId: char.storyId,
         createdBy: session.user.id,
         name: char.name,
         type: "composite",
@@ -333,17 +313,35 @@ export const publishCharacter = createServerFn({ method: "POST" })
 export const deleteCharacter = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ characterId: z.string() }).parse(input))
   .handler(async ({ data }) => {
+    const session = await getSessionOrThrow();
+
     const [char] = await db
       .select()
       .from(characters)
       .where(eq(characters.id, data.characterId));
     if (!char) throw new Error("Character not found");
-    await requireStoryParticipant(char.storyId);
+    if (char.createdBy !== session.user.id) throw new Error("Forbidden");
 
-    // If it has a composite prop, delete that too
     if (char.compositePropId) {
       await db.delete(props).where(eq(props.id, char.compositePropId));
     }
 
     await db.delete(characters).where(eq(characters.id, data.characterId));
+  });
+
+export const countMyPublishedCharacters = createServerFn({ method: "GET" })
+  .handler(async () => {
+    const session = await getSessionOrThrow();
+
+    const [row] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(characters)
+      .where(
+        and(
+          eq(characters.createdBy, session.user.id),
+          isNotNull(characters.compositePropId),
+        ),
+      );
+
+    return row?.count ?? 0;
   });

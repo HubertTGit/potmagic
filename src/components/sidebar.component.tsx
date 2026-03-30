@@ -15,7 +15,10 @@ import {
   Megaphone,
   Shapes,
   LibraryBig,
+  Wand2,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { countMyPublishedCharacters } from "@/lib/character-builder.fns";
 import type { SubscriptionType } from "@/db/schema";
 
 export function Sidebar() {
@@ -24,6 +27,7 @@ export function Sidebar() {
   const router = useRouter();
   const { t, langPrefix } = useLanguage();
   const isDirector = session?.user?.role === "director";
+  const isActor = session?.user?.role === "actor";
   const location = useRouterState({ select: (s) => s.location.pathname });
   const isStage = location.includes("/stage/");
 
@@ -67,6 +71,13 @@ export function Sidebar() {
 
   const sub = session?.user.subscription as SubscriptionType | undefined;
   const showSubDot = sub === "pro" || sub === "advance";
+  const showCharacterBuilder = (isDirector && showSubDot) || isActor;
+
+  const { data: charCount = 0 } = useQuery({
+    queryKey: ["cb-count"],
+    queryFn: () => countMyPublishedCharacters(),
+    enabled: showCharacterBuilder && !!session,
+  });
 
   const btnBase = cn(
     "btn btn-ghost btn-sm font-normal text-base-content/60",
@@ -162,6 +173,32 @@ export function Sidebar() {
           >
             {t("nav.library")}
           </SidebarLink>
+        )}
+        {showCharacterBuilder && (
+          <div
+            className={cn(collapsed && "tooltip tooltip-right")}
+            data-tip={collapsed ? t("nav.characterBuilder") : undefined}
+          >
+            <div className="indicator w-full">
+              {charCount > 0 && (
+                <span className="indicator-item badge badge-primary badge-xs">
+                  {charCount}
+                </span>
+              )}
+              <Link
+                to={`${langPrefix}/character-builder/` as any}
+                onClick={expandOnDesktop}
+                className={cn(
+                  "btn btn-sm btn-primary/10 text-primary font-normal",
+                  collapsed ? "btn-square" : "w-full justify-start gap-3",
+                  "[&.active]:btn-primary [&.active]:text-white",
+                )}
+              >
+                <Wand2 className="size-4" />
+                {!collapsed && t("nav.characterBuilder")}
+              </Link>
+            </div>
+          </div>
         )}
       </nav>
 

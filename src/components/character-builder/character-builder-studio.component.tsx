@@ -3,13 +3,12 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { authClient } from "@/lib/auth-client";
 import { useLanguage } from "@/hooks/useLanguage";
+import type { SubscriptionType } from "@/db/schema";
 import { uploadProp, deleteProp } from "@/lib/props.fns";
 import {
-  createCharacter,
   getCharacter,
   upsertCharacterPart,
   publishCharacter,
-  listCharacters,
   updateCharacter
 } from "@/lib/character-builder.fns";
 import { cn } from "@/lib/cn";
@@ -20,7 +19,6 @@ import {
   Save,
   Plus,
   Drama,
-  Sparkles,
   Maximize2,
   Target,
   Trash2,
@@ -38,9 +36,9 @@ type PendingProp = {
 };
 
 export function CharacterBuilderStudio() {
-  const { storyId, characterId } = useParams({ strict: false }) as { storyId: string, characterId?: string };
+  const { characterId } = useParams({ strict: false }) as { characterId?: string };
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, langPrefix } = useLanguage();
   const queryClient = useQueryClient();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const appRef = useRef<Application | null>(null);
@@ -59,11 +57,10 @@ export function CharacterBuilderStudio() {
 
   const { data: session } = authClient.useSession();
   const isDirector = session?.user.role === "director";
-
-  const { data: userCharacters = [] } = useQuery({
-    queryKey: ["user-characters", storyId],
-    queryFn: () => listCharacters({ data: { storyId } }),
-  });
+  const isActor = session?.user.role === "actor";
+  const sub = session?.user.subscription as SubscriptionType | undefined;
+  const showSubDot = sub === "pro" || sub === "advance";
+  const canAccess = isActor || (isDirector && showSubDot);
 
   const { data: currentCharacter } = useQuery({
     queryKey: ["character", characterId],
@@ -72,14 +69,6 @@ export function CharacterBuilderStudio() {
   });
 
   // Mutations
-  const createCharacterMutation = useMutation({
-    mutationFn: createCharacter,
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["user-characters"] });
-      navigate({ to: `/character-builder/${storyId}/${data.id}` as any });
-    },
-  });
-
   const upsertPartMutation = useMutation({
     mutationFn: upsertCharacterPart,
     onSuccess: () => {
@@ -416,7 +405,7 @@ export function CharacterBuilderStudio() {
     }
   };
 
-  if (!isDirector) {
+  if (!canAccess) {
     return (
       <div className="flex h-screen items-center justify-center p-8 text-center text-error">
         Unauthorized
@@ -424,56 +413,8 @@ export function CharacterBuilderStudio() {
     );
   }
   if (!characterId) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center p-12 text-center">
-        <div className="mb-8 flex items-center justify-center gap-4">
-          <h1 className="font-display text-4xl font-bold tracking-tight">{t('characterBuilder.heading')}</h1>
-          {session?.user.subscription !== 'standard' && (
-            <div className="badge badge-accent badge-lg gap-2 font-bold uppercase tracking-widest shadow-sm">
-              <Sparkles className="size-4" />
-              {session?.user.subscription}
-            </div>
-          )}
-        </div>
-
-        <div className="mb-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {userCharacters.map((char) => (
-            <button
-              key={char.id}
-              onClick={() => navigate({ to: `/character-builder/${storyId}/${char.id}` as any })}
-              className="card bg-base-100 hover:bg-base-200 border-base-300 group w-56 border shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
-            >
-              <div className="card-body items-center p-8">
-                <div className="bg-primary/5 group-hover:bg-primary/10 mb-4 flex size-20 items-center justify-center rounded-2xl transition-colors">
-                  <Drama className="text-primary size-10 transform transition-transform group-hover:scale-110" />
-                </div>
-                <span className="font-display text-lg font-semibold">{char.name}</span>
-                {char.compositePropId && (
-                  <span className="badge badge-success badge-sm mt-2 font-medium uppercase tracking-wider">Published</span>
-                )}
-              </div>
-            </button>
-          ))}
-          <button
-            onClick={() => createCharacterMutation.mutate({ data: { storyId, name: t('characterBuilder.newCharacter') } })}
-            className="card bg-primary text-primary-content hover:bg-primary/90 group w-56 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
-          >
-            <div className="card-body items-center p-8">
-              <div className="bg-white/20 group-hover:bg-white/30 mb-4 flex size-20 items-center justify-center rounded-2xl transition-colors">
-                <Plus className="size-10 transform transition-transform group-hover:scale-120" />
-              </div>
-              <span className="font-display text-lg font-bold">{t('characterBuilder.newCharacter')}</span>
-            </div>
-          </button>
-        </div>
-        <button
-          onClick={() => navigate({ to: `/stories/${storyId}` as any })}
-          className="btn btn-ghost gap-2"
-        >
-          <ChevronLeft className="size-4" /> Back
-        </button>
-      </div>
-    );
+    navigate({ to: `${langPrefix}/character-builder/` as any });
+    return null;
   }
 
   return (
@@ -482,7 +423,7 @@ export function CharacterBuilderStudio() {
       <header className="bg-base-100 border-base-300 flex items-center justify-between border-b px-6 py-4">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate({ to: `/character-builder/${storyId}` as any })}
+            onClick={() => navigate({ to: `${langPrefix}/character-builder/` as any })}
             className="btn btn-ghost btn-sm btn-square"
           >
             <ChevronLeft className="size-5" />

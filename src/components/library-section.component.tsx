@@ -78,6 +78,7 @@ export function LibrarySection({
   isLoading,
   onAdd,
   onRemove,
+  readOnly = false,
 }: {
   label: string;
   type: PropType;
@@ -85,6 +86,7 @@ export function LibrarySection({
   isLoading: boolean;
   onAdd: (file: File, name: string) => Promise<void>;
   onRemove: (id: string) => Promise<void>;
+  readOnly?: boolean;
 }) {
   const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -191,20 +193,24 @@ export function LibrarySection({
         <h3 className="text-base-content/40 text-sm font-semibold tracking-widest uppercase">
           {label} <span className="text-base-content/25">({items.length})</span>
         </h3>
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
-          className="btn btn-primary font-display tracking-wide"
-        >
-          {t("library.upload")}
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept={acceptMime}
-          className="hidden"
-          onChange={handleFileChange}
-        />
+        {!readOnly && (
+          <>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="btn btn-primary font-display tracking-wide"
+            >
+              {t("library.upload")}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={acceptMime}
+              className="hidden"
+              onChange={handleFileChange}
+            />
+          </>
+        )}
       </div>
 
       {/* Pending upload — name confirmation */}
@@ -271,8 +277,11 @@ export function LibrarySection({
       {/* Grid */}
       {!isLoading && items.length === 0 && !pending ? (
         <div
-          onClick={() => fileInputRef.current?.click()}
-          className="border-base-300 text-base-content/25 hover:border-primary/30 hover:text-base-content/40 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed py-8 transition-colors"
+          onClick={readOnly ? undefined : () => fileInputRef.current?.click()}
+          className={cn(
+            "border-base-300 text-base-content/25 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed py-8 transition-colors",
+            !readOnly && "hover:border-primary/30 hover:text-base-content/40 cursor-pointer",
+          )}
         >
           {isSound ? (
             <Music className="size-7" />
@@ -298,6 +307,7 @@ export function LibrarySection({
                 isSound={isSound}
                 className="h-full w-full object-cover"
               />
+              {!readOnly && (
               <div
                 className={cn(
                   "bg-base-100/70 absolute inset-0 flex flex-col items-center justify-center gap-1 p-2 transition-opacity",
@@ -353,6 +363,7 @@ export function LibrarySection({
                   </>
                 )}
               </div>
+              )}
 
               {deletingId === item.id && (
                 <div className="bg-base-100/60 absolute inset-0 z-10 flex items-center justify-center backdrop-blur-[1px] transition-all">
@@ -485,6 +496,11 @@ export function LibrarySection({
 
               <p className="bg-base-100/80 text-base-content inline-flex items-center gap-2 rounded-full px-6 py-2 text-sm font-medium shadow-lg backdrop-blur-md">
                 {items[selectedIndex].name}
+                {type === "composite" && (
+                  <span className="badge badge-primary badge-sm font-normal">
+                    Composite Character
+                  </span>
+                )}
                 <span className="text-base-content/50 bg-base-content/5 rounded-full px-2 py-0.5 text-xs font-normal">
                   {selectedIndex + 1} / {items.length}
                 </span>

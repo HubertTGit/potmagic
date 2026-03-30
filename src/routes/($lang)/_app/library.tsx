@@ -8,6 +8,7 @@ import {
   Music,
   Film,
   Plus,
+  Drama,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { listAllProps, uploadProp, deleteProp } from "@/lib/props.fns";
@@ -97,6 +98,13 @@ function LibraryPage() {
       count: allProps?.rive?.length ?? 0,
       color: "text-orange-500",
     },
+    {
+      id: "composite" as PropType,
+      title: "Published Characters",
+      icon: Drama,
+      count: allProps?.composite?.length ?? 0,
+      color: "text-primary",
+    },
   ];
 
   const activeLabel = sections.find((s) => s.id === activeSection)?.title ?? "";
@@ -158,19 +166,22 @@ function LibraryPage() {
           label={activeLabel}
           type={activeSection}
           items={
-            (activeSection === "rive"
-              ? allProps?.rive
-              : activeSection === "character"
-                ? allProps?.character
-                : activeSection === "background"
-                  ? allProps?.background
-                  : activeSection === "sound"
-                    ? allProps?.sound
-                    : []) ?? []
+            (activeSection === "composite"
+              ? allProps?.composite
+              : activeSection === "rive"
+                ? allProps?.rive
+                : activeSection === "character"
+                  ? allProps?.character
+                  : activeSection === "background"
+                    ? allProps?.background
+                    : activeSection === "sound"
+                      ? allProps?.sound
+                      : []) ?? []
           }
           isLoading={isLoading}
           onAdd={(file, name) => handleAddProp(activeSection, file, name)}
           onRemove={(id) => handleRemoveProp(activeSection, id)}
+          readOnly={activeSection === "composite"}
         />
       </div>
     </div>

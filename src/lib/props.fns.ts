@@ -72,7 +72,8 @@ export const uploadProp = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data }) => {
-    const session = await requireDirector();
+    // Part-type props are uploaded by actors during character building; all other types require director
+    const session = data.type === "part" ? await getSessionOrThrow() : await requireDirector();
 
     const ext = data.fileName.split(".").pop() ?? "bin";
     const path = `props/${crypto.randomUUID()}.${ext}`;
@@ -169,7 +170,7 @@ export const listAllProps = createServerFn({ method: "GET" }).handler(
 export const deleteProp = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ id: z.string() }).parse(input))
   .handler(async ({ data }) => {
-    const session = await requireDirector();
+    const session = await getSessionOrThrow();
 
     const [row] = await db
       .select()
