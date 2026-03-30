@@ -452,9 +452,9 @@ export class CompositeCharacter {
   private makeRotateHandle(): Graphics {
     const g = new Graphics();
     // Outer ring arc to suggest rotation
-    g.arc(0, 0, 11, -Math.PI * 0.7, Math.PI * 0.7).stroke({ color: 0xa855f7, width: 2 });
+    g.arc(0, 0, 18, -Math.PI * 0.7, Math.PI * 0.7).stroke({ color: 0xa855f7, width: 3 });
     // Filled center circle
-    g.circle(0, 0, 5).fill({ color: 0xa855f7 });
+    g.circle(0, 0, 8).fill({ color: 0xa855f7 });
     return g;
   }
 
