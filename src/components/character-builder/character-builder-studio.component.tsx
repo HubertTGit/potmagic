@@ -172,8 +172,8 @@ export function CharacterBuilderStudio() {
     const x = ((e.clientX - rect.left) / rect.width) * 800;
     const y = ((e.clientY - rect.top) / rect.height) * 800;
 
-    const offsetX = Math.round(x - 400);
-    const offsetY = Math.round(y - 400);
+    const posX = Math.round(x - 400);
+    const posY = Math.round(y - 400);
 
     const existingPart = currentCharacter.parts.find(p => p.partRole === role);
     const pending = pendingPropByRole[role];
@@ -188,10 +188,10 @@ export function CharacterBuilderStudio() {
         partRole: role as any,
         propId,
         altPropId: existingPart?.altPropId ?? pending?.altPropId,
-        offsetX,
-        offsetY,
-        anchorX: existingPart?.anchorX ?? 0.5,
-        anchorY: existingPart?.anchorY ?? 0.5,
+        x: posX,
+        y: posY,
+        pivotX: existingPart?.pivotX ?? 0,
+        pivotY: existingPart?.pivotY ?? 0,
         rotation: existingPart?.rotation ?? 0,
         zIndex: existingPart?.zIndex ?? ALL_PART_ROLES.indexOf(role as any),
       }
@@ -277,10 +277,10 @@ export function CharacterBuilderStudio() {
       const state = liveState[p.partRole];
       return {
         ...p,
-        offsetX: state?.x ?? p.offsetX,
-        offsetY: state?.y ?? p.offsetY,
-        anchorX: state?.anchorX ?? p.anchorX,
-        anchorY: state?.anchorY ?? p.anchorY,
+        x: state?.x ?? p.x,
+        y: state?.y ?? p.y,
+        pivotX: state?.pivotX ?? p.pivotX,
+        pivotY: state?.pivotY ?? p.pivotY,
         rotation: state?.rotation ?? p.rotation,
       };
     });
@@ -298,10 +298,10 @@ export function CharacterBuilderStudio() {
       app: appRef.current,
       showBoundingBoxes,
       onChange: (role, data) => {
-        if (data.anchorX !== undefined && data.anchorY !== undefined) {
+        if (data.pivotX !== undefined && data.pivotY !== undefined) {
           setLivePivots(prev => ({ 
             ...prev, 
-            [role]: { x: data.anchorX!, y: data.anchorY! } 
+            [role]: { x: data.pivotX!, y: data.pivotY! } 
           }));
         }
       },
@@ -354,10 +354,10 @@ export function CharacterBuilderStudio() {
               propId: isAlt ? (existingPart.propId ?? prop.id) : prop.id,
               altPropId: isAlt ? prop.id : existingPart.altPropId,
               zIndex: existingPart.zIndex ?? ALL_PART_ROLES.indexOf(selectedRole as any),
-              offsetX: existingPart.offsetX,
-              offsetY: existingPart.offsetY,
-              anchorX: existingPart.anchorX,
-              anchorY: existingPart.anchorY,
+              x: existingPart.x,
+              y: existingPart.y,
+              pivotX: existingPart.pivotX,
+              pivotY: existingPart.pivotY,
               rotation: existingPart.rotation,
             },
           });
@@ -387,7 +387,7 @@ export function CharacterBuilderStudio() {
   const handleSaveAdjustments = async () => {
     if (!compositeRef.current || !characterId) return;
 
-    const liveState = (compositeRef.current as any).getLiveState() as Record<string, { x: number; y: number; anchorX: number; anchorY: number; rotation: number }>;
+    const liveState = (compositeRef.current as any).getLiveState() as Record<string, { x: number; y: number; pivotX: number; pivotY: number; rotation: number }>;
     const parts = currentCharacter?.parts ?? [];
     
     for (const part of parts) {
@@ -398,11 +398,11 @@ export function CharacterBuilderStudio() {
             characterId,
             partRole: part.partRole,
             propId: part.propId,
-            offsetX: Math.round(state.x),
-            offsetY: Math.round(state.y),
+            x: Math.round(state.x),
+            y: Math.round(state.y),
             rotation: Math.round(state.rotation),
-            anchorX: state.anchorX,
-            anchorY: state.anchorY,
+            pivotX: state.pivotX,
+            pivotY: state.pivotY,
             zIndex: part.zIndex,
           },
         });
@@ -767,8 +767,8 @@ export function CharacterBuilderStudio() {
               <div className="grid grid-cols-2 gap-4">
                 {(() => {
                   const part = currentCharacter?.parts?.find(p => p.partRole === selectedRole);
-                  const pivotX = livePivots[selectedRole]?.x ?? part?.anchorX ?? 0;
-                  const pivotY = livePivots[selectedRole]?.y ?? part?.anchorY ?? 0;
+                  const pivotX = livePivots[selectedRole]?.x ?? part?.pivotX ?? 0;
+                  const pivotY = livePivots[selectedRole]?.y ?? part?.pivotY ?? 0;
                   
                   return (
                     <>

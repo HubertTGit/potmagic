@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { getMeta } from "@/i18n/meta";
-import { Theater, Layers } from "lucide-react";
+import { Theater, Layers, Drama } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -111,7 +111,7 @@ function StoryDetailPage() {
   if (!data) {
     return (
       <div className="p-8">
-        <p className="text-base-content/40">{t('story.notFound')}</p>
+        <p className="text-base-content/40">{t("story.notFound")}</p>
       </div>
     );
   }
@@ -124,7 +124,7 @@ function StoryDetailPage() {
     <div className="max-w-3xl p-8">
       <Breadcrumb
         crumbs={[
-          { label: t('nav.stories'), to: "/stories" },
+          { label: t("nav.stories"), to: "/stories" },
           { label: story.title, type: "story" },
         ]}
       />
@@ -152,15 +152,17 @@ function StoryDetailPage() {
                 "cursor-not-allowed opacity-40",
             )}
           >
-            {t('action.save')}
+            {t("action.save")}
           </button>
         )}
         {isDirector && (
           <button
-            onClick={() => router.navigate({ to: `/character-builder/${storyId}` as any })}
+            onClick={() =>
+              router.navigate({ to: `/character-builder/${storyId}` as any })
+            }
             className="btn btn-accent font-display gap-2"
           >
-            <Layers className="size-4" /> {t('characterBuilder.heading')}
+            <Drama className="size-4" /> {t("characterBuilder.heading")}
           </button>
         )}
         {scenes.length > 0 && (
@@ -183,7 +185,7 @@ function StoryDetailPage() {
               })
             }
           >
-            {t('story.enterStage')} <Theater className="size-4" />
+            {t("story.enterStage")} <Theater className="size-4" />
           </button>
         )}
       </div>
@@ -207,10 +209,12 @@ function StoryDetailPage() {
       {/* Delete Scene Confirmation Modal */}
       <ConfirmModal
         isOpen={!!sceneToDelete}
-        title={t('modal.confirmDeletion')}
-        message={t('modal.deleteSceneMessage', { title: sceneToDelete?.title ?? '' })}
-        confirmText={t('action.delete')}
-        pendingText={t('action.deleting')}
+        title={t("modal.confirmDeletion")}
+        message={t("modal.deleteSceneMessage", {
+          title: sceneToDelete?.title ?? "",
+        })}
+        confirmText={t("action.delete")}
+        pendingText={t("action.deleting")}
         onConfirm={() =>
           sceneToDelete && removeSceneMutation.mutate(sceneToDelete.id)
         }

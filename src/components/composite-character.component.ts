@@ -23,10 +23,10 @@ export interface CharacterPartData {
   partRole: string;
   propId: string;
   altPropId: string | null;
-  anchorX: number; // Used as Pivot X (pixels)
-  anchorY: number; // Used as Pivot Y (pixels)
-  offsetX: number;
-  offsetY: number;
+  pivotX: number; // Used as Pivot X (pixels)
+  pivotY: number; // Used as Pivot Y (pixels)
+  x: number;
+  y: number;
   zIndex: number;
   rotation: number;
   imageUrl: string | null;
@@ -58,10 +58,10 @@ export interface CharacterPartAdjustments {
   characterId?: string;
   partRole?: string;
   propId?: string;
-  anchorX?: number; // Pivot X
-  anchorY?: number; // Pivot Y
-  offsetX?: number;
-  offsetY?: number;
+  pivotX?: number; // Pivot X
+  pivotY?: number; // Pivot Y
+  x?: number;
+  y?: number;
   rotation?: number;
   zIndex?: number;
 }
@@ -181,8 +181,8 @@ export class CompositeCharacter {
 
       const container = new Container();
       container.label = role;
-      container.x = data?.offsetX ?? 0;
-      container.y = data?.offsetY ?? 0;
+      container.x = data?.x ?? 0;
+      container.y = data?.y ?? 0;
       container.rotation = (data?.rotation ?? 0) * (Math.PI / 180);
       container.zIndex = data?.zIndex ?? ALL_PART_ROLES.indexOf(role as PartRole);
 
@@ -193,8 +193,8 @@ export class CompositeCharacter {
       // Default sprite anchor (always untouched by gizmo)
       sprite.anchor.set(0.5, 0.5);
       
-      // Use pivot for rotation point (stored in anchorX/Y columns, in pixels)
-      container.pivot.set(data?.anchorX ?? 0, data?.anchorY ?? 0);
+      // Use pivot for rotation point (stored in pixels)
+      container.pivot.set(data?.pivotX ?? 0, data?.pivotY ?? 0);
 
       if (role === 'body') {
         sprite.filters = [this.glowFilter];
@@ -398,10 +398,10 @@ export class CompositeCharacter {
 
           // Notify UI
           this.props.onChange?.(role, {
-            anchorX: container.pivot.x,
-            anchorY: container.pivot.y,
-            offsetX: container.x,
-            offsetY: container.y
+            pivotX: container.pivot.x,
+            pivotY: container.pivot.y,
+            x: container.x,
+            y: container.y
           });
           
           // Re-capture startLocal relative to the NOW-MOVED gizmoGroup
@@ -431,7 +431,7 @@ export class CompositeCharacter {
       const local = container.parent.toLocal(e.global);
       container.x = local.x + this.partOffset.x;
       container.y = local.y + this.partOffset.y;
-      this.props.onChange?.(this.draggingRole, { offsetX: container.x, offsetY: container.y });
+      this.props.onChange?.(this.draggingRole, { x: container.x, y: container.y });
     }
   }
 
@@ -594,15 +594,15 @@ export class CompositeCharacter {
       const data = this.props.parts.find(p => p.partRole === role);
       if (!container || !data) return;
 
-      const dx = localPoint.x - data.offsetX;
-      const dy = localPoint.y - data.offsetY;
+      const dx = localPoint.x - data.x;
+      const dy = localPoint.y - data.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
       const maxDist = 8;
 
       if (dist > maxDist) {
         const scale = maxDist / dist;
-        container.x = data.offsetX + dx * scale;
-        container.y = data.offsetY + dy * scale;
+        container.x = data.x + dx * scale;
+        container.y = data.y + dy * scale;
       } else {
         container.x = localPoint.x;
         container.y = localPoint.y;
@@ -678,15 +678,15 @@ export class CompositeCharacter {
 
   // Returns current live canvas state for all placed parts.
   // Used by the studio to preserve state when rebuilding the composite.
-  getLiveState(): Record<string, { x: number; y: number; anchorX: number; anchorY: number; rotation: number }> {
-    const result: Record<string, { x: number; y: number; anchorX: number; anchorY: number; rotation: number }> = {};
+  getLiveState(): Record<string, { x: number; y: number; pivotX: number; pivotY: number; rotation: number }> {
+    const result: Record<string, { x: number; y: number; pivotX: number; pivotY: number; rotation: number }> = {};
     for (const [role, container] of this.partContainers) {
       result[role] = {
         x: container.x,
         y: container.y,
         rotation: container.rotation * (180 / Math.PI),
-        anchorX: container.pivot.x,
-        anchorY: container.pivot.y
+        pivotX: container.pivot.x,
+        pivotY: container.pivot.y
       };
     }
     return result;
