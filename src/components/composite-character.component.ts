@@ -23,8 +23,8 @@ export interface CharacterPartData {
   partRole: string;
   propId: string;
   altPropId: string | null;
-  anchorX: number;
-  anchorY: number;
+  anchorX: number; // Used as Pivot X (pixels)
+  anchorY: number; // Used as Pivot Y (pixels)
   offsetX: number;
   offsetY: number;
   zIndex: number;
@@ -50,7 +50,20 @@ export interface CompositeCharacterProps {
   app: Application;
   onReady?: () => void;
   interactive?: boolean;
-  onChange?: (role: string, data: Partial<CharacterPartData>) => void;
+  onChange?: (role: string, data: Partial<CharacterPartAdjustments>) => void;
+  showBoundingBoxes?: boolean;
+}
+
+export interface CharacterPartAdjustments {
+  characterId?: string;
+  partRole?: string;
+  propId?: string;
+  anchorX?: number; // Pivot X
+  anchorY?: number; // Pivot Y
+  offsetX?: number;
+  offsetY?: number;
+  rotation?: number;
+  zIndex?: number;
 }
 
 const encoder = new TextEncoder();
@@ -90,8 +103,6 @@ export class CompositeCharacter {
     handleStart: { x: number; y: number };
     role: string;
     updatesAnchor: boolean;
-    initialAnchor: { x: number; y: number };
-    initialContainerPos: { x: number; y: number };
   } | null = null;
   // All draggable gizmo handles, stored for cursor toggling
   private gizmoHandleRefs: Array<{
@@ -103,12 +114,21 @@ export class CompositeCharacter {
     updatesAnchor: boolean;
   }> = [];
 
+  private boundingBoxGraphics: Map<string, Graphics> = new Map();
+  private showBoundingBoxes = false;
+
   private static readonly ROTATABLE_ROLES = [
-    'head', 'arm-upper-left', 'arm-upper-right', 'arm-forearm-left', 'arm-forearm-right',
-  ];
+    'head', 'jaw', 'eye-left', 'eye-right', 'pupil-left', 'pupil-right',
+    'eye-brow-left', 'eye-brow-right', 'eye-closed-left', 'eye-closed-right',
+    'arm-upper-left', 'arm-forearm-left', 'arm-hand-left',
+    'arm-upper-right', 'arm-forearm-right', 'arm-hand-right',
+    'leg-upper-left', 'leg-lower-left', 'leg-foot-left',
+    'leg-upper-right', 'leg-lower-right', 'leg-foot-right',
+  ] as const;
 
   constructor(props: CompositeCharacterProps) {
     this.props = props;
+    this.showBoundingBoxes = props.showBoundingBoxes ?? false;
 
     this.container = new Container();
     this.container.label = props.sceneCastId;
@@ -169,7 +189,12 @@ export class CompositeCharacter {
       const sprite = new Sprite();
       const tex = this.textures.get(role);
       if (tex) sprite.texture = tex;
-      sprite.anchor.set(data?.anchorX ?? 0.5, data?.anchorY ?? 0.5);
+      
+      // Default sprite anchor (always untouched by gizmo)
+      sprite.anchor.set(0.5, 0.5);
+      
+      // Use pivot for rotation point (stored in anchorX/Y columns, in pixels)
+      container.pivot.set(data?.anchorX ?? 0, data?.anchorY ?? 0);
 
       if (role === 'body') {
         sprite.filters = [this.glowFilter];
@@ -319,13 +344,73 @@ export class CompositeCharacter {
   private onPartGlobalPointerMove(e: FederatedPointerEvent) {
     // Gizmo handle repositioning (edit mode)
     if (this.movingGizmoHandle) {
-      const { handle, connector, gizmoGroup, startLocal, handleStart } = this.movingGizmoHandle;
+      const { handle, gizmoGroup, startLocal, handleStart, role, updatesAnchor } = this.movingGizmoHandle;
+      
+      const container = this.partContainers.get(role)!;
+      if (!container.parent) return;
+      
+      // Calculate delta in gizmoGroup space BEFORE moving anything
       const cur = gizmoGroup.toLocal(e.global);
-      handle.x = handleStart.x + (cur.x - startLocal.x);
-      handle.y = handleStart.y + (cur.y - startLocal.y);
-      // Redraw connector from group origin to new handle position
-      connector.clear();
-      connector.moveTo(0, 0).lineTo(handle.x, handle.y).stroke({ color: 0xa855f7, width: 1, alpha: 0.4 });
+      const dx = cur.x - startLocal.x;
+      const dy = cur.y - startLocal.y;
+      
+      if (dx === 0 && dy === 0) return;
+
+      if (updatesAnchor && role) {
+        const sprite = this.partSprites.get(role);
+        if (sprite && sprite.texture && sprite.texture.source.width > 0) {
+          const tw = sprite.texture.width;
+          const th = sprite.texture.height;
+          const ax = sprite.anchor.x;
+          const ay = sprite.anchor.y;
+
+          // 1. Calculate new proposed pivot
+          const oldPivotX = container.pivot.x;
+          const oldPivotY = container.pivot.y;
+          
+          let newPivotX = oldPivotX + dx;
+          let newPivotY = oldPivotY + dy;
+          
+          // Constrain pivot to bounding box relative to anchor
+          // Range: [-ax * tw, (1 - ax) * tw]
+          newPivotX = Math.max(-ax * tw, Math.min((1 - ax) * tw, newPivotX));
+          newPivotY = Math.max(-ay * th, Math.min((1 - ay) * th, newPivotY));
+          
+          const actualDx = newPivotX - oldPivotX;
+          const actualDy = newPivotY - oldPivotY;
+
+          if (actualDx === 0 && actualDy === 0) return;
+
+          // 2. Update pivot
+          container.pivot.x = newPivotX;
+          container.pivot.y = newPivotY;
+
+          // Sync handle position (visually represent the pivot)
+          handle.x = newPivotX;
+          handle.y = newPivotY;
+
+          // 3. Move container to compensate
+          container.x += actualDx;
+          container.y += actualDy;
+
+          // Update debug box
+          this.drawBoundingBox(role);
+
+          // Notify UI
+          this.props.onChange?.(role, {
+            anchorX: container.pivot.x,
+            anchorY: container.pivot.y,
+            offsetX: container.x,
+            offsetY: container.y
+          });
+          
+          // Re-capture startLocal relative to the NOW-MOVED gizmoGroup
+          this.movingGizmoHandle.startLocal = gizmoGroup.toLocal(e.global);
+        }
+      } else {
+        handle.x = handleStart.x + dx;
+        handle.y = handleStart.y + dy;
+      }
       return;
     }
 
@@ -339,14 +424,15 @@ export class CompositeCharacter {
       return;
     }
 
-    // Part translation
-    if (!this.draggingRole) return;
-    const container = this.partContainers.get(this.draggingRole)!;
-    if (!container.parent) return;
-    const local = container.parent.toLocal(e.global);
-    container.x = local.x + this.partOffset.x;
-    container.y = local.y + this.partOffset.y;
-    this.props.onChange?.(this.draggingRole, { offsetX: container.x, offsetY: container.y });
+    // Part translation (interactive mode)
+    if (this.draggingRole) {
+      const container = this.partContainers.get(this.draggingRole)!;
+      if (!container.parent) return;
+      const local = container.parent.toLocal(e.global);
+      container.x = local.x + this.partOffset.x;
+      container.y = local.y + this.partOffset.y;
+      this.props.onChange?.(this.draggingRole, { offsetX: container.x, offsetY: container.y });
+    }
   }
 
   private onPartPointerUp() {
@@ -358,10 +444,9 @@ export class CompositeCharacter {
   // --- Gizmos (builder mode) ---
 
   private buildGizmos() {
-    for (const role of CompositeCharacter.ROTATABLE_ROLES) {
-      this.attachRotateGizmo(role);
+    for (const role of ALL_PART_ROLES) {
+      this.attachPartGizmo(role);
     }
-    this.attachBodyGizmos();
   }
 
   private makeRotateHandle(): Graphics {
@@ -373,7 +458,7 @@ export class CompositeCharacter {
     return g;
   }
 
-  private attachRotateGizmo(role: string) {
+  private attachPartGizmo(role: string) {
     const container = this.partContainers.get(role);
     const sprite = this.partSprites.get(role);
     if (!container || !sprite) return;
@@ -384,68 +469,12 @@ export class CompositeCharacter {
     container.addChild(gizmoGroup);
     this.gizmoGroups.set(role, gizmoGroup);
 
-    const connector = new Graphics();
-    connector.moveTo(0, 0).lineTo(0, -52).stroke({ color: 0xa855f7, width: 1, alpha: 0.4 });
-    gizmoGroup.addChild(connector);
+    // Body is not rotatable as requested
+    const isRotatable = (CompositeCharacter.ROTATABLE_ROLES as readonly string[]).includes(role);
 
-    const handle = this.makeRotateHandle();
-    handle.y = -60;
-    handle.eventMode = 'static';
-    handle.cursor = 'grab';
-    gizmoGroup.addChild(handle);
-
-    this.gizmoHandleRefs.push({ handle, connector, gizmoGroup, defaultCursor: 'grab' });
-
-    const show = () => { gizmoGroup.alpha = 1; };
-    const hide = () => { if (this.rotatingRole !== role && !this.movingGizmoHandle) gizmoGroup.alpha = 0; };
-
-    sprite.on('pointerover', show);
-    sprite.on('pointerout', hide);
-    handle.on('pointerover', show);
-    handle.on('pointerout', hide);
-
-    handle.on('pointerdown', (e: FederatedPointerEvent) => {
-      e.stopPropagation();
-      if (this.gizmoEditMode) {
-        const startLocal = gizmoGroup.toLocal(e.global);
-        this.movingGizmoHandle = {
-          handle, connector, gizmoGroup,
-          startLocal: { x: startLocal.x, y: startLocal.y },
-          handleStart: { x: handle.x, y: handle.y },
-        };
-      } else {
-        const worldPos = container.getGlobalPosition();
-        this.rotatingRole = role;
-        this.rotateStartAngle = Math.atan2(e.global.y - worldPos.y, e.global.x - worldPos.x);
-        this.rotateStartContainerRotation = container.rotation;
-      }
-    });
-  }
-
-  private attachBodyGizmos() {
-    const container = this.partContainers.get('body');
-    const sprite = this.partSprites.get('body');
-    if (!container || !sprite) return;
-
-    const gizmoGroup = new Container();
-    gizmoGroup.alpha = 0;
-    gizmoGroup.zIndex = 200;
-    container.addChild(gizmoGroup);
-    this.gizmoGroups.set('body', gizmoGroup);
-
-    // Move handle: crosshair at center
-    const moveHandle = new Graphics();
-    moveHandle.rect(-10, -2, 20, 4).fill({ color: 0x38bdf8 });
-    moveHandle.rect(-2, -10, 4, 20).fill({ color: 0x38bdf8 });
-    moveHandle.circle(0, 0, 12).stroke({ color: 0x38bdf8, width: 1.5 });
-    moveHandle.eventMode = 'static';
-    moveHandle.cursor = 'move';
-    gizmoGroup.addChild(moveHandle);
-
-    // Connector line + rotate handle above body
-    const connector = new Graphics();
-    connector.moveTo(0, 0).lineTo(0, -52).stroke({ color: 0xa855f7, width: 1, alpha: 0.4 });
-    gizmoGroup.addChild(connector);
+    // 1. Rotate Handle at (0, -60) - used for rotation AND anchor updates
+    const rotateConnector = new Graphics();
+    gizmoGroup.addChild(rotateConnector);
 
     const rotateHandle = this.makeRotateHandle();
     rotateHandle.y = -60;
@@ -453,43 +482,28 @@ export class CompositeCharacter {
     rotateHandle.cursor = 'grab';
     gizmoGroup.addChild(rotateHandle);
 
+    this.gizmoHandleRefs.push({ handle: rotateHandle, connector: rotateConnector, gizmoGroup, defaultCursor: 'grab', role, updatesAnchor: true });
+
+    // Bounding Box (Debug)
+    const debugBox = new Graphics();
+    debugBox.label = "debug-box";
+    debugBox.alpha = this.showBoundingBoxes ? 0.3 : 0;
+    debugBox.eventMode = 'none'; // CRITICAL: don't block mouse events
+    container.addChild(debugBox);
+    this.boundingBoxGraphics.set(role, debugBox);
+    this.drawBoundingBox(role);
+
     const show = () => { gizmoGroup.alpha = 1; };
-    const hide = () => { if (this.rotatingRole !== 'body' && this.draggingRole !== 'body') gizmoGroup.alpha = 0; };
+    const hide = () => { 
+      if (this.rotatingRole !== role && this.draggingRole !== role && !this.movingGizmoHandle) {
+        gizmoGroup.alpha = this.gizmoEditMode ? 1 : 0; 
+      }
+    };
 
     sprite.on('pointerover', show);
     sprite.on('pointerout', hide);
-    moveHandle.on('pointerover', show);
-    moveHandle.on('pointerout', hide);
     rotateHandle.on('pointerover', show);
     rotateHandle.on('pointerout', hide);
-
-    // Dummy connector for the move handle (no line, but stored for consistent ref shape)
-    const moveConnector = new Graphics();
-    gizmoGroup.addChild(moveConnector);
-
-    // Connector for rotate handle
-    const rotateConnector = new Graphics();
-    rotateConnector.moveTo(0, 0).lineTo(0, -52).stroke({ color: 0xa855f7, width: 1, alpha: 0.4 });
-    gizmoGroup.addChild(rotateConnector);
-
-    this.gizmoHandleRefs.push({ handle: moveHandle, connector: moveConnector, gizmoGroup, defaultCursor: 'move' });
-    this.gizmoHandleRefs.push({ handle: rotateHandle, connector: rotateConnector, gizmoGroup, defaultCursor: 'grab' });
-
-    moveHandle.on('pointerdown', (e: FederatedPointerEvent) => {
-      e.stopPropagation();
-      if (this.gizmoEditMode) {
-        const startLocal = gizmoGroup.toLocal(e.global);
-        this.movingGizmoHandle = {
-          handle: moveHandle, connector: moveConnector, gizmoGroup,
-          startLocal: { x: startLocal.x, y: startLocal.y },
-          handleStart: { x: moveHandle.x, y: moveHandle.y },
-        };
-      } else {
-        this.draggingRole = 'body';
-        const local = container.parent!.toLocal(e.global);
-        this.partOffset = { x: container.x - local.x, y: container.y - local.y };
-      }
-    });
 
     rotateHandle.on('pointerdown', (e: FederatedPointerEvent) => {
       e.stopPropagation();
@@ -499,12 +513,27 @@ export class CompositeCharacter {
           handle: rotateHandle, connector: rotateConnector, gizmoGroup,
           startLocal: { x: startLocal.x, y: startLocal.y },
           handleStart: { x: rotateHandle.x, y: rotateHandle.y },
+          role,
+          updatesAnchor: true
         };
       } else {
-        const worldPos = container.getGlobalPosition();
-        this.rotatingRole = 'body';
-        this.rotateStartAngle = Math.atan2(e.global.y - worldPos.y, e.global.x - worldPos.x);
-        this.rotateStartContainerRotation = container.rotation;
+        if (isRotatable) {
+          const worldPos = container.getGlobalPosition();
+          this.rotatingRole = role;
+          this.rotateStartAngle = Math.atan2(e.global.y - worldPos.y, e.global.x - worldPos.x);
+          this.rotateStartContainerRotation = container.rotation;
+        } else if (isRotatable) {
+          // Normal mode: check if we should start rotating or translating
+          // (Handle is handled by its own listener below)
+          this.draggingRole = role;
+          const local = container.parent!.toLocal(e.global);
+          this.partOffset = { x: container.x - local.x, y: container.y - local.y };
+        } else {
+          // If not rotatable (e.g. body), still allow dragging the part itself
+          this.draggingRole = role;
+          const local = container.parent!.toLocal(e.global);
+          this.partOffset = { x: container.x - local.x, y: container.y - local.y };
+        }
       }
     });
   }
@@ -513,13 +542,21 @@ export class CompositeCharacter {
   // when disabled, handles trigger their normal rotate/translate behaviour.
   setGizmoEditMode(enabled: boolean) {
     this.gizmoEditMode = enabled;
-    for (const [, group] of this.gizmoGroups) {
-      // In edit mode keep all gizmos always visible so the user can see and grab them.
-      // In normal mode reset to hidden-until-hover.
+    for (const [role, group] of this.gizmoGroups) {
       group.alpha = enabled ? 1 : 0;
-    }
-    for (const { handle, defaultCursor } of this.gizmoHandleRefs) {
-      handle.cursor = enabled ? 'crosshair' : defaultCursor;
+      const container = this.partContainers.get(role);
+      const refs = this.gizmoHandleRefs.filter(r => r.role === role);
+      
+      if (container) {
+        for (const ref of refs) {
+          ref.handle.cursor = enabled ? 'crosshair' : ref.defaultCursor;
+          if (ref.updatesAnchor) {
+            // No offset in either mode; handle stays pinned to the pivot point
+            ref.handle.x = container.pivot.x;
+            ref.handle.y = container.pivot.y;
+          }
+        }
+      }
     }
   }
 
@@ -635,19 +672,65 @@ export class CompositeCharacter {
     this.container.destroy({ children: true });
   }
 
-  // Returns current live canvas positions (local to parent) for all placed parts.
-  // Used by the studio to preserve positions when rebuilding the composite.
-  getLivePositions(): Record<string, { x: number; y: number }> {
-    const result: Record<string, { x: number; y: number }> = {};
+  // Returns current live canvas state for all placed parts.
+  // Used by the studio to preserve state when rebuilding the composite.
+  getLiveState(): Record<string, { x: number; y: number; anchorX: number; anchorY: number; rotation: number }> {
+    const result: Record<string, { x: number; y: number; anchorX: number; anchorY: number; rotation: number }> = {};
     for (const [role, container] of this.partContainers) {
-      result[role] = { x: container.x, y: container.y };
+      result[role] = {
+        x: container.x,
+        y: container.y,
+        rotation: container.rotation * (180 / Math.PI),
+        anchorX: container.pivot.x,
+        anchorY: container.pivot.y
+      };
     }
     return result;
   }
 
   // Builder utilities
-  updatePartAnchor(role: string, x: number, y: number) {
+  updatePartPivot(role: string, x: number, y: number) {
+    const container = this.partContainers.get(role);
+    if (container) {
+      container.pivot.set(x, y);
+      this.drawBoundingBox(role);
+    }
+  }
+
+  setBoundingBoxesVisible(visible: boolean) {
+    this.showBoundingBoxes = visible;
+    for (const box of this.boundingBoxGraphics.values()) {
+      box.alpha = visible ? 0.4 : 0;
+    }
+  }
+
+  private drawBoundingBox(role: string) {
+    const box = this.boundingBoxGraphics.get(role);
     const sprite = this.partSprites.get(role);
-    if (sprite) sprite.anchor.set(x, y);
+    const container = this.partContainers.get(role);
+    if (!box || !sprite || !sprite.texture || !container) return;
+
+    box.clear();
+    const tw = sprite.texture.width;
+    const th = sprite.texture.height;
+    const ax = sprite.anchor.x;
+    const ay = sprite.anchor.y;
+
+    const color = this.getRoleColor(role);
+    // Boundary traces the sprite edge
+    box.rect(-ax * tw, -ay * th, tw, th)
+       .stroke({ color, width: 2 })
+       .fill({ color, alpha: 0.1 });
+  }
+
+  private getRoleColor(role: string): number {
+    const roles = ALL_PART_ROLES;
+    const colors = [
+      0xff5555, 0x55ff55, 0x5555ff, 0xffff55, 0xff55ff, 0x55ffff,
+      0xff8800, 0x88ff00, 0x00ff88, 0x0088ff, 0x8800ff, 0xff0088,
+      0xffaa00, 0x00ffaa, 0xaa00ff, 0xff00aa, 0xaaff00, 0x00aaff
+    ];
+    const idx = roles.indexOf(role as PartRole);
+    return colors[idx % colors.length];
   }
 }

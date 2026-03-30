@@ -52,6 +52,9 @@ export function CharacterBuilderStudio() {
   const [gizmoEditMode, setGizmoEditMode] = useState(false);
   // Parts uploaded but not yet placed on the canvas via drag-drop
   const [pendingPropByRole, setPendingPropByRole] = useState<Record<string, PendingProp>>({});
+  // Track live pivot values from Pixi for the selected part
+  const [livePivots, setLivePivots] = useState<Record<string, { x: number, y: number }>>({});
+  const [showBoundingBoxes, setShowBoundingBoxes] = useState(false);
 
   const { data: session } = authClient.useSession();
   const isDirector = session?.user.role === "director";
@@ -109,6 +112,11 @@ export function CharacterBuilderStudio() {
   const handleGizmoEditModeChange = (enabled: boolean) => {
     setGizmoEditMode(enabled);
     compositeRef.current?.setGizmoEditMode(enabled);
+  };
+
+  const handleBoundingBoxToggle = (enabled: boolean) => {
+    setShowBoundingBoxes(enabled);
+    compositeRef.current?.setBoundingBoxesVisible(enabled);
   };
 
   const handleTitleSubmit = () => {
@@ -258,20 +266,24 @@ export function CharacterBuilderStudio() {
   const updatePreview = () => {
     if (!appRef.current || !currentCharacter) return;
 
-    // Capture live canvas positions before destroying the old composite so that
-    // parts the user has already dragged don't snap back to their DB values.
-    // Newly added parts won't have a live position and will use the DB value (the drop point).
-    const livePositions = compositeRef.current?.getLivePositions() ?? {};
+    // Capture live state (positions, anchors, etc.) to prevent reset during rebuild.
+    const liveState = compositeRef.current?.getLiveState() ?? {};
 
     if (compositeRef.current) {
       compositeRef.current.destroy();
     }
 
-    const parts = currentCharacter.parts.map(p => ({
-      ...p,
-      offsetX: livePositions[p.partRole]?.x ?? p.offsetX,
-      offsetY: livePositions[p.partRole]?.y ?? p.offsetY,
-    }));
+    const parts = currentCharacter.parts.map(p => {
+      const state = liveState[p.partRole];
+      return {
+        ...p,
+        offsetX: state?.x ?? p.offsetX,
+        offsetY: state?.y ?? p.offsetY,
+        anchorX: state?.anchorX ?? p.anchorX,
+        anchorY: state?.anchorY ?? p.anchorY,
+        rotation: state?.rotation ?? p.rotation,
+      };
+    });
 
     const composite = new CompositeCharacter({
       sceneCastId: "builder-preview",
@@ -284,7 +296,15 @@ export function CharacterBuilderStudio() {
       canDrag: true,
       interactive: true,
       app: appRef.current,
-      onChange: () => {},
+      showBoundingBoxes,
+      onChange: (role, data) => {
+        if (data.anchorX !== undefined && data.anchorY !== undefined) {
+          setLivePivots(prev => ({ 
+            ...prev, 
+            [role]: { x: data.anchorX!, y: data.anchorY! } 
+          }));
+        }
+      },
     });
 
     compositeRef.current = composite;
@@ -367,18 +387,22 @@ export function CharacterBuilderStudio() {
   const handleSaveAdjustments = async () => {
     if (!compositeRef.current || !characterId) return;
 
+    const liveState = (compositeRef.current as any).getLiveState() as Record<string, { x: number; y: number; anchorX: number; anchorY: number; rotation: number }>;
     const parts = currentCharacter?.parts ?? [];
+    
     for (const part of parts) {
-      const container = (compositeRef.current as any).partContainers.get(part.partRole);
-      if (container) {
+      const state = liveState[part.partRole];
+      if (state) {
         await upsertPartMutation.mutateAsync({
           data: {
             characterId,
             partRole: part.partRole,
             propId: part.propId,
-            offsetX: Math.round(container.x),
-            offsetY: Math.round(container.y),
-            rotation: Math.round(container.rotation * (180 / Math.PI)),
+            offsetX: Math.round(state.x),
+            offsetY: Math.round(state.y),
+            rotation: Math.round(state.rotation),
+            anchorX: state.anchorX,
+            anchorY: state.anchorY,
             zIndex: part.zIndex,
           },
         });
@@ -563,16 +587,28 @@ export function CharacterBuilderStudio() {
             >
               <canvas ref={canvasRef} className="h-full w-full" />
 
-              {/* Gizmo edit mode toggle — top-right of canvas */}
-              <label className="absolute top-3 right-3 flex cursor-pointer items-center gap-2 rounded-lg border border-base-300 bg-base-100/80 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider backdrop-blur-sm transition-colors hover:bg-base-200/80">
-                <input
-                  type="checkbox"
-                  className="checkbox checkbox-xs checkbox-primary"
-                  checked={gizmoEditMode}
-                  onChange={(e) => handleGizmoEditModeChange(e.target.checked)}
-                />
-                Edit gizmos
-              </label>
+              {/* Control toggles — top-right of canvas */}
+              <div className="absolute top-3 right-3 flex flex-col gap-2">
+                <label className="flex cursor-pointer items-center min-w-[124px] gap-2 rounded-lg border border-base-300 bg-base-100/80 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider backdrop-blur-sm transition-colors hover:bg-base-200/80">
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-xs checkbox-primary"
+                    checked={gizmoEditMode}
+                    onChange={(e) => handleGizmoEditModeChange(e.target.checked)}
+                  />
+                  Edit gizmos
+                </label>
+
+                <label className="flex cursor-pointer items-center min-w-[124px] gap-2 rounded-lg border border-base-300 bg-base-100/80 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider backdrop-blur-sm transition-colors hover:bg-base-200/80">
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-xs checkbox-secondary"
+                    checked={showBoundingBoxes}
+                    onChange={(e) => handleBoundingBoxToggle(e.target.checked)}
+                  />
+                  Show bounds
+                </label>
+              </div>
 
               <div className="pointer-events-none absolute bottom-4 left-4 right-4 flex justify-between text-[10px] uppercase tracking-widest opacity-30">
                 <span>Drag parts from the sidebar to place them</span>
@@ -729,14 +765,34 @@ export function CharacterBuilderStudio() {
               </h3>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] opacity-40 uppercase">Anchor X</label>
-                  <input type="number" className="input input-bordered input-sm w-full bg-base-300" value={0.5} readOnly />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] opacity-40 uppercase">Anchor Y</label>
-                  <input type="number" className="input input-bordered input-sm w-full bg-base-300" value={0.5} readOnly />
-                </div>
+                {(() => {
+                  const part = currentCharacter?.parts?.find(p => p.partRole === selectedRole);
+                  const pivotX = livePivots[selectedRole]?.x ?? part?.anchorX ?? 0;
+                  const pivotY = livePivots[selectedRole]?.y ?? part?.anchorY ?? 0;
+                  
+                  return (
+                    <>
+                      <div className="space-y-1">
+                        <label className="text-[10px] opacity-40 uppercase">Pivot X (px)</label>
+                        <input 
+                          type="number" 
+                          className="input input-bordered input-sm w-full bg-base-300" 
+                          value={Math.round(pivotX)} 
+                          readOnly 
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] opacity-40 uppercase">Pivot Y (px)</label>
+                        <input 
+                          type="number" 
+                          className="input input-bordered input-sm w-full bg-base-300" 
+                          value={Math.round(pivotY)} 
+                          readOnly 
+                        />
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
 
               <div className="bg-primary/5 rounded-lg border border-primary/20 p-4">
