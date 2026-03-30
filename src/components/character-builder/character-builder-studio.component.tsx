@@ -49,6 +49,7 @@ export function CharacterBuilderStudio() {
   const [isUploading, setIsUploading] = useState<"main" | "alt" | null>(null);
   const [localName, setLocalName] = useState("");
   const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [gizmoEditMode, setGizmoEditMode] = useState(false);
   // Parts uploaded but not yet placed on the canvas via drag-drop
   const [pendingPropByRole, setPendingPropByRole] = useState<Record<string, PendingProp>>({});
 
@@ -104,6 +105,11 @@ export function CharacterBuilderStudio() {
       setLocalName(currentCharacter.name);
     }
   }, [currentCharacter?.name]);
+
+  const handleGizmoEditModeChange = (enabled: boolean) => {
+    setGizmoEditMode(enabled);
+    compositeRef.current?.setGizmoEditMode(enabled);
+  };
 
   const handleTitleSubmit = () => {
     if (characterId && localName && localName !== currentCharacter?.name) {
@@ -556,6 +562,17 @@ export function CharacterBuilderStudio() {
               onDrop={handleDrop}
             >
               <canvas ref={canvasRef} className="h-full w-full" />
+
+              {/* Gizmo edit mode toggle — top-right of canvas */}
+              <label className="absolute top-3 right-3 flex cursor-pointer items-center gap-2 rounded-lg border border-base-300 bg-base-100/80 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider backdrop-blur-sm transition-colors hover:bg-base-200/80">
+                <input
+                  type="checkbox"
+                  className="checkbox checkbox-xs checkbox-primary"
+                  checked={gizmoEditMode}
+                  onChange={(e) => handleGizmoEditModeChange(e.target.checked)}
+                />
+                Edit gizmos
+              </label>
 
               <div className="pointer-events-none absolute bottom-4 left-4 right-4 flex justify-between text-[10px] uppercase tracking-widest opacity-30">
                 <span>Drag parts from the sidebar to place them</span>

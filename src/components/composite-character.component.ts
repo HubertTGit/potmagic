@@ -1,5 +1,5 @@
 // src/components/composite-character.component.ts
-import { Application, Assets, Container, Sprite } from "pixi.js";
+import { Application, Assets, Container, Graphics, Sprite } from "pixi.js";
 import type { FederatedPointerEvent, Texture } from "pixi.js";
 import { GlowFilter } from "pixi-filters/glow";
 import type { Room } from "livekit-client";
@@ -73,6 +73,39 @@ export class CompositeCharacter {
   // Stored so they can be removed from the stage on destroy()
   private boundPartPointerMove: ((e: FederatedPointerEvent) => void) | null = null;
   private boundPartPointerUp: (() => void) | null = null;
+
+  // Gizmos (interactive/builder mode only)
+  private gizmoGroups: Map<string, Container> = new Map();
+  private rotatingRole: string | null = null;
+  private rotateStartAngle = 0;
+  private rotateStartContainerRotation = 0;
+
+  // Gizmo edit mode: drag handles to reposition them instead of triggering rotate/translate
+  private gizmoEditMode = false;
+  private movingGizmoHandle: {
+    handle: Graphics;
+    connector: Graphics;
+    gizmoGroup: Container;
+    startLocal: { x: number; y: number };
+    handleStart: { x: number; y: number };
+    role: string;
+    updatesAnchor: boolean;
+    initialAnchor: { x: number; y: number };
+    initialContainerPos: { x: number; y: number };
+  } | null = null;
+  // All draggable gizmo handles, stored for cursor toggling
+  private gizmoHandleRefs: Array<{
+    handle: Graphics;
+    connector: Graphics;
+    gizmoGroup: Container;
+    defaultCursor: string;
+    role: string;
+    updatesAnchor: boolean;
+  }> = [];
+
+  private static readonly ROTATABLE_ROLES = [
+    'head', 'arm-upper-left', 'arm-upper-right', 'arm-forearm-left', 'arm-forearm-right',
+  ];
 
   constructor(props: CompositeCharacterProps) {
     this.props = props;
@@ -207,6 +240,8 @@ export class CompositeCharacter {
       this.boundPartPointerUp = this.onPartPointerUp.bind(this);
       this.props.app.stage.on('globalpointermove', this.boundPartPointerMove);
       this.props.app.stage.on('pointerup', this.boundPartPointerUp);
+
+      this.buildGizmos();
     } else {
       // Stage mode: root container / body handles drag
       const bodySprite = this.partSprites.get('body');
@@ -282,6 +317,29 @@ export class CompositeCharacter {
   }
 
   private onPartGlobalPointerMove(e: FederatedPointerEvent) {
+    // Gizmo handle repositioning (edit mode)
+    if (this.movingGizmoHandle) {
+      const { handle, connector, gizmoGroup, startLocal, handleStart } = this.movingGizmoHandle;
+      const cur = gizmoGroup.toLocal(e.global);
+      handle.x = handleStart.x + (cur.x - startLocal.x);
+      handle.y = handleStart.y + (cur.y - startLocal.y);
+      // Redraw connector from group origin to new handle position
+      connector.clear();
+      connector.moveTo(0, 0).lineTo(handle.x, handle.y).stroke({ color: 0xa855f7, width: 1, alpha: 0.4 });
+      return;
+    }
+
+    // Rotation
+    if (this.rotatingRole) {
+      const container = this.partContainers.get(this.rotatingRole)!;
+      const worldPos = container.getGlobalPosition();
+      const angle = Math.atan2(e.global.y - worldPos.y, e.global.x - worldPos.x);
+      container.rotation = this.rotateStartContainerRotation + (angle - this.rotateStartAngle);
+      this.props.onChange?.(this.rotatingRole, { rotation: container.rotation * (180 / Math.PI) });
+      return;
+    }
+
+    // Part translation
     if (!this.draggingRole) return;
     const container = this.partContainers.get(this.draggingRole)!;
     if (!container.parent) return;
@@ -293,6 +351,176 @@ export class CompositeCharacter {
 
   private onPartPointerUp() {
     this.draggingRole = null;
+    this.rotatingRole = null;
+    this.movingGizmoHandle = null;
+  }
+
+  // --- Gizmos (builder mode) ---
+
+  private buildGizmos() {
+    for (const role of CompositeCharacter.ROTATABLE_ROLES) {
+      this.attachRotateGizmo(role);
+    }
+    this.attachBodyGizmos();
+  }
+
+  private makeRotateHandle(): Graphics {
+    const g = new Graphics();
+    // Outer ring arc to suggest rotation
+    g.arc(0, 0, 11, -Math.PI * 0.7, Math.PI * 0.7).stroke({ color: 0xa855f7, width: 2 });
+    // Filled center circle
+    g.circle(0, 0, 5).fill({ color: 0xa855f7 });
+    return g;
+  }
+
+  private attachRotateGizmo(role: string) {
+    const container = this.partContainers.get(role);
+    const sprite = this.partSprites.get(role);
+    if (!container || !sprite) return;
+
+    const gizmoGroup = new Container();
+    gizmoGroup.alpha = 0;
+    gizmoGroup.zIndex = 200;
+    container.addChild(gizmoGroup);
+    this.gizmoGroups.set(role, gizmoGroup);
+
+    const connector = new Graphics();
+    connector.moveTo(0, 0).lineTo(0, -52).stroke({ color: 0xa855f7, width: 1, alpha: 0.4 });
+    gizmoGroup.addChild(connector);
+
+    const handle = this.makeRotateHandle();
+    handle.y = -60;
+    handle.eventMode = 'static';
+    handle.cursor = 'grab';
+    gizmoGroup.addChild(handle);
+
+    this.gizmoHandleRefs.push({ handle, connector, gizmoGroup, defaultCursor: 'grab' });
+
+    const show = () => { gizmoGroup.alpha = 1; };
+    const hide = () => { if (this.rotatingRole !== role && !this.movingGizmoHandle) gizmoGroup.alpha = 0; };
+
+    sprite.on('pointerover', show);
+    sprite.on('pointerout', hide);
+    handle.on('pointerover', show);
+    handle.on('pointerout', hide);
+
+    handle.on('pointerdown', (e: FederatedPointerEvent) => {
+      e.stopPropagation();
+      if (this.gizmoEditMode) {
+        const startLocal = gizmoGroup.toLocal(e.global);
+        this.movingGizmoHandle = {
+          handle, connector, gizmoGroup,
+          startLocal: { x: startLocal.x, y: startLocal.y },
+          handleStart: { x: handle.x, y: handle.y },
+        };
+      } else {
+        const worldPos = container.getGlobalPosition();
+        this.rotatingRole = role;
+        this.rotateStartAngle = Math.atan2(e.global.y - worldPos.y, e.global.x - worldPos.x);
+        this.rotateStartContainerRotation = container.rotation;
+      }
+    });
+  }
+
+  private attachBodyGizmos() {
+    const container = this.partContainers.get('body');
+    const sprite = this.partSprites.get('body');
+    if (!container || !sprite) return;
+
+    const gizmoGroup = new Container();
+    gizmoGroup.alpha = 0;
+    gizmoGroup.zIndex = 200;
+    container.addChild(gizmoGroup);
+    this.gizmoGroups.set('body', gizmoGroup);
+
+    // Move handle: crosshair at center
+    const moveHandle = new Graphics();
+    moveHandle.rect(-10, -2, 20, 4).fill({ color: 0x38bdf8 });
+    moveHandle.rect(-2, -10, 4, 20).fill({ color: 0x38bdf8 });
+    moveHandle.circle(0, 0, 12).stroke({ color: 0x38bdf8, width: 1.5 });
+    moveHandle.eventMode = 'static';
+    moveHandle.cursor = 'move';
+    gizmoGroup.addChild(moveHandle);
+
+    // Connector line + rotate handle above body
+    const connector = new Graphics();
+    connector.moveTo(0, 0).lineTo(0, -52).stroke({ color: 0xa855f7, width: 1, alpha: 0.4 });
+    gizmoGroup.addChild(connector);
+
+    const rotateHandle = this.makeRotateHandle();
+    rotateHandle.y = -60;
+    rotateHandle.eventMode = 'static';
+    rotateHandle.cursor = 'grab';
+    gizmoGroup.addChild(rotateHandle);
+
+    const show = () => { gizmoGroup.alpha = 1; };
+    const hide = () => { if (this.rotatingRole !== 'body' && this.draggingRole !== 'body') gizmoGroup.alpha = 0; };
+
+    sprite.on('pointerover', show);
+    sprite.on('pointerout', hide);
+    moveHandle.on('pointerover', show);
+    moveHandle.on('pointerout', hide);
+    rotateHandle.on('pointerover', show);
+    rotateHandle.on('pointerout', hide);
+
+    // Dummy connector for the move handle (no line, but stored for consistent ref shape)
+    const moveConnector = new Graphics();
+    gizmoGroup.addChild(moveConnector);
+
+    // Connector for rotate handle
+    const rotateConnector = new Graphics();
+    rotateConnector.moveTo(0, 0).lineTo(0, -52).stroke({ color: 0xa855f7, width: 1, alpha: 0.4 });
+    gizmoGroup.addChild(rotateConnector);
+
+    this.gizmoHandleRefs.push({ handle: moveHandle, connector: moveConnector, gizmoGroup, defaultCursor: 'move' });
+    this.gizmoHandleRefs.push({ handle: rotateHandle, connector: rotateConnector, gizmoGroup, defaultCursor: 'grab' });
+
+    moveHandle.on('pointerdown', (e: FederatedPointerEvent) => {
+      e.stopPropagation();
+      if (this.gizmoEditMode) {
+        const startLocal = gizmoGroup.toLocal(e.global);
+        this.movingGizmoHandle = {
+          handle: moveHandle, connector: moveConnector, gizmoGroup,
+          startLocal: { x: startLocal.x, y: startLocal.y },
+          handleStart: { x: moveHandle.x, y: moveHandle.y },
+        };
+      } else {
+        this.draggingRole = 'body';
+        const local = container.parent!.toLocal(e.global);
+        this.partOffset = { x: container.x - local.x, y: container.y - local.y };
+      }
+    });
+
+    rotateHandle.on('pointerdown', (e: FederatedPointerEvent) => {
+      e.stopPropagation();
+      if (this.gizmoEditMode) {
+        const startLocal = gizmoGroup.toLocal(e.global);
+        this.movingGizmoHandle = {
+          handle: rotateHandle, connector: rotateConnector, gizmoGroup,
+          startLocal: { x: startLocal.x, y: startLocal.y },
+          handleStart: { x: rotateHandle.x, y: rotateHandle.y },
+        };
+      } else {
+        const worldPos = container.getGlobalPosition();
+        this.rotatingRole = 'body';
+        this.rotateStartAngle = Math.atan2(e.global.y - worldPos.y, e.global.x - worldPos.x);
+        this.rotateStartContainerRotation = container.rotation;
+      }
+    });
+  }
+
+  // Toggle gizmo edit mode: when enabled, dragging handles repositions them;
+  // when disabled, handles trigger their normal rotate/translate behaviour.
+  setGizmoEditMode(enabled: boolean) {
+    this.gizmoEditMode = enabled;
+    for (const [, group] of this.gizmoGroups) {
+      // In edit mode keep all gizmos always visible so the user can see and grab them.
+      // In normal mode reset to hidden-until-hover.
+      group.alpha = enabled ? 1 : 0;
+    }
+    for (const { handle, defaultCursor } of this.gizmoHandleRefs) {
+      handle.cursor = enabled ? 'crosshair' : defaultCursor;
+    }
   }
 
   // --- Logic ---
