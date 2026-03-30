@@ -493,10 +493,11 @@ export class CompositeCharacter {
     this.boundingBoxGraphics.set(role, debugBox);
     this.drawBoundingBox(role);
 
-    const show = () => { gizmoGroup.alpha = 1; };
+    const hasTexture = this.textures.has(role);
+    const show = () => { if (hasTexture) gizmoGroup.alpha = 1; };
     const hide = () => { 
       if (this.rotatingRole !== role && this.draggingRole !== role && !this.movingGizmoHandle) {
-        gizmoGroup.alpha = this.gizmoEditMode ? 1 : 0; 
+        gizmoGroup.alpha = (this.gizmoEditMode && hasTexture) ? 1 : 0; 
       }
     };
 
@@ -543,7 +544,10 @@ export class CompositeCharacter {
   setGizmoEditMode(enabled: boolean) {
     this.gizmoEditMode = enabled;
     for (const [role, group] of this.gizmoGroups) {
-      group.alpha = enabled ? 1 : 0;
+      // Only show gizmo group if the part actually has a texture placed
+      const hasTexture = this.textures.has(role);
+      group.alpha = (enabled && hasTexture) ? 1 : 0;
+
       const container = this.partContainers.get(role);
       const refs = this.gizmoHandleRefs.filter(r => r.role === role);
       
