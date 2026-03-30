@@ -13,9 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Megaphone,
-  Shapes,
   LibraryBig,
-  Wand2,
   Drama,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -176,32 +174,17 @@ export function Sidebar() {
           </SidebarLink>
         )}
         {showCharacterBuilder && (
-          <div
-            className={cn(collapsed && "tooltip tooltip-right")}
-            data-tip={collapsed ? t("nav.characterBuilder") : undefined}
+          <SidebarLink
+            to={`${langPrefix}/character-builder/`}
+            icon={<Drama className="size-4" />}
+            collapsed={collapsed}
+            onExpand={expandOnDesktop}
           >
-            <div className="w-full">
-              <Link
-                to={`${langPrefix}/character-builder/` as any}
-                onClick={expandOnDesktop}
-                className={cn(
-                  "btn btn-sm btn-primary/10 text-primary flex justify-between font-normal",
-                  collapsed ? "btn-square" : "w-full justify-start gap-3",
-                  "[&.active]:btn-primary [&.active]:text-white",
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <Drama className="size-4" />
-                  {!collapsed && t("nav.characterBuilder")}
-                </div>
-                {charCount > 0 && (
-                  <span className="badge badge-outline badge-xs">
-                    {charCount}
-                  </span>
-                )}
-              </Link>
-            </div>
-          </div>
+            {t("nav.characterBuilder")}
+            {charCount > 0 && (
+              <span className="badge badge-outline badge-xs">{charCount}</span>
+            )}
+          </SidebarLink>
         )}
       </nav>
 

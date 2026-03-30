@@ -155,16 +155,6 @@ function StoryDetailPage() {
             {t("action.save")}
           </button>
         )}
-        {isDirector && (
-          <button
-            onClick={() =>
-              router.navigate({ to: `/character-builder/${storyId}` as any })
-            }
-            className="btn btn-accent font-display gap-2"
-          >
-            <Drama className="size-4" /> {t("characterBuilder.heading")}
-          </button>
-        )}
         {scenes.length > 0 && (
           <button
             disabled={
