@@ -74,7 +74,8 @@ function CharacterBuilderPage() {
             Character Builder
           </p>
           <p className="text-base-content/40 text-sm">
-            Available for directors with a Pro or Advance subscription, and all actors.
+            Available for directors with a Pro or Advance subscription, and all
+            actors.
           </p>
         </div>
       </div>
@@ -86,7 +87,7 @@ function CharacterBuilderPage() {
       <header className="mb-8 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="bg-primary/10 rounded-xl p-3">
-            <Wand2 className="text-primary size-8" />
+            <Drama className="text-primary size-8" />
           </div>
           <div>
             <h1 className="font-display text-3xl font-bold">
@@ -101,7 +102,7 @@ function CharacterBuilderPage() {
           onClick={() => setAdding(true)}
           className="btn btn-primary font-display tracking-[0.05em]"
         >
-          {t("characterBuilder.createYourOwn")}
+          + {t("characterBuilder.createYourOwn")}
         </button>
       </header>
 
@@ -177,43 +178,33 @@ function CharacterBuilderPage() {
                   })
                 }
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    {char.compositePropId ? (
-                      <div className="bg-primary/10 flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-xl">
-                        <Drama className="text-primary size-5" />
-                      </div>
-                    ) : (
-                      <div className="bg-base-300 flex size-10 shrink-0 items-center justify-center rounded-xl">
-                        <Drama className="text-base-content/30 size-5" />
-                      </div>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="card-title hover:text-primary text-lg font-medium transition-colors">
+                    {char.name}
+                  </p>
+
+                  <div className="flex items-center gap-2">
+                    {char.compositePropId && (
+                      <span className="badge badge-success badge-sm shrink-0 font-medium tracking-wider uppercase">
+                        Published
+                      </span>
                     )}
-                    <p className="font-display truncate font-semibold">
-                      {char.name}
-                    </p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteTarget(char.id);
+                      }}
+                      className="text-error/60 hover:text-error text-xs transition-colors"
+                      aria-label="Delete character"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
                   </div>
-                  {char.compositePropId && (
-                    <span className="badge badge-success badge-sm shrink-0 font-medium uppercase tracking-wider">
-                      Published
-                    </span>
-                  )}
+                </div>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3"></div>
                 </div>
               </div>
-
-              {/* Delete button — only visible on hover */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setDeleteTarget(char.id);
-                }}
-                className={cn(
-                  "btn btn-ghost btn-xs btn-square absolute top-3 right-3 opacity-0 transition-opacity group-hover:opacity-100",
-                  "hover:btn-error hover:text-white",
-                )}
-                aria-label="Delete character"
-              >
-                <Trash2 className="size-3.5" />
-              </button>
             </div>
           ))}
         </div>
@@ -223,9 +214,12 @@ function CharacterBuilderPage() {
       {deleteTarget && (
         <dialog className="modal modal-open">
           <div className="modal-box">
-            <h3 className="font-display text-lg font-bold">Delete Character?</h3>
+            <h3 className="font-display text-lg font-bold">
+              Delete Character?
+            </h3>
             <p className="text-base-content/60 py-4 text-sm">
-              This will permanently delete the character and its published prop. This cannot be undone.
+              This will permanently delete the character and its published prop.
+              This cannot be undone.
             </p>
             <div className="modal-action">
               <button

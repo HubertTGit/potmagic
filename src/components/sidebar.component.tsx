@@ -16,6 +16,7 @@ import {
   Shapes,
   LibraryBig,
   Wand2,
+  Drama,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { countMyPublishedCharacters } from "@/lib/character-builder.fns";
@@ -179,23 +180,25 @@ export function Sidebar() {
             className={cn(collapsed && "tooltip tooltip-right")}
             data-tip={collapsed ? t("nav.characterBuilder") : undefined}
           >
-            <div className="indicator w-full">
-              {charCount > 0 && (
-                <span className="indicator-item badge badge-primary badge-xs">
-                  {charCount}
-                </span>
-              )}
+            <div className="w-full">
               <Link
                 to={`${langPrefix}/character-builder/` as any}
                 onClick={expandOnDesktop}
                 className={cn(
-                  "btn btn-sm btn-primary/10 text-primary font-normal",
+                  "btn btn-sm btn-primary/10 text-primary flex justify-between font-normal",
                   collapsed ? "btn-square" : "w-full justify-start gap-3",
                   "[&.active]:btn-primary [&.active]:text-white",
                 )}
               >
-                <Wand2 className="size-4" />
-                {!collapsed && t("nav.characterBuilder")}
+                <div className="flex items-center gap-3">
+                  <Drama className="size-4" />
+                  {!collapsed && t("nav.characterBuilder")}
+                </div>
+                {charCount > 0 && (
+                  <span className="badge badge-outline badge-xs">
+                    {charCount}
+                  </span>
+                )}
               </Link>
             </div>
           </div>
