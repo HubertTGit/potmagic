@@ -7,6 +7,17 @@ import { saveSceneCastPosition } from "@/lib/scenes.fns";
 import type { PropType } from "@/db/schema";
 import type { PropMoveMessage } from "@/lib/livekit-messages";
 
+export const ALL_PART_ROLES = [
+  "body", "head", "jaw", "eye-left", "eye-right", "pupil-left", "pupil-right",
+  "eye-brow-left", "eye-brow-right", "eye-closed-left", "eye-closed-right",
+  "arm-upper-left", "arm-forearm-left", "arm-hand-left",
+  "arm-upper-right", "arm-forearm-right", "arm-hand-right",
+  "leg-upper-left", "leg-lower-left", "leg-foot-left",
+  "leg-upper-right", "leg-lower-right", "leg-foot-right",
+] as const;
+
+export type PartRole = typeof ALL_PART_ROLES[number];
+
 export interface CharacterPartData {
   id: string;
   partRole: string;
@@ -59,6 +70,10 @@ export class CompositeCharacter {
   private lastSendTime = 0;
   private isSpeaking = false;
 
+  // Stored so they can be removed from the stage on destroy()
+  private boundPartPointerMove: ((e: FederatedPointerEvent) => void) | null = null;
+  private boundPartPointerUp: (() => void) | null = null;
+
   constructor(props: CompositeCharacterProps) {
     this.props = props;
 
@@ -103,84 +118,74 @@ export class CompositeCharacter {
   }
 
   private buildHierarchy() {
-    // Sort parts by ZIndex before building hierarchy for flat parts, 
-    // but here we follow the prescribed hierarchy.
-    
     const partsByRole = new Map(this.props.parts.map(p => [p.partRole, p]));
 
-    const createPart = (role: string, parent: Container) => {
+    // Always creates a container for the role, using part data if available or defaults.
+    // Sprites without a loaded texture are invisible (no hit area), so unplaced parts
+    // are inert until the user drops them onto the canvas.
+    const createPart = (role: string, parent: Container): Container => {
       const data = partsByRole.get(role);
-      if (!data) return null;
 
       const container = new Container();
       container.label = role;
-      container.x = data.offsetX;
-      container.y = data.offsetY;
-      container.rotation = data.rotation * (Math.PI / 180);
-      container.zIndex = data.zIndex;
-      
+      container.x = data?.offsetX ?? 0;
+      container.y = data?.offsetY ?? 0;
+      container.rotation = (data?.rotation ?? 0) * (Math.PI / 180);
+      container.zIndex = data?.zIndex ?? ALL_PART_ROLES.indexOf(role as PartRole);
+
       const sprite = new Sprite();
       const tex = this.textures.get(role);
       if (tex) sprite.texture = tex;
-      sprite.anchor.set(data.anchorX, data.anchorY);
-      
+      sprite.anchor.set(data?.anchorX ?? 0.5, data?.anchorY ?? 0.5);
+
       if (role === 'body') {
         sprite.filters = [this.glowFilter];
       }
 
       container.addChild(sprite);
       parent.addChild(container);
-      
+
       this.partContainers.set(role, container);
       this.partSprites.set(role, sprite);
-      
+
       return container;
     };
 
-    // 1. Body is the root child
+    // 1. Body — root child of the composite container
     const body = createPart('body', this.container);
-    if (!body) return;
 
-    // 2. Head attached to body
+    // 2. Head and its facial parts — attached to body
     const head = createPart('head', body);
-    if (head) {
-      createPart('jaw', head);
-      createPart('eye-left', head);
-      createPart('eye-right', head);
-      createPart('pupil-left', head);
-      createPart('pupil-right', head);
-    }
+    createPart('jaw', head);
+    createPart('eye-left', head);
+    createPart('eye-right', head);
+    createPart('pupil-left', head);
+    createPart('pupil-right', head);
+    createPart('eye-brow-left', head);
+    createPart('eye-brow-right', head);
+    createPart('eye-closed-left', head);
+    createPart('eye-closed-right', head);
 
-    // 3. Arms attached to body
+    // 3. Arms — attached to body
     const aul = createPart('arm-upper-left', body);
-    if (aul) {
-      const afl = createPart('arm-forearm-left', aul);
-      if (afl) createPart('arm-hand-left', afl);
-    }
-    
-    const aur = createPart('arm-upper-right', body);
-    if (aur) {
-      const afr = createPart('arm-forearm-right', aur);
-      if (afr) createPart('arm-hand-right', afr);
-    }
+    const afl = createPart('arm-forearm-left', aul);
+    createPart('arm-hand-left', afl);
 
-    // 4. Legs attached to body
+    const aur = createPart('arm-upper-right', body);
+    const afr = createPart('arm-forearm-right', aur);
+    createPart('arm-hand-right', afr);
+
+    // 4. Legs — attached to body
     const lul = createPart('leg-upper-left', body);
-    if (lul) {
-      const lll = createPart('leg-lower-left', lul);
-      if (lll) createPart('leg-foot-left', lll);
-    }
+    const lll = createPart('leg-lower-left', lul);
+    createPart('leg-foot-left', lll);
 
     const lur = createPart('leg-upper-right', body);
-    if (lur) {
-      const llr = createPart('leg-lower-right', lur);
-      if (llr) createPart('leg-foot-right', llr);
-    }
+    const llr = createPart('leg-lower-right', lur);
+    createPart('leg-foot-right', llr);
 
     this.container.scale.x = this.props.initialScaleX ?? 1;
     this.container.rotation = (this.props.initialRotation ?? 0) * (Math.PI / 180);
-
-    // Initial z-sort
     this.container.sortChildren();
   }
 
@@ -188,14 +193,20 @@ export class CompositeCharacter {
     const { canDrag, interactive = false } = this.props;
 
     if (interactive) {
-      // Builder mode: all parts are interactive for adjustment
+      // Builder mode: each placed (textured) part is independently draggable
+      this.props.app.stage.eventMode = 'static';
+
       for (const [role, sprite] of this.partSprites) {
+        if (!this.textures.has(role)) continue; // skip unplaced parts
         sprite.eventMode = 'static';
         sprite.cursor = 'move';
         sprite.on('pointerdown', (e) => this.onPartPointerDown(e, role));
       }
-      this.props.app.stage.on('globalpointermove', this.onPartGlobalPointerMove.bind(this));
-      this.props.app.stage.on('pointerup', this.onPartPointerUp.bind(this));
+
+      this.boundPartPointerMove = this.onPartGlobalPointerMove.bind(this);
+      this.boundPartPointerUp = this.onPartPointerUp.bind(this);
+      this.props.app.stage.on('globalpointermove', this.boundPartPointerMove);
+      this.props.app.stage.on('pointerup', this.boundPartPointerUp);
     } else {
       // Stage mode: root container / body handles drag
       const bodySprite = this.partSprites.get('body');
@@ -262,26 +273,22 @@ export class CompositeCharacter {
     e.stopPropagation();
     this.draggingRole = role;
     const container = this.partContainers.get(role)!;
-    const parentGlobal = container.parent?.toGlobal({ x: 0, y: 0 }) ?? { x: 0, y: 0 };
+    if (!container.parent) return;
+    const local = container.parent.toLocal(e.global);
     this.partOffset = {
-      x: container.x - (e.global.x - parentGlobal.x),
-      y: container.y - (e.global.y - parentGlobal.y),
+      x: container.x - local.x,
+      y: container.y - local.y,
     };
   }
 
   private onPartGlobalPointerMove(e: FederatedPointerEvent) {
     if (!this.draggingRole) return;
-    const role = this.draggingRole;
-    const container = this.partContainers.get(role)!;
-    const parentGlobal = container.parent?.toGlobal({ x: 0, y: 0 }) ?? { x: 0, y: 0 };
-    
-    const newX = e.global.x - parentGlobal.x + this.partOffset.x;
-    const newY = e.global.y - parentGlobal.y + this.partOffset.y;
-    
-    container.x = newX;
-    container.y = newY;
-    
-    this.props.onChange?.(role, { offsetX: newX, offsetY: newY });
+    const container = this.partContainers.get(this.draggingRole)!;
+    if (!container.parent) return;
+    const local = container.parent.toLocal(e.global);
+    container.x = local.x + this.partOffset.x;
+    container.y = local.y + this.partOffset.y;
+    this.props.onChange?.(this.draggingRole, { offsetX: container.x, offsetY: container.y });
   }
 
   private onPartPointerUp() {
@@ -311,20 +318,18 @@ export class CompositeCharacter {
     const head = this.partContainers.get('head');
     if (!head) return;
 
-    // Convert stage coords to head-local coords
     const localPoint = head.toLocal({ x: stageX, y: stageY });
-    
+
     const updatePupil = (role: string) => {
       const container = this.partContainers.get(role);
       const data = this.props.parts.find(p => p.partRole === role);
       if (!container || !data) return;
 
-      // Distance from neutral (offset)
       const dx = localPoint.x - data.offsetX;
       const dy = localPoint.y - data.offsetY;
       const dist = Math.sqrt(dx * dx + dy * dy);
       const maxDist = 8;
-      
+
       if (dist > maxDist) {
         const scale = maxDist / dist;
         container.x = data.offsetX + dx * scale;
@@ -393,7 +398,23 @@ export class CompositeCharacter {
   }
 
   destroy() {
+    if (this.boundPartPointerMove) {
+      this.props.app.stage.off('globalpointermove', this.boundPartPointerMove);
+    }
+    if (this.boundPartPointerUp) {
+      this.props.app.stage.off('pointerup', this.boundPartPointerUp);
+    }
     this.container.destroy({ children: true });
+  }
+
+  // Returns current live canvas positions (local to parent) for all placed parts.
+  // Used by the studio to preserve positions when rebuilding the composite.
+  getLivePositions(): Record<string, { x: number; y: number }> {
+    const result: Record<string, { x: number; y: number }> = {};
+    for (const [role, container] of this.partContainers) {
+      result[role] = { x: container.x, y: container.y };
+    }
+    return result;
   }
 
   // Builder utilities

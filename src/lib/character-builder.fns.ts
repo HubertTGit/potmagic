@@ -171,6 +171,7 @@ export const upsertCharacterPart = createServerFn({ method: "POST" })
         characterId: z.string(),
         partRole: z.enum([
           "body", "head", "jaw", "eye-left", "eye-right", "pupil-left", "pupil-right",
+          "eye-brow-left", "eye-brow-right", "eye-closed-left", "eye-closed-right",
           "arm-upper-left", "arm-forearm-left", "arm-hand-left",
           "arm-upper-right", "arm-forearm-right", "arm-hand-right",
           "leg-upper-left", "leg-lower-left", "leg-foot-left",

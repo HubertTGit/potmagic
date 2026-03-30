@@ -3,43 +3,43 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { authClient } from "@/lib/auth-client";
 import { useLanguage } from "@/hooks/useLanguage";
-import { listAllProps, uploadProp, deleteProp } from "@/lib/props.fns";
-import { 
-  createCharacter, 
-  getCharacter, 
-  upsertCharacterPart, 
+import { uploadProp, deleteProp } from "@/lib/props.fns";
+import {
+  createCharacter,
+  getCharacter,
+  upsertCharacterPart,
   publishCharacter,
   listCharacters,
   updateCharacter
 } from "@/lib/character-builder.fns";
 import { cn } from "@/lib/cn";
-import { 
-  ChevronLeft, 
-  Upload, 
-  Save, 
-  Plus, 
-  Drama, 
+import {
+  ChevronLeft,
+  Upload,
+  Save,
+  Plus,
+  Drama,
   Sparkles,
-  Maximize2, 
+  Maximize2,
   Target,
   Trash2,
   CheckCircle2
 } from "lucide-react";
 import type { Application } from "pixi.js";
-import { CompositeCharacter, type CharacterPartData } from "@/components/composite-character.component";
+import { CompositeCharacter, ALL_PART_ROLES } from "@/components/composite-character.component";
 
-const PART_ROLES = [
-  "body", "head", "jaw", "eye-left", "eye-right", "pupil-left", "pupil-right",
-  "arm-upper-left", "arm-forearm-left", "arm-hand-left",
-  "arm-upper-right", "arm-forearm-right", "arm-hand-right",
-  "leg-upper-left", "leg-lower-left", "leg-foot-left",
-  "leg-upper-right", "leg-lower-right", "leg-foot-right",
-];
+// Pending prop: uploaded to Blob/DB but not yet placed on canvas via drag-drop
+type PendingProp = {
+  propId: string;
+  imageUrl: string;
+  altPropId?: string;
+  altImageUrl?: string;
+};
 
 export function CharacterBuilderStudio() {
   const { storyId, characterId } = useParams({ strict: false }) as { storyId: string, characterId?: string };
   const navigate = useNavigate();
-  const { t, langPrefix } = useLanguage();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const appRef = useRef<Application | null>(null);
@@ -49,15 +49,11 @@ export function CharacterBuilderStudio() {
   const [isUploading, setIsUploading] = useState<"main" | "alt" | null>(null);
   const [localName, setLocalName] = useState("");
   const [isDraggingOver, setIsDraggingOver] = useState(false);
+  // Parts uploaded but not yet placed on the canvas via drag-drop
+  const [pendingPropByRole, setPendingPropByRole] = useState<Record<string, PendingProp>>({});
 
   const { data: session } = authClient.useSession();
   const isDirector = session?.user.role === "director";
-
-  // Data fetching
-  const { data: props = { character: [], background: [], sound: [], rive: [], part: [], composite: [] } } = useQuery({
-    queryKey: ["all-props"],
-    queryFn: () => listAllProps(),
-  });
 
   const { data: userCharacters = [] } = useQuery({
     queryKey: ["user-characters", storyId],
@@ -125,6 +121,17 @@ export function CharacterBuilderStudio() {
 
   const handleRemovePart = async () => {
     if (!characterId || !selectedRole || !currentCharacter) return;
+
+    // If only pending (not placed), just clear from local state
+    if (pendingPropByRole[selectedRole] && !currentCharacter.parts.find(p => p.partRole === selectedRole)) {
+      setPendingPropByRole(prev => {
+        const next = { ...prev };
+        delete next[selectedRole];
+        return next;
+      });
+      return;
+    }
+
     const part = currentCharacter.parts.find(p => p.partRole === selectedRole);
     if (!part) return;
 
@@ -139,42 +146,49 @@ export function CharacterBuilderStudio() {
       console.error("Failed to remove part:", e);
     }
   };
+
+  // Drop from sidebar onto canvas — this is the ONLY way a part appears on canvas
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDraggingOver(false);
     const role = e.dataTransfer.getData("partRole");
-    console.log("Dropped role:", role);
     if (!role || !canvasRef.current || !characterId || !currentCharacter) return;
 
     const rect = canvasRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 800;
     const y = ((e.clientY - rect.top) / rect.height) * 800;
 
-    console.log("Calculated drop position:", { x, y });
-
-    // Offset is relative to character center (400, 400)
     const offsetX = Math.round(x - 400);
     const offsetY = Math.round(y - 400);
 
-    const part = currentCharacter.parts.find(p => p.partRole === role);
-    if (!part) {
-      console.warn("No part found for role:", role);
-      return;
-    }
+    const existingPart = currentCharacter.parts.find(p => p.partRole === role);
+    const pending = pendingPropByRole[role];
+
+    const propId = existingPart?.propId ?? pending?.propId;
+    if (!propId) return; // no texture uploaded for this role yet
 
     setSelectedRole(role);
     upsertPartMutation.mutate({
       data: {
-        characterId: characterId,
+        characterId,
         partRole: role as any,
-        propId: part.propId,
-        altPropId: part.altPropId,
+        propId,
+        altPropId: existingPart?.altPropId ?? pending?.altPropId,
         offsetX,
         offsetY,
-        anchorX: part.anchorX,
-        anchorY: part.anchorY,
-        rotation: part.rotation,
-        zIndex: part.zIndex,
+        anchorX: existingPart?.anchorX ?? 0.5,
+        anchorY: existingPart?.anchorY ?? 0.5,
+        rotation: existingPart?.rotation ?? 0,
+        zIndex: existingPart?.zIndex ?? ALL_PART_ROLES.indexOf(role as any),
+      }
+    }, {
+      onSuccess: () => {
+        // Clear from pending now that it's persisted and will appear via currentCharacter
+        setPendingPropByRole(prev => {
+          const next = { ...prev };
+          delete next[role];
+          return next;
+        });
       }
     });
   };
@@ -217,8 +231,6 @@ export function CharacterBuilderStudio() {
       }
 
       appRef.current = app;
-      
-      // Initializing with selected character
       updatePreview();
     }
 
@@ -232,7 +244,7 @@ export function CharacterBuilderStudio() {
     };
   }, []);
 
-  // Update Preview when parts change
+  // Rebuild preview when placed parts change
   useEffect(() => {
     updatePreview();
   }, [currentCharacter, appRef.current]);
@@ -240,14 +252,25 @@ export function CharacterBuilderStudio() {
   const updatePreview = () => {
     if (!appRef.current || !currentCharacter) return;
 
+    // Capture live canvas positions before destroying the old composite so that
+    // parts the user has already dragged don't snap back to their DB values.
+    // Newly added parts won't have a live position and will use the DB value (the drop point).
+    const livePositions = compositeRef.current?.getLivePositions() ?? {};
+
     if (compositeRef.current) {
       compositeRef.current.destroy();
     }
 
+    const parts = currentCharacter.parts.map(p => ({
+      ...p,
+      offsetX: livePositions[p.partRole]?.x ?? p.offsetX,
+      offsetY: livePositions[p.partRole]?.y ?? p.offsetY,
+    }));
+
     const composite = new CompositeCharacter({
       sceneCastId: "builder-preview",
       castId: "builder",
-      parts: currentCharacter.parts as any,
+      parts: parts as any,
       userId: session?.user.id ?? "",
       type: "composite",
       initialX: 400,
@@ -255,16 +278,16 @@ export function CharacterBuilderStudio() {
       canDrag: true,
       interactive: true,
       app: appRef.current,
-      onChange: (role, data) => {
-        // Debounced or throttled updates could go here
-        // For now, we update local state or just let the dragging happen
-      },
+      onChange: () => {},
     });
 
     compositeRef.current = composite;
     appRef.current.stage.addChild(composite.container);
   };
 
+  // Upload a texture for a part.
+  // - If the part is already placed (in currentCharacter.parts): update texture in DB immediately.
+  // - If not yet placed: store in pendingPropByRole; it appears on canvas only when dropped.
   const handleUploadPart = async (e: React.ChangeEvent<HTMLInputElement>, isAlt = false) => {
     const file = e.target.files?.[0];
     if (!file || !characterId) return;
@@ -294,42 +317,57 @@ export function CharacterBuilderStudio() {
       });
 
       if (prop) {
-        const part = currentCharacter?.parts.find(p => p.partRole === selectedRole);
-        await upsertPartMutation.mutateAsync({
-          data: {
-            characterId: characterId,
-            partRole: selectedRole as any,
-            propId: isAlt ? (part?.propId ?? prop.id) : prop.id,
-            altPropId: isAlt ? prop.id : part?.altPropId,
-            zIndex: part?.zIndex ?? PART_ROLES.indexOf(selectedRole),
-            offsetX: part?.offsetX ?? 0,
-            offsetY: part?.offsetY ?? 0,
-            anchorX: part?.anchorX ?? 0.5,
-            anchorY: part?.anchorY ?? 0.5,
-            rotation: part?.rotation ?? 0,
-          },
-        });
+        const existingPart = currentCharacter?.parts.find(p => p.partRole === selectedRole);
+
+        if (existingPart) {
+          // Already placed: update texture in DB directly
+          await upsertPartMutation.mutateAsync({
+            data: {
+              characterId,
+              partRole: selectedRole as any,
+              propId: isAlt ? (existingPart.propId ?? prop.id) : prop.id,
+              altPropId: isAlt ? prop.id : existingPart.altPropId,
+              zIndex: existingPart.zIndex ?? ALL_PART_ROLES.indexOf(selectedRole as any),
+              offsetX: existingPart.offsetX,
+              offsetY: existingPart.offsetY,
+              anchorX: existingPart.anchorX,
+              anchorY: existingPart.anchorY,
+              rotation: existingPart.rotation,
+            },
+          });
+        } else {
+          // Not yet placed: stage in pending — appears on canvas only when dropped
+          setPendingPropByRole(prev => ({
+            ...prev,
+            [selectedRole]: {
+              ...prev[selectedRole],
+              ...(isAlt
+                ? { altPropId: prop.id, altImageUrl: prop.imageUrl ?? undefined }
+                : { propId: prop.id, imageUrl: prop.imageUrl ?? "" }
+              ),
+            },
+          }));
+        }
       }
     } catch (error) {
       console.error("Upload failed:", error);
     } finally {
       setIsUploading(null);
+      // Reset so the same file can be re-selected
+      e.target.value = "";
     }
   };
 
   const handleSaveAdjustments = async () => {
     if (!compositeRef.current || !characterId) return;
-    
-    // In a real implementation, we'd iterate over all parts and update transforms
-    // For this POC, we just save the current one being edited
+
     const parts = currentCharacter?.parts ?? [];
     for (const part of parts) {
-      // Find current container values
       const container = (compositeRef.current as any).partContainers.get(part.partRole);
       if (container) {
         await upsertPartMutation.mutateAsync({
           data: {
-            characterId: characterId,
+            characterId,
             partRole: part.partRole,
             propId: part.propId,
             offsetX: Math.round(container.x),
@@ -361,7 +399,7 @@ export function CharacterBuilderStudio() {
             </div>
           )}
         </div>
-        
+
         <div className="mb-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {userCharacters.map((char) => (
             <button
@@ -392,7 +430,7 @@ export function CharacterBuilderStudio() {
             </div>
           </button>
         </div>
-        <button 
+        <button
           onClick={() => navigate({ to: `/stories/${storyId}` as any })}
           className="btn btn-ghost gap-2"
         >
@@ -407,7 +445,7 @@ export function CharacterBuilderStudio() {
       {/* Header */}
       <header className="bg-base-100 border-base-300 flex items-center justify-between border-b px-6 py-4">
         <div className="flex items-center gap-4">
-          <button 
+          <button
             onClick={() => navigate({ to: `/character-builder/${storyId}` as any })}
             className="btn btn-ghost btn-sm btn-square"
           >
@@ -430,7 +468,7 @@ export function CharacterBuilderStudio() {
         </div>
 
         <div className="flex gap-2">
-          <button 
+          <button
             onClick={handleSaveAdjustments}
             disabled={upsertPartMutation.isPending}
             className="btn btn-ghost btn-sm gap-2"
@@ -442,7 +480,7 @@ export function CharacterBuilderStudio() {
             )}
             {t('action.save')}
           </button>
-          <button 
+          <button
             onClick={() => publishMutation.mutate({ data: { characterId } })}
             disabled={publishMutation.isPending || (currentCharacter?.parts.length ?? 0) === 0}
             className="btn btn-primary btn-sm gap-2"
@@ -461,15 +499,19 @@ export function CharacterBuilderStudio() {
             {t('characterBuilder.bodyParts')}
           </h2>
           <div className="space-y-1">
-            {PART_ROLES.map((role) => {
+            {ALL_PART_ROLES.map((role) => {
               const part = currentCharacter?.parts?.find(p => p.partRole === role);
+              const pending = pendingPropByRole[role];
+              const imageUrl = part?.imageUrl ?? pending?.imageUrl ?? null;
+              const isPlaced = !!part;
+              const isPending = !isPlaced && !!pending;
               return (
                 <button
                   key={role}
                   onClick={() => setSelectedRole(role)}
-                  draggable={!!part?.imageUrl}
+                  draggable={!!imageUrl}
                   onDragStart={(e) => {
-                    if (part?.imageUrl) {
+                    if (imageUrl) {
                       e.dataTransfer.setData("partRole", role);
                       e.dataTransfer.effectAllowed = "move";
                     }
@@ -481,15 +523,16 @@ export function CharacterBuilderStudio() {
                 >
                   <div className="flex items-center gap-3">
                     <div className="bg-base-300 flex size-8 items-center justify-center overflow-hidden rounded-md border border-white/5">
-                      {part?.imageUrl ? (
-                        <img src={part.imageUrl} alt={role} className="size-full object-contain" />
+                      {imageUrl ? (
+                        <img src={imageUrl} alt={role} className="size-full object-contain" />
                       ) : (
                         <Drama className={cn("size-4", selectedRole === role ? "opacity-100" : "opacity-40")} />
                       )}
                     </div>
                     <span className="capitalize">{role.replace(/-/g, ' ')}</span>
                   </div>
-                  {part && <div className="bg-success size-1.5 rounded-full" />}
+                  {isPlaced && <div className="bg-success size-1.5 rounded-full" />}
+                  {isPending && <div className="bg-warning size-1.5 rounded-full" title="Uploaded — drag to canvas to place" />}
                 </button>
               );
             })}
@@ -499,7 +542,7 @@ export function CharacterBuilderStudio() {
         {/* Center: Canvas Preview */}
         <main className="bg-base-300 relative flex-1">
           <div className="absolute inset-0 flex items-center justify-center p-8">
-            <div 
+            <div
               className={cn(
                 "bg-base-100 shadow-2xl relative aspect-square w-full max-w-[600px] overflow-hidden rounded-xl border border-white/5 transition-all duration-200",
                 isDraggingOver && "border-primary bg-primary/5 scale-[1.02]"
@@ -513,10 +556,9 @@ export function CharacterBuilderStudio() {
               onDrop={handleDrop}
             >
               <canvas ref={canvasRef} className="h-full w-full" />
-              
-              {/* Instructions Overlay */}
+
               <div className="pointer-events-none absolute bottom-4 left-4 right-4 flex justify-between text-[10px] uppercase tracking-widest opacity-30">
-                <span>Drag corners to adjust scale (Pro)</span>
+                <span>Drag parts from the sidebar to place them</span>
                 <span>800x800 Preview</span>
               </div>
             </div>
@@ -536,49 +578,76 @@ export function CharacterBuilderStudio() {
                 <label className="text-xs font-medium opacity-60 tracking-wide uppercase">
                   Texture
                 </label>
-                <div className="relative">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleUploadPart(e, false)}
-                    className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
-                    disabled={!!isUploading}
-                  />
-                  <div className={cn(
-                    "border-base-300 flex min-h-32 flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed transition-colors",
-                    isUploading === "main" ? "bg-base-300" : "hover:bg-base-300"
-                  )}>
-                    {isUploading === "main" ? (
-                      <span className="loading loading-spinner loading-md text-primary" />
-                    ) : currentCharacter?.parts?.find(p => p.partRole === selectedRole)?.imageUrl ? (
-                      <div 
-                        className="group relative h-full w-full cursor-grab active:cursor-grabbing"
-                        draggable
-                        onDragStart={(e) => {
-                          e.dataTransfer.setData("partRole", selectedRole);
-                          e.dataTransfer.effectAllowed = "move";
-                        }}
-                      >
-                        <img 
-                          src={currentCharacter.parts.find(p => p.partRole === selectedRole)?.imageUrl!} 
-                          alt="preview" 
-                          className="max-h-48 w-full object-contain p-2"
-                        />
-                        <div className="bg-base-300/80 absolute inset-0 flex items-center justify-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-                          <div className="flex flex-col items-center gap-1">
-                            <Maximize2 className="size-5 text-white" />
-                            <span className="text-[10px] uppercase tracking-widest font-bold">Drag to stage</span>
+                {(() => {
+                  const part = currentCharacter?.parts?.find(p => p.partRole === selectedRole);
+                  const pending = pendingPropByRole[selectedRole];
+                  const displayUrl = part?.imageUrl ?? pending?.imageUrl ?? null;
+                  const isPlaced = !!part;
+                  return (
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleUploadPart(e, false)}
+                        className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                        disabled={!!isUploading}
+                      />
+                      <div className={cn(
+                        "border-base-300 flex min-h-32 flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed transition-colors",
+                        isUploading === "main" ? "bg-base-300" : "hover:bg-base-300"
+                      )}>
+                        {isUploading === "main" ? (
+                          <span className="loading loading-spinner loading-md text-primary" />
+                        ) : displayUrl ? (
+                          <div
+                            className={cn(
+                              "group relative h-full w-full",
+                              !isPlaced ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
+                            )}
+                            draggable={!isPlaced}
+                            onDragStart={(e) => {
+                              if (!isPlaced) {
+                                e.dataTransfer.setData("partRole", selectedRole);
+                                e.dataTransfer.effectAllowed = "move";
+                              }
+                            }}
+                          >
+                            <img
+                              src={displayUrl}
+                              alt="preview"
+                              className="max-h-48 w-full object-contain p-2"
+                            />
+                            <div className="bg-base-300/80 absolute inset-0 flex items-center justify-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                              <div className="flex flex-col items-center gap-1">
+                                {isPlaced ? (
+                                  <>
+                                    <Upload className="size-5 text-white" />
+                                    <span className="text-[10px] uppercase tracking-widest font-bold">Replace texture</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Maximize2 className="size-5 text-white" />
+                                    <span className="text-[10px] uppercase tracking-widest font-bold">Drag to canvas</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            {!isPlaced && (
+                              <div className="absolute top-2 right-2 badge badge-warning badge-xs font-bold uppercase tracking-wider">
+                                Not placed
+                              </div>
+                            )}
                           </div>
-                        </div>
+                        ) : (
+                          <>
+                            <Upload className="size-6 opacity-30" />
+                            <span className="text-xs opacity-50">{t('characterBuilder.uploadMain')}</span>
+                          </>
+                        )}
                       </div>
-                    ) : (
-                      <>
-                        <Upload className="size-6 opacity-30" />
-                        <span className="text-xs opacity-50">{t('characterBuilder.uploadMain')}</span>
-                      </>
-                    )}
-                  </div>
-                </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {(selectedRole === 'jaw' || selectedRole.startsWith('eye') || selectedRole.startsWith('pupil')) && (
@@ -600,43 +669,48 @@ export function CharacterBuilderStudio() {
                     )}>
                     {isUploading === "alt" ? (
                       <span className="loading loading-spinner loading-md text-primary" />
-                    ) : currentCharacter?.parts?.find(p => p.partRole === selectedRole)?.altImageUrl ? (
-                      <div className="group relative h-full w-full">
-                        <img 
-                          src={currentCharacter.parts.find(p => p.partRole === selectedRole)?.altImageUrl!} 
-                          alt="alt-preview" 
-                          className="max-h-32 w-full object-contain p-2"
-                        />
-                        <div className="bg-base-300/80 absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRemoveTexture(true);
-                            }}
-                            className="btn btn-circle btn-error btn-xs"
-                          >
-                            <Trash2 className="size-3" />
-                          </button>
+                    ) : (() => {
+                      const part = currentCharacter?.parts?.find(p => p.partRole === selectedRole);
+                      const pending = pendingPropByRole[selectedRole];
+                      const altUrl = part?.altImageUrl ?? pending?.altImageUrl ?? null;
+                      return altUrl ? (
+                        <div className="group relative h-full w-full">
+                          <img
+                            src={altUrl}
+                            alt="alt-preview"
+                            className="max-h-32 w-full object-contain p-2"
+                          />
+                          <div className="bg-base-300/80 absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveTexture(true);
+                              }}
+                              className="btn btn-circle btn-error btn-xs"
+                            >
+                              <Trash2 className="size-3" />
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <>
-                        <Plus className="size-5 opacity-30" />
-                        <span className="text-xs opacity-50">{t('characterBuilder.uploadAlt')}</span>
-                      </>
-                    )}
+                      ) : (
+                        <>
+                          <Plus className="size-5 opacity-30" />
+                          <span className="text-xs opacity-50">{t('characterBuilder.uploadAlt')}</span>
+                        </>
+                      );
+                    })()}
                     </div>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Transform Controls (Visual Placeholder) */}
+            {/* Transform Controls */}
             <div className="space-y-4">
               <h3 className="text-xs font-medium opacity-60 tracking-wide uppercase">
                 Transform
               </h3>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] opacity-40 uppercase">Anchor X</label>
@@ -652,7 +726,7 @@ export function CharacterBuilderStudio() {
                 <div className="flex items-start gap-3">
                   <Target className="text-primary mt-0.5 size-4" />
                   <p className="text-xs leading-relaxed opacity-70 italic">
-                    Drag and drop parts on the canvas to set their anchor points and offsets.
+                    Upload a texture, then drag it from the sidebar or this panel onto the canvas to place it. Once placed, drag parts freely on the canvas to reposition.
                   </p>
                 </div>
               </div>
@@ -660,9 +734,12 @@ export function CharacterBuilderStudio() {
 
             <div className="divider opacity-30" />
 
-            <button 
+            <button
               onClick={handleRemovePart}
-              disabled={deletePropMutation.isPending || !currentCharacter?.parts?.find(p => p.partRole === selectedRole)}
+              disabled={
+                deletePropMutation.isPending ||
+                (!currentCharacter?.parts?.find(p => p.partRole === selectedRole) && !pendingPropByRole[selectedRole])
+              }
               className="btn btn-ghost btn-error btn-sm w-full gap-2 mt-4"
             >
               {deletePropMutation.isPending ? (
