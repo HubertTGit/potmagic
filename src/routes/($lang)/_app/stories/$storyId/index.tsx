@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { getMeta } from "@/i18n/meta";
-import { Theater } from "lucide-react";
+import { Theater, Layers } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -153,6 +153,14 @@ function StoryDetailPage() {
             )}
           >
             {t('action.save')}
+          </button>
+        )}
+        {isDirector && (
+          <button
+            onClick={() => router.navigate({ to: `/character-builder/${storyId}` as any })}
+            className="btn btn-accent font-display gap-2"
+          >
+            <Layers className="size-4" /> {t('characterBuilder.heading')}
           </button>
         )}
         {scenes.length > 0 && (

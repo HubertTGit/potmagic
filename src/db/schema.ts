@@ -24,6 +24,8 @@ export const propTypeEnum = pgEnum("prop_type", [
   "animation",
   "sound",
   "rive",
+  "part",
+  "composite",
 ]);
 export const subscriptionEnum = pgEnum("subscription", [
   "standard",
@@ -31,7 +33,14 @@ export const subscriptionEnum = pgEnum("subscription", [
   "advance",
 ]);
 export type SubscriptionType = "standard" | "pro" | "advance";
-export type PropType = "character" | "background" | "animation" | "sound" | "rive";
+export type PropType =
+  | "character"
+  | "background"
+  | "animation"
+  | "sound"
+  | "rive"
+  | "part"
+  | "composite";
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
@@ -47,6 +56,28 @@ export const users = pgTable("users", {
     .$onUpdate(() => new Date())
     .notNull(),
 });
+
+export const partRoleEnum = pgEnum("part_role", [
+  "body",
+  "head",
+  "jaw",
+  "eye-left",
+  "eye-right",
+  "pupil-left",
+  "pupil-right",
+  "arm-upper-left",
+  "arm-forearm-left",
+  "arm-hand-left",
+  "arm-upper-right",
+  "arm-forearm-right",
+  "arm-hand-right",
+  "leg-upper-left",
+  "leg-lower-left",
+  "leg-foot-left",
+  "leg-upper-right",
+  "leg-lower-right",
+  "leg-foot-right",
+]);
 
 export const sessions = pgTable(
   "sessions",
@@ -243,5 +274,56 @@ export const sceneCast = pgTable(
   (table) => [
     index("scene_cast_scene_id_idx").on(table.sceneId),
     unique("scene_cast_unique").on(table.sceneId, table.castId),
+  ],
+);
+
+export const characters = pgTable(
+  "characters",
+  {
+    id: text("id").primaryKey(),
+    storyId: text("story_id")
+      .notNull()
+      .references(() => stories.id, { onDelete: "cascade" }),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    compositePropId: text("composite_prop_id").references(() => props.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index("characters_story_id_idx").on(table.storyId)],
+);
+
+export const characterParts = pgTable(
+  "character_parts",
+  {
+    id: text("id").primaryKey(),
+    characterId: text("character_id")
+      .notNull()
+      .references(() => characters.id, { onDelete: "cascade" }),
+    partRole: partRoleEnum("part_role").notNull(),
+    propId: text("prop_id")
+      .notNull()
+      .references(() => props.id, { onDelete: "cascade" }),
+    altPropId: text("alt_prop_id").references(() => props.id, {
+      onDelete: "set null",
+    }),
+    anchorX: real("anchor_x").default(0.5).notNull(),
+    anchorY: real("anchor_y").default(0.5).notNull(),
+    offsetX: real("offset_x").default(0).notNull(),
+    offsetY: real("offset_y").default(0).notNull(),
+    zIndex: integer("z_index").default(0).notNull(),
+    rotation: real("rotation").default(0).notNull(),
+    imageUrl: text("image_url"),
+    altImageUrl: text("alt_image_url"),
+  },
+  (table) => [
+    unique("character_parts_unique").on(table.characterId, table.partRole),
   ],
 );

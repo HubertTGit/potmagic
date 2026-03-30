@@ -11,6 +11,9 @@ import type { PropType } from "@/db/schema";
 import { bgPanningAtom, bgProgressAtom } from "@/lib/bg-panning.atoms";
 import type { LiveKitMessage } from "@/lib/livekit-messages";
 import { Maximize, Minimize } from "lucide-react";
+import { CompositeCharacter } from "@/components/composite-character.component";
+import { getCharacterByProp } from "@/lib/character-builder.fns";
+import { useQueries } from "@tanstack/react-query";
 
 const decoder = new TextDecoder();
 const encoder = new TextEncoder();
@@ -58,11 +61,11 @@ export const StageComponent = React.forwardRef<
   const containerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<Application | null>(null);
   const propsRef = useRef<
-    Map<string, PixiCharacter | PixiBackground | PixiRiveAnimation>
+    Map<string, PixiCharacter | PixiBackground | PixiRiveAnimation | CompositeCharacter>
   >(new Map());
   // castId → prop lookup for O(1) dispatch of incoming LiveKit data messages
   const castIdMapRef = useRef<
-    Map<string, PixiCharacter | PixiBackground | PixiRiveAnimation>
+    Map<string, PixiCharacter | PixiBackground | PixiRiveAnimation | CompositeCharacter>
   >(new Map());
   const appReadyRef = useRef(false);
   const prevCastIdsRef = useRef<string>("");
@@ -76,6 +79,23 @@ export const StageComponent = React.forwardRef<
   const bgPanning = useAtomValue(bgPanningAtom);
   const setBgPanning = useSetAtom(bgPanningAtom);
   const setBgProgress = useSetAtom(bgProgressAtom);
+
+  // Fetch character details for any composite props
+  const compositeCasts = casts.filter((c) => c.type === "composite" && c.path);
+  const characterQueries = useQueries({
+    queries: compositeCasts.map((c) => ({
+      queryKey: ["character-prop", c.path],
+      queryFn: () => getCharacterByProp({ data: { propId: c.path! } }),
+      staleTime: Infinity,
+    })),
+  });
+
+  const allCharactersLoaded = characterQueries.every((q) => q.isSuccess);
+  const charactersMap = new Map(
+    characterQueries
+      .filter((q) => q.isSuccess)
+      .map((q) => [q.data.compositePropId, q.data]),
+  );
 
   // Expose the container div via forwardRef
   useEffect(() => {
@@ -174,7 +194,7 @@ export const StageComponent = React.forwardRef<
 
     // Retry on RAF until the PixiJS canvas is appended
     const sync = (): number | void => {
-      if (!appReadyRef.current) {
+      if (!appReadyRef.current || !allCharactersLoaded) {
         return requestAnimationFrame(sync);
       }
 
@@ -225,11 +245,17 @@ export const StageComponent = React.forwardRef<
             ? PixiBackground
             : cast.type === "rive"
               ? PixiRiveAnimation
-              : PixiCharacter;
-        const prop = new PropClass({
+              : cast.type === "composite"
+                ? CompositeCharacter
+                : PixiCharacter;
+
+        const charData = cast.type === "composite" ? charactersMap.get(cast.path!) : null;
+
+        const prop = new (PropClass as any)({
           sceneCastId: cast.sceneCastId,
           castId: cast.castId,
           src: cast.path,
+          parts: charData?.parts, // Only for CompositeCharacter
           userId: cast.userId,
           type: cast.type,
           initialX: cast.posX ?? 100 + i * 200,
@@ -300,11 +326,7 @@ export const StageComponent = React.forwardRef<
     if (typeof rafId === "number") {
       return () => cancelAnimationFrame(rafId);
     }
-    // backgroundRepeat intentionally excluded: it is only read at PixiBackground construction
-    // time. Changing it while the stage is live does not update already-mounted instances —
-    // directors configure it from the scene detail page before entering the stage.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [casts, room, session, stageWidth, stageHeight]);
+  }, [casts, room, session, stageWidth, stageHeight, allCharactersLoaded]);
 
   // Single centralized LiveKit DataReceived handler — parse once, dispatch by castId
   useEffect(() => {
@@ -339,9 +361,36 @@ export const StageComponent = React.forwardRef<
     const castUserMap = new Map(casts.map((c) => [c.sceneCastId, c.userId]));
     for (const [, prop] of props) {
       const userId = castUserMap.get(prop.container.label);
-      if (userId) prop.updateSpeaking(speakingIds.has(userId));
+      if (userId) {
+        const isSpeaking = speakingIds.has(userId);
+        if (prop instanceof CompositeCharacter) {
+          prop.setSpeaking(isSpeaking);
+        } else {
+          (prop as any).updateSpeaking(isSpeaking);
+        }
+      }
     }
   }, [speakingIds, casts]);
+
+  // Eye tracking for CompositeCharacters
+  useEffect(() => {
+    const app = appRef.current;
+    if (!app) return;
+
+    const onMove = (e: any) => {
+      // Find all composite characters and update their pupils
+      for (const prop of propsRef.current.values()) {
+        if (prop instanceof CompositeCharacter) {
+          prop.updatePupils(e.global.x, e.global.y);
+        }
+      }
+    };
+
+    app.stage.on("globalpointermove", onMove);
+    return () => {
+      app.stage.off("globalpointermove", onMove);
+    };
+  }, [allLoaded]);
 
   // Drive PixiBackground setAnimation when bgPanningAtom changes
   useEffect(() => {

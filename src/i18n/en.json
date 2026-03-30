@@ -671,5 +671,14 @@
   "show.backToEntry": "← Back to Show entry",
   "show.ended": "The show has ended",
   "show.notLiveYet": "Not live yet",
-  "show.checkBackSoon": "{{title}} — check back soon"
+  "show.checkBackSoon": "{{title}} — check back soon",
+  "characterBuilder.heading": "Character Builder",
+  "characterBuilder.newCharacter": "New Character",
+  "characterBuilder.namePlaceholder": "Character name...",
+  "characterBuilder.uploadMain": "Main",
+  "characterBuilder.uploadAlt": "Alt",
+  "characterBuilder.publish": "Publish Character",
+  "characterBuilder.bodyParts": "Body Parts",
+  "characterBuilder.activePart": "Active Part",
+  "characterBuilder.removePart": "Remove part?"
 }

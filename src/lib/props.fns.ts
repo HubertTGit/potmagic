@@ -45,7 +45,15 @@ export const uploadProp = createServerFn({ method: "POST" })
     z
       .object({
         name: z.string().min(1).max(200),
-        type: z.enum(["character", "background", "animation", "sound", "rive"]),
+        type: z.enum([
+          "character",
+          "background",
+          "animation",
+          "sound",
+          "rive",
+          "part",
+          "composite",
+        ]),
         fileName: z.string().min(1).max(255),
         contentType: z
           .string()
@@ -111,7 +119,14 @@ export const listProps = createServerFn({ method: "GET" })
   .inputValidator((input) =>
     z
       .object({
-        type: z.enum(["character", "background", "animation", "sound"]),
+        type: z.enum([
+          "character",
+          "background",
+          "animation",
+          "sound",
+          "part",
+          "composite",
+        ]),
       })
       .parse(input),
   )
@@ -145,6 +160,8 @@ export const listAllProps = createServerFn({ method: "GET" }).handler(
       background: rows.filter((r) => r.type === "background"),
       sound: rows.filter((r) => r.type === "sound"),
       rive: rows.filter((r) => r.type === "rive"),
+      part: rows.filter((r) => r.type === "part"),
+      composite: rows.filter((r) => r.type === "composite"),
     };
   },
 );
