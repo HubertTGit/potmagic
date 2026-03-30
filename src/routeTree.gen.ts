@@ -39,6 +39,7 @@ import { Route as LangAppStoriesStoryIdIndexRouteImport } from './routes/($lang)
 import { Route as LangAppStoriesStoryIdScenesSceneIdRouteImport } from './routes/($lang)/_app/stories/$storyId/scenes/$sceneId'
 import { Route as LangAppLibraryRouteImport } from './routes/($lang)/_app/library'
 import { Route as LangAppCharacterBuilderStoryIdRouteImport } from './routes/($lang)/_app/character-builder/$storyId'
+import { Route as LangAppCharacterBuilderStoryIdCharacterIdRouteImport } from './routes/($lang)/_app/character-builder/$storyId/$characterId'
 
 const LangRoute = LangRouteImport.update({
   id: '/($lang)',
@@ -187,10 +188,16 @@ const LangAppLibraryRoute = LangAppLibraryRouteImport.update({
   getParentRoute: () => LangAppRoute,
 } as any)
 const LangAppCharacterBuilderStoryIdRoute = LangAppCharacterBuilderStoryIdRouteImport.update({
-  id: '/character-builder/$storyId',
-  path: '/character-builder/$storyId',
-  getParentRoute: () => LangAppRoute,
-} as any)
+    id: '/character-builder/$storyId',
+    path: '/character-builder/$storyId',
+    getParentRoute: () => LangAppRoute,
+  } as any)
+const LangAppCharacterBuilderStoryIdCharacterIdRoute =
+  LangAppCharacterBuilderStoryIdCharacterIdRouteImport.update({
+    id: '/character-builder/$storyId/$characterId',
+    path: '/character-builder/$storyId/$characterId',
+    getParentRoute: () => LangAppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/($lang)': typeof LangRouteWithChildren
@@ -222,6 +229,7 @@ export interface FileRoutesByFullPath {
   '/($lang)/stories/$storyId/scenes/$sceneId': typeof LangAppStoriesStoryIdScenesSceneIdRoute
   '/($lang)/library': typeof LangAppLibraryRoute
   '/($lang)/character-builder/$storyId': typeof LangAppCharacterBuilderStoryIdRoute
+  '/($lang)/character-builder/$storyId/$characterId': typeof LangAppCharacterBuilderStoryIdCharacterIdRoute
 }
 export interface FileRoutesByTo {
   '/($lang)/show': typeof LangShowIndexRoute
@@ -250,6 +258,8 @@ export interface FileRoutesByTo {
   '/($lang)/stories/$storyId': typeof LangAppStoriesStoryIdIndexRoute
   '/($lang)/stories/$storyId/scenes/$sceneId': typeof LangAppStoriesStoryIdScenesSceneIdRoute
   '/($lang)/library': typeof LangAppLibraryRoute
+  '/($lang)/character-builder/$storyId': typeof LangAppCharacterBuilderStoryIdRoute
+  '/($lang)/character-builder/$storyId/$characterId': typeof LangAppCharacterBuilderStoryIdCharacterIdRoute
   // Short-form aliases resolved via optional ($lang) segment at runtime
   '/'?: typeof LangIndexRoute
   '/de/'?: typeof LangIndexRoute
@@ -695,6 +705,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangAppCharacterBuilderStoryIdRouteImport
       parentRoute: typeof LangAppRoute
     }
+    '/($lang)/_app/character-builder/$storyId/$characterId': {
+      id: '/($lang)/_app/character-builder/$storyId/$characterId'
+      path: '/character-builder/$storyId/$characterId'
+      fullPath: '/($lang)/character-builder/$storyId/$characterId'
+      preLoaderRoute: typeof LangAppCharacterBuilderStoryIdCharacterIdRouteImport
+      parentRoute: typeof LangAppRoute
+    }
   }
 }
 
@@ -756,6 +773,8 @@ declare module '@tanstack/react-router' {
     '/de/show/$storyId': { id: '/de/show/$storyId'; path: '/de/show/$storyId'; fullPath: '/de/show/$storyId'; preLoaderRoute: typeof LangShowStoryIdRouteImport; parentRoute: typeof rootRouteImport }
     '/character-builder/$storyId': { id: '/character-builder/$storyId'; path: '/character-builder/$storyId'; fullPath: '/character-builder/$storyId'; preLoaderRoute: typeof LangAppCharacterBuilderStoryIdRouteImport; parentRoute: typeof rootRouteImport }
     '/de/character-builder/$storyId': { id: '/de/character-builder/$storyId'; path: '/de/character-builder/$storyId'; fullPath: '/de/character-builder/$storyId'; preLoaderRoute: typeof LangAppCharacterBuilderStoryIdRouteImport; parentRoute: typeof rootRouteImport }
+    '/character-builder/$storyId/$characterId': { id: '/character-builder/$storyId/$characterId'; path: '/character-builder/$storyId/$characterId'; fullPath: '/character-builder/$storyId/$characterId'; preLoaderRoute: typeof LangAppCharacterBuilderStoryIdCharacterIdRouteImport; parentRoute: typeof rootRouteImport }
+    '/de/character-builder/$storyId/$characterId': { id: '/de/character-builder/$storyId/$characterId'; path: '/de/character-builder/$storyId/$characterId'; fullPath: '/de/character-builder/$storyId/$characterId'; preLoaderRoute: typeof LangAppCharacterBuilderStoryIdCharacterIdRouteImport; parentRoute: typeof rootRouteImport }
   }
 }
 
@@ -797,6 +816,7 @@ interface LangAppRouteChildren {
   LangAppStoriesStoryIdScenesSceneIdRoute: typeof LangAppStoriesStoryIdScenesSceneIdRoute
   LangAppLibraryRoute: typeof LangAppLibraryRoute
   LangAppCharacterBuilderStoryIdRoute: typeof LangAppCharacterBuilderStoryIdRoute
+  LangAppCharacterBuilderStoryIdCharacterIdRoute: typeof LangAppCharacterBuilderStoryIdCharacterIdRoute
 }
 
 const LangAppRouteChildren: LangAppRouteChildren = {
@@ -809,6 +829,7 @@ const LangAppRouteChildren: LangAppRouteChildren = {
   LangAppStoriesStoryIdScenesSceneIdRoute: LangAppStoriesStoryIdScenesSceneIdRoute,
   LangAppLibraryRoute: LangAppLibraryRoute,
   LangAppCharacterBuilderStoryIdRoute: LangAppCharacterBuilderStoryIdRoute,
+  LangAppCharacterBuilderStoryIdCharacterIdRoute: LangAppCharacterBuilderStoryIdCharacterIdRoute,
 }
 
 const LangAppRouteWithChildren = LangAppRoute._addFileChildren(LangAppRouteChildren)

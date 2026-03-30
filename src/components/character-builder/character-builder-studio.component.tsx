@@ -3,13 +3,14 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { authClient } from "@/lib/auth-client";
 import { useLanguage } from "@/hooks/useLanguage";
-import { listAllProps, uploadProp } from "@/lib/props.fns";
+import { listAllProps, uploadProp, deleteProp } from "@/lib/props.fns";
 import { 
   createCharacter, 
   getCharacter, 
   upsertCharacterPart, 
   publishCharacter,
-  listCharacters
+  listCharacters,
+  updateCharacter
 } from "@/lib/character-builder.fns";
 import { cn } from "@/lib/cn";
 import { 
@@ -17,7 +18,8 @@ import {
   Upload, 
   Save, 
   Plus, 
-  Layers, 
+  Drama, 
+  Sparkles,
   Maximize2, 
   Target,
   Trash2,
@@ -35,17 +37,18 @@ const PART_ROLES = [
 ];
 
 export function CharacterBuilderStudio() {
-  const { storyId } = useParams({ from: "/($lang)/_app/character-builder/$storyId" });
+  const { storyId, characterId } = useParams({ strict: false }) as { storyId: string, characterId?: string };
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, langPrefix } = useLanguage();
   const queryClient = useQueryClient();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const appRef = useRef<Application | null>(null);
   const compositeRef = useRef<CompositeCharacter | null>(null);
 
-  const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<string>("body");
   const [isUploading, setIsUploading] = useState<"main" | "alt" | null>(null);
+  const [localName, setLocalName] = useState("");
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
 
   const { data: session } = authClient.useSession();
   const isDirector = session?.user.role === "director";
@@ -62,9 +65,9 @@ export function CharacterBuilderStudio() {
   });
 
   const { data: currentCharacter } = useQuery({
-    queryKey: ["character", selectedCharacterId],
-    queryFn: () => getCharacter({ data: { characterId: selectedCharacterId! } }),
-    enabled: !!selectedCharacterId,
+    queryKey: ["character", characterId],
+    queryFn: () => getCharacter({ data: { characterId: characterId! } }),
+    enabled: !!characterId,
   });
 
   // Mutations
@@ -72,14 +75,14 @@ export function CharacterBuilderStudio() {
     mutationFn: createCharacter,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["user-characters"] });
-      setSelectedCharacterId(data.id);
+      navigate({ to: `/character-builder/${storyId}/${data.id}` as any });
     },
   });
 
   const upsertPartMutation = useMutation({
     mutationFn: upsertCharacterPart,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["character", selectedCharacterId] });
+      queryClient.invalidateQueries({ queryKey: ["character", characterId] });
     },
   });
 
@@ -90,26 +93,79 @@ export function CharacterBuilderStudio() {
       queryClient.invalidateQueries({ queryKey: ["all-props"] });
     },
   });
+
+  const updateCharacterMutation = useMutation({
+    mutationFn: updateCharacter,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["character", characterId] });
+      queryClient.invalidateQueries({ queryKey: ["user-characters"] });
+    },
+  });
+
+  // Sync local name with fetched data
+  useEffect(() => {
+    if (currentCharacter?.name) {
+      setLocalName(currentCharacter.name);
+    }
+  }, [currentCharacter?.name]);
+
+  const handleTitleSubmit = () => {
+    if (characterId && localName && localName !== currentCharacter?.name) {
+      updateCharacterMutation.mutate({ data: { characterId, name: localName } });
+    }
+  };
+
+  const deletePropMutation = useMutation({
+    mutationFn: deleteProp,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["character", characterId] });
+      queryClient.invalidateQueries({ queryKey: ["all-props"] });
+    },
+  });
+
+  const handleRemovePart = async () => {
+    if (!characterId || !selectedRole || !currentCharacter) return;
+    const part = currentCharacter.parts.find(p => p.partRole === selectedRole);
+    if (!part) return;
+
+    try {
+      if (part.altPropId) {
+        await deletePropMutation.mutateAsync({ data: { id: part.altPropId } });
+      }
+      if (part.propId) {
+        await deletePropMutation.mutateAsync({ data: { id: part.propId } });
+      }
+    } catch (e) {
+      console.error("Failed to remove part:", e);
+    }
+  };
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    setIsDraggingOver(false);
     const role = e.dataTransfer.getData("partRole");
-    if (!role || !canvasRef.current || !selectedCharacterId || !currentCharacter) return;
+    console.log("Dropped role:", role);
+    if (!role || !canvasRef.current || !characterId || !currentCharacter) return;
 
     const rect = canvasRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 800;
     const y = ((e.clientY - rect.top) / rect.height) * 800;
+
+    console.log("Calculated drop position:", { x, y });
 
     // Offset is relative to character center (400, 400)
     const offsetX = Math.round(x - 400);
     const offsetY = Math.round(y - 400);
 
     const part = currentCharacter.parts.find(p => p.partRole === role);
-    if (!part) return;
+    if (!part) {
+      console.warn("No part found for role:", role);
+      return;
+    }
 
     setSelectedRole(role);
     upsertPartMutation.mutate({
       data: {
-        characterId: selectedCharacterId,
+        characterId: characterId,
         partRole: role as any,
         propId: part.propId,
         altPropId: part.altPropId,
@@ -123,26 +179,17 @@ export function CharacterBuilderStudio() {
     });
   };
 
-  const handleRemoveTexture = (isAlt: boolean) => {
-    if (!selectedCharacterId || !selectedRole || !currentCharacter) return;
+  const handleRemoveTexture = async (isAlt: boolean) => {
+    if (!characterId || !selectedRole || !currentCharacter) return;
     const part = currentCharacter.parts.find(p => p.partRole === selectedRole);
     if (!part) return;
 
-    if (isAlt) {
-      upsertPartMutation.mutate({
-        data: {
-          characterId: selectedCharacterId,
-          partRole: selectedRole as any,
-          propId: part.propId,
-          altPropId: null, // Remove alt texture
-          offsetX: part.offsetX,
-          offsetY: part.offsetY,
-          anchorX: part.anchorX,
-          anchorY: part.anchorY,
-          rotation: part.rotation,
-          zIndex: part.zIndex,
-        }
-      });
+    if (isAlt && part.altPropId) {
+      try {
+        await deletePropMutation.mutateAsync({ data: { id: part.altPropId } });
+      } catch (e) {
+        console.error("Failed to remove alt texture:", e);
+      }
     }
   };
 
@@ -220,7 +267,7 @@ export function CharacterBuilderStudio() {
 
   const handleUploadPart = async (e: React.ChangeEvent<HTMLInputElement>, isAlt = false) => {
     const file = e.target.files?.[0];
-    if (!file || !selectedCharacterId) return;
+    if (!file || !characterId) return;
 
     setIsUploading(isAlt ? "alt" : "main");
     try {
@@ -250,7 +297,7 @@ export function CharacterBuilderStudio() {
         const part = currentCharacter?.parts.find(p => p.partRole === selectedRole);
         await upsertPartMutation.mutateAsync({
           data: {
-            characterId: selectedCharacterId,
+            characterId: characterId,
             partRole: selectedRole as any,
             propId: isAlt ? (part?.propId ?? prop.id) : prop.id,
             altPropId: isAlt ? prop.id : part?.altPropId,
@@ -271,7 +318,7 @@ export function CharacterBuilderStudio() {
   };
 
   const handleSaveAdjustments = async () => {
-    if (!compositeRef.current || !selectedCharacterId) return;
+    if (!compositeRef.current || !characterId) return;
     
     // In a real implementation, we'd iterate over all parts and update transforms
     // For this POC, we just save the current one being edited
@@ -282,7 +329,7 @@ export function CharacterBuilderStudio() {
       if (container) {
         await upsertPartMutation.mutateAsync({
           data: {
-            characterId: selectedCharacterId,
+            characterId: characterId,
             partRole: part.partRole,
             propId: part.propId,
             offsetX: Math.round(container.x),
@@ -302,34 +349,46 @@ export function CharacterBuilderStudio() {
       </div>
     );
   }
-
-  if (!selectedCharacterId) {
+  if (!characterId) {
     return (
-      <div className="flex h-full flex-col items-center justify-center p-8 text-center">
-        <h1 className="font-display mb-6 text-3xl font-bold">{t('characterBuilder.heading')}</h1>
-        <div className="mb-8 flex flex-wrap justify-center gap-4">
+      <div className="flex h-full flex-col items-center justify-center p-12 text-center">
+        <div className="mb-8 flex items-center justify-center gap-4">
+          <h1 className="font-display text-4xl font-bold tracking-tight">{t('characterBuilder.heading')}</h1>
+          {session?.user.subscription !== 'standard' && (
+            <div className="badge badge-accent badge-lg gap-2 font-bold uppercase tracking-widest shadow-sm">
+              <Sparkles className="size-4" />
+              {session?.user.subscription}
+            </div>
+          )}
+        </div>
+        
+        <div className="mb-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {userCharacters.map((char) => (
             <button
               key={char.id}
-              onClick={() => setSelectedCharacterId(char.id)}
-              className="card bg-base-200 hover:bg-base-300 border-base-300 w-48 border transition-colors"
+              onClick={() => navigate({ to: `/character-builder/${storyId}/${char.id}` as any })}
+              className="card bg-base-100 hover:bg-base-200 border-base-300 group w-56 border shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
             >
-              <div className="card-body items-center p-6">
-                <Layers className="mb-2 size-8 opacity-50" />
-                <span className="font-medium">{char.name}</span>
+              <div className="card-body items-center p-8">
+                <div className="bg-primary/5 group-hover:bg-primary/10 mb-4 flex size-20 items-center justify-center rounded-2xl transition-colors">
+                  <Drama className="text-primary size-10 transform transition-transform group-hover:scale-110" />
+                </div>
+                <span className="font-display text-lg font-semibold">{char.name}</span>
                 {char.compositePropId && (
-                  <span className="badge badge-success badge-sm">Published</span>
+                  <span className="badge badge-success badge-sm mt-2 font-medium uppercase tracking-wider">Published</span>
                 )}
               </div>
             </button>
           ))}
           <button
             onClick={() => createCharacterMutation.mutate({ data: { storyId, name: t('characterBuilder.newCharacter') } })}
-            className="card bg-primary text-primary-content hover:bg-primary/90 w-48"
+            className="card bg-primary text-primary-content hover:bg-primary/90 group w-56 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
           >
-            <div className="card-body items-center p-6">
-              <Plus className="mb-2 size-8" />
-              <span className="font-bold">{t('characterBuilder.newCharacter')}</span>
+            <div className="card-body items-center p-8">
+              <div className="bg-white/20 group-hover:bg-white/30 mb-4 flex size-20 items-center justify-center rounded-2xl transition-colors">
+                <Plus className="size-10 transform transition-transform group-hover:scale-120" />
+              </div>
+              <span className="font-display text-lg font-bold">{t('characterBuilder.newCharacter')}</span>
             </div>
           </button>
         </div>
@@ -349,14 +408,20 @@ export function CharacterBuilderStudio() {
       <header className="bg-base-100 border-base-300 flex items-center justify-between border-b px-6 py-4">
         <div className="flex items-center gap-4">
           <button 
-            onClick={() => setSelectedCharacterId(null)}
+            onClick={() => navigate({ to: `/character-builder/${storyId}` as any })}
             className="btn btn-ghost btn-sm btn-square"
           >
             <ChevronLeft className="size-5" />
           </button>
-          <h1 className="font-display text-xl font-bold">
-            {currentCharacter?.name || "Loading..."}
-          </h1>
+          <input
+            type="text"
+            value={localName}
+            onChange={(e) => setLocalName(e.target.value)}
+            onBlur={handleTitleSubmit}
+            onKeyDown={(e) => e.key === 'Enter' && handleTitleSubmit()}
+            className="font-display bg-transparent text-xl font-bold focus:outline-none focus:ring-0 w-64 hover:bg-base-200/50 rounded px-1 transition-colors"
+            placeholder={t('characterBuilder.newCharacter')}
+          />
           {currentCharacter?.compositePropId && (
             <span className="badge badge-success badge-sm font-semibold uppercase tracking-widest">
               Published
@@ -378,7 +443,7 @@ export function CharacterBuilderStudio() {
             {t('action.save')}
           </button>
           <button 
-            onClick={() => publishMutation.mutate({ data: { characterId: selectedCharacterId } })}
+            onClick={() => publishMutation.mutate({ data: { characterId } })}
             disabled={publishMutation.isPending || (currentCharacter?.parts.length ?? 0) === 0}
             className="btn btn-primary btn-sm gap-2"
           >
@@ -419,7 +484,7 @@ export function CharacterBuilderStudio() {
                       {part?.imageUrl ? (
                         <img src={part.imageUrl} alt={role} className="size-full object-contain" />
                       ) : (
-                        <Layers className={cn("size-4", selectedRole === role ? "opacity-100" : "opacity-40")} />
+                        <Drama className={cn("size-4", selectedRole === role ? "opacity-100" : "opacity-40")} />
                       )}
                     </div>
                     <span className="capitalize">{role.replace(/-/g, ' ')}</span>
@@ -436,13 +501,15 @@ export function CharacterBuilderStudio() {
           <div className="absolute inset-0 flex items-center justify-center p-8">
             <div 
               className={cn(
-                "bg-base-100 shadow-2xl relative aspect-square w-full max-w-[600px] overflow-hidden rounded-xl border border-white/5 transition-colors",
-                "drop-target:border-primary drop-target:bg-primary/5"
+                "bg-base-100 shadow-2xl relative aspect-square w-full max-w-[600px] overflow-hidden rounded-xl border border-white/5 transition-all duration-200",
+                isDraggingOver && "border-primary bg-primary/5 scale-[1.02]"
               )}
               onDragOver={(e) => {
                 e.preventDefault();
                 e.dataTransfer.dropEffect = "move";
+                setIsDraggingOver(true);
               }}
+              onDragLeave={() => setIsDraggingOver(false)}
               onDrop={handleDrop}
             >
               <canvas ref={canvasRef} className="h-full w-full" />
@@ -593,8 +660,17 @@ export function CharacterBuilderStudio() {
 
             <div className="divider opacity-30" />
 
-            <button className="btn btn-ghost btn-error btn-sm w-full gap-2">
-              <Trash2 className="size-4" /> {t('action.remove')}
+            <button 
+              onClick={handleRemovePart}
+              disabled={deletePropMutation.isPending || !currentCharacter?.parts?.find(p => p.partRole === selectedRole)}
+              className="btn btn-ghost btn-error btn-sm w-full gap-2 mt-4"
+            >
+              {deletePropMutation.isPending ? (
+                <span className="loading loading-spinner loading-xs" />
+              ) : (
+                <Trash2 className="size-4" />
+              )}
+              {deletePropMutation.isPending ? 'Removing...' : t('action.remove')}
             </button>
           </div>
         </aside>

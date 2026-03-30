@@ -230,6 +230,35 @@ export const upsertCharacterPart = createServerFn({ method: "POST" })
       });
   });
 
+export const updateCharacter = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    z.object({ characterId: z.string(), name: z.string().min(1) }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const [char] = await db
+      .select()
+      .from(characters)
+      .where(eq(characters.id, data.characterId));
+    if (!char) throw new Error("Character not found");
+    await requireStoryParticipant(char.storyId);
+
+    // Update character name
+    await db
+      .update(characters)
+      .set({ name: data.name })
+      .where(eq(characters.id, data.characterId));
+
+    // If it has a composite prop, update that name too
+    if (char.compositePropId) {
+      await db
+        .update(props)
+        .set({ name: data.name })
+        .where(eq(props.id, char.compositePropId));
+    }
+
+    return { success: true };
+  });
+
 export const removeCharacterPart = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z.object({ characterId: z.string(), partRole: z.string() }).parse(input),
