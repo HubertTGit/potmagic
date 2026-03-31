@@ -1,11 +1,16 @@
 // src/components/composite-character.component.ts
 import { Application, Assets, Container, Graphics, Sprite } from "pixi.js";
+import * as PIXI from "pixi.js";
 import type { FederatedPointerEvent, Texture } from "pixi.js";
-import { GlowFilter } from "pixi-filters/glow";
+import { gsap } from "gsap";
+import { PixiPlugin } from "gsap/PixiPlugin";
 import type { Room } from "livekit-client";
 import { saveSceneCastPosition } from "@/lib/scenes.fns";
 import type { PropType } from "@/db/schema";
 import type { PropMoveMessage } from "@/lib/livekit-messages";
+
+gsap.registerPlugin(PixiPlugin);
+PixiPlugin.registerPIXI(PIXI);
 
 export const ALL_PART_ROLES = [
   "body", "head", "jaw", "eye-left", "eye-right", "pupil-left", "pupil-right",
@@ -70,18 +75,17 @@ const encoder = new TextEncoder();
 
 export class CompositeCharacter {
   readonly container: Container;
-  private glowFilter: GlowFilter;
   private readonly props: CompositeCharacterProps;
   private partContainers: Map<string, Container> = new Map();
   private partSprites: Map<string, Sprite> = new Map();
   private textures: Map<string, Texture> = new Map();
-  private altTextures: Map<string, Texture> = new Map();
 
   private isDragging = false;
   private dragOffset = { x: 0, y: 0 };
   private activePointers = new Map<number, { x: number; y: number }>();
   private lastSendTime = 0;
   private isSpeaking = false;
+  private speakingTween: gsap.core.Tween | null = null;
 
   // Stored so they can be removed from the stage on destroy()
   private boundPartPointerMove: ((e: FederatedPointerEvent) => void) | null = null;
@@ -143,15 +147,6 @@ export class CompositeCharacter {
     this.container.x = props.initialX ?? 100;
     this.container.y = props.initialY ?? 100;
 
-    this.glowFilter = new GlowFilter({
-      color: 0xa855f7,
-      outerStrength: 4,
-      innerStrength: 0,
-      distance: 15,
-      quality: 0.5,
-    });
-    this.glowFilter.enabled = false;
-
     this.loadAllTextures().then(() => {
       this.buildHierarchy();
       this.setupInteraction();
@@ -165,11 +160,6 @@ export class CompositeCharacter {
       if (p.imageUrl) {
         promises.push(
           Assets.load(p.imageUrl).then((tex) => this.textures.set(p.partRole, tex))
-        );
-      }
-      if (p.altImageUrl) {
-        promises.push(
-          Assets.load(p.altImageUrl).then((tex) => this.altTextures.set(p.partRole, tex))
         );
       }
       return promises;
@@ -205,10 +195,6 @@ export class CompositeCharacter {
       // Use pivot for rotation point (stored in pixels)
       // Gizmo-less roles are enforced to center pivot (0,0 with 0.5 anchor)
       container.pivot.set(isGizmoLess ? 0 : (data?.pivotX ?? 0), isGizmoLess ? 0 : (data?.pivotY ?? 0));
-
-      if (role === 'body') {
-        sprite.filters = [this.glowFilter];
-      }
 
       container.addChild(sprite);
       parent.addChild(container);
@@ -647,17 +633,34 @@ export class CompositeCharacter {
   setSpeaking(isSpeaking: boolean) {
     if (this.isSpeaking === isSpeaking) return;
     this.isSpeaking = isSpeaking;
-    this.glowFilter.enabled = isSpeaking;
 
-    const jaw = this.partSprites.get('jaw');
-    if (jaw) {
-      const normalTex = this.textures.get('jaw');
-      const altTex = this.altTextures.get('jaw');
-      if (isSpeaking && altTex) {
-        jaw.texture = altTex;
-      } else if (normalTex) {
-        jaw.texture = normalTex;
-      }
+    const jawContainer = this.partContainers.get("jaw");
+    const jawSprite = this.partSprites.get("jaw");
+    const jawData = this.props.parts.find((p) => p.partRole === "jaw");
+    if (!jawContainer || !jawSprite || !jawData) return;
+
+    if (isSpeaking) {
+      // Clear any existing animation first
+      this.speakingTween?.kill();
+
+      // Moving the jaw container Y down by half its height
+      const targetY = jawData.y + jawSprite.height / 2;
+
+      this.speakingTween = gsap.to(jawContainer, {
+        duration: 0.15,
+        pixi: { y: targetY },
+        repeat: -1,
+        yoyo: true,
+        ease: "power1.inOut",
+      });
+    } else {
+      this.speakingTween?.kill();
+      // Return to original Y position
+      gsap.to(jawContainer, {
+        duration: 0.2,
+        pixi: { y: jawData.y },
+        ease: "power2.out",
+      });
     }
   }
 

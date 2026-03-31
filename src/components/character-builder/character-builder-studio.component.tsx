@@ -66,6 +66,7 @@ export function CharacterBuilderStudio() {
   >({});
   const [showBoundingBoxes, setShowBoundingBoxes] = useState(false);
   const [previewPupils, setPreviewPupils] = useState(false);
+  const [previewSpeaking, setPreviewSpeaking] = useState(false);
 
   const { data: session } = authClient.useSession();
   const isDirector = session?.user.role === "director";
@@ -88,12 +89,30 @@ export function CharacterBuilderStudio() {
     "pupil-right",
   ].every((role) => currentCharacter?.parts.some((p) => p.partRole === role));
 
+  const hasRequiredSpeakingParts = ["head", "jaw"].every((role) =>
+    currentCharacter?.parts.some((p) => p.partRole === role),
+  );
+
   // Reset pupil preview if required parts are removed
   useEffect(() => {
     if (!hasRequiredPupilParts && previewPupils) {
       setPreviewPupils(false);
     }
   }, [hasRequiredPupilParts, previewPupils]);
+
+  // Reset speaking preview if required parts are removed
+  useEffect(() => {
+    if (!hasRequiredSpeakingParts && previewSpeaking) {
+      setPreviewSpeaking(false);
+    }
+  }, [hasRequiredSpeakingParts, previewSpeaking]);
+
+  // Sync speaking state to composite character
+  useEffect(() => {
+    if (compositeRef.current) {
+      compositeRef.current.setSpeaking(previewSpeaking);
+    }
+  }, [previewSpeaking]);
 
   // Mutations
   const upsertPartMutation = useMutation({
@@ -283,21 +302,6 @@ export function CharacterBuilderStudio() {
     );
   };
 
-  const handleRemoveTexture = async (isAlt: boolean) => {
-    if (!characterId || !selectedRole || !currentCharacter) return;
-    const part = currentCharacter.parts.find(
-      (p) => p.partRole === selectedRole,
-    );
-    if (!part) return;
-
-    if (isAlt && part.altPropId) {
-      try {
-        await deletePropMutation.mutateAsync({ data: { id: part.altPropId } });
-      } catch (e) {
-        console.error("Failed to remove alt texture:", e);
-      }
-    }
-  };
 
   const handleCanvasPointerMove = (e: React.PointerEvent) => {
     if (!compositeRef.current || !canvasRef.current) return;
@@ -405,20 +409,20 @@ export function CharacterBuilderStudio() {
     });
 
     compositeRef.current = composite;
+    if (previewSpeaking) {
+      composite.setSpeaking(true);
+    }
     appRef.current.stage.addChild(composite.container);
   };
 
   // Upload a texture for a part.
   // - If the part is already placed (in currentCharacter.parts): update texture in DB immediately.
   // - If not yet placed: store in pendingPropByRole; it appears on canvas only when dropped.
-  const handleUploadPart = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-    isAlt = false,
-  ) => {
+  const handleUploadPart = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !characterId) return;
 
-    setIsUploading(isAlt ? "alt" : "main");
+    setIsUploading("main");
     try {
       const reader = new FileReader();
       const base64Promise = new Promise<string>((resolve) => {
@@ -433,7 +437,7 @@ export function CharacterBuilderStudio() {
 
       const prop = await uploadProp({
         data: {
-          name: `${selectedRole}_${isAlt ? "alt_" : ""}${Date.now()}`,
+          name: `${selectedRole}_${Date.now()}`,
           type: "part",
           fileName: file.name,
           contentType: file.type,
@@ -453,8 +457,8 @@ export function CharacterBuilderStudio() {
             data: {
               characterId,
               partRole: selectedRole as any,
-              propId: isAlt ? (existingPart.propId ?? prop.id) : prop.id,
-              altPropId: isAlt ? prop.id : existingPart.altPropId,
+              propId: prop.id,
+              altPropId: existingPart.altPropId,
               zIndex:
                 existingPart.zIndex ??
                 ALL_PART_ROLES.indexOf(selectedRole as any),
@@ -471,12 +475,8 @@ export function CharacterBuilderStudio() {
             ...prev,
             [selectedRole]: {
               ...prev[selectedRole],
-              ...(isAlt
-                ? {
-                    altPropId: prop.id,
-                    altImageUrl: prop.imageUrl ?? undefined,
-                  }
-                : { propId: prop.id, imageUrl: prop.imageUrl ?? "" }),
+              propId: prop.id,
+              imageUrl: prop.imageUrl ?? "",
             },
           }));
         }
@@ -721,6 +721,23 @@ export function CharacterBuilderStudio() {
                   />
                   Test Pupils
                 </label>
+
+                <label 
+                  className={cn(
+                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
+                    hasRequiredSpeakingParts ? "cursor-pointer hover:bg-base-200/80" : "cursor-not-allowed opacity-50"
+                  )}
+                  title={!hasRequiredSpeakingParts ? "Place head and jaw to test speaking" : ""}
+                >
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-xs checkbox-accent"
+                    checked={previewSpeaking}
+                    disabled={!hasRequiredSpeakingParts}
+                    onChange={(e) => setPreviewSpeaking(e.target.checked)}
+                  />
+                  Test Speaking
+                </label>
               </div>
 
               <div className="pointer-events-none absolute right-4 bottom-4 left-4 flex justify-between text-[10px] tracking-widest uppercase opacity-30">
@@ -757,7 +774,7 @@ export function CharacterBuilderStudio() {
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={(e) => handleUploadPart(e, false)}
+                        onChange={(e) => handleUploadPart(e)}
                         className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
                         disabled={!!isUploading}
                       />
@@ -834,72 +851,6 @@ export function CharacterBuilderStudio() {
                 })()}
               </div>
 
-              {(selectedRole === "jaw" ||
-                selectedRole.startsWith("eye") ||
-                selectedRole.startsWith("pupil")) && (
-                <div className="space-y-2">
-                  <label className="text-xs font-medium tracking-wide uppercase opacity-60">
-                    Expression Appearance (Talking/Blinking)
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleUploadPart(e, true)}
-                      className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
-                      disabled={!!isUploading}
-                    />
-                    <div
-                      className={cn(
-                        "border-base-300 flex h-24 flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed transition-colors",
-                        isUploading === "alt"
-                          ? "bg-base-300"
-                          : "hover:bg-base-300",
-                      )}
-                    >
-                      {isUploading === "alt" ? (
-                        <span className="loading loading-spinner loading-md text-primary" />
-                      ) : (
-                        (() => {
-                          const part = currentCharacter?.parts?.find(
-                            (p) => p.partRole === selectedRole,
-                          );
-                          const pending = pendingPropByRole[selectedRole];
-                          const altUrl =
-                            part?.altImageUrl ?? pending?.altImageUrl ?? null;
-                          return altUrl ? (
-                            <div className="group relative h-full w-full">
-                              <img
-                                src={altUrl}
-                                alt="alt-preview"
-                                className="max-h-32 w-full object-contain p-2"
-                              />
-                              <div className="bg-base-300/80 absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleRemoveTexture(true);
-                                  }}
-                                  className="btn btn-circle btn-error btn-xs"
-                                >
-                                  <Trash2 className="size-3" />
-                                </button>
-                              </div>
-                            </div>
-                          ) : (
-                            <>
-                              <Plus className="size-5 opacity-30" />
-                              <span className="text-xs opacity-50">
-                                {t("characterBuilder.uploadAlt")}
-                              </span>
-                            </>
-                          );
-                        })()
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Transform Controls */}
