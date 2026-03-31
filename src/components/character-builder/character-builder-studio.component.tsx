@@ -302,23 +302,23 @@ export function CharacterBuilderStudio() {
     );
   };
 
-
   const handleCanvasPointerMove = (e: React.PointerEvent) => {
     if (!compositeRef.current || !canvasRef.current) return;
-    
+
     // Only update pupils if explicitly enabled for preview
     if (!previewPupils) return;
 
     // Skip if we are currently dragging a part or using gizmos
-    const isInteracting = (compositeRef.current as any).draggingRole || 
-                         (compositeRef.current as any).rotatingRole || 
-                         (compositeRef.current as any).movingGizmoHandle;
+    const isInteracting =
+      (compositeRef.current as any).draggingRole ||
+      (compositeRef.current as any).rotatingRole ||
+      (compositeRef.current as any).movingGizmoHandle;
     if (isInteracting) return;
 
     const rect = canvasRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 800;
     const y = ((e.clientY - rect.top) / rect.height) * 800;
-    
+
     compositeRef.current.updatePupils(x, y);
   };
 
@@ -681,7 +681,7 @@ export function CharacterBuilderStudio() {
                     }
                   }}
                   className={cn(
-                    "flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors",
+                    "flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors",
                     selectedRole === role
                       ? "bg-primary text-primary-content"
                       : "hover:bg-base-300",
@@ -771,12 +771,18 @@ export function CharacterBuilderStudio() {
                   Show bounds
                 </label>
 
-                <label 
+                <label
                   className={cn(
                     "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
-                    hasRequiredPupilParts ? "cursor-pointer hover:bg-base-200/80" : "cursor-not-allowed opacity-50"
+                    hasRequiredPupilParts
+                      ? "hover:bg-base-200/80 cursor-pointer"
+                      : "cursor-not-allowed opacity-50",
                   )}
-                  title={!hasRequiredPupilParts ? "Place head, both eyes and both pupils to test pupils" : ""}
+                  title={
+                    !hasRequiredPupilParts
+                      ? "Place head, both eyes and both pupils to test pupils"
+                      : ""
+                  }
                 >
                   <input
                     type="checkbox"
@@ -788,12 +794,18 @@ export function CharacterBuilderStudio() {
                   Test Pupils
                 </label>
 
-                <label 
+                <label
                   className={cn(
                     "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
-                    hasRequiredSpeakingParts ? "cursor-pointer hover:bg-base-200/80" : "cursor-not-allowed opacity-50"
+                    hasRequiredSpeakingParts
+                      ? "hover:bg-base-200/80 cursor-pointer"
+                      : "cursor-not-allowed opacity-50",
                   )}
-                  title={!hasRequiredSpeakingParts ? "Place head and jaw to test speaking" : ""}
+                  title={
+                    !hasRequiredSpeakingParts
+                      ? "Place head and jaw to test speaking"
+                      : ""
+                  }
                 >
                   <input
                     type="checkbox"
