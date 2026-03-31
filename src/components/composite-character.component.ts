@@ -692,11 +692,14 @@ export class CompositeCharacter {
   }
 
   updatePupils(stageX: number, stageY: number) {
-    const head = this.partContainers.get("head");
-    if (!head) return;
+    const headContainer = this.partContainers.get("head");
+    const headSprite = this.partSprites.get("head");
+    if (!headContainer || !headSprite) return;
 
-    // 1. Boundary Check: Only track if cursor is within head area
-    const headBounds = head.getBounds();
+    // 1. Boundary Check: Only track if cursor is within the PHYSICAL head sprite area
+    // Using sprite bounds is more accurate than container bounds which might include 
+    // parts that poke out (like eyes or hair).
+    const headBounds = headSprite.getBounds();
     const isInsideHead =
       stageX >= headBounds.x &&
       stageX <= headBounds.x + headBounds.width &&
@@ -704,7 +707,7 @@ export class CompositeCharacter {
       stageY <= headBounds.y + headBounds.height;
 
     // 2. Normalized Mouse Position (-1 to 1) relative to head center
-    // If outside, nx/ny effectively become 0 for immediate snap-back to center
+    // If outside, tracking stops and we reset to original relative position (nx/ny = 0)
     let nx = 0;
     let ny = 0;
 
@@ -718,26 +721,24 @@ export class CompositeCharacter {
       const pupilSprite = this.partSprites.get(pupilRole);
       const eyeSprite = this.partSprites.get(eyeRole);
       const pupilData = this.props.parts.find((p) => p.partRole === pupilRole);
+      const eyeData = this.props.parts.find((p) => p.partRole === eyeRole);
 
-      if (!pupilContainer || !pupilSprite || !eyeSprite || !pupilData) return;
+      if (!pupilContainer || !pupilSprite || !eyeSprite || !pupilData || !eyeData) return;
 
       // 3. Movement Constraint: Pupils are bounded by the eye bounding box
-      // We calculate the maximum allowed movement (half the size difference)
       const maxMoveX = Math.max(0, (eyeSprite.width - pupilSprite.width) / 2);
       const maxMoveY = Math.max(0, (eyeSprite.height - pupilSprite.height) / 2);
 
-      // 4. Apply Mapped Movement
-      // Now relative to the EYE origin. Neutral position is (0,0) relative to eye container.
-      // We calculate the relative offset from the eye data to handle legacy absolute coordinates.
-      const eyeData = this.props.parts.find((p) => p.partRole === eyeRole);
+      // 4. Calculate Original Relative Position (Baseline)
+      // This handles the eye-relative coordinate space migration
       let relBaseX = pupilData.x;
       let relBaseY = pupilData.y;
-      
-      if (pupilData.x > 100 && eyeData) {
+      if (pupilData.x > 100) {
         relBaseX = pupilData.x - eyeData.x;
         relBaseY = pupilData.y - eyeData.y;
       }
 
+      // 5. Apply Position (Neutral + Mouse Offset)
       pupilContainer.x = relBaseX + nx * maxMoveX;
       pupilContainer.y = relBaseY + ny * maxMoveY;
     };
