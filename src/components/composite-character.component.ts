@@ -179,8 +179,26 @@ export class CompositeCharacter {
 
       const container = new Container();
       container.label = role;
-      container.x = data?.x ?? 0;
-      container.y = data?.y ?? 0;
+      
+      // Coordinate Migration Logic:
+      // If this is a pupil and the parent is an eye, check if data is in "head-space" (absolute to head)
+      // or "eye-space" (relative to eye). We assume > 100 is likely absolute head-space.
+      if ((role.startsWith('pupil')) && parent.label?.startsWith('eye')) {
+        const absoluteX = data?.x ?? 0;
+        const absoluteY = data?.y ?? 0;
+        // If absoluteX is around head center/eye pos (e.g. 300-500), subtract parent offset
+        if (absoluteX > 100) {
+          container.x = absoluteX - parent.x;
+          container.y = absoluteY - parent.y;
+        } else {
+          container.x = absoluteX;
+          container.y = absoluteY;
+        }
+      } else {
+        container.x = data?.x ?? 0;
+        container.y = data?.y ?? 0;
+      }
+      
       container.rotation = (data?.rotation ?? 0) * (Math.PI / 180);
       container.zIndex = data?.zIndex ?? ALL_PART_ROLES.indexOf(role as PartRole);
 
@@ -212,10 +230,10 @@ export class CompositeCharacter {
     // 2. Head and its facial parts — attached to body
     const head = createPart('head', body);
     createPart('jaw', head);
-    createPart('eye-left', head);
-    createPart('eye-right', head);
-    createPart('pupil-left', head);
-    createPart('pupil-right', head);
+    const eyeLeft = createPart('eye-left', head);
+    const eyeRight = createPart('eye-right', head);
+    createPart('pupil-left', eyeLeft);
+    createPart('pupil-right', eyeRight);
     createPart('eye-brow-left', head);
     createPart('eye-brow-right', head);
     createPart('eye-closed-left', head);
@@ -709,8 +727,19 @@ export class CompositeCharacter {
       const maxMoveY = Math.max(0, (eyeSprite.height - pupilSprite.height) / 2);
 
       // 4. Apply Mapped Movement
-      pupilContainer.x = pupilData.x + nx * maxMoveX;
-      pupilContainer.y = pupilData.y + ny * maxMoveY;
+      // Now relative to the EYE origin. Neutral position is (0,0) relative to eye container.
+      // We calculate the relative offset from the eye data to handle legacy absolute coordinates.
+      const eyeData = this.props.parts.find((p) => p.partRole === eyeRole);
+      let relBaseX = pupilData.x;
+      let relBaseY = pupilData.y;
+      
+      if (pupilData.x > 100 && eyeData) {
+        relBaseX = pupilData.x - eyeData.x;
+        relBaseY = pupilData.y - eyeData.y;
+      }
+
+      pupilContainer.x = relBaseX + nx * maxMoveX;
+      pupilContainer.y = relBaseY + ny * maxMoveY;
     };
 
     updatePupil("pupil-left", "eye-left");
