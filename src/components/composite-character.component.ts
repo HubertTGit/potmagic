@@ -501,7 +501,7 @@ export class CompositeCharacter {
     const sprite = this.partSprites.get(role);
     if (!container || !sprite) return;
 
-    if ((CompositeCharacter.NO_GIZMO_ROLES as readonly string[]).includes(role)) return;
+    const isGizmoLess = (CompositeCharacter.NO_GIZMO_ROLES as readonly string[]).includes(role);
 
     const gizmoGroup = new Container();
     gizmoGroup.alpha = 0;
@@ -519,62 +519,71 @@ export class CompositeCharacter {
       }
     };
 
-    const setupHandle = (type: 'rotate' | 'translate', x: number, y: number) => {
-      const handle = type === 'rotate' ? this.makeRotateHandle() : this.makeTranslateHandle();
-      // Handle position is relative to pivot + offset
-      handle.x = container.pivot.x + x;
-      handle.y = container.pivot.y + y;
-      handle.eventMode = 'static';
-      handle.cursor = type === 'rotate' ? 'grab' : 'move';
-      gizmoGroup.addChild(handle);
+    if (isGizmoLess) {
+      // Show pivot dot for gizmo-less roles on hover
+      const pivotDot = new Graphics();
+      pivotDot.circle(0, 0, 4).fill({ color: 0x3B82F6, alpha: 0.8 });
+      pivotDot.x = container.pivot.x;
+      pivotDot.y = container.pivot.y;
+      gizmoGroup.addChild(pivotDot);
+    } else {
+      const setupHandle = (type: 'rotate' | 'translate', x: number, y: number) => {
+        const handle = type === 'rotate' ? this.makeRotateHandle() : this.makeTranslateHandle();
+        // Handle position is relative to pivot + offset
+        handle.x = container.pivot.x + x;
+        handle.y = container.pivot.y + y;
+        handle.eventMode = 'static';
+        handle.cursor = type === 'rotate' ? 'grab' : 'move';
+        gizmoGroup.addChild(handle);
 
-      const connector = new Graphics();
-      gizmoGroup.addChild(connector);
+        const connector = new Graphics();
+        gizmoGroup.addChild(connector);
 
-      this.gizmoHandleRefs.push({ 
-        handle, 
-        connector, 
-        gizmoGroup, 
-        defaultCursor: handle.cursor, 
-        role, 
-        updatesAnchor: true,
-        type,
-        defaultX: x,
-        defaultY: y
-      });
+        this.gizmoHandleRefs.push({ 
+          handle, 
+          connector, 
+          gizmoGroup, 
+          defaultCursor: handle.cursor, 
+          role, 
+          updatesAnchor: true,
+          type,
+          defaultX: x,
+          defaultY: y
+        });
 
-      handle.on('pointerover', show);
-      handle.on('pointerout', hide);
+        handle.on('pointerover', show);
+        handle.on('pointerout', hide);
 
-      handle.on('pointerdown', (e: FederatedPointerEvent) => {
-        e.stopPropagation();
-        if (this.gizmoEditMode) {
-          const startLocal = gizmoGroup.toLocal(e.global);
-          this.movingGizmoHandle = {
-            handle, connector, gizmoGroup,
-            startLocal: { x: startLocal.x, y: startLocal.y },
-            handleStart: { x: handle.x, y: handle.y },
-            role,
-            updatesAnchor: true
-          };
-        } else {
-          if (type === 'rotate') {
-            const worldPos = container.getGlobalPosition();
-            this.rotatingRole = role;
-            this.rotateStartAngle = Math.atan2(e.global.y - worldPos.y, e.global.x - worldPos.x);
-            this.rotateStartContainerRotation = container.rotation;
+        handle.on('pointerdown', (e: FederatedPointerEvent) => {
+          e.stopPropagation();
+          if (this.gizmoEditMode) {
+            const startLocal = gizmoGroup.toLocal(e.global);
+            this.movingGizmoHandle = {
+              handle, connector, gizmoGroup,
+              startLocal: { x: startLocal.x, y: startLocal.y },
+              handleStart: { x: handle.x, y: handle.y },
+              role,
+              updatesAnchor: true
+            };
           } else {
-            this.draggingRole = role;
-            const local = container.parent!.toLocal(e.global);
-            this.partOffset = { x: container.x - local.x, y: container.y - local.y };
+            if (type === 'rotate') {
+              const worldPos = container.getGlobalPosition();
+              this.rotatingRole = role;
+              this.rotateStartAngle = Math.atan2(e.global.y - worldPos.y, e.global.x - worldPos.x);
+              this.rotateStartContainerRotation = container.rotation;
+            } else {
+              this.draggingRole = role;
+              const local = container.parent!.toLocal(e.global);
+              this.partOffset = { x: container.x - local.x, y: container.y - local.y };
+            }
           }
-        }
-      });
-    };
+        });
+      };
 
-    setupHandle(isRotatable ? 'rotate' : 'translate', 0, 0);
+      setupHandle(isRotatable ? 'rotate' : 'translate', 0, 0);
+    }
 
-    // Bounding Box (Debug)
+    // Bounding Box (Debug) — always added now, even for NO_GIZMO_ROLES
     const debugBox = new Graphics();
     debugBox.label = "debug-box";
     debugBox.alpha = this.showBoundingBoxes ? 0.3 : 0;
