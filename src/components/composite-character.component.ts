@@ -678,6 +678,13 @@ export class CompositeCharacter {
       } else if (mainTexture) {
         sprite.texture = mainTexture;
       }
+
+      // Hide pupil when blinking
+      const pupilRole = role === "eye-left" ? "pupil-left" : "pupil-right";
+      const pupilContainer = this.partContainers.get(pupilRole);
+      if (pupilContainer) {
+        pupilContainer.visible = !isBlinking;
+      }
     }
   }
 
