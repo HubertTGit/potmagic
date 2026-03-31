@@ -165,6 +165,8 @@ export class CompositeCharacter {
     "eye-right",
     "pupil-left",
     "pupil-right",
+    "eye-brow-left",
+    "eye-brow-right",
   ] as const;
 
   constructor(props: CompositeCharacterProps) {
@@ -620,7 +622,7 @@ export class CompositeCharacter {
     if (isGizmoLess) {
       // Show pivot dot for gizmo-less roles on hover
       const pivotDot = new Graphics();
-      pivotDot.circle(0, 0, 4).fill({ color: 0x3b82f6, alpha: 0.8 });
+      pivotDot.rect(-0.5, -0.5, 1, 1).fill({ color: 0x3b82f6 });
       pivotDot.x = container.pivot.x;
       pivotDot.y = container.pivot.y;
       gizmoGroup.addChild(pivotDot);
@@ -787,7 +789,7 @@ export class CompositeCharacter {
     const BLINK_REPEAT_DELAY = 4;
 
     this.stopAutoBlink();
-    
+
     // Check if we have at least one blink texture
     const hasBlinkTexture = Array.from(this.blinkTextures.values()).length > 0;
     if (!hasBlinkTexture) return;
@@ -796,7 +798,7 @@ export class CompositeCharacter {
       repeat: BLINK_REPEAT,
       repeatDelay: BLINK_REPEAT_DELAY,
     });
-    
+
     this.blinkTimeline
       .call(() => this.setBlinking(true))
       .to({}, { duration: BLINK_DURATION })
