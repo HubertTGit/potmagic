@@ -72,6 +72,7 @@ export interface CompositeCharacterProps {
   interactive?: boolean;
   onChange?: (role: string, data: Partial<CharacterPartAdjustments>) => void;
   showBoundingBoxes?: boolean;
+  autoBlink?: boolean;
 }
 
 export interface CharacterPartAdjustments {
@@ -179,7 +180,9 @@ export class CompositeCharacter {
     this.loadAllTextures().then(() => {
       this.buildHierarchy();
       this.setupInteraction();
-      this.startAutoBlink(); // Start blinking once textures are ready
+      if (this.props.autoBlink) {
+        this.startAutoBlink();
+      }
       this.props.onReady?.();
     });
   }
@@ -784,7 +787,7 @@ export class CompositeCharacter {
     const BLINK_REPEAT_DELAY = 4;
 
     this.stopAutoBlink();
-
+    
     // Check if we have at least one blink texture
     const hasBlinkTexture = Array.from(this.blinkTextures.values()).length > 0;
     if (!hasBlinkTexture) return;
@@ -793,11 +796,21 @@ export class CompositeCharacter {
       repeat: BLINK_REPEAT,
       repeatDelay: BLINK_REPEAT_DELAY,
     });
-
+    
     this.blinkTimeline
       .call(() => this.setBlinking(true))
       .to({}, { duration: BLINK_DURATION })
       .call(() => this.setBlinking(false));
+  }
+
+  setAutoBlink(enabled: boolean) {
+    if (enabled) {
+      this.startAutoBlink();
+    } else {
+      this.stopAutoBlink();
+      // Ensure eyes are open when stopping
+      this.setBlinking(false);
+    }
   }
 
   stopAutoBlink() {
