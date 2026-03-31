@@ -25,6 +25,8 @@ import {
   Trash2,
   CheckCircle2,
   CircleX,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import type { Application } from "pixi.js";
 import {
@@ -91,6 +93,10 @@ export function CharacterBuilderStudio() {
 
   const hasRequiredSpeakingParts = ["head", "jaw"].every((role) =>
     currentCharacter?.parts.some((p) => p.partRole === role),
+  );
+
+  const hasBlinkTexture = currentCharacter?.parts.some(
+    (p) => (p.partRole === "eye-left" || p.partRole === "eye-right") && !!p.altImageUrl,
   );
 
   // Reset pupil preview if required parts are removed
@@ -455,7 +461,7 @@ export function CharacterBuilderStudio() {
           // Already placed: update texture in DB directly
           await upsertPartMutation.mutateAsync({
             data: {
-              characterId,
+              characterId: characterId!,
               partRole: selectedRole as any,
               propId: prop.id,
               altPropId: existingPart.altPropId,
@@ -474,7 +480,7 @@ export function CharacterBuilderStudio() {
           setPendingPropByRole((prev) => ({
             ...prev,
             [selectedRole]: {
-              ...prev[selectedRole],
+              ...prev[selectedRole]!,
               propId: prop.id,
               imageUrl: prop.imageUrl ?? "",
             },
@@ -486,6 +492,72 @@ export function CharacterBuilderStudio() {
     } finally {
       setIsUploading(null);
       // Reset so the same file can be re-selected
+      e.target.value = "";
+    }
+  };
+
+  const handleUploadBlink = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !characterId) return;
+
+    setIsUploading("alt");
+    try {
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve) => {
+        reader.onload = () => {
+          const base64 = (reader.result as string).split(",")[1];
+          resolve(base64);
+        };
+        reader.readAsDataURL(file);
+      });
+
+      const base64 = await base64Promise;
+
+      const prop = await uploadProp({
+        data: {
+          name: `${selectedRole}_blink_${Date.now()}`,
+          type: "part",
+          fileName: file.name,
+          contentType: file.type,
+          base64,
+          size: file.size,
+        },
+      });
+
+      if (prop) {
+        const existingPart = currentCharacter?.parts.find(
+          (p) => p.partRole === selectedRole,
+        );
+        if (existingPart) {
+          await upsertPartMutation.mutateAsync({
+            data: {
+              characterId: characterId!,
+              partRole: selectedRole as any,
+              propId: existingPart.propId,
+              altPropId: prop.id,
+              pivotX: existingPart.pivotX,
+              pivotY: existingPart.pivotY,
+              x: existingPart.x,
+              y: existingPart.y,
+              zIndex: existingPart.zIndex,
+              rotation: existingPart.rotation,
+            },
+          });
+        } else {
+          setPendingPropByRole((prev) => ({
+            ...prev,
+            [selectedRole]: {
+              ...prev[selectedRole]!,
+              altPropId: prop.id,
+              altImageUrl: prop.imageUrl!,
+            },
+          }));
+        }
+      }
+    } catch (err: any) {
+      toast.error(`Blink upload failed: ${err.message}`);
+    } finally {
+      setIsUploading(null);
       e.target.value = "";
     }
   };
@@ -738,6 +810,24 @@ export function CharacterBuilderStudio() {
                   />
                   Test Speaking
                 </label>
+
+                <button 
+                  className={cn(
+                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
+                    hasBlinkTexture ? "cursor-pointer hover:bg-base-200/80 active:bg-primary/20" : "cursor-not-allowed opacity-50"
+                  )}
+                  title={!hasBlinkTexture ? "Upload a blink texture in an eye part's sidebar to test" : ""}
+                  disabled={!hasBlinkTexture}
+                  onClick={() => {
+                    if (compositeRef.current) {
+                      compositeRef.current.setBlinking(true);
+                      setTimeout(() => compositeRef.current?.setBlinking(false), 200);
+                    }
+                  }}
+                >
+                  <EyeOff className="size-4 text-accent" />
+                  Test Blinking
+                </button>
               </div>
 
               <div className="pointer-events-none absolute right-4 bottom-4 left-4 flex justify-between text-[10px] tracking-widest uppercase opacity-30">
@@ -757,100 +847,159 @@ export function CharacterBuilderStudio() {
           <div className="space-y-6">
             {/* Upload Area */}
             <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-xs font-medium tracking-wide uppercase opacity-60">
-                  Texture
-                </label>
-                {(() => {
-                  const part = currentCharacter?.parts?.find(
-                    (p) => p.partRole === selectedRole,
-                  );
-                  const pending = pendingPropByRole[selectedRole];
-                  const displayUrl =
-                    part?.imageUrl ?? pending?.imageUrl ?? null;
-                  const isPlaced = !!part;
-                  return (
-                    <div className="relative">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleUploadPart(e)}
-                        className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
-                        disabled={!!isUploading}
-                      />
-                      <div
-                        className={cn(
-                          "border-base-300 flex min-h-32 flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed transition-colors",
-                          isUploading === "main"
-                            ? "bg-base-300"
-                            : "hover:bg-base-300",
-                        )}
-                      >
-                        {isUploading === "main" ? (
-                          <span className="loading loading-spinner loading-md text-primary" />
-                        ) : displayUrl ? (
-                          <div
-                            className={cn(
-                              "group relative h-full w-full",
-                              !isPlaced
-                                ? "cursor-grab active:cursor-grabbing"
-                                : "cursor-pointer",
-                            )}
-                            draggable={!isPlaced}
-                            onDragStart={(e) => {
-                              if (!isPlaced) {
-                                e.dataTransfer.setData(
-                                  "partRole",
-                                  selectedRole,
-                                );
-                                e.dataTransfer.effectAllowed = "move";
-                              }
-                            }}
-                          >
-                            <img
-                              src={displayUrl}
-                              alt="preview"
-                              className="max-h-48 w-full object-contain p-2"
-                            />
-                            <div className="bg-base-300/80 absolute inset-0 flex items-center justify-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-                              <div className="flex flex-col items-center gap-1">
-                                {isPlaced ? (
-                                  <>
-                                    <Upload className="size-5 text-white" />
-                                    <span className="text-[10px] font-bold tracking-widest uppercase">
-                                      Replace texture
-                                    </span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Maximize2 className="size-5 text-white" />
-                                    <span className="text-[10px] font-bold tracking-widest uppercase">
-                                      Drag to canvas
-                                    </span>
-                                  </>
-                                )}
+              {(() => {
+                const part = currentCharacter?.parts?.find(
+                  (p) => p.partRole === selectedRole,
+                );
+                const pending = pendingPropByRole[selectedRole];
+                const displayUrl = part?.imageUrl ?? pending?.imageUrl ?? null;
+                const isPlaced = !!part;
+
+                const isEye =
+                  selectedRole === "eye-left" || selectedRole === "eye-right";
+                const blinkUrl =
+                  part?.altImageUrl ?? pending?.altImageUrl ?? null;
+
+                return (
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium tracking-wide uppercase opacity-60">
+                        Texture
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleUploadPart(e)}
+                          className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                          disabled={!!isUploading}
+                        />
+                        <div
+                          className={cn(
+                            "border-base-300 flex min-h-32 flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed transition-colors",
+                            isUploading === "main"
+                              ? "bg-base-300"
+                              : "hover:bg-base-300",
+                          )}
+                        >
+                          {isUploading === "main" ? (
+                            <span className="loading loading-spinner loading-md text-primary" />
+                          ) : displayUrl ? (
+                            <div
+                              className={cn(
+                                "group relative h-full w-full",
+                                !isPlaced
+                                  ? "cursor-grab active:cursor-grabbing"
+                                  : "cursor-pointer",
+                              )}
+                              draggable={!isPlaced}
+                              onDragStart={(e) => {
+                                if (!isPlaced) {
+                                  e.dataTransfer.setData(
+                                    "partRole",
+                                    selectedRole,
+                                  );
+                                  e.dataTransfer.effectAllowed = "move";
+                                }
+                              }}
+                            >
+                              <img
+                                src={displayUrl}
+                                alt="preview"
+                                className="max-h-48 w-full object-contain p-2"
+                              />
+                              <div className="bg-base-300/80 absolute inset-0 flex items-center justify-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                                <div className="flex flex-col items-center gap-1">
+                                  {isPlaced ? (
+                                    <>
+                                      <Upload className="size-5 text-white" />
+                                      <span className="text-[10px] font-bold tracking-widest uppercase">
+                                        Replace texture
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Maximize2 className="size-5 text-white" />
+                                      <span className="text-[10px] font-bold tracking-widest uppercase">
+                                        Drag to canvas
+                                      </span>
+                                    </>
+                                  )}
+                                </div>
                               </div>
+                              {!isPlaced && (
+                                <div className="badge badge-warning badge-xs absolute top-2 right-2 font-bold tracking-wider uppercase">
+                                  Not placed
+                                </div>
+                              )}
                             </div>
-                            {!isPlaced && (
-                              <div className="badge badge-warning badge-xs absolute top-2 right-2 font-bold tracking-wider uppercase">
-                                Not placed
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <>
-                            <Upload className="size-6 opacity-30" />
-                            <span className="text-xs opacity-50">
-                              {t("characterBuilder.uploadMain")}
-                            </span>
-                          </>
-                        )}
+                          ) : (
+                            <>
+                              <Upload className="size-6 opacity-30" />
+                              <span className="text-xs opacity-50">
+                                {t("characterBuilder.uploadMain")}
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  );
-                })()}
-              </div>
 
+                    {/* Blink Texture — only for eyes */}
+                    {isEye && (
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium tracking-wide uppercase opacity-60">
+                          Blink Texture
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleUploadBlink(e)}
+                            className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                            disabled={!!isUploading}
+                          />
+                          <div
+                            className={cn(
+                              "border-base-300 flex min-h-32 flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed transition-colors",
+                              isUploading === "alt"
+                                ? "bg-base-300"
+                                : "hover:bg-base-200",
+                            )}
+                          >
+                            {isUploading === "alt" ? (
+                              <span className="loading loading-spinner loading-md text-primary" />
+                            ) : blinkUrl ? (
+                              <div className="group relative h-full w-full cursor-pointer">
+                                <img
+                                  src={blinkUrl}
+                                  alt="blink preview"
+                                  className="max-h-48 w-full object-contain p-2"
+                                />
+                                <div className="bg-base-300/80 absolute inset-0 flex items-center justify-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                                  <div className="flex flex-col items-center gap-1">
+                                    <Upload className="size-5 text-white" />
+                                    <span className="text-[10px] font-bold tracking-widest uppercase">
+                                      Replace blink
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                <Upload className="size-6 opacity-30" />
+                                <span className="text-xs opacity-50">
+                                  Upload blink asset
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Transform Controls */}

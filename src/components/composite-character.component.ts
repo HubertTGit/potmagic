@@ -14,7 +14,7 @@ PixiPlugin.registerPIXI(PIXI);
 
 export const ALL_PART_ROLES = [
   "body", "head", "jaw", "eye-left", "eye-right", "pupil-left", "pupil-right",
-  "eye-brow-left", "eye-brow-right", "eye-closed-left", "eye-closed-right",
+  "eye-brow-left", "eye-brow-right",
   "arm-upper-left", "arm-forearm-left", "arm-hand-left",
   "arm-upper-right", "arm-forearm-right", "arm-hand-right",
   "leg-upper-left", "leg-lower-left", "leg-foot-left",
@@ -79,6 +79,7 @@ export class CompositeCharacter {
   private partContainers: Map<string, Container> = new Map();
   private partSprites: Map<string, Sprite> = new Map();
   private textures: Map<string, Texture> = new Map();
+  private blinkTextures: Map<string, Texture> = new Map();
 
   private isDragging = false;
   private dragOffset = { x: 0, y: 0 };
@@ -134,8 +135,7 @@ export class CompositeCharacter {
   ] as const;
 
   private static readonly NO_GIZMO_ROLES = [
-    'eye-left', 'eye-right', 'pupil-left', 'pupil-right',
-    'eye-closed-left', 'eye-closed-right'
+    'eye-left', 'eye-right', 'pupil-left', 'pupil-right'
   ] as const;
 
   constructor(props: CompositeCharacterProps) {
@@ -161,6 +161,11 @@ export class CompositeCharacter {
       if (p.imageUrl) {
         promises.push(
           Assets.load(p.imageUrl).then((tex) => this.textures.set(p.partRole, tex))
+        );
+      }
+      if (p.altImageUrl) {
+        promises.push(
+          Assets.load(p.altImageUrl).then((tex) => this.blinkTextures.set(p.partRole, tex))
         );
       }
       return promises;
@@ -230,14 +235,23 @@ export class CompositeCharacter {
     // 2. Head and its facial parts — attached to body
     const head = createPart('head', body);
     createPart('jaw', head);
-    const eyeLeft = createPart('eye-left', head);
-    const eyeRight = createPart('eye-right', head);
+    
+    // Grouping Eye Left
+    const eyeLeftGroup = new Container();
+    eyeLeftGroup.label = 'eye-left-group';
+    head.addChild(eyeLeftGroup);
+    const eyeLeft = createPart('eye-left', eyeLeftGroup);
     createPart('pupil-left', eyeLeft);
+
+    // Grouping Eye Right
+    const eyeRightGroup = new Container();
+    eyeRightGroup.label = 'eye-right-group';
+    head.addChild(eyeRightGroup);
+    const eyeRight = createPart('eye-right', eyeRightGroup);
     createPart('pupil-right', eyeRight);
+
     createPart('eye-brow-left', head);
     createPart('eye-brow-right', head);
-    createPart('eye-closed-left', head);
-    createPart('eye-closed-right', head);
 
     // 3. Arms — attached to body
     const aul = createPart('arm-upper-left', body);
@@ -649,6 +663,23 @@ export class CompositeCharacter {
 
 
   // --- Logic ---
+
+  setBlinking(isBlinking: boolean) {
+    const roles = ["eye-left", "eye-right"] as const;
+    for (const role of roles) {
+      const sprite = this.partSprites.get(role);
+      if (!sprite) continue;
+
+      const mainTexture = this.textures.get(role);
+      const blinkTexture = this.blinkTextures.get(role);
+
+      if (isBlinking && blinkTexture) {
+        sprite.texture = blinkTexture;
+      } else if (mainTexture) {
+        sprite.texture = mainTexture;
+      }
+    }
+  }
 
   setSpeaking(isSpeaking: boolean) {
     if (this.isSpeaking === isSpeaking) return;
