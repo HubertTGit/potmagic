@@ -13,15 +13,30 @@ gsap.registerPlugin(PixiPlugin);
 PixiPlugin.registerPIXI(PIXI);
 
 export const ALL_PART_ROLES = [
-  "body", "head", "jaw", "eye-left", "eye-right", "pupil-left", "pupil-right",
-  "eye-brow-left", "eye-brow-right",
-  "arm-upper-left", "arm-forearm-left", "arm-hand-left",
-  "arm-upper-right", "arm-forearm-right", "arm-hand-right",
-  "leg-upper-left", "leg-lower-left", "leg-foot-left",
-  "leg-upper-right", "leg-lower-right", "leg-foot-right",
+  "body",
+  "head",
+  "jaw",
+  "eye-left",
+  "eye-right",
+  "pupil-left",
+  "pupil-right",
+  "eye-brow-left",
+  "eye-brow-right",
+  "arm-upper-left",
+  "arm-forearm-left",
+  "arm-hand-left",
+  "arm-upper-right",
+  "arm-forearm-right",
+  "arm-hand-right",
+  "leg-upper-left",
+  "leg-lower-left",
+  "leg-foot-left",
+  "leg-upper-right",
+  "leg-lower-right",
+  "leg-foot-right",
 ] as const;
 
-export type PartRole = typeof ALL_PART_ROLES[number];
+export type PartRole = (typeof ALL_PART_ROLES)[number];
 
 export interface CharacterPartData {
   id: string;
@@ -88,9 +103,11 @@ export class CompositeCharacter {
   private isSpeaking = false;
   private speakingTween: gsap.core.Tween | null = null;
   private jawOriginalY: number | null = null;
+  private blinkTimeline: gsap.core.Timeline | null = null;
 
   // Stored so they can be removed from the stage on destroy()
-  private boundPartPointerMove: ((e: FederatedPointerEvent) => void) | null = null;
+  private boundPartPointerMove: ((e: FederatedPointerEvent) => void) | null =
+    null;
   private boundPartPointerUp: (() => void) | null = null;
 
   // Gizmos (interactive/builder mode only)
@@ -118,7 +135,7 @@ export class CompositeCharacter {
     defaultCursor: string;
     role: string;
     updatesAnchor: boolean;
-    type: 'rotate' | 'translate';
+    type: "rotate" | "translate";
     defaultX: number;
     defaultY: number;
   }> = [];
@@ -127,15 +144,26 @@ export class CompositeCharacter {
   private showBoundingBoxes = false;
 
   private static readonly ROTATABLE_ROLES = [
-    'head',
-    'arm-upper-left', 'arm-forearm-left', 'arm-hand-left',
-    'arm-upper-right', 'arm-forearm-right', 'arm-hand-right',
-    'leg-upper-left', 'leg-lower-left', 'leg-foot-left',
-    'leg-upper-right', 'leg-lower-right', 'leg-foot-right',
+    "head",
+    "arm-upper-left",
+    "arm-forearm-left",
+    "arm-hand-left",
+    "arm-upper-right",
+    "arm-forearm-right",
+    "arm-hand-right",
+    "leg-upper-left",
+    "leg-lower-left",
+    "leg-foot-left",
+    "leg-upper-right",
+    "leg-lower-right",
+    "leg-foot-right",
   ] as const;
 
   private static readonly NO_GIZMO_ROLES = [
-    'eye-left', 'eye-right', 'pupil-left', 'pupil-right'
+    "eye-left",
+    "eye-right",
+    "pupil-left",
+    "pupil-right",
   ] as const;
 
   constructor(props: CompositeCharacterProps) {
@@ -151,6 +179,7 @@ export class CompositeCharacter {
     this.loadAllTextures().then(() => {
       this.buildHierarchy();
       this.setupInteraction();
+      this.startAutoBlink(); // Start blinking once textures are ready
       this.props.onReady?.();
     });
   }
@@ -160,12 +189,16 @@ export class CompositeCharacter {
       const promises = [];
       if (p.imageUrl) {
         promises.push(
-          Assets.load(p.imageUrl).then((tex) => this.textures.set(p.partRole, tex))
+          Assets.load(p.imageUrl).then((tex) =>
+            this.textures.set(p.partRole, tex),
+          ),
         );
       }
       if (p.altImageUrl) {
         promises.push(
-          Assets.load(p.altImageUrl).then((tex) => this.blinkTextures.set(p.partRole, tex))
+          Assets.load(p.altImageUrl).then((tex) =>
+            this.blinkTextures.set(p.partRole, tex),
+          ),
         );
       }
       return promises;
@@ -174,7 +207,7 @@ export class CompositeCharacter {
   }
 
   private buildHierarchy() {
-    const partsByRole = new Map(this.props.parts.map(p => [p.partRole, p]));
+    const partsByRole = new Map(this.props.parts.map((p) => [p.partRole, p]));
 
     // Always creates a container for the role, using part data if available or defaults.
     // Sprites without a loaded texture are invisible (no hit area), so unplaced parts
@@ -184,11 +217,11 @@ export class CompositeCharacter {
 
       const container = new Container();
       container.label = role;
-      
+
       // Coordinate Migration Logic:
       // If this is a pupil and the parent is an eye, check if data is in "head-space" (absolute to head)
       // or "eye-space" (relative to eye). We assume > 100 is likely absolute head-space.
-      if ((role.startsWith('pupil')) && parent.label?.startsWith('eye')) {
+      if (role.startsWith("pupil") && parent.label?.startsWith("eye")) {
         const absoluteX = data?.x ?? 0;
         const absoluteY = data?.y ?? 0;
         // If absoluteX is around head center/eye pos (e.g. 300-500), subtract parent offset
@@ -203,22 +236,28 @@ export class CompositeCharacter {
         container.x = data?.x ?? 0;
         container.y = data?.y ?? 0;
       }
-      
+
       container.rotation = (data?.rotation ?? 0) * (Math.PI / 180);
-      container.zIndex = data?.zIndex ?? ALL_PART_ROLES.indexOf(role as PartRole);
+      container.zIndex =
+        data?.zIndex ?? ALL_PART_ROLES.indexOf(role as PartRole);
 
       const sprite = new Sprite();
       const tex = this.textures.get(role);
       if (tex) sprite.texture = tex;
-      
+
       // Default sprite anchor (always untouched by gizmo)
       sprite.anchor.set(0.5, 0.5);
 
-      const isGizmoLess = (CompositeCharacter.NO_GIZMO_ROLES as readonly string[]).includes(role);
-      
+      const isGizmoLess = (
+        CompositeCharacter.NO_GIZMO_ROLES as readonly string[]
+      ).includes(role);
+
       // Use pivot for rotation point (stored in pixels)
       // Gizmo-less roles are enforced to center pivot (0,0 with 0.5 anchor)
-      container.pivot.set(isGizmoLess ? 0 : (data?.pivotX ?? 0), isGizmoLess ? 0 : (data?.pivotY ?? 0));
+      container.pivot.set(
+        isGizmoLess ? 0 : (data?.pivotX ?? 0),
+        isGizmoLess ? 0 : (data?.pivotY ?? 0),
+      );
 
       container.addChild(sprite);
       parent.addChild(container);
@@ -230,49 +269,50 @@ export class CompositeCharacter {
     };
 
     // 1. Body — root child of the composite container
-    const body = createPart('body', this.container);
+    const body = createPart("body", this.container);
 
     // 2. Head and its facial parts — attached to body
-    const head = createPart('head', body);
-    createPart('jaw', head);
-    
+    const head = createPart("head", body);
+    createPart("jaw", head);
+
     // Grouping Eye Left
     const eyeLeftGroup = new Container();
-    eyeLeftGroup.label = 'eye-left-group';
+    eyeLeftGroup.label = "eye-left-group";
     head.addChild(eyeLeftGroup);
-    const eyeLeft = createPart('eye-left', eyeLeftGroup);
-    createPart('pupil-left', eyeLeft);
+    const eyeLeft = createPart("eye-left", eyeLeftGroup);
+    createPart("pupil-left", eyeLeft);
 
     // Grouping Eye Right
     const eyeRightGroup = new Container();
-    eyeRightGroup.label = 'eye-right-group';
+    eyeRightGroup.label = "eye-right-group";
     head.addChild(eyeRightGroup);
-    const eyeRight = createPart('eye-right', eyeRightGroup);
-    createPart('pupil-right', eyeRight);
+    const eyeRight = createPart("eye-right", eyeRightGroup);
+    createPart("pupil-right", eyeRight);
 
-    createPart('eye-brow-left', head);
-    createPart('eye-brow-right', head);
+    createPart("eye-brow-left", head);
+    createPart("eye-brow-right", head);
 
     // 3. Arms — attached to body
-    const aul = createPart('arm-upper-left', body);
-    const afl = createPart('arm-forearm-left', aul);
-    createPart('arm-hand-left', afl);
+    const aul = createPart("arm-upper-left", body);
+    const afl = createPart("arm-forearm-left", aul);
+    createPart("arm-hand-left", afl);
 
-    const aur = createPart('arm-upper-right', body);
-    const afr = createPart('arm-forearm-right', aur);
-    createPart('arm-hand-right', afr);
+    const aur = createPart("arm-upper-right", body);
+    const afr = createPart("arm-forearm-right", aur);
+    createPart("arm-hand-right", afr);
 
     // 4. Legs — attached to body
-    const lul = createPart('leg-upper-left', body);
-    const lll = createPart('leg-lower-left', lul);
-    createPart('leg-foot-left', lll);
+    const lul = createPart("leg-upper-left", body);
+    const lll = createPart("leg-lower-left", lul);
+    createPart("leg-foot-left", lll);
 
-    const lur = createPart('leg-upper-right', body);
-    const llr = createPart('leg-lower-right', lur);
-    createPart('leg-foot-right', llr);
+    const lur = createPart("leg-upper-right", body);
+    const llr = createPart("leg-lower-right", lur);
+    createPart("leg-foot-right", llr);
 
     this.container.scale.x = this.props.initialScaleX ?? 1;
-    this.container.rotation = (this.props.initialRotation ?? 0) * (Math.PI / 180);
+    this.container.rotation =
+      (this.props.initialRotation ?? 0) * (Math.PI / 180);
     this.container.sortChildren();
   }
 
@@ -281,26 +321,26 @@ export class CompositeCharacter {
 
     if (interactive) {
       // Builder mode: each placed (textured) part is independently draggable
-      this.props.app.stage.eventMode = 'static';
+      this.props.app.stage.eventMode = "static";
 
       for (const [role, sprite] of this.partSprites) {
         if (!this.textures.has(role)) continue; // skip unplaced parts
 
         // All parts that have textures can be manually dragged
-        sprite.eventMode = 'static';
-        sprite.cursor = 'move';
-        sprite.on('pointerdown', (e) => this.onPartPointerDown(e, role));
+        sprite.eventMode = "static";
+        sprite.cursor = "move";
+        sprite.on("pointerdown", (e) => this.onPartPointerDown(e, role));
       }
 
       this.boundPartPointerMove = this.onPartGlobalPointerMove.bind(this);
       this.boundPartPointerUp = this.onPartPointerUp.bind(this);
-      this.props.app.stage.on('globalpointermove', this.boundPartPointerMove);
-      this.props.app.stage.on('pointerup', this.boundPartPointerUp);
+      this.props.app.stage.on("globalpointermove", this.boundPartPointerMove);
+      this.props.app.stage.on("pointerup", this.boundPartPointerUp);
 
       this.buildGizmos();
     } else {
       // Stage mode: root container / body handles drag
-      const bodySprite = this.partSprites.get('body');
+      const bodySprite = this.partSprites.get("body");
       if (bodySprite) {
         bodySprite.eventMode = canDrag ? "static" : "none";
         bodySprite.cursor = canDrag ? "pointer" : "default";
@@ -308,7 +348,10 @@ export class CompositeCharacter {
           bodySprite.on("pointerdown", this.onPointerDown.bind(this));
           bodySprite.on("pointerup", this.onPointerUp.bind(this));
           bodySprite.on("pointerupoutside", this.onPointerUp.bind(this));
-          bodySprite.on("globalpointermove", this.onStagePointerMove.bind(this));
+          bodySprite.on(
+            "globalpointermove",
+            this.onStagePointerMove.bind(this),
+          );
         }
       }
     }
@@ -375,16 +418,23 @@ export class CompositeCharacter {
   private onPartGlobalPointerMove(e: FederatedPointerEvent) {
     // Gizmo handle repositioning (edit mode)
     if (this.movingGizmoHandle) {
-      const { handle, gizmoGroup, startLocal, handleStart, role, updatesAnchor } = this.movingGizmoHandle;
-      
+      const {
+        handle,
+        gizmoGroup,
+        startLocal,
+        handleStart,
+        role,
+        updatesAnchor,
+      } = this.movingGizmoHandle;
+
       const container = this.partContainers.get(role)!;
       if (!container.parent) return;
-      
+
       // Calculate delta in gizmoGroup space BEFORE moving anything
       const cur = gizmoGroup.toLocal(e.global);
       const dx = cur.x - startLocal.x;
       const dy = cur.y - startLocal.y;
-      
+
       if (dx === 0 && dy === 0) return;
 
       if (updatesAnchor && role) {
@@ -398,15 +448,15 @@ export class CompositeCharacter {
           // 1. Calculate new proposed pivot
           const oldPivotX = container.pivot.x;
           const oldPivotY = container.pivot.y;
-          
+
           let newPivotX = oldPivotX + dx;
           let newPivotY = oldPivotY + dy;
-          
+
           // Constrain pivot to bounding box relative to anchor
           // Range: [-ax * tw, (1 - ax) * tw]
           newPivotX = Math.max(-ax * tw, Math.min((1 - ax) * tw, newPivotX));
           newPivotY = Math.max(-ay * th, Math.min((1 - ay) * th, newPivotY));
-          
+
           const actualDx = newPivotX - oldPivotX;
           const actualDy = newPivotY - oldPivotY;
 
@@ -432,9 +482,9 @@ export class CompositeCharacter {
             pivotX: container.pivot.x,
             pivotY: container.pivot.y,
             x: container.x,
-            y: container.y
+            y: container.y,
           });
-          
+
           // Re-capture startLocal relative to the NOW-MOVED gizmoGroup
           this.movingGizmoHandle.startLocal = gizmoGroup.toLocal(e.global);
 
@@ -453,9 +503,15 @@ export class CompositeCharacter {
     if (this.rotatingRole) {
       const container = this.partContainers.get(this.rotatingRole)!;
       const worldPos = container.getGlobalPosition();
-      const angle = Math.atan2(e.global.y - worldPos.y, e.global.x - worldPos.x);
-      container.rotation = this.rotateStartContainerRotation + (angle - this.rotateStartAngle);
-      this.props.onChange?.(this.rotatingRole, { rotation: container.rotation * (180 / Math.PI) });
+      const angle = Math.atan2(
+        e.global.y - worldPos.y,
+        e.global.x - worldPos.x,
+      );
+      container.rotation =
+        this.rotateStartContainerRotation + (angle - this.rotateStartAngle);
+      this.props.onChange?.(this.rotatingRole, {
+        rotation: container.rotation * (180 / Math.PI),
+      });
       return;
     }
 
@@ -466,7 +522,10 @@ export class CompositeCharacter {
       const local = container.parent.toLocal(e.global);
       container.x = local.x + this.partOffset.x;
       container.y = local.y + this.partOffset.y;
-      this.props.onChange?.(this.draggingRole, { x: container.x, y: container.y });
+      this.props.onChange?.(this.draggingRole, {
+        x: container.x,
+        y: container.y,
+      });
     }
   }
 
@@ -487,7 +546,10 @@ export class CompositeCharacter {
   private makeRotateHandle(): Graphics {
     const g = new Graphics();
     // Outer ring arc to suggest rotation
-    g.arc(0, 0, 18, -Math.PI * 0.7, Math.PI * 0.7).stroke({ color: 0xa855f7, width: 3 });
+    g.arc(0, 0, 18, -Math.PI * 0.7, Math.PI * 0.7).stroke({
+      color: 0xa855f7,
+      width: 3,
+    });
     // Filled center circle
     g.circle(0, 0, 8).fill({ color: 0xa855f7 });
     return g;
@@ -520,7 +582,9 @@ export class CompositeCharacter {
     const sprite = this.partSprites.get(role);
     if (!container || !sprite) return;
 
-    const isGizmoLess = (CompositeCharacter.NO_GIZMO_ROLES as readonly string[]).includes(role);
+    const isGizmoLess = (
+      CompositeCharacter.NO_GIZMO_ROLES as readonly string[]
+    ).includes(role);
 
     const gizmoGroup = new Container();
     gizmoGroup.alpha = 0;
@@ -528,12 +592,24 @@ export class CompositeCharacter {
     container.addChild(gizmoGroup);
     this.gizmoGroups.set(role, gizmoGroup);
 
-    const isRotatable = (CompositeCharacter.ROTATABLE_ROLES as readonly string[]).includes(role);
+    const isRotatable = (
+      CompositeCharacter.ROTATABLE_ROLES as readonly string[]
+    ).includes(role);
 
-    const show = () => { if (this.textures.has(role)) { gizmoGroup.alpha = 1; this.drawGizmoLines(role); } };
-    const hide = () => { 
-      if (this.rotatingRole !== role && this.draggingRole !== role && !this.movingGizmoHandle) {
-        gizmoGroup.alpha = (this.gizmoEditMode && this.textures.has(role)) ? 1 : 0; 
+    const show = () => {
+      if (this.textures.has(role)) {
+        gizmoGroup.alpha = 1;
+        this.drawGizmoLines(role);
+      }
+    };
+    const hide = () => {
+      if (
+        this.rotatingRole !== role &&
+        this.draggingRole !== role &&
+        !this.movingGizmoHandle
+      ) {
+        gizmoGroup.alpha =
+          this.gizmoEditMode && this.textures.has(role) ? 1 : 0;
         this.drawGizmoLines(role);
       }
     };
@@ -541,87 +617,102 @@ export class CompositeCharacter {
     if (isGizmoLess) {
       // Show pivot dot for gizmo-less roles on hover
       const pivotDot = new Graphics();
-      pivotDot.circle(0, 0, 4).fill({ color: 0x3B82F6, alpha: 0.8 });
+      pivotDot.circle(0, 0, 4).fill({ color: 0x3b82f6, alpha: 0.8 });
       pivotDot.x = container.pivot.x;
       pivotDot.y = container.pivot.y;
       gizmoGroup.addChild(pivotDot);
     } else {
-      const setupHandle = (type: 'rotate' | 'translate', x: number, y: number) => {
-        const handle = type === 'rotate' ? this.makeRotateHandle() : this.makeTranslateHandle();
+      const setupHandle = (
+        type: "rotate" | "translate",
+        x: number,
+        y: number,
+      ) => {
+        const handle =
+          type === "rotate"
+            ? this.makeRotateHandle()
+            : this.makeTranslateHandle();
         // Handle position is relative to pivot + offset
         handle.x = container.pivot.x + x;
         handle.y = container.pivot.y + y;
-        handle.eventMode = 'static';
-        handle.cursor = type === 'rotate' ? 'grab' : 'move';
+        handle.eventMode = "static";
+        handle.cursor = type === "rotate" ? "grab" : "move";
         gizmoGroup.addChild(handle);
 
         const connector = new Graphics();
         gizmoGroup.addChild(connector);
 
-        this.gizmoHandleRefs.push({ 
-          handle, 
-          connector, 
-          gizmoGroup, 
-          defaultCursor: handle.cursor, 
-          role, 
+        this.gizmoHandleRefs.push({
+          handle,
+          connector,
+          gizmoGroup,
+          defaultCursor: handle.cursor,
+          role,
           updatesAnchor: true,
           type,
           defaultX: x,
-          defaultY: y
+          defaultY: y,
         });
 
-        handle.on('pointerover', show);
-        handle.on('pointerout', hide);
+        handle.on("pointerover", show);
+        handle.on("pointerout", hide);
 
-        handle.on('pointerdown', (e: FederatedPointerEvent) => {
+        handle.on("pointerdown", (e: FederatedPointerEvent) => {
           e.stopPropagation();
           if (this.gizmoEditMode) {
             const startLocal = gizmoGroup.toLocal(e.global);
             this.movingGizmoHandle = {
-              handle, connector, gizmoGroup,
+              handle,
+              connector,
+              gizmoGroup,
               startLocal: { x: startLocal.x, y: startLocal.y },
               handleStart: { x: handle.x, y: handle.y },
               role,
-              updatesAnchor: true
+              updatesAnchor: true,
             };
           } else {
-            if (type === 'rotate') {
+            if (type === "rotate") {
               const worldPos = container.getGlobalPosition();
               this.rotatingRole = role;
-              this.rotateStartAngle = Math.atan2(e.global.y - worldPos.y, e.global.x - worldPos.x);
+              this.rotateStartAngle = Math.atan2(
+                e.global.y - worldPos.y,
+                e.global.x - worldPos.x,
+              );
               this.rotateStartContainerRotation = container.rotation;
             } else {
               this.draggingRole = role;
               const local = container.parent!.toLocal(e.global);
-              this.partOffset = { x: container.x - local.x, y: container.y - local.y };
+              this.partOffset = {
+                x: container.x - local.x,
+                y: container.y - local.y,
+              };
             }
           }
         });
       };
 
-      setupHandle(isRotatable ? 'rotate' : 'translate', 0, 0);
+      setupHandle(isRotatable ? "rotate" : "translate", 0, 0);
     }
 
     // Bounding Box (Debug) — always added now, even for NO_GIZMO_ROLES
     const debugBox = new Graphics();
     debugBox.label = "debug-box";
     debugBox.alpha = this.showBoundingBoxes ? 0.3 : 0;
-    debugBox.eventMode = 'none'; // CRITICAL: don't block mouse events
+    debugBox.eventMode = "none"; // CRITICAL: don't block mouse events
     container.addChild(debugBox);
     this.boundingBoxGraphics.set(role, debugBox);
     this.drawBoundingBox(role);
 
     // Initial show/hide for the sprite itself
-    sprite.on('pointerover', show);
-    sprite.on('pointerout', hide);
-    
+    sprite.on("pointerover", show);
+    sprite.on("pointerout", hide);
+
     // Initial draw
     this.drawGizmoLines(role);
   }
 
   private drawGizmoLines(role: string) {
     const container = this.partContainers.get(role);
-    const refs = this.gizmoHandleRefs.filter(r => r.role === role);
+    const refs = this.gizmoHandleRefs.filter((r) => r.role === role);
     if (!container) return;
 
     for (const ref of refs) {
@@ -636,14 +727,14 @@ export class CompositeCharacter {
     for (const [role, group] of this.gizmoGroups) {
       // Only show gizmo group if the part actually has a texture placed
       const hasTexture = this.textures.has(role);
-      group.alpha = (enabled && hasTexture) ? 1 : 0;
+      group.alpha = enabled && hasTexture ? 1 : 0;
 
       const container = this.partContainers.get(role);
-      const refs = this.gizmoHandleRefs.filter(r => r.role === role);
-      
+      const refs = this.gizmoHandleRefs.filter((r) => r.role === role);
+
       if (container) {
         for (const ref of refs) {
-          ref.handle.cursor = enabled ? 'crosshair' : ref.defaultCursor;
+          ref.handle.cursor = enabled ? "crosshair" : ref.defaultCursor;
           if (ref.updatesAnchor) {
             if (enabled) {
               // Edit mode: handle stays pinned to the pivot point for direct manipulation
@@ -660,7 +751,6 @@ export class CompositeCharacter {
       }
     }
   }
-
 
   // --- Logic ---
 
@@ -685,6 +775,35 @@ export class CompositeCharacter {
       if (pupilContainer) {
         pupilContainer.visible = !isBlinking;
       }
+    }
+  }
+
+  startAutoBlink() {
+    const BLINK_REPEAT = -1;
+    const BLINK_DURATION = 0.5;
+    const BLINK_REPEAT_DELAY = 4;
+
+    this.stopAutoBlink();
+
+    // Check if we have at least one blink texture
+    const hasBlinkTexture = Array.from(this.blinkTextures.values()).length > 0;
+    if (!hasBlinkTexture) return;
+
+    this.blinkTimeline = gsap.timeline({
+      repeat: BLINK_REPEAT,
+      repeatDelay: BLINK_REPEAT_DELAY,
+    });
+
+    this.blinkTimeline
+      .call(() => this.setBlinking(true))
+      .to({}, { duration: BLINK_DURATION })
+      .call(() => this.setBlinking(false));
+  }
+
+  stopAutoBlink() {
+    if (this.blinkTimeline) {
+      this.blinkTimeline.kill();
+      this.blinkTimeline = null;
     }
   }
 
@@ -722,8 +841,8 @@ export class CompositeCharacter {
           pixi: { y: this.jawOriginalY },
           ease: "power2.out",
           onComplete: () => {
-             this.jawOriginalY = null;
-          }
+            this.jawOriginalY = null;
+          },
         });
       }
     }
@@ -735,7 +854,7 @@ export class CompositeCharacter {
     if (!headContainer || !headSprite) return;
 
     // 1. Boundary Check: Only track if cursor is within the PHYSICAL head sprite area
-    // Using sprite bounds is more accurate than container bounds which might include 
+    // Using sprite bounds is more accurate than container bounds which might include
     // parts that poke out (like eyes or hair).
     const headBounds = headSprite.getBounds();
     const isInsideHead =
@@ -750,8 +869,12 @@ export class CompositeCharacter {
     let ny = 0;
 
     if (isInsideHead) {
-      nx = (stageX - (headBounds.x + headBounds.width / 2)) / (headBounds.width / 2);
-      ny = (stageY - (headBounds.y + headBounds.height / 2)) / (headBounds.height / 2);
+      nx =
+        (stageX - (headBounds.x + headBounds.width / 2)) /
+        (headBounds.width / 2);
+      ny =
+        (stageY - (headBounds.y + headBounds.height / 2)) /
+        (headBounds.height / 2);
     }
 
     const updatePupil = (pupilRole: string, eyeRole: string) => {
@@ -761,7 +884,14 @@ export class CompositeCharacter {
       const pupilData = this.props.parts.find((p) => p.partRole === pupilRole);
       const eyeData = this.props.parts.find((p) => p.partRole === eyeRole);
 
-      if (!pupilContainer || !pupilSprite || !eyeSprite || !pupilData || !eyeData) return;
+      if (
+        !pupilContainer ||
+        !pupilSprite ||
+        !eyeSprite ||
+        !pupilData ||
+        !eyeData
+      )
+        return;
 
       // 3. Movement Constraint: Pupils are bounded by the eye bounding box
       const maxMoveX = Math.max(0, (eyeSprite.width - pupilSprite.width) / 2);
@@ -808,10 +938,9 @@ export class CompositeCharacter {
       scaleX: this.container.scale.x,
       indexZ: 0,
     };
-    room.localParticipant.publishData(
-      encoder.encode(JSON.stringify(msg)),
-      { reliable: false },
-    );
+    room.localParticipant.publishData(encoder.encode(JSON.stringify(msg)), {
+      reliable: false,
+    });
   }
 
   private persistPosition() {
@@ -839,26 +968,36 @@ export class CompositeCharacter {
   }
 
   destroy() {
+    this.stopAutoBlink();
+    if (this.speakingTween) {
+      this.speakingTween.kill();
+    }
     if (this.boundPartPointerMove) {
-      this.props.app.stage.off('globalpointermove', this.boundPartPointerMove);
+      this.props.app.stage.off("globalpointermove", this.boundPartPointerMove);
     }
     if (this.boundPartPointerUp) {
-      this.props.app.stage.off('pointerup', this.boundPartPointerUp);
+      this.props.app.stage.off("pointerup", this.boundPartPointerUp);
     }
     this.container.destroy({ children: true });
   }
 
   // Returns current live canvas state for all placed parts.
   // Used by the studio to preserve state when rebuilding the composite.
-  getLiveState(): Record<string, { x: number; y: number; pivotX: number; pivotY: number; rotation: number }> {
-    const result: Record<string, { x: number; y: number; pivotX: number; pivotY: number; rotation: number }> = {};
+  getLiveState(): Record<
+    string,
+    { x: number; y: number; pivotX: number; pivotY: number; rotation: number }
+  > {
+    const result: Record<
+      string,
+      { x: number; y: number; pivotX: number; pivotY: number; rotation: number }
+    > = {};
     for (const [role, container] of this.partContainers) {
       result[role] = {
         x: container.x,
         y: container.y,
         rotation: container.rotation * (180 / Math.PI),
         pivotX: container.pivot.x,
-        pivotY: container.pivot.y
+        pivotY: container.pivot.y,
       };
     }
     return result;
@@ -894,17 +1033,18 @@ export class CompositeCharacter {
 
     const color = this.getRoleColor(role);
     // Boundary traces the sprite edge
-    box.rect(-ax * tw, -ay * th, tw, th)
-       .stroke({ color, width: 2 })
-       .fill({ color, alpha: 0.1 });
+    box
+      .rect(-ax * tw, -ay * th, tw, th)
+      .stroke({ color, width: 2 })
+      .fill({ color, alpha: 0.1 });
   }
 
   private getRoleColor(role: string): number {
     const roles = ALL_PART_ROLES;
     const colors = [
-      0xff5555, 0x55ff55, 0x5555ff, 0xffff55, 0xff55ff, 0x55ffff,
-      0xff8800, 0x88ff00, 0x00ff88, 0x0088ff, 0x8800ff, 0xff0088,
-      0xffaa00, 0x00ffaa, 0xaa00ff, 0xff00aa, 0xaaff00, 0x00aaff
+      0xff5555, 0x55ff55, 0x5555ff, 0xffff55, 0xff55ff, 0x55ffff, 0xff8800,
+      0x88ff00, 0x00ff88, 0x0088ff, 0x8800ff, 0xff0088, 0xffaa00, 0x00ffaa,
+      0xaa00ff, 0xff00aa, 0xaaff00, 0x00aaff,
     ];
     const idx = roles.indexOf(role as PartRole);
     return colors[idx % colors.length];
