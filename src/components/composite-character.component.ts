@@ -662,33 +662,47 @@ export class CompositeCharacter {
   }
 
   updatePupils(stageX: number, stageY: number) {
-    const head = this.partContainers.get('head');
+    const head = this.partContainers.get("head");
     if (!head) return;
 
-    const localPoint = head.toLocal({ x: stageX, y: stageY });
+    // 1. Boundary Check: Only track if cursor is within head area
+    const headBounds = head.getBounds();
+    const isInsideHead =
+      stageX >= headBounds.x &&
+      stageX <= headBounds.x + headBounds.width &&
+      stageY >= headBounds.y &&
+      stageY <= headBounds.y + headBounds.height;
 
-    const updatePupil = (role: string) => {
-      const container = this.partContainers.get(role);
-      const data = this.props.parts.find(p => p.partRole === role);
-      if (!container || !data) return;
+    // 2. Normalized Mouse Position (-1 to 1) relative to head center
+    // If outside, nx/ny effectively become 0 for immediate snap-back to center
+    let nx = 0;
+    let ny = 0;
 
-      const dx = localPoint.x - data.x;
-      const dy = localPoint.y - data.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const maxDist = 8;
+    if (isInsideHead) {
+      nx = (stageX - (headBounds.x + headBounds.width / 2)) / (headBounds.width / 2);
+      ny = (stageY - (headBounds.y + headBounds.height / 2)) / (headBounds.height / 2);
+    }
 
-      if (dist > maxDist) {
-        const scale = maxDist / dist;
-        container.x = data.x + dx * scale;
-        container.y = data.y + dy * scale;
-      } else {
-        container.x = localPoint.x;
-        container.y = localPoint.y;
-      }
+    const updatePupil = (pupilRole: string, eyeRole: string) => {
+      const pupilContainer = this.partContainers.get(pupilRole);
+      const pupilSprite = this.partSprites.get(pupilRole);
+      const eyeSprite = this.partSprites.get(eyeRole);
+      const pupilData = this.props.parts.find((p) => p.partRole === pupilRole);
+
+      if (!pupilContainer || !pupilSprite || !eyeSprite || !pupilData) return;
+
+      // 3. Movement Constraint: Pupils are bounded by the eye bounding box
+      // We calculate the maximum allowed movement (half the size difference)
+      const maxMoveX = Math.max(0, (eyeSprite.width - pupilSprite.width) / 2);
+      const maxMoveY = Math.max(0, (eyeSprite.height - pupilSprite.height) / 2);
+
+      // 4. Apply Mapped Movement
+      pupilContainer.x = pupilData.x + nx * maxMoveX;
+      pupilContainer.y = pupilData.y + ny * maxMoveY;
     };
 
-    updatePupil('pupil-left');
-    updatePupil('pupil-right');
+    updatePupil("pupil-left", "eye-left");
+    updatePupil("pupil-right", "eye-right");
   }
 
   applyRemoteMove(msg: PropMoveMessage) {

@@ -80,6 +80,21 @@ export function CharacterBuilderStudio() {
     enabled: !!characterId,
   });
 
+  const hasRequiredPupilParts = [
+    "head",
+    "eye-left",
+    "eye-right",
+    "pupil-left",
+    "pupil-right",
+  ].every((role) => currentCharacter?.parts.some((p) => p.partRole === role));
+
+  // Reset pupil preview if required parts are removed
+  useEffect(() => {
+    if (!hasRequiredPupilParts && previewPupils) {
+      setPreviewPupils(false);
+    }
+  }, [hasRequiredPupilParts, previewPupils]);
+
   // Mutations
   const upsertPartMutation = useMutation({
     mutationFn: upsertCharacterPart,
@@ -690,11 +705,18 @@ export function CharacterBuilderStudio() {
                   Show bounds
                 </label>
 
-                <label className="border-base-300 bg-base-100/80 hover:bg-base-200/80 flex min-w-[124px] cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors">
+                <label 
+                  className={cn(
+                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
+                    hasRequiredPupilParts ? "cursor-pointer hover:bg-base-200/80" : "cursor-not-allowed opacity-50"
+                  )}
+                  title={!hasRequiredPupilParts ? "Place head, both eyes and both pupils to test pupils" : ""}
+                >
                   <input
                     type="checkbox"
                     className="checkbox checkbox-xs checkbox-accent"
                     checked={previewPupils}
+                    disabled={!hasRequiredPupilParts}
                     onChange={(e) => setPreviewPupils(e.target.checked)}
                   />
                   Test Pupils
