@@ -69,6 +69,7 @@ export function CharacterBuilderStudio() {
   const [previewSpeaking, setPreviewSpeaking] = useState(false);
   const [previewBlinking, setPreviewBlinking] = useState(false);
   const [previewEyebrows, setPreviewEyebrows] = useState(false);
+  const [previewIKArms, setPreviewIKArms] = useState(false);
 
   const { data: session } = authClient.useSession();
   const isDirector = session?.user.role === "director";
@@ -136,6 +137,13 @@ export function CharacterBuilderStudio() {
       compositeRef.current.setSpeaking(previewSpeaking);
     }
   }, [previewSpeaking]);
+
+  // Sync IK state to pixi
+  useEffect(() => {
+    if (compositeRef.current) {
+      compositeRef.current.setIKMode(previewIKArms);
+    }
+  }, [previewIKArms]);
 
   // Mutations
   const upsertPartMutation = useMutation({
@@ -434,6 +442,9 @@ export function CharacterBuilderStudio() {
     compositeRef.current = composite;
     if (previewSpeaking) {
       composite.setSpeaking(true);
+    }
+    if (previewIKArms) {
+      composite.setIKMode(true);
     }
     appRef.current.stage.addChild(composite.container);
   };
@@ -794,22 +805,32 @@ export function CharacterBuilderStudio() {
                   Show bounds
                 </label>
 
+                <label className="border-base-300 bg-base-100/80 hover:bg-base-200/80 flex min-w-[124px] cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors">
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-xs checkbox-accent"
+                    checked={previewIKArms}
+                    onChange={(e) => setPreviewIKArms(e.target.checked)}
+                  />
+                  IK Arms
+                </label>
+
                 <label
                   className={cn(
                     "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
                     hasRequiredPupilParts
                       ? "hover:bg-base-200/80 cursor-pointer"
-                      : "cursor-not-allowed opacity-50",
+                      : "opacity-40 grayscale cursor-not-allowed",
                   )}
                   title={
                     !hasRequiredPupilParts
-                      ? "Place head, both eyes and both pupils to test pupils"
+                      ? "Requires Head, Eyes, and Pupils"
                       : ""
                   }
                 >
                   <input
                     type="checkbox"
-                    className="checkbox checkbox-xs checkbox-accent"
+                    className="checkbox checkbox-xs checkbox-info"
                     checked={previewPupils}
                     disabled={!hasRequiredPupilParts}
                     onChange={(e) => setPreviewPupils(e.target.checked)}
@@ -862,13 +883,19 @@ export function CharacterBuilderStudio() {
                   />
                   Test Brows
                 </label>
-                
-                <label 
+
+                <label
                   className={cn(
                     "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
-                    hasBlinkTexture ? "hover:bg-base-200/80 cursor-pointer" : "cursor-not-allowed opacity-50"
+                    hasBlinkTexture
+                      ? "hover:bg-base-200/80 cursor-pointer"
+                      : "cursor-not-allowed opacity-50",
                   )}
-                  title={!hasBlinkTexture ? "Upload a blink texture in an eye part's sidebar to test" : ""}
+                  title={
+                    !hasBlinkTexture
+                      ? "Upload a blink texture in an eye part's sidebar to test"
+                      : ""
+                  }
                 >
                   <input
                     type="checkbox"

@@ -142,6 +142,15 @@ export class CompositeCharacter {
     defaultY: number;
   }> = [];
 
+  private isIKMode = false;
+  private static readonly ARM_CHAINS = {
+    left: ["arm-upper-left", "arm-forearm-left", "arm-hand-left"],
+    right: ["arm-upper-right", "arm-forearm-right", "arm-hand-right"],
+  } as const;
+
+  private ikOffset = { x: 0, y: 0 };
+  private ikFlip: number = 1;
+
   private boundingBoxGraphics: Map<string, Graphics> = new Map();
   private showBoundingBoxes = false;
 
@@ -523,6 +532,20 @@ export class CompositeCharacter {
       this.props.onChange?.(this.rotatingRole, {
         rotation: container.rotation * (180 / Math.PI),
       });
+    }
+
+    // IK for arms
+    if (
+      this.draggingRole &&
+      this.isIKMode &&
+      this.draggingRole.includes("arm-hand")
+    ) {
+      const side = this.draggingRole.includes("left") ? "left" : "right";
+      const target = {
+        x: e.global.x + this.ikOffset.x,
+        y: e.global.y + this.ikOffset.y,
+      };
+      this.solveIK(side, target);
       return;
     }
 
@@ -691,6 +714,36 @@ export class CompositeCharacter {
               this.rotateStartContainerRotation = container.rotation;
             } else {
               this.draggingRole = role;
+
+              if (this.isIKMode && role.includes("arm-hand")) {
+                const worldPos = container.getGlobalPosition();
+                this.ikOffset = {
+                  x: worldPos.x - e.global.x,
+                  y: worldPos.y - e.global.y,
+                };
+
+                // Detect initial bend direction (flip) to avoid jump
+                const side = role.includes("left") ? "left" : "right";
+                const chain = CompositeCharacter.ARM_CHAINS[side];
+                const upper = this.partContainers.get(chain[0]);
+                const middle = this.partContainers.get(chain[1]);
+                const hand = this.partContainers.get(chain[2]);
+
+                if (upper && middle && hand) {
+                  const v1 = {
+                    x: middle.x - upper.pivot.x,
+                    y: middle.y - upper.pivot.y,
+                  };
+                  const v2 = {
+                    x: hand.x - middle.pivot.x,
+                    y: hand.y - middle.pivot.y,
+                  };
+                  // Cross product in 2D to find bend direction
+                  const cross = v1.x * v2.y - v1.y * v2.x;
+                  this.ikFlip = cross >= 0 ? 1 : -1;
+                }
+              }
+
               const local = container.parent!.toLocal(e.global);
               this.partOffset = {
                 x: container.x - local.x,
@@ -701,7 +754,12 @@ export class CompositeCharacter {
         });
       };
 
-      setupHandle(isRotatable ? "rotate" : "translate", 0, 0);
+      if (role.toLowerCase().includes("arm-hand")) {
+        setupHandle("rotate", 0, 0);
+        setupHandle("translate", 0, 0);
+      } else {
+        setupHandle(isRotatable ? "rotate" : "translate", 0, 0);
+      }
     }
 
     // Bounding Box (Debug) — always added now, even for NO_GIZMO_ROLES
@@ -759,6 +817,47 @@ export class CompositeCharacter {
           }
         }
         this.drawGizmoLines(role);
+      }
+    }
+  }
+
+  setIKMode(enabled: boolean) {
+    this.isIKMode = enabled;
+    // Re-sync all gizmos to show/hide based on IK
+    for (const [role, group] of this.gizmoGroups) {
+      if (!this.textures.has(role)) continue;
+      this.updateGizmoVisibilitiesForRole(role);
+    }
+  }
+
+  private updateGizmoVisibilitiesForRole(role: string) {
+    const group = this.gizmoGroups.get(role);
+    if (!group) return;
+
+    const isArmPart = role.includes("arm-");
+    const isHand = role.includes("-hand-");
+    const refs = this.gizmoHandleRefs.filter((r) => r.role === role);
+
+    if (this.isIKMode && isArmPart) {
+      if (isHand) {
+        // Only show translate handle for hand in IK mode
+        for (const ref of refs) {
+          ref.handle.visible = ref.type === "translate";
+        }
+        group.visible = true;
+      } else {
+        // Hide all handles for upper/forearm in IK mode
+        group.visible = false;
+      }
+    } else {
+      // Normal mode: restore rotation handles for arms/hands
+      group.visible = true;
+      for (const ref of refs) {
+        if (isHand) {
+          ref.handle.visible = ref.type === "rotate";
+        } else {
+          ref.handle.visible = true;
+        }
       }
     }
   }
@@ -960,6 +1059,88 @@ export class CompositeCharacter {
 
     updatePupil("pupil-left", "eye-left");
     updatePupil("pupil-right", "eye-right");
+  }
+
+  private solveIK(
+    side: "left" | "right",
+    targetGlobal: { x: number; y: number },
+  ) {
+    const chain = CompositeCharacter.ARM_CHAINS[side];
+    const upperRole = chain[0];
+    const middleRole = chain[1];
+    const handRole = chain[2];
+
+    const upper = this.partContainers.get(upperRole);
+    const middle = this.partContainers.get(middleRole);
+    const hand = this.partContainers.get(handRole);
+
+    if (!upper || !middle || !hand || !upper.parent) return;
+
+    // 1. Convert target to body space (upper's parent space)
+    const targetLocal = upper.parent.toLocal(targetGlobal);
+
+    // 2. Base vectors and angles (capture the resting orientation of the part images)
+    // Vector from shoulder pivot to elbow attachment in upper arm local space
+    const vUpperLocal = {
+      x: middle.x - upper.pivot.x,
+      y: middle.y - upper.pivot.y,
+    };
+    const baseAngle1 = Math.atan2(vUpperLocal.y, vUpperLocal.x);
+    const l1 = Math.sqrt(
+      vUpperLocal.x * vUpperLocal.x + vUpperLocal.y * vUpperLocal.y,
+    );
+
+    // Vector from elbow pivot to hand attachment in forearm local space
+    const vMiddleLocal = {
+      x: hand.x - middle.pivot.x,
+      y: hand.y - middle.pivot.y,
+    };
+    const baseAngle2 = Math.atan2(vMiddleLocal.y, vMiddleLocal.x);
+    const l2 = Math.sqrt(
+      vMiddleLocal.x * vMiddleLocal.x + vMiddleLocal.y * vMiddleLocal.y,
+    );
+
+    // 3. Distance to target from shoulder joint (upper.x/y is the shoulder in parent space)
+    const dx = targetLocal.x - upper.x;
+    const dy = targetLocal.y - upper.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    // 4. IK Math (Law of Cosines)
+    const angleToTarget = Math.atan2(dy, dx);
+    const maxDist = l1 + l2;
+    const minDist = Math.abs(l1 - l2) + 0.1;
+    const d = Math.max(minDist, Math.min(maxDist, dist));
+
+    let alpha = 0;
+    if (d < maxDist) {
+      const cosAlpha = (l1 * l1 + d * d - l2 * l2) / (2 * l1 * d);
+      alpha = Math.acos(Math.max(-1, Math.min(1, cosAlpha)));
+    }
+
+    // Use detected initial bend direction (from pointerdown)
+    const flip = this.ikFlip;
+
+    // Absolute target angles for the bone vectors in parent space
+    const thetaAB = angleToTarget - alpha * flip;
+
+    const cosBeta = (l1 * l1 + l2 * l2 - d * d) / (2 * l1 * l2);
+    const beta = Math.acos(Math.max(-1, Math.min(1, cosBeta)));
+    const thetaBC = thetaAB + (Math.PI - beta) * flip;
+
+    // 5. Final Container Rotations (Adjusting for base angles)
+    const finalUpperRotation = thetaAB - baseAngle1;
+    const finalMiddleRotation = thetaBC - thetaAB + (baseAngle1 - baseAngle2);
+
+    // Apply rotations directly and notify change (in degrees)
+    upper.rotation = finalUpperRotation;
+    middle.rotation = finalMiddleRotation;
+
+    this.props.onChange?.(upperRole, {
+      rotation: upper.rotation * (180 / Math.PI),
+    });
+    this.props.onChange?.(middleRole, {
+      rotation: middle.rotation * (180 / Math.PI),
+    });
   }
 
   applyRemoteMove(msg: PropMoveMessage) {
