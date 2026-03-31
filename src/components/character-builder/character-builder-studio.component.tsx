@@ -68,6 +68,7 @@ export function CharacterBuilderStudio() {
   const [previewPupils, setPreviewPupils] = useState(false);
   const [previewSpeaking, setPreviewSpeaking] = useState(false);
   const [previewBlinking, setPreviewBlinking] = useState(false);
+  const [previewEyebrows, setPreviewEyebrows] = useState(false);
 
   const { data: session } = authClient.useSession();
   const isDirector = session?.user.role === "director";
@@ -94,6 +95,10 @@ export function CharacterBuilderStudio() {
     currentCharacter?.parts.some((p) => p.partRole === role),
   );
 
+  const hasRequiredEyebrowParts = ["eye-brow-left", "eye-brow-right"].some(
+    (role) => currentCharacter?.parts.some((p) => p.partRole === role),
+  );
+
   const hasBlinkTexture = currentCharacter?.parts.some(
     (p) => (p.partRole === "eye-left" || p.partRole === "eye-right") && !!p.altImageUrl,
   );
@@ -104,6 +109,12 @@ export function CharacterBuilderStudio() {
       compositeRef.current.setAutoBlink(previewBlinking);
     }
   }, [previewBlinking]);
+
+  useEffect(() => {
+    if (compositeRef.current) {
+      compositeRef.current.setEyebrowsUp(previewEyebrows);
+    }
+  }, [previewEyebrows]);
 
   // Reset pupil preview if required parts are removed
   useEffect(() => {
@@ -827,6 +838,29 @@ export function CharacterBuilderStudio() {
                     onChange={(e) => setPreviewSpeaking(e.target.checked)}
                   />
                   Test Speaking
+                </label>
+
+                <label
+                  className={cn(
+                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
+                    hasRequiredEyebrowParts
+                      ? "hover:bg-base-200/80 cursor-pointer"
+                      : "cursor-not-allowed opacity-50",
+                  )}
+                  title={
+                    !hasRequiredEyebrowParts
+                      ? "Place at least one eyebrow to test"
+                      : ""
+                  }
+                >
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-xs checkbox-accent"
+                    checked={previewEyebrows}
+                    disabled={!hasRequiredEyebrowParts}
+                    onChange={(e) => setPreviewEyebrows(e.target.checked)}
+                  />
+                  Test Brows
                 </label>
                 
                 <label 

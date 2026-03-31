@@ -102,9 +102,10 @@ export class CompositeCharacter {
   private activePointers = new Map<number, { x: number; y: number }>();
   private lastSendTime = 0;
   private isSpeaking = false;
-  private speakingTween: gsap.core.Tween | null = null;
-  private jawOriginalY: number | null = null;
+  private speakingTimeline: gsap.core.Timeline | null = null;
   private blinkTimeline: gsap.core.Timeline | null = null;
+  private eyebrowOriginalYs: Map<string, number> = new Map();
+  private eyebrowTweens: Map<string, gsap.core.Tween> = new Map();
 
   // Stored so they can be removed from the stage on destroy()
   private boundPartPointerMove: ((e: FederatedPointerEvent) => void) | null =
@@ -167,6 +168,7 @@ export class CompositeCharacter {
     "pupil-right",
     "eye-brow-left",
     "eye-brow-right",
+    "jaw",
   ] as const;
 
   constructor(props: CompositeCharacterProps) {
@@ -263,6 +265,10 @@ export class CompositeCharacter {
         isGizmoLess ? 0 : (data?.pivotX ?? 0),
         isGizmoLess ? 0 : (data?.pivotY ?? 0),
       );
+
+      if (role === "jaw") {
+        container.visible = false;
+      }
 
       container.addChild(sprite);
       parent.addChild(container);
@@ -822,44 +828,70 @@ export class CompositeCharacter {
     }
   }
 
+  setEyebrowsUp(up: boolean) {
+    const roles = ["eye-brow-left", "eye-brow-right"] as const;
+    for (const role of roles) {
+      const container = this.partContainers.get(role);
+      const sprite = this.partSprites.get(role);
+      if (!container || !sprite) continue;
+
+      // Clear any existing animation
+      this.eyebrowTweens.get(role)?.kill();
+
+      if (up) {
+        // Store current Y as the neutral position if not already animating
+        if (!this.eyebrowOriginalYs.has(role)) {
+          this.eyebrowOriginalYs.set(role, container.y);
+        }
+
+        // Calculate displacement: 2 * height of the bounding box
+        const bounds = sprite.getBounds();
+        const targetY = this.eyebrowOriginalYs.get(role)! - 0.5 * bounds.height;
+
+        const tween = gsap.to(container, {
+          duration: 0.25,
+          pixi: { y: targetY },
+          ease: "power2.in",
+        });
+        this.eyebrowTweens.set(role, tween);
+      } else {
+        const originalY = this.eyebrowOriginalYs.get(role);
+        if (originalY !== undefined) {
+          const tween = gsap.to(container, {
+            duration: 0.25,
+            pixi: { y: originalY },
+            ease: "power2.in",
+            onComplete: () => {
+              this.eyebrowOriginalYs.delete(role);
+            },
+          });
+          this.eyebrowTweens.set(role, tween);
+        }
+      }
+    }
+  }
+
   setSpeaking(isSpeaking: boolean) {
     if (this.isSpeaking === isSpeaking) return;
     this.isSpeaking = isSpeaking;
 
     const jawContainer = this.partContainers.get("jaw");
-    const jawSprite = this.partSprites.get("jaw");
-    if (!jawContainer || !jawSprite) return;
+    if (!jawContainer) return;
+
+    this.speakingTimeline?.kill();
 
     if (isSpeaking) {
-      // Store the current position before we start animating
-      this.jawOriginalY = jawContainer.y;
-
-      // Clear any existing animation first
-      this.speakingTween?.kill();
-
-      // Moving the jaw container Y down by half its height from current pos
-      const targetY = jawContainer.y + jawSprite.getBounds().height / 2;
-
-      this.speakingTween = gsap.to(jawContainer, {
-        duration: 0.15,
-        pixi: { y: targetY },
-        repeat: -1,
-        yoyo: true,
-        ease: "power1.inOut",
-      });
+      // Create a 500ms show/hide cycle
+      this.speakingTimeline = gsap.timeline({ repeat: -1 });
+      this.speakingTimeline
+        .set(jawContainer, { visible: true })
+        .to({}, { duration: 0.25 })
+        .set(jawContainer, { visible: false })
+        .to({}, { duration: 0.25 });
     } else {
-      this.speakingTween?.kill();
-      // Return to original Y position stored before animation
-      if (this.jawOriginalY !== null) {
-        gsap.to(jawContainer, {
-          duration: 0.2,
-          pixi: { y: this.jawOriginalY },
-          ease: "power2.out",
-          onComplete: () => {
-            this.jawOriginalY = null;
-          },
-        });
-      }
+      // Ensure jaw is hidden when not speaking
+      jawContainer.visible = false;
+      this.speakingTimeline = null;
     }
   }
 
@@ -984,8 +1016,11 @@ export class CompositeCharacter {
 
   destroy() {
     this.stopAutoBlink();
-    if (this.speakingTween) {
-      this.speakingTween.kill();
+    if (this.speakingTimeline) {
+      this.speakingTimeline.kill();
+    }
+    for (const tween of this.eyebrowTweens.values()) {
+      tween.kill();
     }
     if (this.boundPartPointerMove) {
       this.props.app.stage.off("globalpointermove", this.boundPartPointerMove);
