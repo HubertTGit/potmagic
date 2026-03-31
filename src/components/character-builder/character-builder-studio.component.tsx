@@ -65,6 +65,7 @@ export function CharacterBuilderStudio() {
     Record<string, { x: number; y: number }>
   >({});
   const [showBoundingBoxes, setShowBoundingBoxes] = useState(false);
+  const [previewPupils, setPreviewPupils] = useState(false);
 
   const { data: session } = authClient.useSession();
   const isDirector = session?.user.role === "director";
@@ -281,6 +282,25 @@ export function CharacterBuilderStudio() {
         console.error("Failed to remove alt texture:", e);
       }
     }
+  };
+
+  const handleCanvasPointerMove = (e: React.PointerEvent) => {
+    if (!compositeRef.current || !canvasRef.current) return;
+    
+    // Only update pupils if explicitly enabled for preview
+    if (!previewPupils) return;
+
+    // Skip if we are currently dragging a part or using gizmos
+    const isInteracting = (compositeRef.current as any).draggingRole || 
+                         (compositeRef.current as any).rotatingRole || 
+                         (compositeRef.current as any).movingGizmoHandle;
+    if (isInteracting) return;
+
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 800;
+    const y = ((e.clientY - rect.top) / rect.height) * 800;
+    
+    compositeRef.current.updatePupils(x, y);
   };
 
   // PixiJS Initialization
@@ -640,7 +660,11 @@ export function CharacterBuilderStudio() {
               onDragLeave={() => setIsDraggingOver(false)}
               onDrop={handleDrop}
             >
-              <canvas ref={canvasRef} className="h-full w-full" />
+              <canvas
+                ref={canvasRef}
+                onPointerMove={handleCanvasPointerMove}
+                className="h-full w-full"
+              />
 
               {/* Control toggles — top-right of canvas */}
               <div className="absolute top-3 right-3 flex flex-col gap-2">
@@ -664,6 +688,16 @@ export function CharacterBuilderStudio() {
                     onChange={(e) => handleBoundingBoxToggle(e.target.checked)}
                   />
                   Show bounds
+                </label>
+
+                <label className="border-base-300 bg-base-100/80 hover:bg-base-200/80 flex min-w-[124px] cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors">
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-xs checkbox-accent"
+                    checked={previewPupils}
+                    onChange={(e) => setPreviewPupils(e.target.checked)}
+                  />
+                  Test Pupils
                 </label>
               </div>
 

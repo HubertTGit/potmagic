@@ -128,6 +128,11 @@ export class CompositeCharacter {
     'leg-upper-right', 'leg-lower-right', 'leg-foot-right',
   ] as const;
 
+  private static readonly NO_GIZMO_ROLES = [
+    'eye-left', 'eye-right', 'pupil-left', 'pupil-right',
+    'eye-closed-left', 'eye-closed-right'
+  ] as const;
+
   constructor(props: CompositeCharacterProps) {
     this.props = props;
     this.showBoundingBoxes = props.showBoundingBoxes ?? false;
@@ -194,9 +199,12 @@ export class CompositeCharacter {
       
       // Default sprite anchor (always untouched by gizmo)
       sprite.anchor.set(0.5, 0.5);
+
+      const isGizmoLess = (CompositeCharacter.NO_GIZMO_ROLES as readonly string[]).includes(role);
       
       // Use pivot for rotation point (stored in pixels)
-      container.pivot.set(data?.pivotX ?? 0, data?.pivotY ?? 0);
+      // Gizmo-less roles are enforced to center pivot (0,0 with 0.5 anchor)
+      container.pivot.set(isGizmoLess ? 0 : (data?.pivotX ?? 0), isGizmoLess ? 0 : (data?.pivotY ?? 0));
 
       if (role === 'body') {
         sprite.filters = [this.glowFilter];
@@ -258,6 +266,8 @@ export class CompositeCharacter {
 
       for (const [role, sprite] of this.partSprites) {
         if (!this.textures.has(role)) continue; // skip unplaced parts
+
+        // All parts that have textures can be manually dragged
         sprite.eventMode = 'static';
         sprite.cursor = 'move';
         sprite.on('pointerdown', (e) => this.onPartPointerDown(e, role));
@@ -490,6 +500,8 @@ export class CompositeCharacter {
     const container = this.partContainers.get(role);
     const sprite = this.partSprites.get(role);
     if (!container || !sprite) return;
+
+    if ((CompositeCharacter.NO_GIZMO_ROLES as readonly string[]).includes(role)) return;
 
     const gizmoGroup = new Container();
     gizmoGroup.alpha = 0;
