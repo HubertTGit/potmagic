@@ -25,8 +25,6 @@ import {
   Trash2,
   CheckCircle2,
   CircleX,
-  Eye,
-  EyeOff,
 } from "lucide-react";
 import type { Application } from "pixi.js";
 import {
@@ -93,10 +91,6 @@ export function CharacterBuilderStudio() {
 
   const hasRequiredSpeakingParts = ["head", "jaw"].every((role) =>
     currentCharacter?.parts.some((p) => p.partRole === role),
-  );
-
-  const hasBlinkTexture = currentCharacter?.parts.some(
-    (p) => (p.partRole === "eye-left" || p.partRole === "eye-right") && !!p.altImageUrl,
   );
 
   // Reset pupil preview if required parts are removed
@@ -810,24 +804,6 @@ export function CharacterBuilderStudio() {
                   />
                   Test Speaking
                 </label>
-
-                <button 
-                  className={cn(
-                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
-                    hasBlinkTexture ? "cursor-pointer hover:bg-base-200/80 active:bg-primary/20" : "cursor-not-allowed opacity-50"
-                  )}
-                  title={!hasBlinkTexture ? "Upload a blink texture in an eye part's sidebar to test" : ""}
-                  disabled={!hasBlinkTexture}
-                  onClick={() => {
-                    if (compositeRef.current) {
-                      compositeRef.current.setBlinking(true);
-                      setTimeout(() => compositeRef.current?.setBlinking(false), 200);
-                    }
-                  }}
-                >
-                  <EyeOff className="size-4 text-accent" />
-                  Test Blinking
-                </button>
               </div>
 
               <div className="pointer-events-none absolute right-4 bottom-4 left-4 flex justify-between text-[10px] tracking-widest uppercase opacity-30">
