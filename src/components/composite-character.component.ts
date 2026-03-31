@@ -112,14 +112,16 @@ export class CompositeCharacter {
     defaultCursor: string;
     role: string;
     updatesAnchor: boolean;
+    type: 'rotate' | 'translate';
+    defaultX: number;
+    defaultY: number;
   }> = [];
 
   private boundingBoxGraphics: Map<string, Graphics> = new Map();
   private showBoundingBoxes = false;
 
   private static readonly ROTATABLE_ROLES = [
-    'head', 'jaw', 'eye-left', 'eye-right', 'pupil-left', 'pupil-right',
-    'eye-brow-left', 'eye-brow-right', 'eye-closed-left', 'eye-closed-right',
+    'head',
     'arm-upper-left', 'arm-forearm-left', 'arm-hand-left',
     'arm-upper-right', 'arm-forearm-right', 'arm-hand-right',
     'leg-upper-left', 'leg-lower-left', 'leg-foot-left',
@@ -406,10 +408,14 @@ export class CompositeCharacter {
           
           // Re-capture startLocal relative to the NOW-MOVED gizmoGroup
           this.movingGizmoHandle.startLocal = gizmoGroup.toLocal(e.global);
+
+          // Update connectors
+          this.drawGizmoLines(role);
         }
       } else {
         handle.x = handleStart.x + dx;
         handle.y = handleStart.y + dy;
+        this.drawGizmoLines(role);
       }
       return;
     }
@@ -458,6 +464,28 @@ export class CompositeCharacter {
     return g;
   }
 
+  private makeTranslateHandle(): Graphics {
+    const g = new Graphics();
+    const color = 0x3b82f6; // Blue for translate
+    // Outer square with rounded corners
+    g.roundRect(-15, -15, 30, 30, 4).stroke({ color, width: 3 });
+    // Cross lines
+    g.moveTo(-10, 0).lineTo(10, 0).stroke({ color, width: 2 });
+    g.moveTo(0, -10).lineTo(0, 10).stroke({ color, width: 2 });
+    // Arrow heads
+    g.moveTo(-12, 0).lineTo(-8, -4).stroke({ color, width: 2 });
+    g.moveTo(-12, 0).lineTo(-8, 4).stroke({ color, width: 2 });
+    g.moveTo(12, 0).lineTo(8, -4).stroke({ color, width: 2 });
+    g.moveTo(12, 0).lineTo(8, 4).stroke({ color, width: 2 });
+    g.moveTo(0, -12).lineTo(-4, -8).stroke({ color, width: 2 });
+    g.moveTo(0, -12).lineTo(4, -8).stroke({ color, width: 2 });
+    g.moveTo(0, 12).lineTo(-4, 8).stroke({ color, width: 2 });
+    g.moveTo(0, 12).lineTo(4, 8).stroke({ color, width: 2 });
+    // Center point
+    g.circle(0, 0, 5).fill({ color });
+    return g;
+  }
+
   private attachPartGizmo(role: string) {
     const container = this.partContainers.get(role);
     const sprite = this.partSprites.get(role);
@@ -469,20 +497,70 @@ export class CompositeCharacter {
     container.addChild(gizmoGroup);
     this.gizmoGroups.set(role, gizmoGroup);
 
-    // Body is not rotatable as requested
     const isRotatable = (CompositeCharacter.ROTATABLE_ROLES as readonly string[]).includes(role);
 
-    // 1. Rotate Handle at (0, -60) - used for rotation AND anchor updates
-    const rotateConnector = new Graphics();
-    gizmoGroup.addChild(rotateConnector);
+    const show = () => { if (this.textures.has(role)) { gizmoGroup.alpha = 1; this.drawGizmoLines(role); } };
+    const hide = () => { 
+      if (this.rotatingRole !== role && this.draggingRole !== role && !this.movingGizmoHandle) {
+        gizmoGroup.alpha = (this.gizmoEditMode && this.textures.has(role)) ? 1 : 0; 
+        this.drawGizmoLines(role);
+      }
+    };
 
-    const rotateHandle = this.makeRotateHandle();
-    rotateHandle.y = -60;
-    rotateHandle.eventMode = 'static';
-    rotateHandle.cursor = 'grab';
-    gizmoGroup.addChild(rotateHandle);
+    const setupHandle = (type: 'rotate' | 'translate', x: number, y: number) => {
+      const handle = type === 'rotate' ? this.makeRotateHandle() : this.makeTranslateHandle();
+      // Handle position is relative to pivot + offset
+      handle.x = container.pivot.x + x;
+      handle.y = container.pivot.y + y;
+      handle.eventMode = 'static';
+      handle.cursor = type === 'rotate' ? 'grab' : 'move';
+      gizmoGroup.addChild(handle);
 
-    this.gizmoHandleRefs.push({ handle: rotateHandle, connector: rotateConnector, gizmoGroup, defaultCursor: 'grab', role, updatesAnchor: true });
+      const connector = new Graphics();
+      gizmoGroup.addChild(connector);
+
+      this.gizmoHandleRefs.push({ 
+        handle, 
+        connector, 
+        gizmoGroup, 
+        defaultCursor: handle.cursor, 
+        role, 
+        updatesAnchor: true,
+        type,
+        defaultX: x,
+        defaultY: y
+      });
+
+      handle.on('pointerover', show);
+      handle.on('pointerout', hide);
+
+      handle.on('pointerdown', (e: FederatedPointerEvent) => {
+        e.stopPropagation();
+        if (this.gizmoEditMode) {
+          const startLocal = gizmoGroup.toLocal(e.global);
+          this.movingGizmoHandle = {
+            handle, connector, gizmoGroup,
+            startLocal: { x: startLocal.x, y: startLocal.y },
+            handleStart: { x: handle.x, y: handle.y },
+            role,
+            updatesAnchor: true
+          };
+        } else {
+          if (type === 'rotate') {
+            const worldPos = container.getGlobalPosition();
+            this.rotatingRole = role;
+            this.rotateStartAngle = Math.atan2(e.global.y - worldPos.y, e.global.x - worldPos.x);
+            this.rotateStartContainerRotation = container.rotation;
+          } else {
+            this.draggingRole = role;
+            const local = container.parent!.toLocal(e.global);
+            this.partOffset = { x: container.x - local.x, y: container.y - local.y };
+          }
+        }
+      });
+    };
+
+    setupHandle(isRotatable ? 'rotate' : 'translate', 0, 0);
 
     // Bounding Box (Debug)
     const debugBox = new Graphics();
@@ -493,50 +571,22 @@ export class CompositeCharacter {
     this.boundingBoxGraphics.set(role, debugBox);
     this.drawBoundingBox(role);
 
-    const hasTexture = this.textures.has(role);
-    const show = () => { if (hasTexture) gizmoGroup.alpha = 1; };
-    const hide = () => { 
-      if (this.rotatingRole !== role && this.draggingRole !== role && !this.movingGizmoHandle) {
-        gizmoGroup.alpha = (this.gizmoEditMode && hasTexture) ? 1 : 0; 
-      }
-    };
-
+    // Initial show/hide for the sprite itself
     sprite.on('pointerover', show);
     sprite.on('pointerout', hide);
-    rotateHandle.on('pointerover', show);
-    rotateHandle.on('pointerout', hide);
+    
+    // Initial draw
+    this.drawGizmoLines(role);
+  }
 
-    rotateHandle.on('pointerdown', (e: FederatedPointerEvent) => {
-      e.stopPropagation();
-      if (this.gizmoEditMode) {
-        const startLocal = gizmoGroup.toLocal(e.global);
-        this.movingGizmoHandle = {
-          handle: rotateHandle, connector: rotateConnector, gizmoGroup,
-          startLocal: { x: startLocal.x, y: startLocal.y },
-          handleStart: { x: rotateHandle.x, y: rotateHandle.y },
-          role,
-          updatesAnchor: true
-        };
-      } else {
-        if (isRotatable) {
-          const worldPos = container.getGlobalPosition();
-          this.rotatingRole = role;
-          this.rotateStartAngle = Math.atan2(e.global.y - worldPos.y, e.global.x - worldPos.x);
-          this.rotateStartContainerRotation = container.rotation;
-        } else if (isRotatable) {
-          // Normal mode: check if we should start rotating or translating
-          // (Handle is handled by its own listener below)
-          this.draggingRole = role;
-          const local = container.parent!.toLocal(e.global);
-          this.partOffset = { x: container.x - local.x, y: container.y - local.y };
-        } else {
-          // If not rotatable (e.g. body), still allow dragging the part itself
-          this.draggingRole = role;
-          const local = container.parent!.toLocal(e.global);
-          this.partOffset = { x: container.x - local.x, y: container.y - local.y };
-        }
-      }
-    });
+  private drawGizmoLines(role: string) {
+    const container = this.partContainers.get(role);
+    const refs = this.gizmoHandleRefs.filter(r => r.role === role);
+    if (!container) return;
+
+    for (const ref of refs) {
+      ref.connector.clear();
+    }
   }
 
   // Toggle gizmo edit mode: when enabled, dragging handles repositions them;
@@ -555,11 +605,18 @@ export class CompositeCharacter {
         for (const ref of refs) {
           ref.handle.cursor = enabled ? 'crosshair' : ref.defaultCursor;
           if (ref.updatesAnchor) {
-            // No offset in either mode; handle stays pinned to the pivot point
-            ref.handle.x = container.pivot.x;
-            ref.handle.y = container.pivot.y;
+            if (enabled) {
+              // Edit mode: handle stays pinned to the pivot point for direct manipulation
+              ref.handle.x = container.pivot.x;
+              ref.handle.y = container.pivot.y;
+            } else {
+              // Normal mode: restore the default offset RELATIVE to the current pivot
+              ref.handle.x = container.pivot.x + ref.defaultX;
+              ref.handle.y = container.pivot.y + ref.defaultY;
+            }
           }
         }
+        this.drawGizmoLines(role);
       }
     }
   }
