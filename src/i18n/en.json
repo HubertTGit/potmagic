@@ -685,5 +685,6 @@
   "characterBuilder.publishError": "Failed to publish character",
   "characterBuilder.bodyParts": "Body Parts",
   "characterBuilder.activePart": "Active Part",
+  "characterBuilder.unplaced": "Unplace from canvas",
   "characterBuilder.removePart": "Remove part?"
 }

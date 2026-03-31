@@ -619,5 +619,6 @@
   "characterBuilder.publishError": "Fehler beim Veröffentlichen",
   "characterBuilder.bodyParts": "Körperteile",
   "characterBuilder.activePart": "Aktives Teil",
+  "characterBuilder.unplaced": "Von der Leinwand entfernen",
   "characterBuilder.removePart": "Teil entfernen?"
 }
