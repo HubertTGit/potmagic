@@ -86,6 +86,7 @@ export class CompositeCharacter {
   private lastSendTime = 0;
   private isSpeaking = false;
   private speakingTween: gsap.core.Tween | null = null;
+  private jawOriginalY: number | null = null;
 
   // Stored so they can be removed from the stage on destroy()
   private boundPartPointerMove: ((e: FederatedPointerEvent) => void) | null = null;
@@ -628,6 +629,7 @@ export class CompositeCharacter {
     }
   }
 
+
   // --- Logic ---
 
   setSpeaking(isSpeaking: boolean) {
@@ -636,15 +638,17 @@ export class CompositeCharacter {
 
     const jawContainer = this.partContainers.get("jaw");
     const jawSprite = this.partSprites.get("jaw");
-    const jawData = this.props.parts.find((p) => p.partRole === "jaw");
-    if (!jawContainer || !jawSprite || !jawData) return;
+    if (!jawContainer || !jawSprite) return;
 
     if (isSpeaking) {
+      // Store the current position before we start animating
+      this.jawOriginalY = jawContainer.y;
+
       // Clear any existing animation first
       this.speakingTween?.kill();
 
-      // Moving the jaw container Y down by half its height
-      const targetY = jawData.y + jawSprite.height / 2;
+      // Moving the jaw container Y down by half its height from current pos
+      const targetY = jawContainer.y + jawSprite.getBounds().height / 2;
 
       this.speakingTween = gsap.to(jawContainer, {
         duration: 0.15,
@@ -655,12 +659,17 @@ export class CompositeCharacter {
       });
     } else {
       this.speakingTween?.kill();
-      // Return to original Y position
-      gsap.to(jawContainer, {
-        duration: 0.2,
-        pixi: { y: jawData.y },
-        ease: "power2.out",
-      });
+      // Return to original Y position stored before animation
+      if (this.jawOriginalY !== null) {
+        gsap.to(jawContainer, {
+          duration: 0.2,
+          pixi: { y: this.jawOriginalY },
+          ease: "power2.out",
+          onComplete: () => {
+             this.jawOriginalY = null;
+          }
+        });
+      }
     }
   }
 
