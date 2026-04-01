@@ -154,6 +154,7 @@ export class CompositeCharacter {
 
   private boundingBoxGraphics: Map<string, Graphics> = new Map();
   private showBoundingBoxes = false;
+  private forceMouthVisible = false;
 
   private static readonly ROTATABLE_ROLES = [
     "body",
@@ -985,12 +986,20 @@ export class CompositeCharacter {
       // Raise eyebrows while speaking
       this.setEyebrowsUp(true);
     } else {
-      // Ensure mouth is hidden when not speaking
-      mouthContainer.visible = false;
+      // Revert to manual visibility override when not speaking
+      mouthContainer.visible = this.forceMouthVisible;
       this.speakingTimeline = null;
 
       // Lower eyebrows when silent
       this.setEyebrowsUp(false);
+    }
+  }
+
+  setMouthVisible(visible: boolean) {
+    this.forceMouthVisible = visible;
+    const mouthContainer = this.partContainers.get("mouth");
+    if (mouthContainer && !this.isSpeaking) {
+      mouthContainer.visible = visible;
     }
   }
 

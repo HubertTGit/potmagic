@@ -18,13 +18,11 @@ import {
   ChevronLeft,
   Upload,
   Save,
-  Plus,
   Drama,
   Maximize2,
   Target,
   Trash2,
   CheckCircle2,
-  CircleX,
   IterationCcw,
   IterationCw,
 } from "lucide-react";
@@ -70,6 +68,7 @@ export function CharacterBuilderStudio() {
   const [showBoundingBoxes, setShowBoundingBoxes] = useState(false);
   const [previewPupils, setPreviewPupils] = useState(false);
   const [previewSpeaking, setPreviewSpeaking] = useState(false);
+  const [previewMouth, setPreviewMouth] = useState(false);
   const [previewBlinking, setPreviewBlinking] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [ikState, setIkState] = useState({
@@ -135,6 +134,13 @@ export function CharacterBuilderStudio() {
       compositeRef.current.setSpeaking(previewSpeaking);
     }
   }, [previewSpeaking]);
+
+  // Sync mouth visibility state to composite character
+  useEffect(() => {
+    if (compositeRef.current) {
+      compositeRef.current.setMouthVisible(previewMouth);
+    }
+  }, [previewMouth]);
 
   // Sync IK state to pixi
   useEffect(() => {
@@ -922,6 +928,33 @@ export function CharacterBuilderStudio() {
                     onChange={(e) => setPreviewPupils(e.target.checked)}
                   />
                   Test Pupils
+                </label>
+
+                <label
+                  className={cn(
+                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
+                    currentCharacter?.parts.some((p) => p.partRole === "mouth")
+                      ? "hover:bg-base-200/80 cursor-pointer"
+                      : "cursor-not-allowed opacity-40 grayscale",
+                  )}
+                  title={
+                    !currentCharacter?.parts.some((p) => p.partRole === "mouth")
+                      ? "Place mouth to show"
+                      : ""
+                  }
+                >
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-xs checkbox-accent"
+                    checked={previewMouth}
+                    disabled={
+                      !currentCharacter?.parts.some(
+                        (p) => p.partRole === "mouth",
+                      )
+                    }
+                    onChange={(e) => setPreviewMouth(e.target.checked)}
+                  />
+                  Show Mouth
                 </label>
 
                 <label
