@@ -95,6 +95,8 @@ export class CompositeCharacter {
   private isDragging = false;
   private dragOffset = { x: 0, y: 0 };
   private activePointers = new Map<number, { x: number; y: number }>();
+  private lastMultiTouchDistance = 0;
+  private lastMultiTouchAngle = 0;
   private lastSendTime = 0;
   private isSpeaking = false;
   private speakingTimeline: gsap.core.Timeline | null = null;
@@ -357,9 +359,15 @@ export class CompositeCharacter {
       (this.props.initialRotation ?? 0) * (Math.PI / 180);
     this.container.sortChildren();
   }
-
   private setupInteraction() {
     const { canDrag, interactive = false } = this.props;
+
+    if (canDrag) {
+      this.boundPartPointerMove = this.onPartGlobalPointerMove.bind(this);
+      this.boundPartPointerUp = this.onPartPointerUp.bind(this);
+      this.props.app.stage.on("globalpointermove", this.boundPartPointerMove);
+      this.props.app.stage.on("pointerup", this.boundPartPointerUp);
+    }
 
     if (interactive) {
       // Builder mode: each placed (textured) part is independently draggable
@@ -374,14 +382,9 @@ export class CompositeCharacter {
         sprite.on("pointerdown", (e) => this.onPartPointerDown(e, role));
       }
 
-      this.boundPartPointerMove = this.onPartGlobalPointerMove.bind(this);
-      this.boundPartPointerUp = this.onPartPointerUp.bind(this);
-      this.props.app.stage.on("globalpointermove", this.boundPartPointerMove);
-      this.props.app.stage.on("pointerup", this.boundPartPointerUp);
-
       this.buildGizmos();
     } else {
-      // Stage mode: torso handles drag and whole-character rotation
+      // Stage mode: torso handles root drag; hands handle posing (IK)
       const torsoSprite = this.partSprites.get("torso");
       if (torsoSprite) {
         torsoSprite.eventMode = canDrag ? "static" : "none";
@@ -396,13 +399,24 @@ export class CompositeCharacter {
           );
         }
       }
+
+      // Re-enable hand interactivity for posing (IK is on by default in constructor)
+      const handRoles = ["arm-hand-left", "arm-hand-right"];
+      for (const role of handRoles) {
+        const sprite = this.partSprites.get(role);
+        if (sprite && canDrag) {
+          sprite.eventMode = "static";
+          sprite.cursor = "move";
+          sprite.on("pointerdown", (e) => this.onPartPointerDown(e, role));
+        }
+      }
     }
   }
 
   // --- Stage Mode Interaction ---
 
   private onPointerDown(e: FederatedPointerEvent) {
-    this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    this.activePointers.set(e.pointerId, { x: e.global.x, y: e.global.y });
     if (this.activePointers.size === 1) {
       this.isDragging = true;
       this.dragOffset = {
@@ -466,9 +480,6 @@ export class CompositeCharacter {
       this.publishMove();
     }
   }
-
-  private lastMultiTouchDistance = 0;
-  private lastMultiTouchAngle = 0;
 
   private clampX(x: number): number {
     const { stageWidth = 1280 } = this.props;
