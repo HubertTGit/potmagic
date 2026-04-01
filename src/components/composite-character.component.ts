@@ -139,7 +139,7 @@ export class CompositeCharacter {
 
   private ikState = {
     left: { enabled: false, flipped: false },
-    right: { enabled: false, flipped: false },
+    right: { enabled: false, flipped: true },
   };
   private static readonly ARM_CHAINS = {
     left: ["arm-upper-left", "arm-forearm-left", "arm-hand-left"],
@@ -717,31 +717,6 @@ export class CompositeCharacter {
                   x: worldPos.x - e.global.x,
                   y: worldPos.y - e.global.y,
                 };
-
-                // Detect initial bend direction (flip) to avoid jump
-                const side = role.includes("left") ? "left" : "right";
-                const chain =
-                  CompositeCharacter.ARM_CHAINS[
-                    side as keyof typeof CompositeCharacter.ARM_CHAINS
-                  ];
-                const upper = this.partContainers.get(chain[0]);
-                const middle = this.partContainers.get(chain[1]);
-                const hand = this.partContainers.get(chain[2]);
-
-                if (upper && middle && hand) {
-                  const v1 = {
-                    x: middle.x - upper.pivot.x,
-                    y: middle.y - upper.pivot.y,
-                  };
-                  const v2 = {
-                    x: hand.x - middle.pivot.x,
-                    y: hand.y - middle.pivot.y,
-                  };
-                  // Cross product in 2D to find bend direction
-                  const cross = v1.x * v2.y - v1.y * v2.x;
-                  // Store initial detected state so it matches current pose
-                  this.ikState[side].flipped = cross >= 0;
-                }
               }
 
               const local = container.parent!.toLocal(e.global);

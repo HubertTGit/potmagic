@@ -25,6 +25,8 @@ import {
   Trash2,
   CheckCircle2,
   CircleX,
+  IterationCcw,
+  IterationCw,
 } from "lucide-react";
 import { ConfirmModal } from "@/components/confirm-modal";
 import type { Application } from "pixi.js";
@@ -72,7 +74,7 @@ export function CharacterBuilderStudio() {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [ikState, setIkState] = useState({
     left: { enabled: false, flipped: false },
-    right: { enabled: false, flipped: false },
+    right: { enabled: false, flipped: true },
   });
 
   const { data: session } = authClient.useSession();
@@ -836,18 +838,24 @@ export function CharacterBuilderStudio() {
                     {ikState.left.enabled && (
                       <button
                         className={cn(
-                          "btn btn-xs btn-ghost px-1 h-5 min-h-0",
+                          "btn btn-xs btn-ghost px-1 h-6 min-h-0",
                           ikState.left.flipped && "text-accent",
                         )}
                         title="Flip Elbow"
-                        onClick={() =>
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
                           setIkState((prev) => ({
                             ...prev,
                             left: { ...prev.left, flipped: !prev.left.flipped },
-                          }))
-                        }
+                          }));
+                        }}
                       >
-                        <Drama className="size-3" />
+                        {ikState.left.flipped ? (
+                          <IterationCcw className="size-4" />
+                        ) : (
+                          <IterationCw className="size-4" />
+                        )}
                       </button>
                     )}
                   </div>
@@ -873,21 +881,27 @@ export function CharacterBuilderStudio() {
                     {ikState.right.enabled && (
                       <button
                         className={cn(
-                          "btn btn-xs btn-ghost px-1 h-5 min-h-0",
+                          "btn btn-xs btn-ghost px-1 h-6 min-h-0",
                           ikState.right.flipped && "text-accent",
                         )}
                         title="Flip Elbow"
-                        onClick={() =>
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
                           setIkState((prev) => ({
                             ...prev,
                             right: {
                               ...prev.right,
                               flipped: !prev.right.flipped,
                             },
-                          }))
-                        }
+                          }));
+                        }}
                       >
-                        <Drama className="size-3" />
+                        {ikState.right.flipped ? (
+                          <IterationCcw className="size-4" />
+                        ) : (
+                          <IterationCw className="size-4" />
+                        )}
                       </button>
                     )}
                   </div>
