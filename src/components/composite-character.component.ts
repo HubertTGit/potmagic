@@ -160,7 +160,6 @@ export class CompositeCharacter {
   private bhDragging = false;
   private bhHandleRange = 100; // Half-width of movement area
 
-
   private isAnyIKActive() {
     return this.ikState.left.enabled || this.ikState.right.enabled;
   }
@@ -614,9 +613,12 @@ export class CompositeCharacter {
     if (this.bhDragging && this.bhHandle && this.bhHandleGroup) {
       const local = this.bhHandleGroup.toLocal(e.global);
       // Constraint to X only and clamp to range
-      const newX = Math.max(-this.bhHandleRange, Math.min(this.bhHandleRange, local.x));
+      const newX = Math.max(
+        -this.bhHandleRange,
+        Math.min(this.bhHandleRange, local.x),
+      );
       this.bhHandle.x = newX;
-      
+
       // Map to normalized value -1 to 1
       this.bhValue = newX / this.bhHandleRange;
       this.applyBodyHeadRotation();
@@ -1420,7 +1422,7 @@ export class CompositeCharacter {
     bg.roundRect(-45, -15, 90, 30, 8)
       .fill({ color: 0x1e293b, alpha: 0.9 })
       .stroke({ color: 0x3b82f6, width: 2 });
-    
+
     const label = new PIXI.Text({
       text: "TURN MODE",
       style: {
@@ -1429,21 +1431,21 @@ export class CompositeCharacter {
         fontWeight: "bold",
         fontFamily: "Lexend",
         letterSpacing: 1,
-      }
+      },
     });
     label.anchor.set(0.5);
-    
+
     btn.addChild(bg, label);
-    
+
     // Position it above the head (further up)
     btn.x = head.x;
     btn.y = head.y - 180;
-    
+
     btn.on("pointerdown", (e) => {
       e.stopPropagation();
       this.toggleBodyHeadRotation();
     });
-    
+
     this.container.addChild(btn);
     this.bhButton = btn;
 
@@ -1483,7 +1485,7 @@ export class CompositeCharacter {
 
     // Position handle group right above head bounding box
     this.bhHandleGroup.x = headContainer.x;
-    
+
     // Get head top in container space
     const topOffset = headSprite.anchor.y * headSprite.texture.height;
     this.bhHandleGroup.y = headContainer.y - topOffset - 25;
@@ -1491,25 +1493,26 @@ export class CompositeCharacter {
     // Redraw track
     const track = this.bhHandleGroup.getChildAt(0) as Graphics;
     if (track) {
-        track.clear()
-            .moveTo(-this.bhHandleRange, 0)
-            .lineTo(this.bhHandleRange, 0)
-            .stroke({ color: 0x3b82f6, width: 2, alpha: 0.3 });
+      track
+        .clear()
+        .moveTo(-this.bhHandleRange, 0)
+        .lineTo(this.bhHandleRange, 0)
+        .stroke({ color: 0x3b82f6, width: 2, alpha: 0.3 });
     }
   }
 
   private toggleBodyHeadRotation() {
     this.bodyHeadRotationEnabled = !this.bodyHeadRotationEnabled;
-    
+
     if (this.bhHandleGroup) {
       this.bhHandleGroup.visible = this.bodyHeadRotationEnabled;
       this.updateBHUIPlacement();
-      
+
       if (this.bodyHeadRotationEnabled) {
         // Capture initial rotations
         this.bhInitialBodyRot = this.partContainers.get("body")?.rotation ?? 0;
         this.bhInitialHeadRot = this.partContainers.get("head")?.rotation ?? 0;
-        
+
         // Reset handle and value
         if (this.bhHandle) this.bhHandle.x = 0;
         this.bhValue = 0;
@@ -1521,7 +1524,7 @@ export class CompositeCharacter {
         // Revert rotations
         this.bhValue = 0;
         this.applyBodyHeadRotation();
-        
+
         // Reset button style
         const bg = this.bhButton?.getChildAt(0) as Graphics;
         if (bg) bg.stroke({ color: 0x3b82f6, width: 2 });
