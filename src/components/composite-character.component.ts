@@ -138,7 +138,7 @@ export class CompositeCharacter {
   }> = [];
 
   private ikState = {
-    left: { enabled: false, flipped: false },
+    left: { enabled: false, flipped: true },
     right: { enabled: false, flipped: true },
   };
   private static readonly ARM_CHAINS = {

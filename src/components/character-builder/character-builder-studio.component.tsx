@@ -73,7 +73,7 @@ export function CharacterBuilderStudio() {
   const [previewBlinking, setPreviewBlinking] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [ikState, setIkState] = useState({
-    left: { enabled: false, flipped: false },
+    left: { enabled: false, flipped: true },
     right: { enabled: false, flipped: true },
   });
 
@@ -102,9 +102,10 @@ export function CharacterBuilderStudio() {
     currentCharacter?.parts.some((p) => p.partRole === role),
   );
 
-
   const hasBlinkTexture = currentCharacter?.parts.some(
-    (p) => (p.partRole === "eye-left" || p.partRole === "eye-right") && !!p.altImageUrl,
+    (p) =>
+      (p.partRole === "eye-left" || p.partRole === "eye-right") &&
+      !!p.altImageUrl,
   );
 
   // Sync auto-blink state to pixi
@@ -113,7 +114,6 @@ export function CharacterBuilderStudio() {
       compositeRef.current.setAutoBlink(previewBlinking);
     }
   }, [previewBlinking]);
-
 
   // Reset pupil preview if required parts are removed
   useEffect(() => {
@@ -785,7 +785,7 @@ export function CharacterBuilderStudio() {
                   className={cn(
                     "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
                     ikState.left.enabled || ikState.right.enabled
-                      ? "opacity-40 grayscale cursor-not-allowed"
+                      ? "cursor-not-allowed opacity-40 grayscale"
                       : "hover:bg-base-200/80 cursor-pointer",
                   )}
                   title={
@@ -837,10 +837,7 @@ export function CharacterBuilderStudio() {
                     </div>
                     {ikState.left.enabled && (
                       <button
-                        className={cn(
-                          "btn btn-xs btn-ghost px-1 h-6 min-h-0",
-                          ikState.left.flipped && "text-accent",
-                        )}
+                        className="btn btn-xs btn-ghost h-6 min-h-0 px-1"
                         title="Flip Elbow"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -852,9 +849,9 @@ export function CharacterBuilderStudio() {
                         }}
                       >
                         {ikState.left.flipped ? (
-                          <IterationCcw className="size-4" />
-                        ) : (
                           <IterationCw className="size-4" />
+                        ) : (
+                          <IterationCcw className="size-4" />
                         )}
                       </button>
                     )}
@@ -880,10 +877,7 @@ export function CharacterBuilderStudio() {
                     </div>
                     {ikState.right.enabled && (
                       <button
-                        className={cn(
-                          "btn btn-xs btn-ghost px-1 h-6 min-h-0",
-                          ikState.right.flipped && "text-accent",
-                        )}
+                        className="btn btn-xs btn-ghost h-6 min-h-0 px-1"
                         title="Flip Elbow"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -912,7 +906,7 @@ export function CharacterBuilderStudio() {
                     "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
                     hasRequiredPupilParts
                       ? "hover:bg-base-200/80 cursor-pointer"
-                      : "opacity-40 grayscale cursor-not-allowed",
+                      : "cursor-not-allowed opacity-40 grayscale",
                   )}
                   title={
                     !hasRequiredPupilParts
@@ -952,7 +946,6 @@ export function CharacterBuilderStudio() {
                   />
                   Test Speaking
                 </label>
-
 
                 <label
                   className={cn(
@@ -1004,7 +997,7 @@ export function CharacterBuilderStudio() {
             return (
               <>
                 <div className="mb-6 flex items-center justify-between gap-4">
-                  <h2 className="text-sm font-bold tracking-widest uppercase truncate">
+                  <h2 className="truncate text-sm font-bold tracking-widest uppercase">
                     {selectedRole.replace(/-/g, " ")}
                   </h2>
                   {hasPhoto &&
@@ -1021,7 +1014,7 @@ export function CharacterBuilderStudio() {
                         )}
                       </button>
                     ) : (
-                      <div className="badge badge-warning badge-xs h-5 font-bold tracking-wider uppercase shrink-0">
+                      <div className="badge badge-warning badge-xs h-5 shrink-0 font-bold tracking-wider uppercase">
                         Not placed
                       </div>
                     ))}
@@ -1183,7 +1176,7 @@ export function CharacterBuilderStudio() {
                               </label>
                               <input
                                 type="number"
-                                className="input input-bordered input-sm w-full bg-base-300"
+                                className="input input-bordered input-sm bg-base-300 w-full"
                                 value={Math.round(pivotX)}
                                 readOnly
                               />
@@ -1194,7 +1187,7 @@ export function CharacterBuilderStudio() {
                               </label>
                               <input
                                 type="number"
-                                className="input input-bordered input-sm w-full bg-base-300"
+                                className="input input-bordered input-sm bg-base-300 w-full"
                                 value={Math.round(pivotY)}
                                 readOnly
                               />
@@ -1207,7 +1200,7 @@ export function CharacterBuilderStudio() {
                     <div className="border-primary/20 bg-primary/5 rounded-lg border p-4">
                       <div className="flex items-start gap-3">
                         <Target className="text-primary mt-0.5 size-4" />
-                        <p className="text-xs italic leading-relaxed opacity-70">
+                        <p className="text-xs leading-relaxed italic opacity-70">
                           Upload a texture, then drag it from the sidebar or
                           this panel onto the canvas to place it. Once placed,
                           drag parts freely on the canvas to reposition.
@@ -1226,7 +1219,7 @@ export function CharacterBuilderStudio() {
                         (!part && !pendingPropByRole[selectedRole])
                       }
                       className={cn(
-                        "btn btn-ghost btn-xs w-full gap-2 text-error/40 hover:bg-error/10 hover:text-error",
+                        "btn btn-ghost btn-xs text-error/40 hover:bg-error/10 hover:text-error w-full gap-2",
                         deletePropMutation.isPending && "loading",
                       )}
                     >
