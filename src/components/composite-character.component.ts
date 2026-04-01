@@ -150,6 +150,17 @@ export class CompositeCharacter {
 
   private ikOffset = { x: 0, y: 0 };
 
+  private bodyHeadRotationEnabled = false;
+  private bhButton: Container | null = null;
+  private bhHandleGroup: Container | null = null;
+  private bhHandle: Graphics | null = null;
+  private bhValue = 0; // -1 to 1 normalized
+  private bhInitialBodyRot = 0;
+  private bhInitialHeadRot = 0;
+  private bhDragging = false;
+  private bhHandleRange = 100; // Half-width of movement area
+
+
   private isAnyIKActive() {
     return this.ikState.left.enabled || this.ikState.right.enabled;
   }
@@ -358,6 +369,11 @@ export class CompositeCharacter {
     this.container.rotation =
       (this.props.initialRotation ?? 0) * (Math.PI / 180);
     this.container.sortChildren();
+
+    // After building hierarchy, we can setup the specialized UI
+    if (this.props.canDrag) {
+      this.setupBodyHeadRotationUI();
+    }
   }
   private setupInteraction() {
     const { canDrag, interactive = false } = this.props;
@@ -594,6 +610,19 @@ export class CompositeCharacter {
       return;
     }
 
+    // Body-Head Rotation handle
+    if (this.bhDragging && this.bhHandle && this.bhHandleGroup) {
+      const local = this.bhHandleGroup.toLocal(e.global);
+      // Constraint to X only and clamp to range
+      const newX = Math.max(-this.bhHandleRange, Math.min(this.bhHandleRange, local.x));
+      this.bhHandle.x = newX;
+      
+      // Map to normalized value -1 to 1
+      this.bhValue = newX / this.bhHandleRange;
+      this.applyBodyHeadRotation();
+      return;
+    }
+
     // Rotation
     if (this.rotatingRole) {
       const container = this.partContainers.get(this.rotatingRole)!;
@@ -646,6 +675,7 @@ export class CompositeCharacter {
     this.draggingRole = null;
     this.rotatingRole = null;
     this.movingGizmoHandle = null;
+    this.bhDragging = false;
   }
 
   // --- Gizmos (builder mode) ---
@@ -1372,5 +1402,155 @@ export class CompositeCharacter {
     ];
     const idx = roles.indexOf(role as PartRole);
     return colors[idx % colors.length];
+  }
+
+  // --- Body-Head Rotation UI ---
+
+  private setupBodyHeadRotationUI() {
+    const head = this.partContainers.get("head");
+    if (!head || this.bhButton) return;
+
+    // 1. Toggle Button
+    const btn = new Container();
+    btn.label = "bh-toggle-btn";
+    btn.eventMode = "static";
+    btn.cursor = "pointer";
+
+    const bg = new Graphics();
+    bg.roundRect(-45, -15, 90, 30, 8)
+      .fill({ color: 0x1e293b, alpha: 0.9 })
+      .stroke({ color: 0x3b82f6, width: 2 });
+    
+    const label = new PIXI.Text({
+      text: "TURN MODE",
+      style: {
+        fill: 0xffffff,
+        fontSize: 10,
+        fontWeight: "bold",
+        fontFamily: "Lexend",
+        letterSpacing: 1,
+      }
+    });
+    label.anchor.set(0.5);
+    
+    btn.addChild(bg, label);
+    
+    // Position it above the head (further up)
+    btn.x = head.x;
+    btn.y = head.y - 180;
+    
+    btn.on("pointerdown", (e) => {
+      e.stopPropagation();
+      this.toggleBodyHeadRotation();
+    });
+    
+    this.container.addChild(btn);
+    this.bhButton = btn;
+
+    // 2. Control Handle Group
+    this.bhHandleGroup = new Container();
+    this.bhHandleGroup.label = "bh-handle-group";
+    this.bhHandleGroup.visible = false;
+    this.container.addChild(this.bhHandleGroup);
+
+    // Track for guide
+    const track = new Graphics();
+    this.bhHandleGroup.addChild(track);
+
+    const handle = this.makeTranslateHandle();
+    handle.eventMode = "static";
+    handle.cursor = "ew-resize";
+    handle.scale.set(0.8); // Slightly smaller
+    this.bhHandleGroup.addChild(handle);
+    this.bhHandle = handle;
+
+    handle.on("pointerdown", (e) => {
+      e.stopPropagation();
+      this.bhDragging = true;
+    });
+
+    this.updateBHUIPlacement();
+  }
+
+  private updateBHUIPlacement() {
+    const headContainer = this.partContainers.get("head");
+    const headSprite = this.partSprites.get("head");
+    if (!headContainer || !headSprite || !this.bhHandleGroup) return;
+
+    const bounds = headSprite.getBounds();
+    const headWidth = bounds.width / Math.abs(this.container.scale.x);
+    this.bhHandleRange = headWidth * 0.5;
+
+    // Position handle group right above head bounding box
+    this.bhHandleGroup.x = headContainer.x;
+    
+    // Get head top in container space
+    const topOffset = headSprite.anchor.y * headSprite.texture.height;
+    this.bhHandleGroup.y = headContainer.y - topOffset - 25;
+
+    // Redraw track
+    const track = this.bhHandleGroup.getChildAt(0) as Graphics;
+    if (track) {
+        track.clear()
+            .moveTo(-this.bhHandleRange, 0)
+            .lineTo(this.bhHandleRange, 0)
+            .stroke({ color: 0x3b82f6, width: 2, alpha: 0.3 });
+    }
+  }
+
+  private toggleBodyHeadRotation() {
+    this.bodyHeadRotationEnabled = !this.bodyHeadRotationEnabled;
+    
+    if (this.bhHandleGroup) {
+      this.bhHandleGroup.visible = this.bodyHeadRotationEnabled;
+      this.updateBHUIPlacement();
+      
+      if (this.bodyHeadRotationEnabled) {
+        // Capture initial rotations
+        this.bhInitialBodyRot = this.partContainers.get("body")?.rotation ?? 0;
+        this.bhInitialHeadRot = this.partContainers.get("head")?.rotation ?? 0;
+        
+        // Reset handle and value
+        if (this.bhHandle) this.bhHandle.x = 0;
+        this.bhValue = 0;
+
+        // Visual feedback for button
+        const bg = this.bhButton?.getChildAt(0) as Graphics;
+        if (bg) bg.stroke({ color: 0xf59e0b, width: 3 }); // Gold stroke when active
+      } else {
+        // Revert rotations
+        this.bhValue = 0;
+        this.applyBodyHeadRotation();
+        
+        // Reset button style
+        const bg = this.bhButton?.getChildAt(0) as Graphics;
+        if (bg) bg.stroke({ color: 0x3b82f6, width: 2 });
+      }
+    }
+  }
+
+  private applyBodyHeadRotation() {
+    const body = this.partContainers.get("body");
+    const head = this.partContainers.get("head");
+    if (!body || !head) return;
+
+    // Simultaneous rotation logic
+    // We apply normalized bhValue * max rotation angle
+    const maxBodyRot = 12 * (Math.PI / 180); // 12 degrees max for body
+    const maxHeadRot = 20 * (Math.PI / 180); // 20 degrees max for head
+
+    const bodyRotOffset = this.bhValue * maxBodyRot;
+    const headRotOffset = this.bhValue * maxHeadRot;
+
+    body.rotation = this.bhInitialBodyRot + bodyRotOffset;
+    head.rotation = this.bhInitialHeadRot + headRotOffset;
+
+    // Notify changes
+    this.props.onChange?.("body", {
+      rotation: body.rotation * (180 / Math.PI),
+    });
+    this.props.onChange?.("head", {
+      rotation: head.rotation * (180 / Math.PI),
+    });
   }
 }
