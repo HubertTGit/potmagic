@@ -156,7 +156,7 @@ export class CompositeCharacter {
   private showBoundingBoxes = false;
 
   private static readonly ROTATABLE_ROLES = [
-    "torso",
+    "body",
     "head",
     "arm-upper-left",
     "arm-forearm-left",
@@ -527,10 +527,7 @@ export class CompositeCharacter {
     }
 
     // IK for arms
-    if (
-      this.draggingRole &&
-      this.draggingRole.includes("arm-hand")
-    ) {
+    if (this.draggingRole && this.draggingRole.includes("arm-hand")) {
       const side = this.draggingRole.includes("left") ? "left" : "right";
       if (this.ikState[side].enabled) {
         const target = {
@@ -854,8 +851,8 @@ export class CompositeCharacter {
     const side = role.includes("-left") ? "left" : "right";
     const ikEnabled = this.ikState[side].enabled;
 
-    const isArmSegment = role.includes("arm-upper") || role.includes("arm-forearm");
-
+    const isArmSegment =
+      role.includes("arm-upper") || role.includes("arm-forearm");
 
     // Apply visibility rules to each handle ref
     for (const ref of refs) {
@@ -867,8 +864,8 @@ export class CompositeCharacter {
           // In IK mode, hide rotation/translation for upper/forearm of THIS arm
           ref.handle.visible = false;
         } else {
-          // Other parts (for the ACTIVE IK SIDE) - should we hide their translate too? 
-          // Usually a part belongs to only one side or 'none'. 
+          // Other parts (for the ACTIVE IK SIDE) - should we hide their translate too?
+          // Usually a part belongs to only one side or 'none'.
           // For simplicity, we'll handle global IK state below.
           ref.handle.visible = true;
         }
@@ -880,7 +877,6 @@ export class CompositeCharacter {
           ref.handle.visible = true;
         }
       }
-
     }
   }
 
