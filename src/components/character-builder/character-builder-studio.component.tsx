@@ -974,28 +974,48 @@ export function CharacterBuilderStudio() {
 
         {/* Right Sidebar: Part Properties/Upload */}
         <aside className="bg-base-200 border-base-300 w-80 overflow-y-auto border-l p-6">
-          <h2 className="mb-6 text-sm font-bold tracking-widest uppercase">
-            {selectedRole.replace(/-/g, " ")}
-          </h2>
+          {(() => {
+            const part = currentCharacter?.parts?.find(
+              (p) => p.partRole === selectedRole,
+            );
+            const pending = pendingPropByRole[selectedRole];
+            const isPlaced = !!part;
+            const hasPhoto = !!(part || pending);
+            const displayUrl = part?.imageUrl ?? pending?.imageUrl ?? null;
 
-          <div className="space-y-6">
-            {/* Upload Area */}
-            <div className="space-y-4">
-              {(() => {
-                const part = currentCharacter?.parts?.find(
-                  (p) => p.partRole === selectedRole,
-                );
-                const pending = pendingPropByRole[selectedRole];
-                const displayUrl = part?.imageUrl ?? pending?.imageUrl ?? null;
-                const isPlaced = !!part;
+            const isEye =
+              selectedRole === "eye-left" || selectedRole === "eye-right";
+            const blinkUrl = part?.altImageUrl ?? pending?.altImageUrl ?? null;
 
-                const isEye =
-                  selectedRole === "eye-left" || selectedRole === "eye-right";
-                const blinkUrl =
-                  part?.altImageUrl ?? pending?.altImageUrl ?? null;
+            return (
+              <>
+                <div className="mb-6 flex items-center justify-between gap-4">
+                  <h2 className="text-sm font-bold tracking-widest uppercase truncate">
+                    {selectedRole.replace(/-/g, " ")}
+                  </h2>
+                  {hasPhoto &&
+                    (isPlaced ? (
+                      <button
+                        onClick={handleUnplacePart}
+                        disabled={unplacePartMutation.isPending}
+                        className="btn btn-xs btn-ghost border-base-300 h-6 min-h-0 text-[10px] font-bold tracking-wider uppercase"
+                      >
+                        {unplacePartMutation.isPending ? (
+                          <span className="loading loading-spinner loading-xs" />
+                        ) : (
+                          "unplace"
+                        )}
+                      </button>
+                    ) : (
+                      <div className="badge badge-warning badge-xs h-5 font-bold tracking-wider uppercase shrink-0">
+                        Not placed
+                      </div>
+                    ))}
+                </div>
 
-                return (
-                  <div className="space-y-6">
+                <div className="space-y-6">
+                  {/* Upload Area */}
+                  <div className="space-y-4">
                     <div className="space-y-2">
                       <label className="text-xs font-medium tracking-wide uppercase opacity-60">
                         Texture
@@ -1061,11 +1081,6 @@ export function CharacterBuilderStudio() {
                                   )}
                                 </div>
                               </div>
-                              {!isPlaced && (
-                                <div className="badge badge-warning badge-xs absolute top-2 right-2 font-bold tracking-wider uppercase">
-                                  Not placed
-                                </div>
-                              )}
                             </div>
                           ) : (
                             <>
@@ -1132,124 +1147,102 @@ export function CharacterBuilderStudio() {
                       </div>
                     )}
                   </div>
-                );
-              })()}
-            </div>
 
-            {/* Transform Controls */}
-            <div className="space-y-4">
-              <h3 className="text-xs font-medium tracking-wide uppercase opacity-60">
-                Transform
-              </h3>
+                  {/* Transform Controls */}
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-medium tracking-wide uppercase opacity-60">
+                      Transform
+                    </h3>
 
-              <div className="grid grid-cols-2 gap-4">
-                {(() => {
-                  const part = currentCharacter?.parts?.find(
-                    (p) => p.partRole === selectedRole,
-                  );
-                  const pivotX =
-                    livePivots[selectedRole]?.x ?? part?.pivotX ?? 0;
-                  const pivotY =
-                    livePivots[selectedRole]?.y ?? part?.pivotY ?? 0;
+                    <div className="grid grid-cols-2 gap-4">
+                      {(() => {
+                        const pivotX =
+                          livePivots[selectedRole]?.x ?? part?.pivotX ?? 0;
+                        const pivotY =
+                          livePivots[selectedRole]?.y ?? part?.pivotY ?? 0;
 
-                  return (
-                    <>
-                      <div className="space-y-1">
-                        <label className="text-[10px] uppercase opacity-40">
-                          Pivot X (px)
-                        </label>
-                        <input
-                          type="number"
-                          className="input input-bordered input-sm bg-base-300 w-full"
-                          value={Math.round(pivotX)}
-                          readOnly
-                        />
+                        return (
+                          <>
+                            <div className="space-y-1">
+                              <label className="text-[10px] uppercase opacity-40">
+                                Pivot X (px)
+                              </label>
+                              <input
+                                type="number"
+                                className="input input-bordered input-sm w-full bg-base-300"
+                                value={Math.round(pivotX)}
+                                readOnly
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] uppercase opacity-40">
+                                Pivot Y (px)
+                              </label>
+                              <input
+                                type="number"
+                                className="input input-bordered input-sm w-full bg-base-300"
+                                value={Math.round(pivotY)}
+                                readOnly
+                              />
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+
+                    <div className="border-primary/20 bg-primary/5 rounded-lg border p-4">
+                      <div className="flex items-start gap-3">
+                        <Target className="text-primary mt-0.5 size-4" />
+                        <p className="text-xs italic leading-relaxed opacity-70">
+                          Upload a texture, then drag it from the sidebar or
+                          this panel onto the canvas to place it. Once placed,
+                          drag parts freely on the canvas to reposition.
+                        </p>
                       </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] uppercase opacity-40">
-                          Pivot Y (px)
-                        </label>
-                        <input
-                          type="number"
-                          className="input input-bordered input-sm bg-base-300 w-full"
-                          value={Math.round(pivotY)}
-                          readOnly
-                        />
-                      </div>
-                    </>
-                  );
-                })()}
-              </div>
+                    </div>
+                  </div>
 
-              <div className="bg-primary/5 border-primary/20 rounded-lg border p-4">
-                <div className="flex items-start gap-3">
-                  <Target className="text-primary mt-0.5 size-4" />
-                  <p className="text-xs leading-relaxed italic opacity-70">
-                    Upload a texture, then drag it from the sidebar or this
-                    panel onto the canvas to place it. Once placed, drag parts
-                    freely on the canvas to reposition.
-                  </p>
+                  <div className="divider opacity-30" />
+
+                  <div className="flex flex-col gap-2 pt-4">
+                    <button
+                      onClick={() => setIsDeleteConfirmOpen(true)}
+                      disabled={
+                        deletePropMutation.isPending ||
+                        (!part && !pendingPropByRole[selectedRole])
+                      }
+                      className={cn(
+                        "btn btn-ghost btn-xs w-full gap-2 text-error/40 hover:bg-error/10 hover:text-error",
+                        deletePropMutation.isPending && "loading",
+                      )}
+                    >
+                      {!deletePropMutation.isPending && (
+                        <Trash2 className="size-3" />
+                      )}
+                      {deletePropMutation.isPending
+                        ? t("action.deleting")
+                        : t("characterBuilder.deleteImage")}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            <div className="divider opacity-30" />
-
-            <div className="flex flex-col gap-2 pt-4">
-              <button
-                onClick={handleUnplacePart}
-                disabled={
-                  unplacePartMutation.isPending ||
-                  !currentCharacter?.parts?.find(
-                    (p) => p.partRole === selectedRole,
-                  )
-                }
-                className="btn btn-ghost border-base-300 btn-sm w-full gap-2"
-              >
-                {unplacePartMutation.isPending ? (
-                  <span className="loading loading-spinner loading-xs" />
-                ) : (
-                  <CircleX className="size-4 opacity-50" />
-                )}
-                Unplace from canvas
-              </button>
-
-              <button
-                onClick={() => setIsDeleteConfirmOpen(true)}
-                disabled={
-                  deletePropMutation.isPending ||
-                  (!currentCharacter?.parts?.find(
-                    (p) => p.partRole === selectedRole,
-                  ) &&
-                    !pendingPropByRole[selectedRole])
-                }
-                className={cn(
-                  "btn btn-ghost btn-xs text-error/40 hover:text-error hover:bg-error/10 w-full gap-2",
-                  deletePropMutation.isPending && "loading",
-                )}
-              >
-                {!deletePropMutation.isPending && <Trash2 className="size-3" />}
-                {deletePropMutation.isPending
-                  ? t("action.deleting")
-                  : t("characterBuilder.deleteImage")}
-              </button>
-            </div>
-          </div>
+                <ConfirmModal
+                  isOpen={isDeleteConfirmOpen}
+                  title={t("characterBuilder.deleteImage")}
+                  message={t("characterBuilder.deleteImageConfirm")}
+                  confirmText={t("action.delete")}
+                  confirmButtonClass="btn-error"
+                  isPending={deletePropMutation.isPending}
+                  onConfirm={async () => {
+                    await handleRemovePart();
+                    setIsDeleteConfirmOpen(false);
+                  }}
+                  onCancel={() => setIsDeleteConfirmOpen(false)}
+                />
+              </>
+            );
+          })()}
         </aside>
-
-        <ConfirmModal
-          isOpen={isDeleteConfirmOpen}
-          title={t("characterBuilder.deleteImage")}
-          message={t("characterBuilder.deleteImageConfirm")}
-          confirmText={t("action.delete")}
-          confirmButtonClass="btn-error"
-          isPending={deletePropMutation.isPending}
-          onConfirm={async () => {
-            await handleRemovePart();
-            setIsDeleteConfirmOpen(false);
-          }}
-          onCancel={() => setIsDeleteConfirmOpen(false)}
-        />
       </div>
     </div>
   );
