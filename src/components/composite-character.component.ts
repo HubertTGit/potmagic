@@ -777,6 +777,7 @@ export class CompositeCharacter {
 
     // Initial draw
     this.drawGizmoLines(role);
+    this.updateGizmoVisibilitiesForRole(role);
   }
 
   private drawGizmoLines(role: string) {
@@ -845,10 +846,10 @@ export class CompositeCharacter {
     const group = this.gizmoGroups.get(role);
     if (!group) return;
 
-    const isHand = role.includes("-hand-");
+    const isHand = role.toLowerCase().includes("arm-hand");
     const refs = this.gizmoHandleRefs.filter((r) => r.role === role);
 
-    const side = role.includes("-left") ? "left" : "right";
+    const side = role.toLowerCase().includes("-left") ? "left" : "right";
     const ikEnabled = this.ikState[side].enabled;
 
     const isArmSegment =
