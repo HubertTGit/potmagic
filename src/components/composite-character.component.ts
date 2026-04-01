@@ -12,14 +12,6 @@ import type { PropMoveMessage } from "@/lib/livekit-messages";
 gsap.registerPlugin(PixiPlugin);
 PixiPlugin.registerPIXI(PIXI);
 
-function getAngle(a: { x: number; y: number }, b: { x: number; y: number }) {
-  return Math.atan2(b.y - a.y, b.x - a.x) * (180 / Math.PI);
-}
-
-function getMidpoint(a: { x: number; y: number }, b: { x: number; y: number }) {
-  return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
-}
-
 export const ALL_PART_ROLES = [
   "torso",
   "body",
@@ -109,9 +101,6 @@ export class CompositeCharacter {
   private blinkTimeline: gsap.core.Timeline | null = null;
   private eyebrowOriginalYs: Map<string, number> = new Map();
   private eyebrowTweens: Map<string, gsap.core.Tween> = new Map();
-  private lastTapTime = 0;
-  private suppressNextNTaps = 0;
-  private onKeyDown: ((e: KeyboardEvent) => void) | null = null;
 
   // Stored so they can be removed from the stage on destroy()
   private boundPartPointerMove: ((e: FederatedPointerEvent) => void) | null =
@@ -149,8 +138,8 @@ export class CompositeCharacter {
   }> = [];
 
   private ikState = {
-    left: { enabled: true, flipped: true },
-    right: { enabled: true, flipped: true },
+    left: { enabled: false, flipped: true },
+    right: { enabled: false, flipped: true },
   };
   private static readonly ARM_CHAINS = {
     left: ["arm-upper-left", "arm-forearm-left", "arm-hand-left"],
@@ -168,7 +157,6 @@ export class CompositeCharacter {
   private forceMouthVisible = false;
 
   private static readonly ROTATABLE_ROLES = [
-    "torso",
     "body",
     "head",
     "arm-upper-left",
@@ -201,13 +189,44 @@ export class CompositeCharacter {
 
     this.loadAllTextures().then(() => {
       this.buildHierarchy();
+
+      // Theater-mode defaults
+      if (!this.props.interactive) {
+        this.ikState.left.enabled = true;
+        this.ikState.right.enabled = true;
+        this.startAutoBlink();
+      }
+
       this.setupInteraction();
-      if (this.props.autoBlink !== false) {
+      if (this.props.autoBlink) {
         this.startAutoBlink();
       }
       this.props.onReady?.();
     });
+
+    // Keyboard listener for mirroring (Spacebar)
+    if (!props.interactive) {
+      window.addEventListener("keydown", this.handleGlobalKeyDown);
+    }
   }
+
+  private handleGlobalKeyDown = (e: KeyboardEvent) => {
+    if (e.code === "Space") {
+      // Only flip if this character is being hovered or was last interacted with
+      // For simplicity, we check if the mouse is currently within our bounding area
+      // OR if we are the "focused" character (e.g. dragging/just dragged).
+      // Here we check if the character is being hovered by checking all sprites' eventMode.
+      // But a simpler way is to check the container's bounds against the mouse.
+      const app = this.props.app;
+      const mouse = app.renderer.events.pointer.global;
+      if (this.container.getBounds().containsPoint(mouse.x, mouse.y)) {
+        e.preventDefault();
+        this.container.scale.x *= -1;
+        this.publishMove();
+        this.persistPosition();
+      }
+    }
+  };
 
   private async loadAllTextures() {
     const loadPromises = this.props.parts.flatMap((p) => {
@@ -342,61 +361,114 @@ export class CompositeCharacter {
   private setupInteraction() {
     const { canDrag, interactive = false } = this.props;
 
-    for (const [role, container] of this.partContainers) {
-      const sprite = this.partSprites.get(role);
-      if (!sprite || !this.textures.has(role)) continue;
+    if (interactive) {
+      // Builder mode: each placed (textured) part is independently draggable
+      this.props.app.stage.eventMode = "static";
 
-      sprite.eventMode = canDrag || !interactive ? "static" : "none";
-      sprite.cursor = canDrag || !interactive ? "pointer" : "default";
+      for (const [role, sprite] of this.partSprites) {
+        if (!this.textures.has(role)) continue; // skip unplaced parts
 
-      if (canDrag || !interactive) {
+        // All parts that have textures can be manually dragged
+        sprite.eventMode = "static";
+        sprite.cursor = "move";
         sprite.on("pointerdown", (e) => this.onPartPointerDown(e, role));
-        sprite.on("pointerup", (e) => this.onPartPointerUp(e));
-        sprite.on("pointerupoutside", (e) => this.onPartPointerUp(e));
+      }
 
-        if (interactive && role === "torso") {
-          sprite.on("tap", () => {
-            if (this.suppressNextNTaps > 0) {
-              this.suppressNextNTaps--;
-              this.lastTapTime = 0;
-              return;
-            }
-            const now = Date.now();
-            if (now - this.lastTapTime < 300) this.handleHorizontalFlip();
-            this.lastTapTime = now;
-          });
+      this.boundPartPointerMove = this.onPartGlobalPointerMove.bind(this);
+      this.boundPartPointerUp = this.onPartPointerUp.bind(this);
+      this.props.app.stage.on("globalpointermove", this.boundPartPointerMove);
+      this.props.app.stage.on("pointerup", this.boundPartPointerUp);
+
+      this.buildGizmos();
+    } else {
+      // Stage mode: torso handles drag and whole-character rotation
+      const torsoSprite = this.partSprites.get("torso");
+      if (torsoSprite) {
+        torsoSprite.eventMode = canDrag ? "static" : "none";
+        torsoSprite.cursor = canDrag ? "pointer" : "default";
+        if (canDrag) {
+          torsoSprite.on("pointerdown", this.onPointerDown.bind(this));
+          torsoSprite.on("pointerup", this.onPointerUp.bind(this));
+          torsoSprite.on("pointerupoutside", this.onPointerUp.bind(this));
+          torsoSprite.on(
+            "globalpointermove",
+            this.onStagePointerMove.bind(this),
+          );
         }
       }
     }
+  }
 
-    if (canDrag && interactive) {
-      this.onKeyDown = (e: KeyboardEvent) => {
-        if (e.code === "Space" && this.activePointers.size > 0) {
-          e.preventDefault();
-          this.handleHorizontalFlip();
-        }
+  // --- Stage Mode Interaction ---
+
+  private onPointerDown(e: FederatedPointerEvent) {
+    this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (this.activePointers.size === 1) {
+      this.isDragging = true;
+      this.dragOffset = {
+        x: this.container.x - e.global.x,
+        y: this.container.y - e.global.y,
       };
-      window.addEventListener("keydown", this.onKeyDown);
-    }
-
-    if (canDrag || !interactive) {
-      this.boundPartPointerMove = (e: FederatedPointerEvent) => {
-        this.onPartGlobalPointerMove(e);
-      };
-      this.props.app.stage.on("globalpointermove", this.boundPartPointerMove);
-    }
-
-    if (!interactive) {
-      this.buildGizmos();
+      this.bringToTop();
     }
   }
 
-  private handleHorizontalFlip() {
+  private onPointerUp(e: FederatedPointerEvent) {
+    this.activePointers.delete(e.pointerId);
+    if (this.activePointers.size < 2) {
+      this.lastMultiTouchDistance = 0;
+      this.lastMultiTouchAngle = 0;
+    }
+    if (this.activePointers.size === 0) {
+      this.isDragging = false;
+      this.persistPosition();
+    }
+  }
+
+  private onStagePointerMove(e: FederatedPointerEvent) {
     if (!this.props.canDrag) return;
-    this.container.scale.x *= -1;
-    this.publishMove(true);
-    this.persistPosition();
+    this.activePointers.set(e.pointerId, { x: e.global.x, y: e.global.y });
+
+    if (this.activePointers.size === 2) {
+      // Multi-touch rotation + scaling
+      const points = Array.from(this.activePointers.values());
+      const p1 = points[0];
+      const p2 = points[1];
+
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const angle = Math.atan2(dy, dx);
+
+      if (this.lastMultiTouchDistance > 0) {
+        // Rotation
+        const deltaAngle = angle - this.lastMultiTouchAngle;
+        this.container.rotation += deltaAngle;
+
+        // Scaling (Uniform)
+        // Keep scaleX sign to preserve mirroring
+        const currentScaleSign = Math.sign(this.container.scale.x);
+        const scaleFactor = distance / this.lastMultiTouchDistance;
+        const newAbsScaleX = Math.abs(this.container.scale.x) * scaleFactor;
+        this.container.scale.x = newAbsScaleX * currentScaleSign;
+        this.container.scale.y = newAbsScaleX;
+      }
+
+      this.lastMultiTouchDistance = distance;
+      this.lastMultiTouchAngle = angle;
+      this.publishMove();
+    } else if (this.isDragging && this.activePointers.size === 1) {
+      // Single-touch translation
+      const rawX = e.global.x + this.dragOffset.x;
+      const rawY = e.global.y + this.dragOffset.y;
+      this.container.x = this.clampX(rawX);
+      this.container.y = this.clampY(rawY);
+      this.publishMove();
+    }
   }
+
+  private lastMultiTouchDistance = 0;
+  private lastMultiTouchAngle = 0;
 
   private clampX(x: number): number {
     const { stageWidth = 1280 } = this.props;
@@ -408,50 +480,16 @@ export class CompositeCharacter {
     return Math.min(Math.max(y, 0), stageHeight);
   }
 
-  // --- Interaction Handlers ---
+  // --- Builder Mode Interaction ---
 
   private draggingRole: string | null = null;
   private partOffset = { x: 0, y: 0 };
 
   private onPartPointerDown(e: FederatedPointerEvent, role: string) {
-    if (this.props.interactive) {
-      this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-
-      if (this.activePointers.size === 1) {
-        if (role === "torso") {
-          this.isDragging = true;
-          this.dragOffset = {
-            x: this.container.x - e.global.x,
-            y: this.container.y - e.global.y,
-          };
-          this.bringToTop();
-        } else if (role.includes("arm-hand")) {
-          const side = role.includes("left") ? "left" : "right";
-          if (this.ikState[side].enabled) {
-            this.draggingRole = role;
-            const container = this.partContainers.get(role)!;
-            const worldPos = container.getGlobalPosition();
-            this.ikOffset = {
-              x: worldPos.x - e.global.x,
-              y: worldPos.y - e.global.y,
-            };
-          }
-        }
-      } else {
-        this.isDragging = false;
-        if (role === "torso") {
-          this.draggingRole = "torso";
-        }
-      }
-      return;
-    }
-
-    // Builder Mode behavior
     e.stopPropagation();
     this.draggingRole = role;
     const container = this.partContainers.get(role)!;
     if (!container.parent) return;
-
     const local = container.parent.toLocal(e.global);
     this.partOffset = {
       x: container.x - local.x,
@@ -459,68 +497,10 @@ export class CompositeCharacter {
     };
   }
 
-  private onPartPointerUp(e: FederatedPointerEvent) {
-    const prevSize = this.activePointers.size;
-    this.activePointers.delete(e.pointerId);
-
-    if (prevSize >= 2 && this.activePointers.size < 2) {
-      this.suppressNextNTaps = prevSize;
-    }
-
-    if (this.activePointers.size === 0) {
-      this.isDragging = false;
-      this.draggingRole = null;
-      this.persistPosition();
-    }
-    this.rotatingRole = null;
-    this.movingGizmoHandle = null;
-  }
-
   private onPartGlobalPointerMove(e: FederatedPointerEvent) {
-    if (this.props.interactive) {
-      if (!this.activePointers.has(e.pointerId)) return;
+    const anyIK = this.isAnyIKActive();
 
-      const prevStateMap = new Map(this.activePointers);
-      this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-
-      if (this.activePointers.size === 2 && this.draggingRole === "torso") {
-        const currPointers = Array.from(this.activePointers.values());
-        const prevPointers = Array.from(prevStateMap.values());
-        if (prevPointers.length < 2) return;
-
-        const newAngle = getAngle(currPointers[0], currPointers[1]);
-        const newMid = getMidpoint(currPointers[0], currPointers[1]);
-        const oldAngle = getAngle(prevPointers[0], prevPointers[1]);
-        const oldMid = getMidpoint(prevPointers[0], prevPointers[1]);
-
-        let angleDelta = newAngle - oldAngle;
-        if (angleDelta > 180) angleDelta -= 360;
-        if (angleDelta < -180) angleDelta += 360;
-        this.container.rotation += angleDelta * (Math.PI / 180);
-
-        this.container.x += newMid.x - oldMid.x;
-        this.container.y += newMid.y - oldMid.y;
-        this.publishMove();
-      } else if (this.isDragging && this.activePointers.size <= 1) {
-        const rawX = e.global.x + this.dragOffset.x;
-        const rawY = e.global.y + this.dragOffset.y;
-        this.container.x = this.clampX(rawX);
-        this.container.y = this.clampY(rawY);
-        this.publishMove();
-      } else if (this.draggingRole?.includes("arm-hand")) {
-        const side = this.draggingRole.includes("left") ? "left" : "right";
-        if (this.ikState[side].enabled) {
-          const target = {
-            x: e.global.x + this.ikOffset.x,
-            y: e.global.y + this.ikOffset.y,
-          };
-          this.solveIK(side, target);
-        }
-      }
-      return;
-    }
-
-    // Builder Mode behavior
+    // Gizmo handle repositioning (edit mode)
     if (this.movingGizmoHandle) {
       const {
         handle,
@@ -534,6 +514,7 @@ export class CompositeCharacter {
       const container = this.partContainers.get(role)!;
       if (!container.parent) return;
 
+      // Calculate delta in gizmoGroup space BEFORE moving anything
       const cur = gizmoGroup.toLocal(e.global);
       const dx = cur.x - startLocal.x;
       const dy = cur.y - startLocal.y;
@@ -548,12 +529,15 @@ export class CompositeCharacter {
           const ax = sprite.anchor.x;
           const ay = sprite.anchor.y;
 
+          // 1. Calculate new proposed pivot
           const oldPivotX = container.pivot.x;
           const oldPivotY = container.pivot.y;
 
           let newPivotX = oldPivotX + dx;
           let newPivotY = oldPivotY + dy;
 
+          // Constrain pivot to bounding box relative to anchor
+          // Range: [-ax * tw, (1 - ax) * tw]
           newPivotX = Math.max(-ax * tw, Math.min((1 - ax) * tw, newPivotX));
           newPivotY = Math.max(-ay * th, Math.min((1 - ay) * th, newPivotY));
 
@@ -562,14 +546,22 @@ export class CompositeCharacter {
 
           if (actualDx === 0 && actualDy === 0) return;
 
+          // 2. Update pivot
           container.pivot.x = newPivotX;
           container.pivot.y = newPivotY;
+
+          // Sync handle position (visually represent the pivot)
           handle.x = newPivotX;
           handle.y = newPivotY;
+
+          // 3. Move container to compensate
           container.x += actualDx;
           container.y += actualDy;
 
+          // Update debug box
           this.drawBoundingBox(role);
+
+          // Notify UI
           this.props.onChange?.(role, {
             pivotX: container.pivot.x,
             pivotY: container.pivot.y,
@@ -577,7 +569,10 @@ export class CompositeCharacter {
             y: container.y,
           });
 
+          // Re-capture startLocal relative to the NOW-MOVED gizmoGroup
           this.movingGizmoHandle.startLocal = gizmoGroup.toLocal(e.global);
+
+          // Update connectors
           this.drawGizmoLines(role);
         }
       } else {
@@ -588,6 +583,7 @@ export class CompositeCharacter {
       return;
     }
 
+    // Rotation
     if (this.rotatingRole) {
       const container = this.partContainers.get(this.rotatingRole)!;
       const worldPos = container.getGlobalPosition();
@@ -602,7 +598,23 @@ export class CompositeCharacter {
       });
     }
 
+    // IK for arms
+    if (this.draggingRole && this.draggingRole.includes("arm-hand")) {
+      const side = this.draggingRole.includes("left") ? "left" : "right";
+      if (this.ikState[side].enabled) {
+        const target = {
+          x: e.global.x + this.ikOffset.x,
+          y: e.global.y + this.ikOffset.y,
+        };
+        this.solveIK(side, target);
+        return;
+      }
+    }
+
+    // Part translation (interactive mode)
     if (this.draggingRole) {
+      // ONLY freeze manual movement for arm parts whose side has IK enabled.
+      // Other parts (body, head, legs, non-IK arms) remain draggable.
       const isArmPart = this.draggingRole.includes("arm-");
       const side = this.draggingRole.includes("left") ? "left" : "right";
       if (isArmPart && this.ikState[side].enabled) return;
@@ -617,6 +629,12 @@ export class CompositeCharacter {
         y: container.y,
       });
     }
+  }
+
+  private onPartPointerUp() {
+    this.draggingRole = null;
+    this.rotatingRole = null;
+    this.movingGizmoHandle = null;
   }
 
   // --- Gizmos (builder mode) ---
@@ -1272,6 +1290,7 @@ export class CompositeCharacter {
     if (this.boundPartPointerUp) {
       this.props.app.stage.off("pointerup", this.boundPartPointerUp);
     }
+    window.removeEventListener("keydown", this.handleGlobalKeyDown);
     this.container.destroy({ children: true });
   }
 

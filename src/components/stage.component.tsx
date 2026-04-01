@@ -267,8 +267,6 @@ export const StageComponent = React.forwardRef<
           stageWidth,
           stageHeight,
           app,
-          interactive: true,
-          autoBlink: true,
           onReady: () => {
             remaining -= 1;
             if (remaining === 0) setAllLoaded(true);
