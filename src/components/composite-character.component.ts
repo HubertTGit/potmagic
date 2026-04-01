@@ -13,6 +13,7 @@ gsap.registerPlugin(PixiPlugin);
 PixiPlugin.registerPIXI(PIXI);
 
 export const ALL_PART_ROLES = [
+  "torso",
   "body",
   "head",
   "mouth",
@@ -28,12 +29,6 @@ export const ALL_PART_ROLES = [
   "arm-upper-right",
   "arm-forearm-right",
   "arm-hand-right",
-  "leg-upper-left",
-  "leg-lower-left",
-  "leg-foot-left",
-  "leg-upper-right",
-  "leg-lower-right",
-  "leg-foot-right",
 ] as const;
 
 export type PartRole = (typeof ALL_PART_ROLES)[number];
@@ -161,6 +156,7 @@ export class CompositeCharacter {
   private showBoundingBoxes = false;
 
   private static readonly ROTATABLE_ROLES = [
+    "torso",
     "head",
     "arm-upper-left",
     "arm-forearm-left",
@@ -168,12 +164,6 @@ export class CompositeCharacter {
     "arm-upper-right",
     "arm-forearm-right",
     "arm-hand-right",
-    "leg-upper-left",
-    "leg-lower-left",
-    "leg-foot-left",
-    "leg-upper-right",
-    "leg-lower-right",
-    "leg-foot-right",
   ] as const;
 
   private static readonly NO_GIZMO_ROLES = [
@@ -294,10 +284,13 @@ export class CompositeCharacter {
       return container;
     };
 
-    // 1. Body — root child of the composite container
-    const body = createPart("body", this.container);
+    // 1. Torso — root child of the composite container
+    const torso = createPart("torso", this.container);
 
-    // 2. Head and its facial parts — attached to body
+    // 2. Body — attached to torso
+    const body = createPart("body", torso);
+
+    // 3. Head and its facial parts — attached to body
     const head = createPart("head", body);
     createPart("mouth", head);
 
@@ -318,7 +311,7 @@ export class CompositeCharacter {
     createPart("eye-brow-left", head);
     createPart("eye-brow-right", head);
 
-    // 3. Arms — attached to body
+    // 4. Arms — attached to body
     const aul = createPart("arm-upper-left", body);
     const afl = createPart("arm-forearm-left", aul);
     createPart("arm-hand-left", afl);
@@ -326,15 +319,6 @@ export class CompositeCharacter {
     const aur = createPart("arm-upper-right", body);
     const afr = createPart("arm-forearm-right", aur);
     createPart("arm-hand-right", afr);
-
-    // 4. Legs — attached to body
-    const lul = createPart("leg-upper-left", body);
-    const lll = createPart("leg-lower-left", lul);
-    createPart("leg-foot-left", lll);
-
-    const lur = createPart("leg-upper-right", body);
-    const llr = createPart("leg-lower-right", lur);
-    createPart("leg-foot-right", llr);
 
     this.container.scale.x = this.props.initialScaleX ?? 1;
     this.container.rotation =

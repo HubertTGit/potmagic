@@ -69,18 +69,13 @@ export const partRoleEnum = pgEnum("part_role", [
   "eye-brow-right",
   "eye-closed-left",
   "eye-closed-right",
+  "torso",
   "arm-upper-left",
   "arm-forearm-left",
   "arm-hand-left",
   "arm-upper-right",
   "arm-forearm-right",
   "arm-hand-right",
-  "leg-upper-left",
-  "leg-lower-left",
-  "leg-foot-left",
-  "leg-upper-right",
-  "leg-lower-right",
-  "leg-foot-right",
 ]);
 
 export const sessions = pgTable(
