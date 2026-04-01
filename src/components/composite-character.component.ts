@@ -15,7 +15,7 @@ PixiPlugin.registerPIXI(PIXI);
 export const ALL_PART_ROLES = [
   "body",
   "head",
-  "jaw",
+  "mouth",
   "eye-left",
   "eye-right",
   "pupil-left",
@@ -183,7 +183,7 @@ export class CompositeCharacter {
     "pupil-right",
     "eye-brow-left",
     "eye-brow-right",
-    "jaw",
+    "mouth",
   ] as const;
 
   constructor(props: CompositeCharacterProps) {
@@ -281,7 +281,7 @@ export class CompositeCharacter {
         isGizmoLess ? 0 : (data?.pivotY ?? 0),
       );
 
-      if (role === "jaw") {
+      if (role === "mouth") {
         container.visible = false;
       }
 
@@ -299,7 +299,7 @@ export class CompositeCharacter {
 
     // 2. Head and its facial parts — attached to body
     const head = createPart("head", body);
-    createPart("jaw", head);
+    createPart("mouth", head);
 
     // Grouping Eye Left
     const eyeLeftGroup = new Container();
@@ -1012,8 +1012,8 @@ export class CompositeCharacter {
     if (this.isSpeaking === isSpeaking) return;
     this.isSpeaking = isSpeaking;
 
-    const jawContainer = this.partContainers.get("jaw");
-    if (!jawContainer) return;
+    const mouthContainer = this.partContainers.get("mouth");
+    if (!mouthContainer) return;
 
     this.speakingTimeline?.kill();
 
@@ -1021,16 +1021,16 @@ export class CompositeCharacter {
       // Create a 500ms show/hide cycle
       this.speakingTimeline = gsap.timeline({ repeat: -1 });
       this.speakingTimeline
-        .set(jawContainer, { visible: true })
+        .set(mouthContainer, { visible: true })
         .to({}, { duration: 0.25 })
-        .set(jawContainer, { visible: false })
+        .set(mouthContainer, { visible: false })
         .to({}, { duration: 0.25 });
 
       // Raise eyebrows while speaking
       this.setEyebrowsUp(true);
     } else {
-      // Ensure jaw is hidden when not speaking
-      jawContainer.visible = false;
+      // Ensure mouth is hidden when not speaking
+      mouthContainer.visible = false;
       this.speakingTimeline = null;
 
       // Lower eyebrows when silent

@@ -94,7 +94,7 @@ export function CharacterBuilderStudio() {
     "pupil-right",
   ].every((role) => currentCharacter?.parts.some((p) => p.partRole === role));
 
-  const hasRequiredSpeakingParts = ["head", "jaw"].every((role) =>
+  const hasRequiredSpeakingParts = ["head", "mouth"].every((role) =>
     currentCharacter?.parts.some((p) => p.partRole === role),
   );
 
@@ -923,7 +923,7 @@ export function CharacterBuilderStudio() {
                   )}
                   title={
                     !hasRequiredSpeakingParts
-                      ? "Place head and jaw to test speaking"
+                      ? "Place head and mouth to test speaking"
                       : ""
                   }
                 >

@@ -1,0 +1,5 @@
+ALTER TABLE "character_parts" ALTER COLUMN "part_role" SET DATA TYPE text;--> statement-breakpoint
+UPDATE "character_parts" SET "part_role" = 'mouth' WHERE "part_role" = 'jaw';--> statement-breakpoint
+DROP TYPE "public"."part_role";--> statement-breakpoint
+CREATE TYPE "public"."part_role" AS ENUM('body', 'head', 'mouth', 'eye-left', 'eye-right', 'pupil-left', 'pupil-right', 'eye-brow-left', 'eye-brow-right', 'eye-closed-left', 'eye-closed-right', 'arm-upper-left', 'arm-forearm-left', 'arm-hand-left', 'arm-upper-right', 'arm-forearm-right', 'arm-hand-right', 'leg-upper-left', 'leg-lower-left', 'leg-foot-left', 'leg-upper-right', 'leg-lower-right', 'leg-foot-right');--> statement-breakpoint
+ALTER TABLE "character_parts" ALTER COLUMN "part_role" SET DATA TYPE "public"."part_role" USING "part_role"::"public"."part_role";

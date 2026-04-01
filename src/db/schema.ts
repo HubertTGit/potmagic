@@ -60,7 +60,7 @@ export const users = pgTable("users", {
 export const partRoleEnum = pgEnum("part_role", [
   "body",
   "head",
-  "jaw",
+  "mouth",
   "eye-left",
   "eye-right",
   "pupil-left",
