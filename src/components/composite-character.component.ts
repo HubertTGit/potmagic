@@ -142,14 +142,20 @@ export class CompositeCharacter {
     defaultY: number;
   }> = [];
 
-  private isIKMode = false;
+  private ikState = {
+    left: { enabled: false, flipped: false },
+    right: { enabled: false, flipped: false },
+  };
   private static readonly ARM_CHAINS = {
     left: ["arm-upper-left", "arm-forearm-left", "arm-hand-left"],
     right: ["arm-upper-right", "arm-forearm-right", "arm-hand-right"],
   } as const;
 
   private ikOffset = { x: 0, y: 0 };
-  private ikFlip: number = 1;
+
+  private isAnyIKActive() {
+    return this.ikState.left.enabled || this.ikState.right.enabled;
+  }
 
   private boundingBoxGraphics: Map<string, Graphics> = new Map();
   private showBoundingBoxes = false;
@@ -436,6 +442,8 @@ export class CompositeCharacter {
   }
 
   private onPartGlobalPointerMove(e: FederatedPointerEvent) {
+    const anyIK = this.isAnyIKActive();
+
     // Gizmo handle repositioning (edit mode)
     if (this.movingGizmoHandle) {
       const {
@@ -537,20 +545,22 @@ export class CompositeCharacter {
     // IK for arms
     if (
       this.draggingRole &&
-      this.isIKMode &&
       this.draggingRole.includes("arm-hand")
     ) {
       const side = this.draggingRole.includes("left") ? "left" : "right";
-      const target = {
-        x: e.global.x + this.ikOffset.x,
-        y: e.global.y + this.ikOffset.y,
-      };
-      this.solveIK(side, target);
-      return;
+      if (this.ikState[side].enabled) {
+        const target = {
+          x: e.global.x + this.ikOffset.x,
+          y: e.global.y + this.ikOffset.y,
+        };
+        this.solveIK(side, target);
+        return;
+      }
     }
 
     // Part translation (interactive mode)
     if (this.draggingRole) {
+      if (anyIK) return; // Freeze manual part movement when IK is active
       const container = this.partContainers.get(this.draggingRole)!;
       if (!container.parent) return;
       const local = container.parent.toLocal(e.global);
@@ -715,7 +725,7 @@ export class CompositeCharacter {
             } else {
               this.draggingRole = role;
 
-              if (this.isIKMode && role.includes("arm-hand")) {
+              if (this.isAnyIKActive() && role.includes("arm-hand")) {
                 const worldPos = container.getGlobalPosition();
                 this.ikOffset = {
                   x: worldPos.x - e.global.x,
@@ -724,7 +734,10 @@ export class CompositeCharacter {
 
                 // Detect initial bend direction (flip) to avoid jump
                 const side = role.includes("left") ? "left" : "right";
-                const chain = CompositeCharacter.ARM_CHAINS[side];
+                const chain =
+                  CompositeCharacter.ARM_CHAINS[
+                    side as keyof typeof CompositeCharacter.ARM_CHAINS
+                  ];
                 const upper = this.partContainers.get(chain[0]);
                 const middle = this.partContainers.get(chain[1]);
                 const hand = this.partContainers.get(chain[2]);
@@ -740,7 +753,8 @@ export class CompositeCharacter {
                   };
                   // Cross product in 2D to find bend direction
                   const cross = v1.x * v2.y - v1.y * v2.x;
-                  this.ikFlip = cross >= 0 ? 1 : -1;
+                  // Store initial detected state so it matches current pose
+                  this.ikState[side].flipped = cross >= 0;
                 }
               }
 
@@ -821,11 +835,22 @@ export class CompositeCharacter {
     }
   }
 
-  setIKMode(enabled: boolean) {
-    this.isIKMode = enabled;
+  setIKState(state: {
+    left: { enabled: boolean; flipped: boolean };
+    right: { enabled: boolean; flipped: boolean };
+  }) {
+    this.ikState = state;
     // Re-sync all gizmos to show/hide based on IK
-    for (const [role, group] of this.gizmoGroups) {
-      if (!this.textures.has(role)) continue;
+    for (const [role] of this.partContainers) {
+      this.updateGizmoVisibilitiesForRole(role);
+    }
+  }
+
+  setIKMode(enabled: boolean) {
+    this.ikState.left.enabled = enabled;
+    this.ikState.right.enabled = enabled;
+    // Re-sync all gizmos to show/hide based on IK
+    for (const [role] of this.partContainers) {
       this.updateGizmoVisibilitiesForRole(role);
     }
   }
@@ -834,29 +859,45 @@ export class CompositeCharacter {
     const group = this.gizmoGroups.get(role);
     if (!group) return;
 
-    const isArmPart = role.includes("arm-");
     const isHand = role.includes("-hand-");
     const refs = this.gizmoHandleRefs.filter((r) => r.role === role);
 
-    if (this.isIKMode && isArmPart) {
-      if (isHand) {
-        // Only show translate handle for hand in IK mode
-        for (const ref of refs) {
+    const side = role.includes("-left") ? "left" : "right";
+    const ikEnabled = this.ikState[side].enabled;
+
+    const isArmSegment = role.includes("arm-upper") || role.includes("arm-forearm");
+
+    const anyIK = this.isAnyIKActive();
+
+    // Apply visibility rules to each handle ref
+    for (const ref of refs) {
+      if (ikEnabled) {
+        if (isHand) {
+          // In IK mode, hand ONLY shows translate (the IK handle)
           ref.handle.visible = ref.type === "translate";
+        } else if (isArmSegment) {
+          // In IK mode, hide rotation/translation for upper/forearm of THIS arm
+          ref.handle.visible = false;
+        } else {
+          // Other parts (for the ACTIVE IK SIDE) - should we hide their translate too? 
+          // Usually a part belongs to only one side or 'none'. 
+          // For simplicity, we'll handle global IK state below.
+          ref.handle.visible = true;
         }
-        group.visible = true;
       } else {
-        // Hide all handles for upper/forearm in IK mode
-        group.visible = false;
-      }
-    } else {
-      // Normal mode: restore rotation handles for arms/hands
-      group.visible = true;
-      for (const ref of refs) {
+        // Regular mode for this role
         if (isHand) {
           ref.handle.visible = ref.type === "rotate";
         } else {
           ref.handle.visible = true;
+        }
+      }
+
+      // GLOBAL OVERRIDE: If ANY IK is active, hide ALL translate handles except for the active IK hand
+      if (anyIK && ref.type === "translate") {
+        const sideEnabled = this.ikState[side].enabled;
+        if (!(isHand && sideEnabled)) {
+          ref.handle.visible = false;
         }
       }
     }
@@ -1117,8 +1158,9 @@ export class CompositeCharacter {
       alpha = Math.acos(Math.max(-1, Math.min(1, cosAlpha)));
     }
 
-    // Use detected initial bend direction (from pointerdown)
-    const flip = this.ikFlip * (side === "right" ? -1 : 1);
+    // Determine bend direction
+    const sideState = this.ikState[side];
+    const flip = (sideState.flipped ? 1 : -1) * (side === "right" ? -1 : 1);
 
     // Absolute target angles for the bone vectors in parent space
     const thetaAB = angleToTarget - alpha * flip;

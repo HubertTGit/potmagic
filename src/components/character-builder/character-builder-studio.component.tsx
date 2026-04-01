@@ -69,7 +69,10 @@ export function CharacterBuilderStudio() {
   const [previewSpeaking, setPreviewSpeaking] = useState(false);
   const [previewBlinking, setPreviewBlinking] = useState(false);
   const [previewEyebrows, setPreviewEyebrows] = useState(false);
-  const [previewIKArms, setPreviewIKArms] = useState(false);
+  const [ikState, setIkState] = useState({
+    left: { enabled: false, flipped: false },
+    right: { enabled: false, flipped: false },
+  });
 
   const { data: session } = authClient.useSession();
   const isDirector = session?.user.role === "director";
@@ -141,9 +144,9 @@ export function CharacterBuilderStudio() {
   // Sync IK state to pixi
   useEffect(() => {
     if (compositeRef.current) {
-      compositeRef.current.setIKMode(previewIKArms);
+      compositeRef.current.setIKState(ikState);
     }
-  }, [previewIKArms]);
+  }, [ikState]);
 
   // Mutations
   const upsertPartMutation = useMutation({
@@ -443,8 +446,8 @@ export function CharacterBuilderStudio() {
     if (previewSpeaking) {
       composite.setSpeaking(true);
     }
-    if (previewIKArms) {
-      composite.setIKMode(true);
+    if (ikState.left.enabled || ikState.right.enabled) {
+      composite.setIKState(ikState);
     }
     appRef.current.stage.addChild(composite.container);
   };
@@ -783,11 +786,24 @@ export function CharacterBuilderStudio() {
 
               {/* Control toggles — top-right of canvas */}
               <div className="absolute top-3 right-3 flex flex-col gap-2">
-                <label className="border-base-300 bg-base-100/80 hover:bg-base-200/80 flex min-w-[124px] cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors">
+                <label
+                  className={cn(
+                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
+                    ikState.left.enabled || ikState.right.enabled
+                      ? "opacity-40 grayscale cursor-not-allowed"
+                      : "hover:bg-base-200/80 cursor-pointer",
+                  )}
+                  title={
+                    ikState.left.enabled || ikState.right.enabled
+                      ? "Disable IK to edit gizmo anchors"
+                      : ""
+                  }
+                >
                   <input
                     type="checkbox"
                     className="checkbox checkbox-xs checkbox-primary"
                     checked={gizmoEditMode}
+                    disabled={ikState.left.enabled || ikState.right.enabled}
                     onChange={(e) =>
                       handleGizmoEditModeChange(e.target.checked)
                     }
@@ -805,15 +821,84 @@ export function CharacterBuilderStudio() {
                   Show bounds
                 </label>
 
-                <label className="border-base-300 bg-base-100/80 hover:bg-base-200/80 flex min-w-[124px] cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors">
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-xs checkbox-accent"
-                    checked={previewIKArms}
-                    onChange={(e) => setPreviewIKArms(e.target.checked)}
-                  />
-                  IK Arms
-                </label>
+                <div className="flex flex-col gap-1.5 p-1">
+                  {/* Left Arm IK */}
+                  <div className="border-base-300 bg-base-100/80 flex min-w-[140px] items-center justify-between gap-1 rounded-lg border px-2 py-1.5 backdrop-blur-sm">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        className="checkbox checkbox-xs checkbox-accent"
+                        checked={ikState.left.enabled}
+                        onChange={(e) =>
+                          setIkState((prev) => ({
+                            ...prev,
+                            left: { ...prev.left, enabled: e.target.checked },
+                          }))
+                        }
+                      />
+                      <span className="text-[10px] font-bold tracking-tight uppercase">
+                        IK Left
+                      </span>
+                    </div>
+                    {ikState.left.enabled && (
+                      <button
+                        className={cn(
+                          "btn btn-xs btn-ghost px-1 h-5 min-h-0",
+                          ikState.left.flipped && "text-accent",
+                        )}
+                        title="Flip Elbow"
+                        onClick={() =>
+                          setIkState((prev) => ({
+                            ...prev,
+                            left: { ...prev.left, flipped: !prev.left.flipped },
+                          }))
+                        }
+                      >
+                        <Drama className="size-3" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Right Arm IK */}
+                  <div className="border-base-300 bg-base-100/80 flex min-w-[140px] items-center justify-between gap-1 rounded-lg border px-2 py-1.5 backdrop-blur-sm">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        className="checkbox checkbox-xs checkbox-accent"
+                        checked={ikState.right.enabled}
+                        onChange={(e) =>
+                          setIkState((prev) => ({
+                            ...prev,
+                            right: { ...prev.right, enabled: e.target.checked },
+                          }))
+                        }
+                      />
+                      <span className="text-[10px] font-bold tracking-tight uppercase">
+                        IK Right
+                      </span>
+                    </div>
+                    {ikState.right.enabled && (
+                      <button
+                        className={cn(
+                          "btn btn-xs btn-ghost px-1 h-5 min-h-0",
+                          ikState.right.flipped && "text-accent",
+                        )}
+                        title="Flip Elbow"
+                        onClick={() =>
+                          setIkState((prev) => ({
+                            ...prev,
+                            right: {
+                              ...prev.right,
+                              flipped: !prev.right.flipped,
+                            },
+                          }))
+                        }
+                      >
+                        <Drama className="size-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
 
                 <label
                   className={cn(
