@@ -26,6 +26,7 @@ import {
   CheckCircle2,
   CircleX,
 } from "lucide-react";
+import { ConfirmModal } from "@/components/confirm-modal";
 import type { Application } from "pixi.js";
 import {
   CompositeCharacter,
@@ -68,6 +69,7 @@ export function CharacterBuilderStudio() {
   const [previewPupils, setPreviewPupils] = useState(false);
   const [previewSpeaking, setPreviewSpeaking] = useState(false);
   const [previewBlinking, setPreviewBlinking] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [ikState, setIkState] = useState({
     left: { enabled: false, flipped: false },
     right: { enabled: false, flipped: false },
@@ -1213,15 +1215,7 @@ export function CharacterBuilderStudio() {
               </button>
 
               <button
-                onClick={() => {
-                  if (
-                    confirm(
-                      "Permanently delete this part's photos from the server?",
-                    )
-                  ) {
-                    handleRemovePart();
-                  }
-                }}
+                onClick={() => setIsDeleteConfirmOpen(true)}
                 disabled={
                   deletePropMutation.isPending ||
                   (!currentCharacter?.parts?.find(
@@ -1236,12 +1230,26 @@ export function CharacterBuilderStudio() {
               >
                 {!deletePropMutation.isPending && <Trash2 className="size-3" />}
                 {deletePropMutation.isPending
-                  ? "Deleting..."
-                  : "Delete photo permanently"}
+                  ? t("action.deleting")
+                  : t("characterBuilder.deleteImage")}
               </button>
             </div>
           </div>
         </aside>
+
+        <ConfirmModal
+          isOpen={isDeleteConfirmOpen}
+          title={t("characterBuilder.deleteImage")}
+          message={t("characterBuilder.deleteImageConfirm")}
+          confirmText={t("action.delete")}
+          confirmButtonClass="btn-error"
+          isPending={deletePropMutation.isPending}
+          onConfirm={async () => {
+            await handleRemovePart();
+            setIsDeleteConfirmOpen(false);
+          }}
+          onCancel={() => setIsDeleteConfirmOpen(false)}
+        />
       </div>
     </div>
   );

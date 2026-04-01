@@ -686,5 +686,7 @@
   "characterBuilder.bodyParts": "Body Parts",
   "characterBuilder.activePart": "Active Part",
   "characterBuilder.unplaced": "Unplace from canvas",
-  "characterBuilder.removePart": "Remove part?"
+  "characterBuilder.removePart": "Remove part?",
+  "characterBuilder.deleteImage": "Delete image",
+  "characterBuilder.deleteImageConfirm": "Are you sure you want to permanently delete this part's image? This action cannot be undone."
 }

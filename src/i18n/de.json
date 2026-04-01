@@ -620,5 +620,7 @@
   "characterBuilder.bodyParts": "Körperteile",
   "characterBuilder.activePart": "Aktives Teil",
   "characterBuilder.unplaced": "Von der Leinwand entfernen",
-  "characterBuilder.removePart": "Teil entfernen?"
+  "characterBuilder.removePart": "Teil entfernen?",
+  "characterBuilder.deleteImage": "Bild löschen",
+  "characterBuilder.deleteImageConfirm": "Bist du sicher, dass du das Bild dieses Teils dauerhaft löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden."
 }
