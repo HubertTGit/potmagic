@@ -1118,7 +1118,7 @@ export class CompositeCharacter {
     }
 
     // Use detected initial bend direction (from pointerdown)
-    const flip = this.ikFlip;
+    const flip = this.ikFlip * (side === "right" ? -1 : 1);
 
     // Absolute target angles for the bone vectors in parent space
     const thetaAB = angleToTarget - alpha * flip;
