@@ -560,7 +560,12 @@ export class CompositeCharacter {
 
     // Part translation (interactive mode)
     if (this.draggingRole) {
-      if (anyIK) return; // Freeze manual part movement when IK is active
+      // ONLY freeze manual movement for arm parts whose side has IK enabled.
+      // Other parts (body, head, legs, non-IK arms) remain draggable.
+      const isArmPart = this.draggingRole.includes("arm-");
+      const side = this.draggingRole.includes("left") ? "left" : "right";
+      if (isArmPart && this.ikState[side].enabled) return;
+
       const container = this.partContainers.get(this.draggingRole)!;
       if (!container.parent) return;
       const local = container.parent.toLocal(e.global);
@@ -867,7 +872,6 @@ export class CompositeCharacter {
 
     const isArmSegment = role.includes("arm-upper") || role.includes("arm-forearm");
 
-    const anyIK = this.isAnyIKActive();
 
     // Apply visibility rules to each handle ref
     for (const ref of refs) {
@@ -893,13 +897,6 @@ export class CompositeCharacter {
         }
       }
 
-      // GLOBAL OVERRIDE: If ANY IK is active, hide ALL translate handles except for the active IK hand
-      if (anyIK && ref.type === "translate") {
-        const sideEnabled = this.ikState[side].enabled;
-        if (!(isHand && sideEnabled)) {
-          ref.handle.visible = false;
-        }
-      }
     }
   }
 
@@ -1028,10 +1025,16 @@ export class CompositeCharacter {
         .to({}, { duration: 0.25 })
         .set(jawContainer, { visible: false })
         .to({}, { duration: 0.25 });
+
+      // Raise eyebrows while speaking
+      this.setEyebrowsUp(true);
     } else {
       // Ensure jaw is hidden when not speaking
       jawContainer.visible = false;
       this.speakingTimeline = null;
+
+      // Lower eyebrows when silent
+      this.setEyebrowsUp(false);
     }
   }
 
