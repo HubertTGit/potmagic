@@ -151,7 +151,6 @@ export class CompositeCharacter {
   private ikOffset = { x: 0, y: 0 };
 
   private bodyHeadRotationEnabled = false;
-  private bhButton: Container | null = null;
   private bhHandleGroup: Container | null = null;
   private bhHandle: Graphics | null = null;
   private bhValue = 0; // -1 to 1 normalized
@@ -395,6 +394,11 @@ export class CompositeCharacter {
         sprite.eventMode = "static";
         sprite.cursor = "move";
         sprite.on("pointerdown", (e) => this.onPartPointerDown(e, role));
+
+        if (role === "head") {
+          sprite.on("pointerover", () => this.onHeadHover(true));
+          sprite.on("pointerout", () => this.onHeadHover(false));
+        }
       }
 
       this.buildGizmos();
@@ -888,6 +892,11 @@ export class CompositeCharacter {
       // Only show gizmo group if the part actually has a texture placed
       const hasTexture = this.textures.has(role);
       group.alpha = enabled && hasTexture ? 1 : 0;
+
+      // Hide Turn Mode slider when editing gizmos
+      if (enabled && this.bhHandleGroup) {
+        this.bhHandleGroup.visible = false;
+      }
 
       const container = this.partContainers.get(role);
       const refs = this.gizmoHandleRefs.filter((r) => r.role === role);
@@ -1410,50 +1419,14 @@ export class CompositeCharacter {
 
   private setupBodyHeadRotationUI() {
     const head = this.partContainers.get("head");
-    if (!head || this.bhButton) return;
+    if (!head || this.bhHandleGroup) return;
 
-    // 1. Toggle Button
-    const btn = new Container();
-    btn.label = "bh-toggle-btn";
-    btn.eventMode = "static";
-    btn.cursor = "pointer";
-
-    const bg = new Graphics();
-    bg.roundRect(-45, -15, 90, 30, 8)
-      .fill({ color: 0x1e293b, alpha: 0.9 })
-      .stroke({ color: 0x3b82f6, width: 2 });
-
-    const label = new PIXI.Text({
-      text: "TURN MODE",
-      style: {
-        fill: 0xffffff,
-        fontSize: 10,
-        fontWeight: "bold",
-        fontFamily: "Lexend",
-        letterSpacing: 1,
-      },
-    });
-    label.anchor.set(0.5);
-
-    btn.addChild(bg, label);
-
-    // Position it above the head (further up)
-    btn.x = head.x;
-    btn.y = head.y - 180;
-
-    btn.on("pointerdown", (e) => {
-      e.stopPropagation();
-      this.toggleBodyHeadRotation();
-    });
-
-    this.container.addChild(btn);
-    this.bhButton = btn;
-
-    // 2. Control Handle Group
+    // Control Handle Group (Slider)
     this.bhHandleGroup = new Container();
     this.bhHandleGroup.label = "bh-handle-group";
     this.bhHandleGroup.visible = false;
-    this.container.addChild(this.bhHandleGroup);
+    this.bhHandleGroup.alpha = 0;
+    head.addChild(this.bhHandleGroup);
 
     // Track for guide
     const track = new Graphics();
@@ -1462,11 +1435,11 @@ export class CompositeCharacter {
     const handle = this.makeTranslateHandle();
     handle.eventMode = "static";
     handle.cursor = "ew-resize";
-    handle.scale.set(0.8); // Slightly smaller
+    handle.scale.set(0.8);
     this.bhHandleGroup.addChild(handle);
     this.bhHandle = handle;
 
-    handle.on("pointerdown", (e) => {
+    handle.on("pointerdown", (e: FederatedPointerEvent) => {
       e.stopPropagation();
       this.bhDragging = true;
     });
@@ -1480,15 +1453,14 @@ export class CompositeCharacter {
     if (!headContainer || !headSprite || !this.bhHandleGroup) return;
 
     const bounds = headSprite.getBounds();
-    const headWidth = bounds.width / Math.abs(this.container.scale.x);
+    // Use local texture dimensions for range to avoid scale issues
+    const headWidth = headSprite.texture.width;
     this.bhHandleRange = headWidth * 0.5;
 
-    // Position handle group right above head bounding box
-    this.bhHandleGroup.x = headContainer.x;
-
-    // Get head top in container space
+    // Position handle group right above head sprite within headContainer
+    this.bhHandleGroup.x = 0;
     const topOffset = headSprite.anchor.y * headSprite.texture.height;
-    this.bhHandleGroup.y = headContainer.y - topOffset - 25;
+    this.bhHandleGroup.y = -topOffset - 25;
 
     // Redraw track
     const track = this.bhHandleGroup.getChildAt(0) as Graphics;
@@ -1501,33 +1473,35 @@ export class CompositeCharacter {
     }
   }
 
-  private toggleBodyHeadRotation() {
-    this.bodyHeadRotationEnabled = !this.bodyHeadRotationEnabled;
+  private onHeadHover(isOver: boolean) {
+    if (!this.bodyHeadRotationEnabled || this.gizmoEditMode) return;
+    if (this.bhHandleGroup) {
+      this.bhHandleGroup.visible = isOver;
+      this.bhHandleGroup.alpha = isOver ? 1 : 0;
+      if (isOver) {
+        this.updateBHUIPlacement();
+      }
+    }
+  }
+
+  setTurnMode(enabled: boolean) {
+    this.bodyHeadRotationEnabled = enabled;
 
     if (this.bhHandleGroup) {
-      this.bhHandleGroup.visible = this.bodyHeadRotationEnabled;
-      this.updateBHUIPlacement();
-
-      if (this.bodyHeadRotationEnabled) {
+      // Hide immediately when disabled, but don't show immediately when enabled 
+      // (waiting for hover)
+      if (!enabled) {
+        this.bhHandleGroup.visible = false;
+        // Revert rotations if disabling
+        this.bhValue = 0;
+        this.applyBodyHeadRotation();
+      } else {
         // Capture initial rotations
         this.bhInitialBodyRot = this.partContainers.get("body")?.rotation ?? 0;
         this.bhInitialHeadRot = this.partContainers.get("head")?.rotation ?? 0;
-
-        // Reset handle and value
         if (this.bhHandle) this.bhHandle.x = 0;
         this.bhValue = 0;
-
-        // Visual feedback for button
-        const bg = this.bhButton?.getChildAt(0) as Graphics;
-        if (bg) bg.stroke({ color: 0xf59e0b, width: 3 }); // Gold stroke when active
-      } else {
-        // Revert rotations
-        this.bhValue = 0;
-        this.applyBodyHeadRotation();
-
-        // Reset button style
-        const bg = this.bhButton?.getChildAt(0) as Graphics;
-        if (bg) bg.stroke({ color: 0x3b82f6, width: 2 });
+        this.updateBHUIPlacement();
       }
     }
   }

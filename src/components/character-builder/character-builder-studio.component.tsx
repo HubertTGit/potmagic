@@ -70,6 +70,7 @@ export function CharacterBuilderStudio() {
   const [previewSpeaking, setPreviewSpeaking] = useState(false);
   const [previewMouth, setPreviewMouth] = useState(false);
   const [previewBlinking, setPreviewBlinking] = useState(false);
+  const [previewTurnMode, setPreviewTurnMode] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [ikState, setIkState] = useState({
     left: { enabled: false, flipped: true },
@@ -113,6 +114,13 @@ export function CharacterBuilderStudio() {
       compositeRef.current.setAutoBlink(previewBlinking);
     }
   }, [previewBlinking]);
+
+  // Sync turn mode state to pixi
+  useEffect(() => {
+    if (compositeRef.current) {
+      (compositeRef.current as any).setTurnMode?.(previewTurnMode);
+    }
+  }, [previewTurnMode]);
 
   // Reset pupil preview if required parts are removed
   useEffect(() => {
@@ -1001,6 +1009,31 @@ export function CharacterBuilderStudio() {
                     onChange={(e) => setPreviewBlinking(e.target.checked)}
                   />
                   Auto Blink
+                </label>
+
+                <label
+                  className={cn(
+                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
+                    currentCharacter?.parts.some((p) => p.partRole === "body")
+                      ? "hover:bg-base-200/80 cursor-pointer"
+                      : "cursor-not-allowed opacity-50",
+                  )}
+                  title={
+                    !currentCharacter?.parts.some((p) => p.partRole === "body")
+                      ? "Place body and head to test turn mode"
+                      : ""
+                  }
+                >
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-xs checkbox-accent"
+                    checked={previewTurnMode}
+                    disabled={
+                      !currentCharacter?.parts.some((p) => p.partRole === "body")
+                    }
+                    onChange={(e) => setPreviewTurnMode(e.target.checked)}
+                  />
+                  Turn Mode
                 </label>
               </div>
 
