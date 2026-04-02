@@ -10,7 +10,7 @@ import {
   unique,
   check,
 } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 
 export const roleEnum = pgEnum("role", ["actor", "director"]);
 export const storyStatusEnum = pgEnum("story_status", [
@@ -401,4 +401,46 @@ export const characterAnimalParts = pgTable(
   (table) => [
     unique("character_animal_parts_unique").on(table.characterId, table.partRole),
   ],
+);
+
+export const humanMouthVariations = pgTable(
+  "human_mouth_variation",
+  {
+    id: text("id").primaryKey(),
+    propId: text("prop_id")
+      .notNull()
+      .references(() => props.id, { onDelete: "cascade" }),
+    variationPropId: text("variation_prop_id")
+      .notNull()
+      .references(() => props.id, { onDelete: "cascade" }),
+    label: text("label").notNull(),
+    imageUrl: text("image_url").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("human_mouth_variation_prop_id_idx").on(table.propId)],
+);
+
+export const characterHumanPartsRelations = relations(
+  characterHumanParts,
+  ({ many }) => ({
+    mouthVariations: many(humanMouthVariations),
+  }),
+);
+
+export const humanMouthVariationsRelations = relations(
+  humanMouthVariations,
+  ({ one }) => ({
+    part: one(characterHumanParts, {
+      fields: [humanMouthVariations.propId],
+      references: [characterHumanParts.propId],
+    }),
+    baseProp: one(props, {
+      fields: [humanMouthVariations.propId],
+      references: [props.id],
+    }),
+    variationProp: one(props, {
+      fields: [humanMouthVariations.variationPropId],
+      references: [props.id],
+    }),
+  }),
 );
