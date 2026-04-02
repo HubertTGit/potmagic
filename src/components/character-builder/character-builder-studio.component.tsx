@@ -363,6 +363,7 @@ export function CharacterBuilderStudio() {
     const y = ((e.clientY - rect.top) / rect.height) * 800;
 
     compositeRef.current.updatePupils(x, y);
+    compositeRef.current.handleGlobalHover({ x, y });
   };
 
   // PixiJS Initialization

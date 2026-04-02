@@ -435,6 +435,11 @@ export class CompositeCharacter {
         headSprite.on("pointerout", () => this.onHeadHover(false));
       }
 
+      if (this.bhHitArea && canDrag) {
+        this.bhHitArea.on("pointerover", () => this.onHeadHover(true));
+        this.bhHitArea.on("pointerout", () => this.onHeadHover(false));
+      }
+
       // Re-enable hand interactivity for posing (IK is on by default in constructor)
       const handRoles = ["arm-hand-left", "arm-hand-right"];
       for (const role of handRoles) {
@@ -1474,6 +1479,8 @@ export class CompositeCharacter {
     this.bhHandleGroup.label = "bh-handle-group";
     this.bhHandleGroup.visible = false;
     this.bhHandleGroup.alpha = 0;
+    this.bhHandleGroup.zIndex = 500;
+    torso.sortableChildren = true;
     torso.addChild(this.bhHandleGroup);
 
     // Slider Container (The interactive "unit" containing track + handle)
@@ -1667,5 +1674,30 @@ export class CompositeCharacter {
     this.props.onChange?.("head", {
       rotation: head.rotation * (180 / Math.PI),
     });
+  }
+
+  handleGlobalHover(globalPoint: { x: number; y: number }) {
+    if (
+      !this.bodyHeadRotationEnabled ||
+      !this.bhHandleGroup ||
+      this.gizmoEditMode
+    )
+      return;
+
+    // Check if point is inside head sprite, hit area, or the slider itself
+    const headSprite = this.partSprites.get("head");
+    const isOverHead =
+      headSprite?.getBounds().containsPoint(globalPoint.x, globalPoint.y) ??
+      false;
+    const isOverHitArea =
+      this.bhHitArea?.getBounds().containsPoint(globalPoint.x, globalPoint.y) ??
+      false;
+    const isOverSlider =
+      this.bhSliderContainer
+        ?.getBounds()
+        .containsPoint(globalPoint.x, globalPoint.y) ?? false;
+
+    const isOver = isOverHead || isOverHitArea || isOverSlider;
+    this.onHeadHover(isOver);
   }
 }
