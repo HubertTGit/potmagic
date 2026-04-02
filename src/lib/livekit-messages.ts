@@ -6,9 +6,12 @@ export interface PropMoveMessage {
   rotation: number;
   scaleX: number;
   indexZ: number;
-  bhValue?: number;
-  ikTargetL?: { x: number; y: number };
-  ikTargetR?: { x: number; y: number };
+  rotationBody?: number;
+  rotationHead?: number;
+  rotationArmUpperL?: number;
+  rotationArmForearmL?: number;
+  rotationArmUpperR?: number;
+  rotationArmForearmR?: number;
   pupilPos?: { x: number; y: number };
 }
 

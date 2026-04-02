@@ -1339,29 +1339,38 @@ export class CompositeCharacter {
     this.applyPupilMovement(nx, ny);
   }
 
-  applyRemoteMove(msg: PropMoveMessage & { pupilPos?: { x: number; y: number } }) {
+  applyRemoteMove(msg: PropMoveMessage) {
     this.container.x = msg.x;
     this.container.y = msg.y;
     this.container.rotation = msg.rotation * (Math.PI / 180);
     this.container.scale.x = msg.scaleX;
 
-    if (msg.bhValue !== undefined) {
-      this.bhValue = msg.bhValue;
-      if (this.bhInitialBodyRot === 0 && this.bhInitialHeadRot === 0) {
-        this.bhInitialBodyRot = this.partContainers.get("body")?.rotation ?? 0;
-        this.bhInitialHeadRot = this.partContainers.get("head")?.rotation ?? 0;
-      }
-      this.applyBodyHeadRotation();
+    // Apply specific part rotations
+    if (msg.rotationBody !== undefined) {
+      const body = this.partContainers.get("body");
+      if (body) body.rotation = msg.rotationBody * (Math.PI / 180);
+    }
+    if (msg.rotationHead !== undefined) {
+      const head = this.partContainers.get("head");
+      if (head) head.rotation = msg.rotationHead * (Math.PI / 180);
     }
 
-    // Apply remote IK targets
-    if (msg.ikTargetL) {
-      this.ikState.left.target = msg.ikTargetL;
-      this.solveIK("left", msg.ikTargetL);
+    // Apply Arm rotations (FK over the wire)
+    if (msg.rotationArmUpperL !== undefined) {
+      const upper = this.partContainers.get("arm-upper-left");
+      if (upper) upper.rotation = msg.rotationArmUpperL * (Math.PI / 180);
     }
-    if (msg.ikTargetR) {
-      this.ikState.right.target = msg.ikTargetR;
-      this.solveIK("right", msg.ikTargetR);
+    if (msg.rotationArmForearmL !== undefined) {
+      const forearm = this.partContainers.get("arm-forearm-left");
+      if (forearm) forearm.rotation = msg.rotationArmForearmL * (Math.PI / 180);
+    }
+    if (msg.rotationArmUpperR !== undefined) {
+      const upper = this.partContainers.get("arm-upper-right");
+      if (upper) upper.rotation = msg.rotationArmUpperR * (Math.PI / 180);
+    }
+    if (msg.rotationArmForearmR !== undefined) {
+      const forearm = this.partContainers.get("arm-forearm-right");
+      if (forearm) forearm.rotation = msg.rotationArmForearmR * (Math.PI / 180);
     }
 
     // Apply remote gaze
@@ -1377,6 +1386,14 @@ export class CompositeCharacter {
     if (!immediate && now - this.lastSendTime < 30) return;
     this.lastSendTime = now;
 
+    // Get current part rotations to broadcast
+    const body = this.partContainers.get("body");
+    const head = this.partContainers.get("head");
+    const upperL = this.partContainers.get("arm-upper-left");
+    const forearmL = this.partContainers.get("arm-forearm-left");
+    const upperR = this.partContainers.get("arm-upper-right");
+    const forearmR = this.partContainers.get("arm-forearm-right");
+
     const msg: PropMoveMessage = {
       type: "prop:move",
       castId,
@@ -1385,16 +1402,21 @@ export class CompositeCharacter {
       rotation: this.container.rotation * (180 / Math.PI),
       scaleX: this.container.scale.x,
       indexZ: 0,
-      bhValue: this.bhValue,
     };
 
-    // Include IK targets if they are currently being posed
-    if (this.ikState.left.enabled && this.ikState.left.target) {
-      msg.ikTargetL = this.ikState.left.target;
-    }
-    if (this.ikState.right.enabled && this.ikState.right.target) {
-      msg.ikTargetR = this.ikState.right.target;
-    }
+    // Body/Head (Turn Mode result)
+    if (body) msg.rotationBody = body.rotation * (180 / Math.PI);
+    if (head) msg.rotationHead = head.rotation * (180 / Math.PI);
+
+    // Left Arm (IK result)
+    if (upperL) msg.rotationArmUpperL = upperL.rotation * (180 / Math.PI);
+    if (forearmL)
+      msg.rotationArmForearmL = forearmL.rotation * (180 / Math.PI);
+
+    // Right Arm (IK result)
+    if (upperR) msg.rotationArmUpperR = upperR.rotation * (180 / Math.PI);
+    if (forearmR)
+      msg.rotationArmForearmR = forearmR.rotation * (180 / Math.PI);
 
     // Include gaze if we have tracked it locally
     if (this.pupilNx !== 0 || this.pupilNy !== 0) {
