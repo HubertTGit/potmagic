@@ -139,9 +139,16 @@ export class CompositeCharacter {
     defaultY: number;
   }> = [];
 
-  private ikState = {
-    left: { enabled: false, flipped: true },
-    right: { enabled: false, flipped: true },
+  get canDrag() {
+    return this.props.canDrag;
+  }
+
+  private ikState: {
+    left: { enabled: boolean; flipped: boolean; target: { x: number; y: number } | null };
+    right: { enabled: boolean; flipped: boolean; target: { x: number; y: number } | null };
+  } = {
+    left: { enabled: false, flipped: true, target: null },
+    right: { enabled: false, flipped: true, target: null },
   };
   private static readonly ARM_CHAINS = {
     left: ["arm-upper-left", "arm-forearm-left", "arm-hand-left"],
@@ -161,6 +168,8 @@ export class CompositeCharacter {
   private bhHandleRange = 100; // Half-width of movement area
   private bhSliderContainer: Container | null = null;
   private bhSliderFixedPos: { x: number; y: number } | null = null;
+  private pupilNx = 0;
+  private pupilNy = 0;
 
   private isAnyIKActive() {
     return this.ikState.left.enabled || this.ikState.right.enabled;
@@ -679,6 +688,7 @@ export class CompositeCharacter {
           y: e.global.y + this.ikOffset.y,
         };
         this.solveIK(side, target);
+        this.publishMove();
         return;
       }
     }
@@ -951,7 +961,10 @@ export class CompositeCharacter {
     left: { enabled: boolean; flipped: boolean };
     right: { enabled: boolean; flipped: boolean };
   }) {
-    this.ikState = state;
+    this.ikState = {
+      left: { ...state.left, target: this.ikState.left.target },
+      right: { ...state.right, target: this.ikState.right.target },
+    };
     // Re-sync all gizmos to show/hide based on IK
     for (const [role] of this.partContainers) {
       this.updateGizmoVisibilitiesForRole(role);
@@ -1188,6 +1201,18 @@ export class CompositeCharacter {
         (headBounds.height / 2);
     }
 
+    this.applyPupilMovement(nx, ny);
+
+    // Sync gaze over LiveKit
+    if (this.props.canDrag) {
+      this.publishMove();
+    }
+  }
+
+  private applyPupilMovement(nx: number, ny: number) {
+    this.pupilNx = nx;
+    this.pupilNy = ny;
+
     const updatePupil = (pupilRole: string, eyeRole: string) => {
       const pupilContainer = this.partContainers.get(pupilRole);
       const pupilSprite = this.partSprites.get(pupilRole);
@@ -1230,6 +1255,7 @@ export class CompositeCharacter {
     side: "left" | "right",
     targetGlobal: { x: number; y: number },
   ) {
+    this.ikState[side].target = targetGlobal;
     const chain = CompositeCharacter.ARM_CHAINS[side];
     const upperRole = chain[0];
     const middleRole = chain[1];
@@ -1309,7 +1335,11 @@ export class CompositeCharacter {
     });
   }
 
-  applyRemoteMove(msg: PropMoveMessage) {
+  updatePupilsWithNormalized(nx: number, ny: number) {
+    this.applyPupilMovement(nx, ny);
+  }
+
+  applyRemoteMove(msg: PropMoveMessage & { pupilPos?: { x: number; y: number } }) {
     this.container.x = msg.x;
     this.container.y = msg.y;
     this.container.rotation = msg.rotation * (Math.PI / 180);
@@ -1317,12 +1347,26 @@ export class CompositeCharacter {
 
     if (msg.bhValue !== undefined) {
       this.bhValue = msg.bhValue;
-      // Capture rotations if they aren't captured yet (usually for stage viewers)
       if (this.bhInitialBodyRot === 0 && this.bhInitialHeadRot === 0) {
         this.bhInitialBodyRot = this.partContainers.get("body")?.rotation ?? 0;
         this.bhInitialHeadRot = this.partContainers.get("head")?.rotation ?? 0;
       }
       this.applyBodyHeadRotation();
+    }
+
+    // Apply remote IK targets
+    if (msg.ikTargetL) {
+      this.ikState.left.target = msg.ikTargetL;
+      this.solveIK("left", msg.ikTargetL);
+    }
+    if (msg.ikTargetR) {
+      this.ikState.right.target = msg.ikTargetR;
+      this.solveIK("right", msg.ikTargetR);
+    }
+
+    // Apply remote gaze
+    if (msg.pupilPos) {
+      this.applyPupilMovement(msg.pupilPos.x, msg.pupilPos.y);
     }
   }
 
@@ -1343,6 +1387,20 @@ export class CompositeCharacter {
       indexZ: 0,
       bhValue: this.bhValue,
     };
+
+    // Include IK targets if they are currently being posed
+    if (this.ikState.left.enabled && this.ikState.left.target) {
+      msg.ikTargetL = this.ikState.left.target;
+    }
+    if (this.ikState.right.enabled && this.ikState.right.target) {
+      msg.ikTargetR = this.ikState.right.target;
+    }
+
+    // Include gaze if we have tracked it locally
+    if (this.pupilNx !== 0 || this.pupilNy !== 0) {
+      msg.pupilPos = { x: this.pupilNx, y: this.pupilNy };
+    }
+
     room.localParticipant.publishData(encoder.encode(JSON.stringify(msg)), {
       reliable: false,
     });

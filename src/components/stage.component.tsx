@@ -385,7 +385,7 @@ export const StageComponent = React.forwardRef<
     const onMove = (e: any) => {
       // Find all composite characters and update their pupils and Turn Mode hover state
       for (const prop of propsRef.current.values()) {
-        if (prop instanceof CompositeCharacter) {
+        if (prop instanceof CompositeCharacter && prop.canDrag) {
           prop.updatePupils(e.global.x, e.global.y);
           prop.handleGlobalHover({ x: e.global.x, y: e.global.y });
         }

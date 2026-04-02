@@ -7,6 +7,9 @@ export interface PropMoveMessage {
   scaleX: number;
   indexZ: number;
   bhValue?: number;
+  ikTargetL?: { x: number; y: number };
+  ikTargetR?: { x: number; y: number };
+  pupilPos?: { x: number; y: number };
 }
 
 export type BgDirection = 'left' | 'right' | null;
