@@ -12,7 +12,8 @@ import { bgPanningAtom, bgProgressAtom } from "@/lib/bg-panning.atoms";
 import type { LiveKitMessage } from "@/lib/livekit-messages";
 import { Maximize, Minimize } from "lucide-react";
 import { CompositeHumanCharacter } from "@/components/character-builder/composite-human-character.component";
-import { getCharacterByProp } from "@/lib/character-builder.fns";
+import { getCharacterByParts } from "@/lib/character-builder.fns";
+import { getAnimalByProp } from "@/lib/character-animal-builder.fns";
 import { useQueries } from "@tanstack/react-query";
 
 const decoder = new TextDecoder();
@@ -93,11 +94,17 @@ export const StageComponent = React.forwardRef<
   const setBgProgress = useSetAtom(bgProgressAtom);
 
   // Fetch character details for any composite props
-  const compositeCasts = casts.filter((c) => c.type === "composite" && c.path);
+  const compositeCasts = casts.filter(
+    (c) =>
+      (c.type === "composite-human" || c.type === "composite-animal") && c.path,
+  );
   const characterQueries = useQueries({
     queries: compositeCasts.map((c) => ({
       queryKey: ["character-prop", c.path],
-      queryFn: () => getCharacterByProp({ data: { propId: c.path! } }),
+      queryFn: () =>
+        c.type === "composite-human"
+          ? getCharacterByParts({ data: { propId: c.path! } })
+          : getAnimalByProp({ data: { propId: c.path! } }),
       staleTime: Infinity,
     })),
   });
@@ -106,7 +113,7 @@ export const StageComponent = React.forwardRef<
   const charactersMap = new Map(
     characterQueries
       .filter((q) => q.isSuccess)
-      .map((q) => [q.data.compositePropId, q.data]),
+      .map((q) => [q.data?.compositePropId, q.data]),
   );
 
   // Expose the container div via forwardRef
@@ -257,17 +264,19 @@ export const StageComponent = React.forwardRef<
           session?.user?.id === cast.userId ||
           session?.user?.role === "director";
 
+        const isComposite =
+          cast.type === "composite-human" || cast.type === "composite-animal";
+
         const PropClass =
           cast.type === "background"
             ? PixiBackground
             : cast.type === "rive"
               ? PixiRiveAnimation
-              : cast.type === "composite"
+              : isComposite
                 ? CompositeHumanCharacter
                 : PixiCharacter;
 
-        const charData =
-          cast.type === "composite" ? charactersMap.get(cast.path!) : null;
+        const charData = isComposite ? charactersMap.get(cast.path!) : null;
 
         const prop = new (PropClass as any)({
           sceneCastId: cast.sceneCastId,

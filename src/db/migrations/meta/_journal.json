@@ -239,6 +239,13 @@
       "when": 1775138520919,
       "tag": "0033_typical_gauntlet",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1775157919192,
+      "tag": "0034_good_master_mold",
+      "breakpoints": true
     }
   ]
 }

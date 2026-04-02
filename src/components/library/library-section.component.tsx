@@ -395,7 +395,7 @@ export function LibrarySection({
 
               <p className="bg-base-100/80 text-base-content inline-flex items-center gap-2 rounded-full px-6 py-2 text-sm font-medium shadow-lg backdrop-blur-md">
                 {items[selectedIndex].name}
-                {type === "composite" && (
+                {(type === "composite-human" || type === "composite-animal") && (
                   <span className="badge badge-primary badge-sm font-normal">
                     Composite Character
                   </span>

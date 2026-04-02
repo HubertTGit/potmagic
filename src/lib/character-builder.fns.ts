@@ -5,11 +5,7 @@ import { eq, and, asc, isNotNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import {
-  charactersHuman,
-  characterHumanParts,
-  props,
-} from "@/db/schema";
+import { charactersHuman, characterHumanParts, props } from "@/db/schema";
 
 async function getSessionOrThrow() {
   const session = await auth.api.getSession({ headers: getRequest().headers });
@@ -17,8 +13,8 @@ async function getSessionOrThrow() {
   return session;
 }
 
-export const listCharacters = createServerFn({ method: "GET" })
-  .handler(async () => {
+export const listCharacters = createServerFn({ method: "GET" }).handler(
+  async () => {
     const session = await getSessionOrThrow();
 
     return await db
@@ -26,7 +22,8 @@ export const listCharacters = createServerFn({ method: "GET" })
       .from(charactersHuman)
       .where(eq(charactersHuman.createdBy, session.user.id))
       .orderBy(asc(charactersHuman.createdAt));
-  });
+  },
+);
 
 export const getCharacter = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ characterId: z.string() }).parse(input))
@@ -54,29 +51,17 @@ export const getCharacter = createServerFn({ method: "GET" })
         y: characterHumanParts.y,
         zIndex: characterHumanParts.zIndex,
         rotation: characterHumanParts.rotation,
-        imageUrl: props.imageUrl,
+        imageUrl: characterHumanParts.imageUrl,
+        altImageUrl: characterHumanParts.altImageUrl,
       })
       .from(characterHumanParts)
-      .leftJoin(props, eq(characterHumanParts.propId, props.id))
       .where(eq(characterHumanParts.characterId, data.characterId))
       .orderBy(asc(characterHumanParts.zIndex));
 
-    // Fetch alt textures manually
-    const partsWithAlt = await Promise.all(
-      parts.map(async (p) => {
-        if (!p.altPropId) return { ...p, altImageUrl: null };
-        const [alt] = await db
-          .select({ imageUrl: props.imageUrl })
-          .from(props)
-          .where(eq(props.id, p.altPropId));
-        return { ...p, altImageUrl: alt?.imageUrl ?? null };
-      }),
-    );
-
-    return { ...char, parts: partsWithAlt };
+    return { ...char, parts };
   });
 
-export const getCharacterByProp = createServerFn({ method: "GET" })
+export const getCharacterByParts = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ propId: z.string() }).parse(input))
   .handler(async ({ data }) => {
     const [char] = await db
@@ -99,32 +84,18 @@ export const getCharacterByProp = createServerFn({ method: "GET" })
         y: characterHumanParts.y,
         zIndex: characterHumanParts.zIndex,
         rotation: characterHumanParts.rotation,
-        imageUrl: props.imageUrl,
+        imageUrl: characterHumanParts.imageUrl,
+        altImageUrl: characterHumanParts.altImageUrl,
       })
       .from(characterHumanParts)
-      .leftJoin(props, eq(characterHumanParts.propId, props.id))
       .where(eq(characterHumanParts.characterId, char.id))
       .orderBy(asc(characterHumanParts.zIndex));
 
-    // Fetch alt textures manually
-    const partsWithAlt = await Promise.all(
-      parts.map(async (p) => {
-        if (!p.altPropId) return { ...p, altImageUrl: null };
-        const [alt] = await db
-          .select({ imageUrl: props.imageUrl })
-          .from(props)
-          .where(eq(props.id, p.altPropId));
-        return { ...p, altImageUrl: alt?.imageUrl ?? null };
-      }),
-    );
-
-    return { ...char, parts: partsWithAlt };
+    return { ...char, parts };
   });
 
 export const createCharacter = createServerFn({ method: "POST" })
-  .inputValidator((input) =>
-    z.object({ name: z.string().min(1) }).parse(input),
-  )
+  .inputValidator((input) => z.object({ name: z.string().min(1) }).parse(input))
   .handler(async ({ data }) => {
     const session = await getSessionOrThrow();
 
@@ -147,14 +118,27 @@ export const upsertCharacterPart = createServerFn({ method: "POST" })
       .object({
         characterId: z.string(),
         partRole: z.enum([
-          "body", "head", "mouth", "eye-left", "eye-right", "pupil-left", "pupil-right",
-          "eye-brow-left", "eye-brow-right",
-          "arm-upper-left", "arm-forearm-left", "arm-hand-left",
-          "arm-upper-right", "arm-forearm-right", "arm-hand-right",
+          "body",
+          "head",
+          "mouth",
+          "eye-left",
+          "eye-right",
+          "pupil-left",
+          "pupil-right",
+          "eye-brow-left",
+          "eye-brow-right",
+          "arm-upper-left",
+          "arm-forearm-left",
+          "arm-hand-left",
+          "arm-upper-right",
+          "arm-forearm-right",
+          "arm-hand-right",
           "torso",
         ]),
-        propId: z.string(),
+        propId: z.string().optional().nullable(),
         altPropId: z.string().optional().nullable(),
+        imageUrl: z.string().optional().nullable(),
+        altImageUrl: z.string().optional().nullable(),
         pivotX: z.number().optional(),
         pivotY: z.number().optional(),
         x: z.number().optional(),
@@ -168,29 +152,51 @@ export const upsertCharacterPart = createServerFn({ method: "POST" })
     const session = await getSessionOrThrow();
 
     const [char] = await db
-      .select({ createdBy: charactersHuman.createdBy, compositePropId: charactersHuman.compositePropId })
+      .select({
+        createdBy: charactersHuman.createdBy,
+        compositePropId: charactersHuman.compositePropId,
+      })
       .from(charactersHuman)
       .where(eq(charactersHuman.id, data.characterId));
     if (!char) throw new Error("Character not found");
     if (char.createdBy !== session.user.id) throw new Error("Forbidden");
 
     const id = crypto.randomUUID();
-    const { characterId, partRole, propId, altPropId, ...values } = data;
+    const {
+      characterId,
+      partRole,
+      propId,
+      altPropId,
+      imageUrl,
+      altImageUrl,
+      ...values
+    } = data;
 
-    // Fetch image URLs for denormalization
-    const [prop] = await db.select({ url: props.imageUrl }).from(props).where(eq(props.id, propId));
-    let altImageUrl: string | null = null;
-    if (altPropId) {
-      const [altProp] = await db.select({ url: props.imageUrl }).from(props).where(eq(props.id, altPropId));
-      altImageUrl = altProp?.url ?? null;
+    // Fetch image URLs for denormalization if IDs are provided
+    let finalImageUrl = imageUrl ?? null;
+    if (propId && !finalImageUrl) {
+      const [prop] = await db
+        .select({ url: props.imageUrl })
+        .from(props)
+        .where(eq(props.id, propId));
+      finalImageUrl = prop?.url ?? null;
+    }
+
+    let finalAltImageUrl = altImageUrl ?? null;
+    if (altPropId && !finalAltImageUrl) {
+      const [altProp] = await db
+        .select({ url: props.imageUrl })
+        .from(props)
+        .where(eq(props.id, altPropId));
+      finalAltImageUrl = altProp?.url ?? null;
     }
 
     const payload = {
       ...values,
       propId,
       altPropId,
-      imageUrl: prop?.url ?? null,
-      altImageUrl,
+      imageUrl: finalImageUrl,
+      altImageUrl: finalAltImageUrl,
     };
 
     await db
@@ -208,16 +214,22 @@ export const upsertCharacterPart = createServerFn({ method: "POST" })
         },
       });
 
+    // Always update character updatedAt
+    await db
+      .update(charactersHuman)
+      .set({ updatedAt: new Date() })
+      .where(eq(charactersHuman.id, characterId));
+
     if (partRole === "head") {
       await db
         .update(charactersHuman)
-        .set({ imageUrl: prop?.url ?? null })
+        .set({ imageUrl: finalImageUrl })
         .where(eq(charactersHuman.id, characterId));
 
       if (char.compositePropId) {
         await db
           .update(props)
-          .set({ imageUrl: prop?.url ?? null })
+          .set({ imageUrl: finalImageUrl })
           .where(eq(props.id, char.compositePropId));
       }
     }
@@ -260,7 +272,10 @@ export const removeCharacterPart = createServerFn({ method: "POST" })
     const session = await getSessionOrThrow();
 
     const [char] = await db
-      .select({ createdBy: charactersHuman.createdBy, compositePropId: charactersHuman.compositePropId })
+      .select({
+        createdBy: charactersHuman.createdBy,
+        compositePropId: charactersHuman.compositePropId,
+      })
       .from(charactersHuman)
       .where(eq(charactersHuman.id, data.characterId));
     if (!char) throw new Error("Character not found");
@@ -296,13 +311,17 @@ export const publishCharacter = createServerFn({ method: "POST" })
     if (char.createdBy !== session.user.id) throw new Error("Forbidden");
 
     const parts = await db
-      .select({ imageUrl: characterHumanParts.imageUrl, partRole: characterHumanParts.partRole })
+      .select({
+        imageUrl: characterHumanParts.imageUrl,
+        partRole: characterHumanParts.partRole,
+      })
       .from(characterHumanParts)
       .where(eq(characterHumanParts.characterId, data.characterId));
 
-    const bodyPart = parts.find(p => p.partRole === 'body');
-    const headPart = parts.find(p => p.partRole === 'head');
-    const thumbnail = bodyPart?.imageUrl ?? headPart?.imageUrl ?? parts[0]?.imageUrl ?? null;
+    const bodyPart = parts.find((p) => p.partRole === "body");
+    const headPart = parts.find((p) => p.partRole === "head");
+    const thumbnail =
+      bodyPart?.imageUrl ?? headPart?.imageUrl ?? parts[0]?.imageUrl ?? null;
 
     let propId = char.compositePropId;
 
@@ -346,22 +365,25 @@ export const deleteCharacter = createServerFn({ method: "POST" })
       await db.delete(props).where(eq(props.id, char.compositePropId));
     }
 
-    await db.delete(charactersHuman).where(eq(charactersHuman.id, data.characterId));
+    await db
+      .delete(charactersHuman)
+      .where(eq(charactersHuman.id, data.characterId));
   });
 
-export const countMyPublishedCharacters = createServerFn({ method: "GET" })
-  .handler(async () => {
-    const session = await getSessionOrThrow();
+export const countMyPublishedCharacters = createServerFn({
+  method: "GET",
+}).handler(async () => {
+  const session = await getSessionOrThrow();
 
-    const [row] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(charactersHuman)
-      .where(
-        and(
-          eq(charactersHuman.createdBy, session.user.id),
-          isNotNull(charactersHuman.compositePropId),
-        ),
-      );
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(charactersHuman)
+    .where(
+      and(
+        eq(charactersHuman.createdBy, session.user.id),
+        isNotNull(charactersHuman.compositePropId),
+      ),
+    );
 
-    return row?.count ?? 0;
-  });
+  return row?.count ?? 0;
+});

@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { authClient } from "@/lib/auth-client";
 import { useLanguage } from "@/hooks/useLanguage";
 import type { SubscriptionType } from "@/db/schema";
-import { uploadProp, deleteProp } from "@/lib/props.fns";
+import { uploadProp, uploadPartFile, deleteProp } from "@/lib/props.fns";
 import {
   getCharacter,
   upsertCharacterPart,
@@ -38,13 +38,6 @@ import {
   ALL_PART_ROLES,
 } from "@/components/character-builder/composite-human-character.component";
 
-// Pending prop: uploaded to Blob/DB but not yet placed on canvas via drag-drop
-type PendingProp = {
-  propId: string;
-  imageUrl: string;
-  altPropId?: string;
-  altImageUrl?: string;
-};
 
 export function CharacterBuilderStudio() {
   const { characterId } = useParams({ strict: false }) as {
@@ -62,10 +55,6 @@ export function CharacterBuilderStudio() {
   const [localName, setLocalName] = useState("");
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [gizmoEditMode, setGizmoEditMode] = useState(false);
-  // Parts uploaded but not yet placed on the canvas via drag-drop
-  const [pendingPropByRole, setPendingPropByRole] = useState<
-    Record<string, PendingProp>
-  >({});
   // Track live pivot values from Pixi for the selected part
   const [livePivots, setLivePivots] = useState<
     Record<string, { x: number; y: number }>
@@ -294,17 +283,6 @@ export function CharacterBuilderStudio() {
     );
     if (!part) return;
 
-    // Add to pending props so it stays in the toolbox
-    setPendingPropByRole((prev) => ({
-      ...prev,
-      [selectedRole]: {
-        propId: part.propId!,
-        imageUrl: part.imageUrl!,
-        altPropId: part.altPropId ?? undefined,
-        altImageUrl: part.altImageUrl ?? undefined,
-      },
-    }));
-
     await unplacePartMutation.mutateAsync({
       data: { characterId, partRole: selectedRole },
     });
@@ -312,19 +290,6 @@ export function CharacterBuilderStudio() {
 
   const handleRemovePart = async () => {
     if (!characterId || !selectedRole || !currentCharacter) return;
-
-    // If only pending (not placed), just clear from local state
-    if (
-      pendingPropByRole[selectedRole] &&
-      !currentCharacter.parts.find((p) => p.partRole === selectedRole)
-    ) {
-      setPendingPropByRole((prev) => {
-        const next = { ...prev };
-        delete next[selectedRole];
-        return next;
-      });
-      return;
-    }
 
     const part = currentCharacter.parts.find(
       (p) => p.partRole === selectedRole,
@@ -367,10 +332,7 @@ export function CharacterBuilderStudio() {
     const existingPart = currentCharacter.parts.find(
       (p) => p.partRole === role,
     );
-    const pending = pendingPropByRole[role];
-
-    const propId = existingPart?.propId ?? pending?.propId;
-    if (!propId) return; // no texture uploaded for this role yet
+    if (!existingPart) return;
 
     setSelectedRole(role);
     upsertPartMutation.mutate(
@@ -378,24 +340,14 @@ export function CharacterBuilderStudio() {
         data: {
           characterId,
           partRole: role as any,
-          propId,
-          altPropId: existingPart?.altPropId ?? pending?.altPropId,
+          propId: existingPart.propId,
+          altPropId: existingPart.altPropId,
           x: posX,
           y: posY,
-          pivotX: existingPart?.pivotX ?? 0,
-          pivotY: existingPart?.pivotY ?? 0,
-          rotation: existingPart?.rotation ?? 0,
-          zIndex: existingPart?.zIndex ?? ALL_PART_ROLES.indexOf(role as any),
-        },
-      },
-      {
-        onSuccess: () => {
-          // Clear from pending now that it's persisted and will appear via currentCharacter
-          setPendingPropByRole((prev) => {
-            const next = { ...prev };
-            delete next[role];
-            return next;
-          });
+          pivotX: existingPart.pivotX,
+          pivotY: existingPart.pivotY,
+          rotation: existingPart.rotation,
+          zIndex: existingPart.zIndex,
         },
       },
     );
@@ -636,7 +588,7 @@ export function CharacterBuilderStudio() {
 
   // Upload a texture for a part.
   // - If the part is already placed (in currentCharacter.parts): update texture in DB immediately.
-  // - If not yet placed: store in pendingPropByRole; it appears on canvas only when dropped.
+  // - If the part is not yet in the DB, it will be created with default coordinates.
   const handleUploadPart = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !characterId) return;
@@ -654,51 +606,36 @@ export function CharacterBuilderStudio() {
 
       const base64 = await base64Promise;
 
-      const prop = await uploadProp({
+      const result = await uploadPartFile({
         data: {
-          name: `${selectedRole}_${Date.now()}`,
-          type: "character",
           fileName: file.name,
           contentType: file.type,
           base64,
-          size: file.size,
         },
       });
 
-      if (prop) {
+      if (result?.url) {
         const existingPart = currentCharacter?.parts.find(
           (p) => p.partRole === selectedRole,
         );
 
-        if (existingPart) {
-          // Already placed: update texture in DB directly
-          await upsertPartMutation.mutateAsync({
-            data: {
-              characterId: characterId!,
-              partRole: selectedRole as any,
-              propId: prop.id,
-              altPropId: existingPart.altPropId,
-              zIndex:
-                existingPart.zIndex ??
-                ALL_PART_ROLES.indexOf(selectedRole as any),
-              x: existingPart.x,
-              y: existingPart.y,
-              pivotX: existingPart.pivotX,
-              pivotY: existingPart.pivotY,
-              rotation: existingPart.rotation,
-            },
-          });
-        } else {
-          // Not yet placed: stage in pending — appears on canvas only when dropped
-          setPendingPropByRole((prev) => ({
-            ...prev,
-            [selectedRole]: {
-              ...prev[selectedRole]!,
-              propId: prop.id,
-              imageUrl: prop.imageUrl ?? "",
-            },
-          }));
-        }
+        await upsertPartMutation.mutateAsync({
+          data: {
+            characterId: characterId!,
+            partRole: selectedRole as any,
+            imageUrl: result.url,
+            propId: null,
+            altPropId: existingPart?.altPropId,
+            zIndex:
+              existingPart?.zIndex ??
+              ALL_PART_ROLES.indexOf(selectedRole as any),
+            x: existingPart?.x ?? 0,
+            y: existingPart?.y ?? 0,
+            pivotX: existingPart?.pivotX ?? 0,
+            pivotY: existingPart?.pivotY ?? 0,
+            rotation: existingPart?.rotation ?? 0,
+          },
+        });
       }
     } catch (error) {
       console.error("Upload failed:", error);
@@ -726,46 +663,33 @@ export function CharacterBuilderStudio() {
 
       const base64 = await base64Promise;
 
-      const prop = await uploadProp({
+      const result = await uploadPartFile({
         data: {
-          name: `${selectedRole}_blink_${Date.now()}`,
-          type: "character",
           fileName: file.name,
           contentType: file.type,
           base64,
-          size: file.size,
         },
       });
 
-      if (prop) {
+      if (result?.url) {
         const existingPart = currentCharacter?.parts.find(
           (p) => p.partRole === selectedRole,
         );
-        if (existingPart) {
-          await upsertPartMutation.mutateAsync({
-            data: {
-              characterId: characterId!,
-              partRole: selectedRole as any,
-              propId: existingPart.propId,
-              altPropId: prop.id,
-              pivotX: existingPart.pivotX,
-              pivotY: existingPart.pivotY,
-              x: existingPart.x,
-              y: existingPart.y,
-              zIndex: existingPart.zIndex,
-              rotation: existingPart.rotation,
-            },
-          });
-        } else {
-          setPendingPropByRole((prev) => ({
-            ...prev,
-            [selectedRole]: {
-              ...prev[selectedRole]!,
-              altPropId: prop.id,
-              altImageUrl: prop.imageUrl!,
-            },
-          }));
-        }
+        await upsertPartMutation.mutateAsync({
+          data: {
+            characterId: characterId!,
+            partRole: selectedRole as any,
+            altImageUrl: result.url,
+            altPropId: null,
+            propId: existingPart?.propId,
+            zIndex: existingPart?.zIndex ?? ALL_PART_ROLES.indexOf(selectedRole as any),
+            x: existingPart?.x ?? 0,
+            y: existingPart?.y ?? 0,
+            pivotX: existingPart?.pivotX ?? 0,
+            pivotY: existingPart?.pivotY ?? 0,
+            rotation: existingPart?.rotation ?? 0,
+          },
+        });
       }
     } catch (err: any) {
       toast.error(`Blink upload failed: ${err.message}`);
@@ -896,10 +820,8 @@ export function CharacterBuilderStudio() {
               const part = currentCharacter?.parts?.find(
                 (p) => p.partRole === role,
               );
-              const pending = pendingPropByRole[role];
-              const imageUrl = part?.imageUrl ?? pending?.imageUrl ?? null;
+              const imageUrl = part?.imageUrl ?? null;
               const isPlaced = !!part;
-              const isPending = !isPlaced && !!pending;
               return (
                 <button
                   key={role}
@@ -943,12 +865,6 @@ export function CharacterBuilderStudio() {
                   </div>
                   {isPlaced && (
                     <div className="bg-success size-1.5 rounded-full" />
-                  )}
-                  {isPending && (
-                    <div
-                      className="bg-warning size-1.5 rounded-full"
-                      title="Uploaded — drag to canvas to place"
-                    />
                   )}
                 </button>
               );
@@ -1299,14 +1215,13 @@ export function CharacterBuilderStudio() {
             const part = currentCharacter?.parts?.find(
               (p) => p.partRole === selectedRole,
             );
-            const pending = pendingPropByRole[selectedRole];
             const isPlaced = !!part;
-            const hasPhoto = !!(part || pending);
-            const displayUrl = part?.imageUrl ?? pending?.imageUrl ?? null;
+            const hasPhoto = !!part;
+            const displayUrl = part?.imageUrl ?? null;
 
             const isEye =
               selectedRole === "eye-left" || selectedRole === "eye-right";
-            const blinkUrl = part?.altImageUrl ?? pending?.altImageUrl ?? null;
+            const blinkUrl = part?.altImageUrl ?? null;
 
             return (
               <>
@@ -1529,8 +1444,7 @@ export function CharacterBuilderStudio() {
                     <button
                       onClick={() => setIsDeleteConfirmOpen(true)}
                       disabled={
-                        deletePropMutation.isPending ||
-                        (!part && !pendingPropByRole[selectedRole])
+                        deletePropMutation.isPending || !part
                       }
                       className={cn(
                         "btn btn-ghost btn-xs text-error/40 hover:bg-error/10 hover:text-error w-full gap-2",

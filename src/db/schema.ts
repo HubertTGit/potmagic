@@ -358,7 +358,6 @@ export const characterHumanParts = pgTable(
       .references(() => charactersHuman.id, { onDelete: "cascade" }),
     partRole: partHumanEnum("part_role").notNull(),
     propId: text("prop_id")
-      .notNull()
       .references(() => props.id, { onDelete: "cascade" }),
     altPropId: text("alt_prop_id").references(() => props.id, {
       onDelete: "set null",
@@ -386,7 +385,6 @@ export const characterAnimalParts = pgTable(
       .references(() => charactersAnimal.id, { onDelete: "cascade" }),
     partRole: partAnimalEnum("part_role").notNull(),
     propId: text("prop_id")
-      .notNull()
       .references(() => props.id, { onDelete: "cascade" }),
     altPropId: text("alt_prop_id").references(() => props.id, {
       onDelete: "set null",

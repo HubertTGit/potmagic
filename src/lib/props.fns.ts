@@ -115,6 +115,42 @@ export const uploadProp = createServerFn({ method: "POST" })
     }
   });
 
+// Upload a file to Vercel Blob and return only the URL (for one-off parts)
+export const uploadPartFile = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    z
+      .object({
+        fileName: z.string().min(1).max(255),
+        contentType: z
+          .string()
+          .refine(
+            (ct) =>
+              ALLOWED_MIME_TYPES.includes(
+                ct as (typeof ALLOWED_MIME_TYPES)[number],
+              ),
+            { message: "File type not allowed" },
+          ),
+        base64: z.string(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    await getSessionOrThrow();
+
+    const ext = data.fileName.split(".").pop() ?? "bin";
+    const path = `props/${crypto.randomUUID()}.${ext}`;
+
+    const buffer = Buffer.from(data.base64, "base64");
+
+    const blob = await put(path, buffer, {
+      access: "public",
+      contentType: data.contentType,
+      allowOverwrite: false,
+    });
+
+    return { url: blob.url };
+  });
+
 export const listProps = createServerFn({ method: "GET" })
   .inputValidator((input) =>
     z
