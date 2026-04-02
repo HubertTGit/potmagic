@@ -27,7 +27,7 @@ function CharacterBuilderPage() {
   const isDirector = session?.user?.role === "director";
   const isActor = session?.user?.role === "actor";
   const sub = session?.user?.subscription as SubscriptionType | undefined;
-  const showSubDot = sub === "pro" || sub === "advance";
+  const showSubDot = sub === "pro" || sub === "affiliate";
   const canAccess = isActor || (isDirector && showSubDot);
 
   const [newName, setNewName] = useState("");

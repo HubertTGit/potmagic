@@ -12,13 +12,15 @@ export function PropTypePill({ type, className }: PropTypePillProps) {
     <div
       className={cn(
         'badge badge-xs font-bold uppercase tracking-widest py-2 shrink-0',
-        type === 'character'
-          ? 'badge-soft badge-primary'
-          : type === 'background'
-            ? 'badge-soft badge-info'
-            : type === 'composite'
-              ? 'badge-soft badge-accent'
-              : 'badge-soft badge-secondary',
+        type === "character"
+          ? "badge-soft badge-primary"
+          : type === "background"
+            ? "badge-soft badge-info"
+            : type === "composite-human"
+              ? "badge-soft badge-accent"
+              : type === "composite-animal"
+                ? "badge-soft badge-success"
+                : "badge-soft badge-secondary",
         className,
       )}
     >

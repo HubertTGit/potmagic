@@ -61,7 +61,7 @@ function ProfilePage() {
 
   const initials = (user?.name || user?.email || "?")[0].toUpperCase();
   const sub = user?.subscription as SubscriptionType | undefined;
-  const showSubDot = sub === "pro" || sub === "advance";
+  const showSubDot = sub === "pro" || sub === "affiliate";
 
   return (
     <div className="max-w-5xl p-8">
@@ -145,7 +145,7 @@ function ProfilePage() {
           <p className="font-medium">{user?.name ?? "—"}</p>
           <p className="text-base-content/50 text-sm">{user?.email}</p>
           {user?.role === "director" ? (
-            (sub === "standard" || sub === "pro") ? (
+            sub === "free" || sub === "pro" ? (
               <button className="btn btn-xs btn-outline btn-accent mt-1 w-fit font-display tracking-wide">
                 {t("profile.upgrade")}
               </button>

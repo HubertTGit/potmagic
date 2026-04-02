@@ -51,8 +51,8 @@ export const uploadProp = createServerFn({ method: "POST" })
           "animation",
           "sound",
           "rive",
-          "part",
-          "composite",
+          "composite-human",
+          "composite-animal",
         ]),
         fileName: z.string().min(1).max(255),
         contentType: z
@@ -72,8 +72,7 @@ export const uploadProp = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data }) => {
-    // Part-type props are uploaded by actors during character building; all other types require director
-    const session = data.type === "part" ? await getSessionOrThrow() : await requireDirector();
+    const session = await requireDirector();
 
     const ext = data.fileName.split(".").pop() ?? "bin";
     const path = `props/${crypto.randomUUID()}.${ext}`;
@@ -125,8 +124,8 @@ export const listProps = createServerFn({ method: "GET" })
           "background",
           "animation",
           "sound",
-          "part",
-          "composite",
+          "composite-human",
+          "composite-animal",
         ]),
       })
       .parse(input),
@@ -161,8 +160,9 @@ export const listAllProps = createServerFn({ method: "GET" }).handler(
       background: rows.filter((r) => r.type === "background"),
       sound: rows.filter((r) => r.type === "sound"),
       rive: rows.filter((r) => r.type === "rive"),
-      part: rows.filter((r) => r.type === "part"),
-      composite: rows.filter((r) => r.type === "composite"),
+      "composite-human": rows.filter((r) => r.type === "composite-human"),
+      "composite-animal": rows.filter((r) => r.type === "composite-animal"),
+      animation: rows.filter((r) => r.type === "animation"),
     };
   },
 );

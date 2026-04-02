@@ -24,23 +24,23 @@ export const propTypeEnum = pgEnum("prop_type", [
   "animation",
   "sound",
   "rive",
-  "part",
-  "composite",
+  "composite-human",
+  "composite-animal",
 ]);
 export const subscriptionEnum = pgEnum("subscription", [
-  "standard",
+  "free",
   "pro",
-  "advance",
+  "affiliate",
 ]);
-export type SubscriptionType = "standard" | "pro" | "advance";
+export type SubscriptionType = "free" | "pro" | "affiliate";
 export type PropType =
   | "character"
   | "background"
   | "animation"
   | "sound"
   | "rive"
-  | "part"
-  | "composite";
+  | "composite-human"
+  | "composite-animal";
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
@@ -49,7 +49,7 @@ export const users = pgTable("users", {
   emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
   role: roleEnum("role").default("actor").notNull(),
-  subscription: subscriptionEnum("subscription").default("standard").notNull(),
+  subscription: subscriptionEnum("subscription").default("free").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

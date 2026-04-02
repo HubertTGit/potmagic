@@ -1,15 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   LibraryBig,
   Users,
   Image as ImageIcon,
   Music,
   Film,
-  Plus,
-  Drama,
   PersonStanding,
+  Turtle,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { listAllProps, uploadProp, deleteProp } from "@/lib/props.fns";
@@ -101,11 +100,18 @@ function LibraryPage() {
       color: "text-orange-500",
     },
     {
-      id: "composite" as PropType,
+      id: "composite-human" as PropType,
       title: t("director.library.publishedCharacters"),
       icon: PersonStanding,
-      count: allProps?.composite?.length ?? 0,
+      count: allProps?.["composite-human"]?.length ?? 0,
       color: "text-primary",
+    },
+    {
+      id: "composite-animal" as PropType,
+      title: "Dynamic Animal Characters",
+      icon: Turtle,
+      count: allProps?.["composite-animal"]?.length ?? 0,
+      color: "text-accent",
     },
   ];
 
@@ -149,22 +155,29 @@ function LibraryPage() {
           label={activeLabel}
           type={activeSection}
           items={
-            (activeSection === "composite"
-              ? allProps?.composite
-              : activeSection === "rive"
-                ? allProps?.rive
-                : activeSection === "character"
-                  ? allProps?.character
-                  : activeSection === "background"
-                    ? allProps?.background
-                    : activeSection === "sound"
-                      ? allProps?.sound
-                      : []) ?? []
+            (activeSection === "composite-human"
+              ? allProps?.["composite-human"]
+              : activeSection === "composite-animal"
+                ? allProps?.["composite-animal"]
+                : activeSection === "rive"
+                  ? allProps?.rive
+                  : activeSection === "character"
+                    ? allProps?.character
+                    : activeSection === "background"
+                      ? allProps?.background
+                      : activeSection === "sound"
+                        ? allProps?.sound
+                        : activeSection === "animation"
+                          ? allProps?.animation
+                          : []) ?? []
           }
           isLoading={isLoading}
           onAdd={(file, name) => handleAddProp(activeSection, file, name)}
           onRemove={(id) => handleRemoveProp(activeSection, id)}
-          readOnly={activeSection === "composite"}
+          readOnly={
+            activeSection === "composite-human" ||
+            activeSection === "composite-animal"
+          }
         />
       </div>
     </div>

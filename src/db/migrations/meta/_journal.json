@@ -225,6 +225,13 @@
       "when": 1775133958228,
       "tag": "0031_panoramic_firebird",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1775136833280,
+      "tag": "0032_volatile_stature",
+      "breakpoints": true
     }
   ]
 }
