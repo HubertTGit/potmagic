@@ -290,7 +290,7 @@ export const assignSceneProp = createServerFn({ method: 'POST' })
     await requireSceneCastOwner(data.sceneCastId);
     if (data.propId) {
       const [prop] = await db.select({ type: props.type }).from(props).where(eq(props.id, data.propId));
-      if (!prop || (prop.type !== 'character' && prop.type !== 'rive' && prop.type !== 'composite')) {
+      if (!prop || (prop.type !== 'character' && prop.type !== 'rive' && prop.type !== 'composite-human' && prop.type !== 'composite-animal')) {
         throw new Error('Only characters, composite characters and rive animations can be assigned to actors');
       }
     }
@@ -404,7 +404,7 @@ export const getSceneStage = createServerFn({ method: 'GET' })
           sceneCastId: `bg-${data.sceneId}`,
           castId: 'background',
           userId: storyRow.directorId,
-          path: bgProp.type === 'composite' ? bgProp.id : bgProp.imageUrl,
+          path: (bgProp.type === 'composite-human' || bgProp.type === 'composite-animal') ? bgProp.id : bgProp.imageUrl,
           type: bgProp.type,
           propName: bgProp.name,
           posX: sceneWithBg.backgroundPosX ?? 0,
@@ -419,7 +419,7 @@ export const getSceneStage = createServerFn({ method: 'GET' })
       sceneCastId: r.sceneCastId,
       castId: r.castId,
       userId: r.userId,
-      path: r.type === 'composite' ? r.propId : r.imageUrl,
+      path: (r.type === 'composite-human' || r.type === 'composite-animal') ? r.propId : r.imageUrl,
       type: r.type,
       propName: r.propName,
       posX: r.posX,

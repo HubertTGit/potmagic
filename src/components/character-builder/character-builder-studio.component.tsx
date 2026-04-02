@@ -81,7 +81,7 @@ export function CharacterBuilderStudio() {
   const isDirector = session?.user.role === "director";
   const isActor = session?.user.role === "actor";
   const sub = session?.user.subscription as SubscriptionType | undefined;
-  const showSubDot = sub === "pro" || sub === "advance";
+  const showSubDot = sub === "pro" || sub === "affiliate";
   const canAccess = isActor || (isDirector && showSubDot);
 
   const { data: currentCharacter } = useQuery({
@@ -435,7 +435,7 @@ export function CharacterBuilderStudio() {
       castId: "builder",
       parts: parts as any,
       userId: session?.user.id ?? "",
-      type: "composite",
+      type: "composite-human",
       initialX: 400,
       initialY: 400,
       canDrag: true,

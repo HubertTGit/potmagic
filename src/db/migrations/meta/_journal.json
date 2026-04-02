@@ -232,6 +232,13 @@
       "when": 1775136833280,
       "tag": "0032_volatile_stature",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1775138520919,
+      "tag": "0033_typical_gauntlet",
+      "breakpoints": true
     }
   ]
 }

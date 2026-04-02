@@ -57,7 +57,7 @@ export const users = pgTable("users", {
     .notNull(),
 });
 
-export const partRoleEnum = pgEnum("part_role", [
+export const partHumanEnum = pgEnum("part_human", [
   "body",
   "head",
   "mouth",
@@ -67,8 +67,6 @@ export const partRoleEnum = pgEnum("part_role", [
   "pupil-right",
   "eye-brow-left",
   "eye-brow-right",
-  "eye-closed-left",
-  "eye-closed-right",
   "torso",
   "arm-upper-left",
   "arm-forearm-left",
@@ -76,6 +74,33 @@ export const partRoleEnum = pgEnum("part_role", [
   "arm-upper-right",
   "arm-forearm-right",
   "arm-hand-right",
+]);
+
+export const partAnimalEnum = pgEnum("part_animal", [
+  "body",
+  "head",
+  "mouth",
+  "eye-left",
+  "eye-right",
+  "pupil-left",
+  "pupil-right",
+  "eye-brow-left",
+  "eye-brow-right",
+  "torso",
+  "arm-upper-left",
+  "arm-forearm-left",
+  "arm-hand-left",
+  "arm-upper-right",
+  "arm-forearm-right",
+  "arm-hand-right",
+  "neck",
+  "tail",
+  "leg-upper-left",
+  "leg-lower-left",
+  "foot-left",
+  "leg-upper-right",
+  "leg-lower-right",
+  "foot-right",
 ]);
 
 export const sessions = pgTable(
@@ -276,8 +301,8 @@ export const sceneCast = pgTable(
   ],
 );
 
-export const characters = pgTable(
-  "characters",
+export const charactersHuman = pgTable(
+  "characters_human",
   {
     id: text("id").primaryKey(),
     storyId: text("story_id").references(() => stories.id, {
@@ -297,17 +322,41 @@ export const characters = pgTable(
       .$onUpdate(() => new Date())
       .notNull(),
   },
-  (table) => [index("characters_story_id_idx").on(table.storyId)],
+  (table) => [index("characters_human_story_id_idx").on(table.storyId)],
 );
 
-export const characterParts = pgTable(
-  "character_parts",
+export const charactersAnimal = pgTable(
+  "characters_animal",
+  {
+    id: text("id").primaryKey(),
+    storyId: text("story_id").references(() => stories.id, {
+      onDelete: "set null",
+    }),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    compositePropId: text("composite_prop_id").references(() => props.id, {
+      onDelete: "set null",
+    }),
+    imageUrl: text("image_url"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index("characters_animal_story_id_idx").on(table.storyId)],
+);
+
+export const characterHumanParts = pgTable(
+  "character_human_parts",
   {
     id: text("id").primaryKey(),
     characterId: text("character_id")
       .notNull()
-      .references(() => characters.id, { onDelete: "cascade" }),
-    partRole: partRoleEnum("part_role").notNull(),
+      .references(() => charactersHuman.id, { onDelete: "cascade" }),
+    partRole: partHumanEnum("part_role").notNull(),
     propId: text("prop_id")
       .notNull()
       .references(() => props.id, { onDelete: "cascade" }),
@@ -324,6 +373,34 @@ export const characterParts = pgTable(
     altImageUrl: text("alt_image_url"),
   },
   (table) => [
-    unique("character_parts_unique").on(table.characterId, table.partRole),
+    unique("character_human_parts_unique").on(table.characterId, table.partRole),
+  ],
+);
+
+export const characterAnimalParts = pgTable(
+  "character_animal_parts",
+  {
+    id: text("id").primaryKey(),
+    characterId: text("character_id")
+      .notNull()
+      .references(() => charactersAnimal.id, { onDelete: "cascade" }),
+    partRole: partAnimalEnum("part_role").notNull(),
+    propId: text("prop_id")
+      .notNull()
+      .references(() => props.id, { onDelete: "cascade" }),
+    altPropId: text("alt_prop_id").references(() => props.id, {
+      onDelete: "set null",
+    }),
+    pivotX: real("pivot_x").default(0).notNull(),
+    pivotY: real("pivot_y").default(0).notNull(),
+    x: real("pos_x").default(0).notNull(),
+    y: real("pos_y").default(0).notNull(),
+    zIndex: integer("z_index").default(0).notNull(),
+    rotation: real("rotation").default(0).notNull(),
+    imageUrl: text("image_url"),
+    altImageUrl: text("alt_image_url"),
+  },
+  (table) => [
+    unique("character_animal_parts_unique").on(table.characterId, table.partRole),
   ],
 );

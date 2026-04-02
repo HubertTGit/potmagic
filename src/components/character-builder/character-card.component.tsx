@@ -1,10 +1,10 @@
 import { useNavigate } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
-import type { characters } from "@/db/schema";
+import type { charactersHuman } from "@/db/schema";
 import type { InferSelectModel } from "drizzle-orm";
 
 export interface CharacterCardProps {
-  character: InferSelectModel<typeof characters>;
+  character: InferSelectModel<typeof charactersHuman>;
   langPrefix: string;
   onDelete: (id: string) => void;
 }

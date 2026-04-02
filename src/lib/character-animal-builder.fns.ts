@@ -1,4 +1,4 @@
-// src/lib/character-builder.fns.ts
+// src/lib/character-animal-builder.fns.ts
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { eq, and, asc, isNotNull, sql } from "drizzle-orm";
@@ -6,8 +6,8 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import {
-  charactersHuman,
-  characterHumanParts,
+  charactersAnimal,
+  characterAnimalParts,
   props,
 } from "@/db/schema";
 
@@ -17,49 +17,49 @@ async function getSessionOrThrow() {
   return session;
 }
 
-export const listCharacters = createServerFn({ method: "GET" })
+export const listAnimals = createServerFn({ method: "GET" })
   .handler(async () => {
     const session = await getSessionOrThrow();
 
     return await db
       .select()
-      .from(charactersHuman)
-      .where(eq(charactersHuman.createdBy, session.user.id))
-      .orderBy(asc(charactersHuman.createdAt));
+      .from(charactersAnimal)
+      .where(eq(charactersAnimal.createdBy, session.user.id))
+      .orderBy(asc(charactersAnimal.createdAt));
   });
 
-export const getCharacter = createServerFn({ method: "GET" })
+export const getAnimal = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ characterId: z.string() }).parse(input))
   .handler(async ({ data }) => {
     const session = await getSessionOrThrow();
 
     const [char] = await db
       .select()
-      .from(charactersHuman)
-      .where(eq(charactersHuman.id, data.characterId));
+      .from(charactersAnimal)
+      .where(eq(charactersAnimal.id, data.characterId));
 
-    if (!char) throw new Error("Character not found");
+    if (!char) throw new Error("Animal character not found");
     if (char.createdBy !== session.user.id) throw new Error("Forbidden");
 
     const parts = await db
       .select({
-        id: characterHumanParts.id,
-        characterId: characterHumanParts.characterId,
-        partRole: characterHumanParts.partRole,
-        propId: characterHumanParts.propId,
-        altPropId: characterHumanParts.altPropId,
-        pivotX: characterHumanParts.pivotX,
-        pivotY: characterHumanParts.pivotY,
-        x: characterHumanParts.x,
-        y: characterHumanParts.y,
-        zIndex: characterHumanParts.zIndex,
-        rotation: characterHumanParts.rotation,
+        id: characterAnimalParts.id,
+        characterId: characterAnimalParts.characterId,
+        partRole: characterAnimalParts.partRole,
+        propId: characterAnimalParts.propId,
+        altPropId: characterAnimalParts.altPropId,
+        pivotX: characterAnimalParts.pivotX,
+        pivotY: characterAnimalParts.pivotY,
+        x: characterAnimalParts.x,
+        y: characterAnimalParts.y,
+        zIndex: characterAnimalParts.zIndex,
+        rotation: characterAnimalParts.rotation,
         imageUrl: props.imageUrl,
       })
-      .from(characterHumanParts)
-      .leftJoin(props, eq(characterHumanParts.propId, props.id))
-      .where(eq(characterHumanParts.characterId, data.characterId))
-      .orderBy(asc(characterHumanParts.zIndex));
+      .from(characterAnimalParts)
+      .leftJoin(props, eq(characterAnimalParts.propId, props.id))
+      .where(eq(characterAnimalParts.characterId, data.characterId))
+      .orderBy(asc(characterAnimalParts.zIndex));
 
     // Fetch alt textures manually
     const partsWithAlt = await Promise.all(
@@ -76,35 +76,35 @@ export const getCharacter = createServerFn({ method: "GET" })
     return { ...char, parts: partsWithAlt };
   });
 
-export const getCharacterByProp = createServerFn({ method: "GET" })
+export const getAnimalByProp = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ propId: z.string() }).parse(input))
   .handler(async ({ data }) => {
     const [char] = await db
       .select()
-      .from(charactersHuman)
-      .where(eq(charactersHuman.compositePropId, data.propId));
+      .from(charactersAnimal)
+      .where(eq(charactersAnimal.compositePropId, data.propId));
 
-    if (!char) throw new Error("Character not found");
+    if (!char) throw new Error("Animal character not found");
 
     const parts = await db
       .select({
-        id: characterHumanParts.id,
-        characterId: characterHumanParts.characterId,
-        partRole: characterHumanParts.partRole,
-        propId: characterHumanParts.propId,
-        altPropId: characterHumanParts.altPropId,
-        pivotX: characterHumanParts.pivotX,
-        pivotY: characterHumanParts.pivotY,
-        x: characterHumanParts.x,
-        y: characterHumanParts.y,
-        zIndex: characterHumanParts.zIndex,
-        rotation: characterHumanParts.rotation,
+        id: characterAnimalParts.id,
+        characterId: characterAnimalParts.characterId,
+        partRole: characterAnimalParts.partRole,
+        propId: characterAnimalParts.propId,
+        altPropId: characterAnimalParts.altPropId,
+        pivotX: characterAnimalParts.pivotX,
+        pivotY: characterAnimalParts.pivotY,
+        x: characterAnimalParts.x,
+        y: characterAnimalParts.y,
+        zIndex: characterAnimalParts.zIndex,
+        rotation: characterAnimalParts.rotation,
         imageUrl: props.imageUrl,
       })
-      .from(characterHumanParts)
-      .leftJoin(props, eq(characterHumanParts.propId, props.id))
-      .where(eq(characterHumanParts.characterId, char.id))
-      .orderBy(asc(characterHumanParts.zIndex));
+      .from(characterAnimalParts)
+      .leftJoin(props, eq(characterAnimalParts.propId, props.id))
+      .where(eq(characterAnimalParts.characterId, char.id))
+      .orderBy(asc(characterAnimalParts.zIndex));
 
     // Fetch alt textures manually
     const partsWithAlt = await Promise.all(
@@ -121,7 +121,7 @@ export const getCharacterByProp = createServerFn({ method: "GET" })
     return { ...char, parts: partsWithAlt };
   });
 
-export const createCharacter = createServerFn({ method: "POST" })
+export const createAnimal = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z.object({ name: z.string().min(1) }).parse(input),
   )
@@ -130,7 +130,7 @@ export const createCharacter = createServerFn({ method: "POST" })
 
     const id = crypto.randomUUID();
     const [char] = await db
-      .insert(charactersHuman)
+      .insert(charactersAnimal)
       .values({
         id,
         createdBy: session.user.id,
@@ -141,7 +141,7 @@ export const createCharacter = createServerFn({ method: "POST" })
     return char;
   });
 
-export const upsertCharacterPart = createServerFn({ method: "POST" })
+export const upsertAnimalPart = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z
       .object({
@@ -151,7 +151,8 @@ export const upsertCharacterPart = createServerFn({ method: "POST" })
           "eye-brow-left", "eye-brow-right",
           "arm-upper-left", "arm-forearm-left", "arm-hand-left",
           "arm-upper-right", "arm-forearm-right", "arm-hand-right",
-          "torso",
+          "torso", "neck", "tail", "leg-upper-left", "leg-lower-left", "foot-left",
+          "leg-upper-right", "leg-lower-right", "foot-right"
         ]),
         propId: z.string(),
         altPropId: z.string().optional().nullable(),
@@ -168,10 +169,10 @@ export const upsertCharacterPart = createServerFn({ method: "POST" })
     const session = await getSessionOrThrow();
 
     const [char] = await db
-      .select({ createdBy: charactersHuman.createdBy })
-      .from(charactersHuman)
-      .where(eq(charactersHuman.id, data.characterId));
-    if (!char) throw new Error("Character not found");
+      .select({ createdBy: charactersAnimal.createdBy })
+      .from(charactersAnimal)
+      .where(eq(charactersAnimal.id, data.characterId));
+    if (!char) throw new Error("Animal character not found");
     if (char.createdBy !== session.user.id) throw new Error("Forbidden");
 
     const id = crypto.randomUUID();
@@ -194,7 +195,7 @@ export const upsertCharacterPart = createServerFn({ method: "POST" })
     };
 
     await db
-      .insert(characterHumanParts)
+      .insert(characterAnimalParts)
       .values({
         id,
         characterId,
@@ -202,7 +203,7 @@ export const upsertCharacterPart = createServerFn({ method: "POST" })
         ...payload,
       })
       .onConflictDoUpdate({
-        target: [characterHumanParts.characterId, characterHumanParts.partRole],
+        target: [characterAnimalParts.characterId, characterAnimalParts.partRole],
         set: {
           ...payload,
         },
@@ -210,13 +211,13 @@ export const upsertCharacterPart = createServerFn({ method: "POST" })
 
     if (partRole === "head") {
       await db
-        .update(charactersHuman)
+        .update(charactersAnimal)
         .set({ imageUrl: prop?.url ?? null })
-        .where(eq(charactersHuman.id, characterId));
+        .where(eq(charactersAnimal.id, characterId));
     }
   });
 
-export const updateCharacter = createServerFn({ method: "POST" })
+export const updateAnimal = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z.object({ characterId: z.string(), name: z.string().min(1) }).parse(input),
   )
@@ -225,15 +226,15 @@ export const updateCharacter = createServerFn({ method: "POST" })
 
     const [char] = await db
       .select()
-      .from(charactersHuman)
-      .where(eq(charactersHuman.id, data.characterId));
-    if (!char) throw new Error("Character not found");
+      .from(charactersAnimal)
+      .where(eq(charactersAnimal.id, data.characterId));
+    if (!char) throw new Error("Animal character not found");
     if (char.createdBy !== session.user.id) throw new Error("Forbidden");
 
     await db
-      .update(charactersHuman)
+      .update(charactersAnimal)
       .set({ name: data.name })
-      .where(eq(charactersHuman.id, data.characterId));
+      .where(eq(charactersAnimal.id, data.characterId));
 
     if (char.compositePropId) {
       await db
@@ -245,7 +246,7 @@ export const updateCharacter = createServerFn({ method: "POST" })
     return { success: true };
   });
 
-export const removeCharacterPart = createServerFn({ method: "POST" })
+export const removeAnimalPart = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z.object({ characterId: z.string(), partRole: z.string() }).parse(input),
   )
@@ -253,45 +254,45 @@ export const removeCharacterPart = createServerFn({ method: "POST" })
     const session = await getSessionOrThrow();
 
     const [char] = await db
-      .select({ createdBy: charactersHuman.createdBy })
-      .from(charactersHuman)
-      .where(eq(charactersHuman.id, data.characterId));
-    if (!char) throw new Error("Character not found");
+      .select({ createdBy: charactersAnimal.createdBy })
+      .from(charactersAnimal)
+      .where(eq(charactersAnimal.id, data.characterId));
+    if (!char) throw new Error("Animal character not found");
     if (char.createdBy !== session.user.id) throw new Error("Forbidden");
 
     await db
-      .delete(characterHumanParts)
+      .delete(characterAnimalParts)
       .where(
         and(
-          eq(characterHumanParts.characterId, data.characterId),
-          eq(characterHumanParts.partRole, data.partRole as any),
+          eq(characterAnimalParts.characterId, data.characterId),
+          eq(characterAnimalParts.partRole, data.partRole as any),
         ),
       );
 
     if (data.partRole === "head") {
       await db
-        .update(charactersHuman)
+        .update(charactersAnimal)
         .set({ imageUrl: null })
-        .where(eq(charactersHuman.id, data.characterId));
+        .where(eq(charactersAnimal.id, data.characterId));
     }
   });
 
-export const publishCharacter = createServerFn({ method: "POST" })
+export const publishAnimal = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ characterId: z.string() }).parse(input))
   .handler(async ({ data }) => {
     const session = await getSessionOrThrow();
 
     const [char] = await db
       .select()
-      .from(charactersHuman)
-      .where(eq(charactersHuman.id, data.characterId));
-    if (!char) throw new Error("Character not found");
+      .from(charactersAnimal)
+      .where(eq(charactersAnimal.id, data.characterId));
+    if (!char) throw new Error("Animal character not found");
     if (char.createdBy !== session.user.id) throw new Error("Forbidden");
 
     const parts = await db
-      .select({ imageUrl: characterHumanParts.imageUrl, partRole: characterHumanParts.partRole })
-      .from(characterHumanParts)
-      .where(eq(characterHumanParts.characterId, data.characterId));
+      .select({ imageUrl: characterAnimalParts.imageUrl, partRole: characterAnimalParts.partRole })
+      .from(characterAnimalParts)
+      .where(eq(characterAnimalParts.characterId, data.characterId));
 
     const bodyPart = parts.find(p => p.partRole === 'body');
     const headPart = parts.find(p => p.partRole === 'head');
@@ -305,14 +306,14 @@ export const publishCharacter = createServerFn({ method: "POST" })
         id: propId,
         createdBy: session.user.id,
         name: char.name,
-        type: "composite-human",
+        type: "composite-animal",
         imageUrl: thumbnail,
       });
 
       await db
-        .update(charactersHuman)
+        .update(charactersAnimal)
         .set({ compositePropId: propId })
-        .where(eq(charactersHuman.id, data.characterId));
+        .where(eq(charactersAnimal.id, data.characterId));
     } else {
       await db
         .update(props)
@@ -323,36 +324,36 @@ export const publishCharacter = createServerFn({ method: "POST" })
     return { propId };
   });
 
-export const deleteCharacter = createServerFn({ method: "POST" })
+export const deleteAnimal = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ characterId: z.string() }).parse(input))
   .handler(async ({ data }) => {
     const session = await getSessionOrThrow();
 
     const [char] = await db
       .select()
-      .from(charactersHuman)
-      .where(eq(charactersHuman.id, data.characterId));
-    if (!char) throw new Error("Character not found");
+      .from(charactersAnimal)
+      .where(eq(charactersAnimal.id, data.characterId));
+    if (!char) throw new Error("Animal character not found");
     if (char.createdBy !== session.user.id) throw new Error("Forbidden");
 
     if (char.compositePropId) {
       await db.delete(props).where(eq(props.id, char.compositePropId));
     }
 
-    await db.delete(charactersHuman).where(eq(charactersHuman.id, data.characterId));
+    await db.delete(charactersAnimal).where(eq(charactersAnimal.id, data.characterId));
   });
 
-export const countMyPublishedCharacters = createServerFn({ method: "GET" })
+export const countMyPublishedAnimals = createServerFn({ method: "GET" })
   .handler(async () => {
     const session = await getSessionOrThrow();
 
     const [row] = await db
       .select({ count: sql<number>`count(*)::int` })
-      .from(charactersHuman)
+      .from(charactersAnimal)
       .where(
         and(
-          eq(charactersHuman.createdBy, session.user.id),
-          isNotNull(charactersHuman.compositePropId),
+          eq(charactersAnimal.createdBy, session.user.id),
+          isNotNull(charactersAnimal.compositePropId),
         ),
       );
 
