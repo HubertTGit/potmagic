@@ -25,6 +25,9 @@ import {
   CheckCircle2,
   IterationCcw,
   IterationCw,
+  ZoomIn,
+  ZoomOut,
+  Home,
 } from "lucide-react";
 import { ConfirmModal } from "@/components/confirm-modal";
 import type { Application } from "pixi.js";
@@ -72,6 +75,12 @@ export function CharacterBuilderStudio() {
   const [previewBlinking, setPreviewBlinking] = useState(false);
   const [previewTurnMode, setPreviewTurnMode] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const isPanningRef = useRef(false);
+  const isSpaceHeldRef = useRef(false);
+  const [isSpaceHeld, setIsSpaceHeld] = useState(false);
+  const lastPointerRef = useRef({ x: 0, y: 0 });
   const [ikState, setIkState] = useState({
     left: { enabled: false, flipped: true },
     right: { enabled: false, flipped: true },
@@ -304,11 +313,14 @@ export function CharacterBuilderStudio() {
       return;
 
     const rect = canvasRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 800;
-    const y = ((e.clientY - rect.top) / rect.height) * 800;
+    const rawX = ((e.clientX - rect.left) / rect.width) * 800;
+    const rawY = ((e.clientY - rect.top) / rect.height) * 800;
+    // Inverse-transform canvas pixel coords through current zoom/pan
+    const x = (rawX - pan.x) / zoom;
+    const y = (rawY - pan.y) / zoom;
 
-    const posX = Math.round(x - 400);
-    const posY = Math.round(y - 400);
+    let posX = Math.round(x - 400);
+    let posY = Math.round(y - 400);
 
     const existingPart = currentCharacter.parts.find(
       (p) => p.partRole === role,
@@ -347,7 +359,58 @@ export function CharacterBuilderStudio() {
     );
   };
 
-  const handleCanvasPointerMove = (e: React.PointerEvent) => {
+  const ZOOM_MIN = 0.25;
+  const ZOOM_MAX = 4;
+  const ZOOM_STEP = 1.25;
+
+  const applyZoom = (newZoom: number, originX: number, originY: number) => {
+    setZoom((prev) => {
+      const clamped = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, newZoom));
+      setPan((p) => ({
+        x: originX - (originX - p.x) * (clamped / prev),
+        y: originY - (originY - p.y) * (clamped / prev),
+      }));
+      return clamped;
+    });
+  };
+
+  const handleCanvasPointerDown = (e: React.PointerEvent) => {
+    if (e.button === 0 && isSpaceHeldRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      isPanningRef.current = true;
+      lastPointerRef.current = { x: e.clientX, y: e.clientY };
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    }
+  };
+
+  const handleCanvasPanMove = (e: React.PointerEvent) => {
+    if (!isPanningRef.current) return;
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const scaleRatio = 800 / rect.width;
+    const dx = (e.clientX - lastPointerRef.current.x) * scaleRatio;
+    const dy = (e.clientY - lastPointerRef.current.y) * scaleRatio;
+    lastPointerRef.current = { x: e.clientX, y: e.clientY };
+    setPan((p) => ({ x: p.x + dx, y: p.y + dy }));
+  };
+
+  const handleCanvasPointerUp = (e: React.PointerEvent) => {
+    if (e.button === 0) {
+      isPanningRef.current = false;
+    }
+  };
+
+  const handleZoomIn = () => applyZoom(zoom * ZOOM_STEP, 400, 400);
+  const handleZoomOut = () => applyZoom(zoom / ZOOM_STEP, 400, 400);
+  const handleResetView = () => {
+    // Reset torso to origin (composite container is at stage 400,400 = canvas center)
+    compositeRef.current?.setPartPosition("torso", 0, 0);
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
+
+const handleCanvasPointerMove = (e: React.PointerEvent) => {
     if (!compositeRef.current || !canvasRef.current) return;
 
     // Only update pupils if explicitly enabled for preview
@@ -361,8 +424,10 @@ export function CharacterBuilderStudio() {
     if (isInteracting) return;
 
     const rect = canvasRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 800;
-    const y = ((e.clientY - rect.top) / rect.height) * 800;
+    const rawX = ((e.clientX - rect.left) / rect.width) * 800;
+    const rawY = ((e.clientY - rect.top) / rect.height) * 800;
+    const x = (rawX - pan.x) / zoom;
+    const y = (rawY - pan.y) / zoom;
 
     compositeRef.current.updatePupils(x, y);
     compositeRef.current.handleGlobalHover({ x, y });
@@ -402,6 +467,39 @@ export function CharacterBuilderStudio() {
       if (app) {
         app.destroy(true);
       }
+    };
+  }, []);
+
+  // Sync zoom/pan to the PixiJS stage
+  useEffect(() => {
+    if (!appRef.current) return;
+    appRef.current.stage.scale.set(zoom);
+    appRef.current.stage.position.set(pan.x, pan.y);
+  }, [zoom, pan]);
+
+  // Spacebar hold — enables pan mode
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Space" && !e.repeat) {
+        e.preventDefault();
+        isSpaceHeldRef.current = true;
+        setIsSpaceHeld(true);
+        compositeRef.current?.setFrozen(true);
+      }
+    };
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.code === "Space") {
+        isSpaceHeldRef.current = false;
+        setIsSpaceHeld(false);
+        isPanningRef.current = false;
+        compositeRef.current?.setFrozen(false);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
     };
   }, []);
 
@@ -781,6 +879,8 @@ export function CharacterBuilderStudio() {
               className={cn(
                 "bg-base-100 relative aspect-square w-full max-w-[600px] overflow-hidden rounded-xl border border-white/5 shadow-2xl transition-all duration-200",
                 isDraggingOver && "border-primary bg-primary/5 scale-[1.02]",
+                isSpaceHeld && !isPanningRef.current && "cursor-grab",
+                isSpaceHeld && isPanningRef.current && "cursor-grabbing",
               )}
               onDragOver={(e) => {
                 e.preventDefault();
@@ -792,9 +892,42 @@ export function CharacterBuilderStudio() {
             >
               <canvas
                 ref={canvasRef}
-                onPointerMove={handleCanvasPointerMove}
+                onPointerMove={(e) => {
+                  handleCanvasPanMove(e);
+                  handleCanvasPointerMove(e);
+                }}
+                onPointerDown={handleCanvasPointerDown}
+                onPointerUp={handleCanvasPointerUp}
                 className="h-full w-full"
               />
+
+              {/* Zoom / pan controls — top-left of canvas */}
+              <div className="absolute top-3 left-3 flex flex-col gap-1">
+                <button
+                  onClick={handleZoomIn}
+                  className="border-base-300 bg-base-100/80 hover:bg-base-200/80 flex size-7 items-center justify-center rounded-lg border backdrop-blur-sm transition-colors"
+                  title="Zoom in"
+                >
+                  <ZoomIn className="size-3.5" />
+                </button>
+                <button
+                  onClick={handleZoomOut}
+                  className="border-base-300 bg-base-100/80 hover:bg-base-200/80 flex size-7 items-center justify-center rounded-lg border backdrop-blur-sm transition-colors"
+                  title="Zoom out"
+                >
+                  <ZoomOut className="size-3.5" />
+                </button>
+                <button
+                  onClick={handleResetView}
+                  className="border-base-300 bg-base-100/80 hover:bg-base-200/80 flex size-7 items-center justify-center rounded-lg border backdrop-blur-sm transition-colors"
+                  title="Reset view"
+                >
+                  <Home className="size-3.5" />
+                </button>
+                <span className="text-base-content/40 text-center text-[9px] font-medium tabular-nums">
+                  {Math.round(zoom * 100)}%
+                </span>
+              </div>
 
               {/* Control toggles — top-right of canvas */}
               <div className="absolute top-3 right-3 flex flex-col gap-2">

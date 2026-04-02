@@ -1518,6 +1518,24 @@ export class CompositeHumanCharacter {
     }
   }
 
+  setFrozen(frozen: boolean) {
+    this.container.eventMode = frozen ? "none" : "static";
+  }
+
+  setPartPosition(role: string, x: number, y: number) {
+    const container = this.partContainers.get(role);
+    if (container) {
+      container.x = x;
+      container.y = y;
+    }
+  }
+
+  getPartTextureSize(role: string): { width: number; height: number } | null {
+    const sprite = this.partSprites.get(role);
+    if (!sprite || !sprite.texture || sprite.texture.source.width === 0) return null;
+    return { width: sprite.texture.width, height: sprite.texture.height };
+  }
+
   setBoundingBoxesVisible(visible: boolean) {
     this.showBoundingBoxes = visible;
     for (const box of this.boundingBoxGraphics.values()) {
