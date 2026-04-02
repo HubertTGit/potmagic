@@ -243,10 +243,13 @@ export class CompositeCharacter {
       const app = this.props.app;
       const mouse = app.renderer.events.pointer.global;
       if (this.container.getBounds().containsPoint(mouse.x, mouse.y)) {
-        e.preventDefault();
-        this.container.scale.x *= -1;
-        this.publishMove();
-        this.persistPosition();
+        const torso = this.partContainers.get("torso");
+        if (torso) {
+          e.preventDefault();
+          torso.scale.x *= -1;
+          this.publishMove();
+          this.persistPosition();
+        }
       }
     }
   };
@@ -375,9 +378,9 @@ export class CompositeCharacter {
     const afr = createPart("arm-forearm-right", aur);
     createPart("arm-hand-right", afr);
 
-    this.container.scale.x = this.props.initialScaleX ?? 1;
-    this.container.rotation =
-      (this.props.initialRotation ?? 0) * (Math.PI / 180);
+    torso.scale.x = this.props.initialScaleX ?? 1;
+    torso.rotation = (this.props.initialRotation ?? 0) * (Math.PI / 180);
+
     this.container.sortChildren();
 
     // After building hierarchy, we can setup the specialized UI
@@ -503,18 +506,19 @@ export class CompositeCharacter {
       const distance = Math.sqrt(dx * dx + dy * dy);
       const angle = Math.atan2(dy, dx);
 
-      if (this.lastMultiTouchDistance > 0) {
+      const torso = this.partContainers.get("torso");
+      if (torso && this.lastMultiTouchDistance > 0) {
         // Rotation
         const deltaAngle = angle - this.lastMultiTouchAngle;
-        this.container.rotation += deltaAngle;
+        torso.rotation += deltaAngle;
 
         // Scaling (Uniform)
         // Keep scaleX sign to preserve mirroring
-        const currentScaleSign = Math.sign(this.container.scale.x);
+        const currentScaleSign = Math.sign(torso.scale.x);
         const scaleFactor = distance / this.lastMultiTouchDistance;
-        const newAbsScaleX = Math.abs(this.container.scale.x) * scaleFactor;
-        this.container.scale.x = newAbsScaleX * currentScaleSign;
-        this.container.scale.y = newAbsScaleX;
+        const newAbsScaleX = Math.abs(torso.scale.x) * scaleFactor;
+        torso.scale.x = newAbsScaleX * currentScaleSign;
+        torso.scale.y = newAbsScaleX;
       }
 
       this.lastMultiTouchDistance = distance;
@@ -1342,8 +1346,13 @@ export class CompositeCharacter {
   applyRemoteMove(msg: PropMoveMessage) {
     this.container.x = msg.x;
     this.container.y = msg.y;
-    this.container.rotation = msg.rotation * (Math.PI / 180);
-    this.container.scale.x = msg.scaleX;
+
+    const torso = this.partContainers.get("torso");
+    if (torso) {
+      torso.rotation = msg.rotation * (Math.PI / 180);
+      torso.scale.x = msg.scaleX;
+      torso.scale.y = Math.abs(msg.scaleX);
+    }
 
     // Apply specific part rotations
     if (msg.rotationBody !== undefined) {
@@ -1387,6 +1396,7 @@ export class CompositeCharacter {
     this.lastSendTime = now;
 
     // Get current part rotations to broadcast
+    const torso = this.partContainers.get("torso");
     const body = this.partContainers.get("body");
     const head = this.partContainers.get("head");
     const upperL = this.partContainers.get("arm-upper-left");
@@ -1399,8 +1409,8 @@ export class CompositeCharacter {
       castId,
       x: this.container.x,
       y: this.container.y,
-      rotation: this.container.rotation * (180 / Math.PI),
-      scaleX: this.container.scale.x,
+      rotation: (torso?.rotation ?? 0) * (180 / Math.PI),
+      scaleX: torso?.scale.x ?? 1,
       indexZ: 0,
     };
 
@@ -1430,13 +1440,14 @@ export class CompositeCharacter {
 
   private persistPosition() {
     if (!this.props.canDrag) return;
+    const torso = this.partContainers.get("torso");
     saveSceneCastPosition({
       data: {
         sceneCastId: this.props.sceneCastId,
         x: this.container.x,
         y: this.container.y,
-        rotation: this.container.rotation * (180 / Math.PI),
-        scaleX: this.container.scale.x,
+        rotation: (torso?.rotation ?? 0) * (180 / Math.PI),
+        scaleX: torso?.scale.x ?? 1,
       },
     });
   }
