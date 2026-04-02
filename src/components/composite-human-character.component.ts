@@ -1,4 +1,4 @@
-// src/components/composite-character.component.ts
+// src/components/composite-human-character.component.ts
 import { Application, Assets, Container, Graphics, Sprite } from "pixi.js";
 import * as PIXI from "pixi.js";
 import type { FederatedPointerEvent, Texture } from "pixi.js";
@@ -48,7 +48,7 @@ export interface CharacterPartData {
   altImageUrl: string | null;
 }
 
-export interface CompositeCharacterProps {
+export interface CompositeHumanCharacterProps {
   sceneCastId: string;
   castId: string;
   parts: CharacterPartData[];
@@ -84,9 +84,9 @@ export interface CharacterPartAdjustments {
 
 const encoder = new TextEncoder();
 
-export class CompositeCharacter {
+export class CompositeHumanCharacter {
   readonly container: Container;
-  private readonly props: CompositeCharacterProps;
+  private readonly props: CompositeHumanCharacterProps;
   private partContainers: Map<string, Container> = new Map();
   private partSprites: Map<string, Sprite> = new Map();
   private textures: Map<string, Texture> = new Map();
@@ -200,7 +200,7 @@ export class CompositeCharacter {
     "mouth",
   ] as const;
 
-  constructor(props: CompositeCharacterProps) {
+  constructor(props: CompositeHumanCharacterProps) {
     this.props = props;
     this.showBoundingBoxes = props.showBoundingBoxes ?? false;
 
@@ -319,7 +319,7 @@ export class CompositeCharacter {
       sprite.anchor.set(0.5, 0.5);
 
       const isGizmoLess = (
-        CompositeCharacter.NO_GIZMO_ROLES as readonly string[]
+        CompositeHumanCharacter.NO_GIZMO_ROLES as readonly string[]
       ).includes(role);
 
       // Use pivot for rotation point (stored in pixels)
@@ -566,8 +566,6 @@ export class CompositeCharacter {
   }
 
   private onPartGlobalPointerMove(e: FederatedPointerEvent) {
-    const anyIK = this.isAnyIKActive();
-
     // Gizmo handle repositioning (edit mode)
     if (this.movingGizmoHandle) {
       const {
@@ -772,7 +770,7 @@ export class CompositeCharacter {
     if (!container || !sprite) return;
 
     const isGizmoLess = (
-      CompositeCharacter.NO_GIZMO_ROLES as readonly string[]
+      CompositeHumanCharacter.NO_GIZMO_ROLES as readonly string[]
     ).includes(role);
 
     const gizmoGroup = new Container();
@@ -782,7 +780,7 @@ export class CompositeCharacter {
     this.gizmoGroups.set(role, gizmoGroup);
 
     const isRotatable = (
-      CompositeCharacter.ROTATABLE_ROLES as readonly string[]
+      CompositeHumanCharacter.ROTATABLE_ROLES as readonly string[]
     ).includes(role);
 
     const show = () => {
@@ -1260,7 +1258,7 @@ export class CompositeCharacter {
     targetGlobal: { x: number; y: number },
   ) {
     this.ikState[side].target = targetGlobal;
-    const chain = CompositeCharacter.ARM_CHAINS[side];
+    const chain = CompositeHumanCharacter.ARM_CHAINS[side];
     const upperRole = chain[0];
     const middleRole = chain[1];
     const handRole = chain[2];

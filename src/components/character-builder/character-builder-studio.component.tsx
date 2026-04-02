@@ -29,9 +29,9 @@ import {
 import { ConfirmModal } from "@/components/confirm-modal";
 import type { Application } from "pixi.js";
 import {
-  CompositeCharacter,
+  CompositeHumanCharacter,
   ALL_PART_ROLES,
-} from "@/components/composite-character.component";
+} from "@/components/composite-human-character.component";
 
 // Pending prop: uploaded to Blob/DB but not yet placed on canvas via drag-drop
 type PendingProp = {
@@ -50,7 +50,7 @@ export function CharacterBuilderStudio() {
   const queryClient = useQueryClient();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const appRef = useRef<Application | null>(null);
-  const compositeRef = useRef<CompositeCharacter | null>(null);
+  const compositeRef = useRef<CompositeHumanCharacter | null>(null);
 
   const [selectedRole, setSelectedRole] = useState<string>("body");
   const [isUploading, setIsUploading] = useState<"main" | "alt" | null>(null);
@@ -430,7 +430,7 @@ export function CharacterBuilderStudio() {
       };
     });
 
-    const composite = new CompositeCharacter({
+    const composite = new CompositeHumanCharacter({
       sceneCastId: "builder-preview",
       castId: "builder",
       parts: parts as any,

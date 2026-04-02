@@ -11,7 +11,7 @@ import type { PropType } from "@/db/schema";
 import { bgPanningAtom, bgProgressAtom } from "@/lib/bg-panning.atoms";
 import type { LiveKitMessage } from "@/lib/livekit-messages";
 import { Maximize, Minimize } from "lucide-react";
-import { CompositeCharacter } from "@/components/composite-character.component";
+import { CompositeHumanCharacter } from "@/components/composite-human-character.component";
 import { getCharacterByProp } from "@/lib/character-builder.fns";
 import { useQueries } from "@tanstack/react-query";
 
@@ -61,11 +61,11 @@ export const StageComponent = React.forwardRef<
   const containerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<Application | null>(null);
   const propsRef = useRef<
-    Map<string, PixiCharacter | PixiBackground | PixiRiveAnimation | CompositeCharacter>
+    Map<string, PixiCharacter | PixiBackground | PixiRiveAnimation | CompositeHumanCharacter>
   >(new Map());
   // castId → prop lookup for O(1) dispatch of incoming LiveKit data messages
   const castIdMapRef = useRef<
-    Map<string, PixiCharacter | PixiBackground | PixiRiveAnimation | CompositeCharacter>
+    Map<string, PixiCharacter | PixiBackground | PixiRiveAnimation | CompositeHumanCharacter>
   >(new Map());
   const appReadyRef = useRef(false);
   const prevCastIdsRef = useRef<string>("");
@@ -251,7 +251,7 @@ export const StageComponent = React.forwardRef<
             : cast.type === "rive"
               ? PixiRiveAnimation
               : cast.type === "composite"
-                ? CompositeCharacter
+                ? CompositeHumanCharacter
                 : PixiCharacter;
 
         const charData = cast.type === "composite" ? charactersMap.get(cast.path!) : null;
@@ -260,7 +260,7 @@ export const StageComponent = React.forwardRef<
           sceneCastId: cast.sceneCastId,
           castId: cast.castId,
           src: cast.path,
-          parts: charData?.parts, // Only for CompositeCharacter
+          parts: charData?.parts, // Only for CompositeHumanCharacter
           userId: cast.userId,
           type: cast.type,
           initialX: cast.posX ?? 100 + i * 200,
@@ -326,7 +326,7 @@ export const StageComponent = React.forwardRef<
         castIdMapRef.current.set(cast.castId, prop);
 
         // Enable Turn Mode for interactive characters on stage
-        if (prop instanceof CompositeCharacter && canDrag) {
+        if (prop instanceof CompositeHumanCharacter && canDrag) {
           prop.setTurnMode(true);
         }
       }
@@ -373,7 +373,7 @@ export const StageComponent = React.forwardRef<
       const userId = castUserMap.get(prop.container.label);
       if (userId) {
         const isSpeaking = speakingIds.has(userId);
-        if (prop instanceof CompositeCharacter) {
+        if (prop instanceof CompositeHumanCharacter) {
           prop.setSpeaking(isSpeaking);
         } else {
           (prop as any).updateSpeaking(isSpeaking);
@@ -382,7 +382,7 @@ export const StageComponent = React.forwardRef<
     }
   }, [speakingIds, casts]);
 
-  // Eye tracking for CompositeCharacters
+  // Eye tracking for CompositeHumanCharacters
   useEffect(() => {
     const app = appRef.current;
     if (!app) return;
@@ -390,7 +390,7 @@ export const StageComponent = React.forwardRef<
     const onMove = (e: any) => {
       // Find all composite characters and update their pupils and Turn Mode hover state
       for (const prop of propsRef.current.values()) {
-        if (prop instanceof CompositeCharacter && prop.canDrag) {
+        if (prop instanceof CompositeHumanCharacter && prop.canDrag) {
           prop.updatePupils(e.global.x, e.global.y);
           prop.handleGlobalHover({ x: e.global.x, y: e.global.y });
         }
