@@ -14,6 +14,7 @@ import {
 } from "@/lib/character-builder.fns";
 import { cn } from "@/lib/cn";
 import { toast } from "@/lib/toast";
+import { gsap } from "gsap";
 import {
   ChevronLeft,
   Upload,
@@ -362,16 +363,29 @@ export function CharacterBuilderStudio() {
 
   const ZOOM_MIN = 0.25;
   const ZOOM_MAX = 4;
-  const ZOOM_STEP = 1.25;
+  const ZOOM_STEP = 1.125;
+  const ZOOM_DEFAULT_X = -120;
+  const ZOOM_DEFAULT_Y = 150;
 
   const applyZoom = (newZoom: number, originX: number, originY: number) => {
-    setZoom((prev) => {
-      const clamped = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, newZoom));
-      setPan((p) => ({
-        x: originX - (originX - p.x) * (clamped / prev),
-        y: originY - (originY - p.y) * (clamped / prev),
-      }));
-      return clamped;
+    const targetZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, newZoom));
+
+    // Calculate target pan values to keep origin fixed on screen
+    const targetPanX = originX - (originX - pan.x) * (targetZoom / zoom);
+    const targetPanY = originY - (originY - pan.y) * (targetZoom / zoom);
+
+    // Animate zoom and pan together for a smooth transition
+    const proxy = { z: zoom, x: pan.x, y: pan.y };
+    gsap.to(proxy, {
+      z: targetZoom,
+      x: targetPanX,
+      y: targetPanY,
+      duration: 0.3,
+      ease: "power2.out",
+      onUpdate: () => {
+        setZoom(proxy.z);
+        setPan({ x: proxy.x, y: proxy.y });
+      },
     });
   };
 
@@ -402,13 +416,30 @@ export function CharacterBuilderStudio() {
     }
   };
 
-  const handleZoomIn = () => applyZoom(zoom * ZOOM_STEP, 400, 400);
-  const handleZoomOut = () => applyZoom(zoom / ZOOM_STEP, 400, 400);
+  const handleZoomIn = () => {
+    applyZoom(zoom * ZOOM_STEP, ZOOM_DEFAULT_X, ZOOM_DEFAULT_Y);
+  };
+  const handleZoomOut = () => {
+    applyZoom(zoom / ZOOM_STEP, ZOOM_DEFAULT_X, ZOOM_DEFAULT_Y);
+  };
+
   const handleResetView = () => {
     // Reset torso to origin (composite container is at stage 400,400 = canvas center)
     compositeRef.current?.setPartPosition("torso", 0, 0);
-    setZoom(1);
-    setPan({ x: -120, y: 150 });
+
+    // Animate zoom and pan back to their default states
+    const proxy = { z: zoom, x: pan.x, y: pan.y };
+    gsap.to(proxy, {
+      z: 1,
+      x: ZOOM_DEFAULT_X,
+      y: ZOOM_DEFAULT_Y,
+      duration: 0.4,
+      ease: "power2.inOut",
+      onUpdate: () => {
+        setZoom(proxy.z);
+        setPan({ x: proxy.x, y: proxy.y });
+      },
+    });
   };
 
   const handleCanvasPointerMove = (e: React.PointerEvent) => {

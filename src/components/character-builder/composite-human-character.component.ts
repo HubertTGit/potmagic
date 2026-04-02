@@ -207,6 +207,7 @@ export class CompositeHumanCharacter {
     "eye-brow-right",
     "mouth",
     "torso",
+    "body",
   ] as const;
 
   constructor(props: CompositeHumanCharacterProps) {
@@ -333,10 +334,16 @@ export class CompositeHumanCharacter {
 
       // Use pivot for rotation point (stored in pixels)
       // Gizmo-less roles are enforced to center pivot (0,0 with 0.5 anchor)
-      container.pivot.set(
-        isGizmoLess ? 0 : (data?.pivotX ?? 0),
-        isGizmoLess ? 0 : (data?.pivotY ?? 0),
-      );
+      let px = isGizmoLess ? 0 : (data?.pivotX ?? 0);
+      let py = isGizmoLess ? 0 : (data?.pivotY ?? 0);
+
+      // Smart Placement: body defaults to center-bottom pivot (y = height/2)
+      if (role === "body" && sprite.texture?.source.width > 0) {
+        px = 0;
+        py = sprite.texture.height / 2;
+      }
+
+      container.pivot.set(px, py);
 
       if (role === "mouth") {
         container.visible = false;
