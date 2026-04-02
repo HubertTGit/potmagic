@@ -83,6 +83,7 @@ export function CharacterBuilderStudio() {
   const isSpaceHeldRef = useRef(false);
   const [isSpaceHeld, setIsSpaceHeld] = useState(false);
   const lastPointerRef = useRef({ x: 0, y: 0 });
+  const saveRef = useRef<() => Promise<void>>(null as any);
   const [ikState, setIkState] = useState({
     left: { enabled: false, flipped: true },
     right: { enabled: false, flipped: true },
@@ -112,6 +113,22 @@ export function CharacterBuilderStudio() {
   const hasRequiredSpeakingParts = ["head", "mouth"].every((role) =>
     currentCharacter?.parts.some((p) => p.partRole === role),
   );
+
+  const hasRequiredTurnModeParts = ["body", "head"].every((role) =>
+    currentCharacter?.parts.some((p) => p.partRole === role),
+  );
+
+  const hasLeftArmParts = [
+    "arm-upper-left",
+    "arm-forearm-left",
+    "arm-hand-left",
+  ].every((role) => currentCharacter?.parts.some((p) => p.partRole === role));
+
+  const hasRightArmParts = [
+    "arm-upper-right",
+    "arm-forearm-right",
+    "arm-hand-right",
+  ].every((role) => currentCharacter?.parts.some((p) => p.partRole === role));
 
   const hasBlinkTexture = currentCharacter?.parts.some(
     (p) =>
@@ -146,6 +163,29 @@ export function CharacterBuilderStudio() {
       setPreviewSpeaking(false);
     }
   }, [hasRequiredSpeakingParts, previewSpeaking]);
+
+  // Reset turn mode if required parts are removed
+  useEffect(() => {
+    if (!hasRequiredTurnModeParts && previewTurnMode) {
+      setPreviewTurnMode(false);
+    }
+  }, [hasRequiredTurnModeParts, previewTurnMode]);
+
+  // Reset IK if required parts are removed
+  useEffect(() => {
+    if (!hasLeftArmParts && ikState.left.enabled) {
+      setIkState((prev) => ({
+        ...prev,
+        left: { ...prev.left, enabled: false },
+      }));
+    }
+    if (!hasRightArmParts && ikState.right.enabled) {
+      setIkState((prev) => ({
+        ...prev,
+        right: { ...prev.right, enabled: false },
+      }));
+    }
+  }, [hasLeftArmParts, hasRightArmParts, ikState.left.enabled, ikState.right.enabled]);
 
   // Sync speaking state to composite character
   useEffect(() => {
@@ -764,6 +804,18 @@ export function CharacterBuilderStudio() {
     }
   };
 
+  // Sync latest function to ref for autosave
+  saveRef.current = handleSaveAdjustments;
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (compositeRef.current && (currentCharacter?.parts.length ?? 0) > 0) {
+        saveRef.current();
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+    return () => clearInterval(timer);
+  }, [currentCharacter?.parts.length]);
+
   if (!canAccess) {
     return (
       <div className="text-error flex h-screen items-center justify-center p-8 text-center">
@@ -1008,12 +1060,23 @@ export function CharacterBuilderStudio() {
 
                 <div className="flex flex-col gap-1.5 p-1">
                   {/* Left Arm IK */}
-                  <div className="border-base-300 bg-base-100/80 flex min-w-[140px] items-center justify-between gap-1 rounded-lg border px-2 py-1.5 backdrop-blur-sm">
+                  <div
+                    className={cn(
+                      "border-base-300 bg-base-100/80 flex min-w-[140px] items-center justify-between gap-1 rounded-lg border px-2 py-1.5 backdrop-blur-sm",
+                      !hasLeftArmParts && "opacity-40 grayscale",
+                    )}
+                    title={
+                      !hasLeftArmParts
+                        ? "Requires Upper Arm, Forearm, and Hand"
+                        : ""
+                    }
+                  >
                     <div className="flex items-center gap-2">
                       <input
                         type="checkbox"
                         className="checkbox checkbox-xs checkbox-accent"
                         checked={ikState.left.enabled}
+                        disabled={!hasLeftArmParts}
                         onChange={(e) =>
                           setIkState((prev) => ({
                             ...prev,
@@ -1048,12 +1111,23 @@ export function CharacterBuilderStudio() {
                   </div>
 
                   {/* Right Arm IK */}
-                  <div className="border-base-300 bg-base-100/80 flex min-w-[140px] items-center justify-between gap-1 rounded-lg border px-2 py-1.5 backdrop-blur-sm">
+                  <div
+                    className={cn(
+                      "border-base-300 bg-base-100/80 flex min-w-[140px] items-center justify-between gap-1 rounded-lg border px-2 py-1.5 backdrop-blur-sm",
+                      !hasRightArmParts && "opacity-40 grayscale",
+                    )}
+                    title={
+                      !hasRightArmParts
+                        ? "Requires Upper Arm, Forearm, and Hand"
+                        : ""
+                    }
+                  >
                     <div className="flex items-center gap-2">
                       <input
                         type="checkbox"
                         className="checkbox checkbox-xs checkbox-accent"
                         checked={ikState.right.enabled}
+                        disabled={!hasRightArmParts}
                         onChange={(e) =>
                           setIkState((prev) => ({
                             ...prev,
@@ -1190,13 +1264,13 @@ export function CharacterBuilderStudio() {
                 <label
                   className={cn(
                     "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
-                    currentCharacter?.parts.some((p) => p.partRole === "body")
+                    hasRequiredTurnModeParts
                       ? "hover:bg-base-200/80 cursor-pointer"
-                      : "cursor-not-allowed opacity-50",
+                      : "cursor-not-allowed opacity-40 grayscale",
                   )}
                   title={
-                    !currentCharacter?.parts.some((p) => p.partRole === "body")
-                      ? "Place body and head to test turn mode"
+                    !hasRequiredTurnModeParts
+                      ? "Requires Head and Body to test turn mode"
                       : ""
                   }
                 >
@@ -1204,11 +1278,7 @@ export function CharacterBuilderStudio() {
                     type="checkbox"
                     className="checkbox checkbox-xs checkbox-accent"
                     checked={previewTurnMode}
-                    disabled={
-                      !currentCharacter?.parts.some(
-                        (p) => p.partRole === "body",
-                      )
-                    }
+                    disabled={!hasRequiredTurnModeParts}
                     onChange={(e) => setPreviewTurnMode(e.target.checked)}
                   />
                   Turn Mode
