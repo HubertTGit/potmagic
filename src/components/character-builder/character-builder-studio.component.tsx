@@ -217,6 +217,7 @@ export function CharacterBuilderStudio() {
     mutationFn: deleteProp,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["character", characterId] });
+      queryClient.invalidateQueries({ queryKey: ["user-characters"] });
       queryClient.invalidateQueries({ queryKey: ["all-props"] });
     },
   });
@@ -225,6 +226,7 @@ export function CharacterBuilderStudio() {
     mutationFn: removeCharacterPart,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["character", characterId] });
+      queryClient.invalidateQueries({ queryKey: ["user-characters"] });
       toast.success(
         t("characterBuilder.unplaced") || "Part removed from canvas",
       );
