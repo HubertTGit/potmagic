@@ -7,6 +7,7 @@ import { PropType } from "@/db/schema";
 import { useLanguage } from "@/hooks/useLanguage";
 import { riveApiAtom } from "@/lib/rive.atoms";
 import { MediaPreview } from "./media-preview.component";
+import { LibraryItemOverlay } from "./library-item-overlay.component";
 
 export interface LibraryItem {
   id: string;
@@ -253,61 +254,14 @@ export function LibrarySection({
                 className="h-full w-full object-cover"
               />
               {!readOnly && (
-              <div
-                className={cn(
-                  "bg-base-100/70 absolute inset-0 flex flex-col items-center justify-center gap-1 p-2 transition-opacity",
-                  confirmDeleteId === item.id
-                    ? "opacity-100"
-                    : "opacity-0 group-hover:opacity-100",
-                )}
-              >
-                {confirmDeleteId === item.id ? (
-                  <>
-                    <span className="text-error mb-1 text-center text-xs leading-tight font-medium">
-                      {t("library.deleteConfirm")}
-                    </span>
-                    <div className="flex gap-1">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setConfirmDeleteId(null);
-                          handleRemove(item.id);
-                        }}
-                        disabled={!!deletingId}
-                        className="btn btn-xs btn-error"
-                      >
-                        {t("action.delete")}
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setConfirmDeleteId(null);
-                        }}
-                        disabled={!!deletingId}
-                        className="btn btn-xs btn-ghost"
-                      >
-                        {t("action.cancel")}
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <span className="line-clamp-2 text-center text-xs leading-tight font-medium">
-                      {item.name}
-                    </span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setConfirmDeleteId(item.id);
-                      }}
-                      disabled={!!deletingId}
-                      className="text-error/70 hover:text-error transition-colors disabled:opacity-50"
-                    >
-                      <X className="size-4" />
-                    </button>
-                  </>
-                )}
-              </div>
+                <LibraryItemOverlay
+                  item={item}
+                  confirmDeleteId={confirmDeleteId}
+                  deletingId={deletingId}
+                  onConfirmDelete={(id) => handleRemove(id)}
+                  onCancelDelete={() => setConfirmDeleteId(null)}
+                  onTriggerDelete={(id) => setConfirmDeleteId(id)}
+                />
               )}
 
               {deletingId === item.id && (
