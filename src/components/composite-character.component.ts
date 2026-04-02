@@ -1401,10 +1401,18 @@ export class CompositeCharacter {
       { x: number; y: number; pivotX: number; pivotY: number; rotation: number }
     > = {};
     for (const [role, container] of this.partContainers) {
+      // If Turn Mode is active, we report the "at rest" rotation for body/head
+      // to prevents saving the temporary slider-driven rotation to database.
+      let rotation = container.rotation;
+      if (this.bodyHeadRotationEnabled) {
+        if (role === "body") rotation = this.bhInitialBodyRot;
+        if (role === "head") rotation = this.bhInitialHeadRot;
+      }
+
       result[role] = {
         x: container.x,
         y: container.y,
-        rotation: container.rotation * (180 / Math.PI),
+        rotation: rotation * (180 / Math.PI),
         pivotX: container.pivot.x,
         pivotY: container.pivot.y,
       };
@@ -1666,14 +1674,6 @@ export class CompositeCharacter {
 
     body.rotation = this.bhInitialBodyRot + bodyRotOffset;
     head.rotation = this.bhInitialHeadRot + headRotOffset;
-
-    // Notify changes
-    this.props.onChange?.("body", {
-      rotation: body.rotation * (180 / Math.PI),
-    });
-    this.props.onChange?.("head", {
-      rotation: head.rotation * (180 / Math.PI),
-    });
   }
 
   handleGlobalHover(globalPoint: { x: number; y: number }) {
