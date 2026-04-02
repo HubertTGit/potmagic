@@ -11,7 +11,7 @@ import type { PropType } from "@/db/schema";
 import { bgPanningAtom, bgProgressAtom } from "@/lib/bg-panning.atoms";
 import type { LiveKitMessage } from "@/lib/livekit-messages";
 import { Maximize, Minimize } from "lucide-react";
-import { CompositeHumanCharacter } from "@/components/composite-human-character.component";
+import { CompositeHumanCharacter } from "@/components/character-builder/composite-human-character.component";
 import { getCharacterByProp } from "@/lib/character-builder.fns";
 import { useQueries } from "@tanstack/react-query";
 
@@ -61,11 +61,23 @@ export const StageComponent = React.forwardRef<
   const containerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<Application | null>(null);
   const propsRef = useRef<
-    Map<string, PixiCharacter | PixiBackground | PixiRiveAnimation | CompositeHumanCharacter>
+    Map<
+      string,
+      | PixiCharacter
+      | PixiBackground
+      | PixiRiveAnimation
+      | CompositeHumanCharacter
+    >
   >(new Map());
   // castId → prop lookup for O(1) dispatch of incoming LiveKit data messages
   const castIdMapRef = useRef<
-    Map<string, PixiCharacter | PixiBackground | PixiRiveAnimation | CompositeHumanCharacter>
+    Map<
+      string,
+      | PixiCharacter
+      | PixiBackground
+      | PixiRiveAnimation
+      | CompositeHumanCharacter
+    >
   >(new Map());
   const appReadyRef = useRef(false);
   const prevCastIdsRef = useRef<string>("");
@@ -254,7 +266,8 @@ export const StageComponent = React.forwardRef<
                 ? CompositeHumanCharacter
                 : PixiCharacter;
 
-        const charData = cast.type === "composite" ? charactersMap.get(cast.path!) : null;
+        const charData =
+          cast.type === "composite" ? charactersMap.get(cast.path!) : null;
 
         const prop = new (PropClass as any)({
           sceneCastId: cast.sceneCastId,

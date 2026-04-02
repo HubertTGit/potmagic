@@ -31,7 +31,7 @@ import type { Application } from "pixi.js";
 import {
   CompositeHumanCharacter,
   ALL_PART_ROLES,
-} from "@/components/composite-human-character.component";
+} from "@/components/character-builder/composite-human-character.component";
 
 // Pending prop: uploaded to Blob/DB but not yet placed on canvas via drag-drop
 type PendingProp = {
@@ -799,7 +799,9 @@ export function CharacterBuilderStudio() {
                 <label
                   className={cn(
                     "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
-                    ikState.left.enabled || ikState.right.enabled || previewTurnMode
+                    ikState.left.enabled ||
+                      ikState.right.enabled ||
+                      previewTurnMode
                       ? "cursor-not-allowed opacity-40 grayscale"
                       : "hover:bg-base-200/80 cursor-pointer",
                   )}
@@ -1036,7 +1038,9 @@ export function CharacterBuilderStudio() {
                     className="checkbox checkbox-xs checkbox-accent"
                     checked={previewTurnMode}
                     disabled={
-                      !currentCharacter?.parts.some((p) => p.partRole === "body")
+                      !currentCharacter?.parts.some(
+                        (p) => p.partRole === "body",
+                      )
                     }
                     onChange={(e) => setPreviewTurnMode(e.target.checked)}
                   />
