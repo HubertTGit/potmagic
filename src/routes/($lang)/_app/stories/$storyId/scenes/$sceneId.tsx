@@ -1,14 +1,14 @@
-import { createFileRoute, Link, ErrorComponent } from '@tanstack/react-router';
-import { getMeta } from '@/i18n/meta';
-import { useLanguage } from '@/hooks/useLanguage';
-import { Theater } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { createFileRoute, Link, ErrorComponent } from "@tanstack/react-router";
+import { getMeta } from "@/i18n/meta";
+import { useLanguage } from "@/hooks/useLanguage";
+import { Theater } from "lucide-react";
+import { useState, useEffect } from "react";
 import {
   useSuspenseQuery,
   useQuery,
   useMutation,
   useQueryClient,
-} from '@tanstack/react-query';
+} from "@tanstack/react-query";
 import {
   getSceneDetail,
   updateSceneTitle,
@@ -20,34 +20,36 @@ import {
   setSceneBackgroundRepeat,
   addActorToScene,
   assignSceneProp,
-} from '@/lib/scenes.fns';
-import { Breadcrumb } from '@/components/breadcrumb.component';
-import { cn } from '@/lib/cn';
-import { ConfirmModal } from '@/components/confirm-modal';
-import { authClient } from '@/lib/auth-client';
+} from "@/lib/scenes.fns";
+import { Breadcrumb } from "@/components/breadcrumb.component";
+import { cn } from "@/lib/cn";
+import { ConfirmModal } from "@/components/confirm-modal";
+import { authClient } from "@/lib/auth-client";
 import {
   SceneCastSection,
   type CastMember,
-} from '@/components/scene-cast-section';
+} from "@/components/scene-cast-section";
 import {
   SceneBackgroundSection,
   type BackgroundProp,
-} from '@/components/scene-background-section';
+} from "@/components/scene-background-section";
 import {
   SceneSoundSection,
   type SoundProp,
-} from '@/components/scene-sound-section';
+} from "@/components/scene-sound-section";
 
-export const Route = createFileRoute('/($lang)/_app/stories/$storyId/scenes/$sceneId')({
+export const Route = createFileRoute(
+  "/($lang)/_app/stories/$storyId/scenes/$sceneId",
+)({
   head: ({ match }) => {
-    const locale = (match.context as { locale?: string })?.locale ?? 'en';
-    return { meta: [{ title: getMeta(locale, 'meta.sceneDetail.title') }] };
+    const locale = (match.context as { locale?: string })?.locale ?? "en";
+    return { meta: [{ title: getMeta(locale, "meta.sceneDetail.title") }] };
   },
   component: SceneDetailPage,
   pendingComponent: () => (
-    <div className="p-8 max-w-3xl">
+    <div className="max-w-3xl p-8">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 mb-8">
+      <div className="mb-8 flex items-center gap-2">
         <div className="skeleton h-3 w-12 rounded" />
         <div className="skeleton h-3 w-2 rounded-full" />
         <div className="skeleton h-3 w-24 rounded" />
@@ -56,7 +58,7 @@ export const Route = createFileRoute('/($lang)/_app/stories/$storyId/scenes/$sce
       </div>
 
       {/* Header: title + buttons */}
-      <div className="flex items-center gap-3 mb-3">
+      <div className="mb-3 flex items-center gap-3">
         <div className="skeleton h-10 flex-1 rounded" />
         <div className="skeleton h-10 w-20 rounded" />
         <div className="skeleton h-10 w-32 rounded" />
@@ -65,9 +67,9 @@ export const Route = createFileRoute('/($lang)/_app/stories/$storyId/scenes/$sce
       {/* Cast section */}
       <div className="mt-8 flex flex-col gap-3">
         <div className="skeleton h-4 w-16 rounded" />
-        {(['a', 'b', 'c'] as const).map((k) => (
+        {(["a", "b", "c"] as const).map((k) => (
           <div key={k} className="flex items-center gap-3">
-            <div className="skeleton size-8 rounded-full shrink-0" />
+            <div className="skeleton size-8 shrink-0 rounded-full" />
             <div className="skeleton h-4 flex-1 rounded" />
             <div className="skeleton h-8 w-24 rounded" />
           </div>
@@ -94,21 +96,21 @@ function SceneDetailPage() {
   const { storyId, sceneId } = Route.useParams();
   const { t } = useLanguage();
   const { data: session } = authClient.useSession();
-  const isDirector = session?.user?.role === 'director';
+  const isDirector = session?.user?.role === "director";
   const queryClient = useQueryClient();
-  const qk = ['scene', storyId, sceneId];
+  const qk = ["scene", storyId, sceneId];
 
   const { data } = useSuspenseQuery({
     queryKey: qk,
     queryFn: async () => {
       const res = await getSceneDetail({ data: { storyId, sceneId } });
-      if (!res) throw new Error('Data is undefined');
+      if (!res) throw new Error("Data is undefined");
       return res;
     },
   });
 
   const { data: nav } = useQuery({
-    queryKey: ['scene-navigation', sceneId],
+    queryKey: ["scene-navigation", sceneId],
     queryFn: () => getSceneNavigation({ data: { sceneId } }),
   });
 
@@ -118,7 +120,9 @@ function SceneDetailPage() {
   useEffect(() => {
     if (scene?.title && story?.title) {
       document.title = `${scene.title} — ${story.title} — potmagic: Live Story Theater`;
-      return () => { document.title = 'potmagic: Live Story Theater'; };
+      return () => {
+        document.title = "potmagic: Live Story Theater";
+      };
     }
   }, [scene?.title, story?.title]);
   const assignedCast: CastMember[] = (data?.assignedCast ?? []).map((c) => ({
@@ -134,14 +138,17 @@ function SceneDetailPage() {
   }));
   const availableActors = data?.availableActors ?? [];
   const availableProps = (data?.props ?? []).filter(
-    (p) => p.type === 'character' || p.type === 'rive' || p.type === 'composite',
+    (p) =>
+      p.type === "character" ||
+      p.type === "rive" ||
+      p.type === "composite-human",
   );
   const background: BackgroundProp | null =
     data?.background as BackgroundProp | null;
   const sound: SoundProp | null = data?.sound as SoundProp | null;
   const storyProps = (data?.props ?? []) as BackgroundProp[];
 
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState("");
   const [castToDelete, setCastToDelete] = useState<CastMember | null>(null);
 
   useEffect(() => {
@@ -206,21 +213,21 @@ function SceneDetailPage() {
     onSuccess: invalidate,
   });
 
-  const isTitleDirty = title !== (scene?.title ?? '');
+  const isTitleDirty = title !== (scene?.title ?? "");
 
   if (!scene || !story) {
     return (
       <div className="p-8">
-        <p className="text-base-content/40">{t('scene.notFound')}</p>
+        <p className="text-base-content/40">{t("scene.notFound")}</p>
       </div>
     );
   }
 
   const availableBackgrounds = storyProps.filter(
-    (p) => p.type === 'background',
+    (p) => p.type === "background",
   );
   const availableSounds = (data?.props ?? []).filter(
-    (p) => p.type === 'sound',
+    (p) => p.type === "sound",
   ) as SoundProp[];
 
   const handleAssignBackground = (bg: BackgroundProp | null) => {
@@ -232,27 +239,27 @@ function SceneDetailPage() {
   };
 
   return (
-    <div className="p-8 max-w-3xl">
+    <div className="max-w-3xl p-8">
       <Breadcrumb
         crumbs={[
-          { label: t('nav.stories'), to: '/stories/' },
+          { label: t("nav.stories"), to: "/stories/" },
           {
             label: story.title,
             to: `/stories/${storyId}/`,
-            type: 'story',
+            type: "story",
           },
-          { label: scene.title, type: 'scene' },
+          { label: scene.title, type: "scene" },
         ]}
       />
 
       {/* Header */}
-      <div className="flex items-center gap-3 mb-3">
+      <div className="mb-3 flex items-center gap-3">
         {isDirector ? (
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="input flex-1 bg-base-200 border-base-300 text-lg font-semibold focus:border-primary/60 focus:ring-2 focus:ring-primary/10"
+            className="input bg-base-200 border-base-300 focus:border-primary/60 focus:ring-primary/10 flex-1 text-lg font-semibold focus:ring-2"
           />
         ) : (
           <h1 className="flex-1 text-lg font-semibold">{scene.title}</h1>
@@ -263,24 +270,40 @@ function SceneDetailPage() {
             disabled={!isTitleDirty || saveMutation.isPending}
             onClick={() => saveMutation.mutate(title)}
             className={cn(
-              'btn btn-secondary font-display tracking-[0.05em]',
+              "btn btn-secondary font-display tracking-[0.05em]",
               (!isTitleDirty || saveMutation.isPending) &&
-                'opacity-40 cursor-not-allowed',
+                "cursor-not-allowed opacity-40",
             )}
           >
-            {t('action.save')}
+            {t("action.save")}
           </button>
         )}
         <Link
-          to={`/stage/${(!isDirector && data?.story?.selectedSceneId) ? data.story.selectedSceneId : sceneId}` as any}
-          disabled={!isDirector && (!data?.story?.directorOnStage || (data?.story?.status !== 'draft' && data?.story?.status !== 'active'))}
+          to={
+            `/stage/${!isDirector && data?.story?.selectedSceneId ? data.story.selectedSceneId : sceneId}` as any
+          }
+          disabled={
+            !isDirector &&
+            (!data?.story?.directorOnStage ||
+              (data?.story?.status !== "draft" &&
+                data?.story?.status !== "active"))
+          }
           className={cn(
-            'btn btn-primary font-display tracking-[0.05em]',
-            !isDirector && (!data?.story?.directorOnStage || (data?.story?.status !== 'draft' && data?.story?.status !== 'active')) && 'btn-disabled pointer-events-none opacity-50',
+            "btn btn-primary font-display tracking-[0.05em]",
+            !isDirector &&
+              (!data?.story?.directorOnStage ||
+                (data?.story?.status !== "draft" &&
+                  data?.story?.status !== "active")) &&
+              "btn-disabled pointer-events-none opacity-50",
           )}
-          aria-disabled={!isDirector && (!data?.story?.directorOnStage || (data?.story?.status !== 'draft' && data?.story?.status !== 'active'))}
+          aria-disabled={
+            !isDirector &&
+            (!data?.story?.directorOnStage ||
+              (data?.story?.status !== "draft" &&
+                data?.story?.status !== "active"))
+          }
         >
-          {t('story.enterStage')} <Theater className="size-4" />
+          {t("story.enterStage")} <Theater className="size-4" />
         </Link>
       </div>
 
@@ -333,10 +356,12 @@ function SceneDetailPage() {
 
       <ConfirmModal
         isOpen={!!castToDelete}
-        title={t('modal.confirmRemoval')}
-        message={t('modal.removeFromSceneMessage', { name: castToDelete?.userName ?? '' })}
-        confirmText={t('action.remove')}
-        pendingText={t('action.removing')}
+        title={t("modal.confirmRemoval")}
+        message={t("modal.removeFromSceneMessage", {
+          name: castToDelete?.userName ?? "",
+        })}
+        confirmText={t("action.remove")}
+        pendingText={t("action.removing")}
         onConfirm={() =>
           castToDelete && removeCastMutation.mutate(castToDelete.id)
         }

@@ -1,13 +1,18 @@
-import { createServerFn } from '@tanstack/react-start';
-import { and, asc, eq } from 'drizzle-orm';
-import { z } from 'zod';
-import { db } from '@/db';
-import { cast, props, scenes, sceneCast, stories, users } from '@/db/schema';
-export const getPublicStory = createServerFn({ method: 'GET' })
+import { createServerFn } from "@tanstack/react-start";
+import { and, asc, eq } from "drizzle-orm";
+import { z } from "zod";
+import { db } from "@/db";
+import { cast, props, scenes, sceneCast, stories, users } from "@/db/schema";
+export const getPublicStory = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ storyId: z.string() }).parse(input))
   .handler(async ({ data }) => {
     const [story] = await db
-      .select({ id: stories.id, title: stories.title, status: stories.status, directorSubscription: users.subscription })
+      .select({
+        id: stories.id,
+        title: stories.title,
+        status: stories.status,
+        directorSubscription: users.subscription,
+      })
       .from(stories)
       .innerJoin(users, eq(users.id, stories.directorId))
       .where(eq(stories.id, data.storyId));
@@ -24,7 +29,7 @@ export const getPublicStory = createServerFn({ method: 'GET' })
     return { ...story, firstSceneId: firstScene?.id ?? null };
   });
 
-export const getPublicSceneStage = createServerFn({ method: 'GET' })
+export const getPublicSceneStage = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ sceneId: z.string() }).parse(input))
   .handler(async ({ data }) => {
     const rows = await db
@@ -75,8 +80,8 @@ export const getPublicSceneStage = createServerFn({ method: 'GET' })
 
         backgroundCast = {
           sceneCastId: `bg-${data.sceneId}`,
-          castId: 'background',
-          userId: storyRow?.directorId ?? '',
+          castId: "background",
+          userId: storyRow?.directorId ?? "",
           path: bgProp.imageUrl,
           type: bgProp.type,
           posX: sceneWithBg.backgroundPosX ?? 0,
@@ -91,7 +96,7 @@ export const getPublicSceneStage = createServerFn({ method: 'GET' })
       sceneCastId: r.sceneCastId,
       castId: r.castId,
       userId: r.userId,
-      path: r.type === 'composite' ? r.propId : r.imageUrl,
+      path: r.type === "composite-human" ? r.propId : r.imageUrl,
       type: r.type,
       posX: r.posX,
       posY: r.posY,
@@ -109,7 +114,7 @@ export const getPublicSceneStage = createServerFn({ method: 'GET' })
     };
   });
 
-export const getViewerToken = createServerFn({ method: 'GET' })
+export const getViewerToken = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ storyId: z.string() }).parse(input))
   .handler(async ({ data }) => {
     const [story] = await db
@@ -117,17 +122,17 @@ export const getViewerToken = createServerFn({ method: 'GET' })
       .from(stories)
       .where(and(eq(stories.id, data.storyId)));
 
-    if (!story) throw new Error('Story not found');
-    if (story.status !== 'active') throw new Error('Story is not live');
+    if (!story) throw new Error("Story not found");
+    if (story.status !== "active") throw new Error("Story is not live");
 
-    const { AccessToken } = await import('livekit-server-sdk');
+    const { AccessToken } = await import("livekit-server-sdk");
 
     const at = new AccessToken(
       process.env.LIVEKIT_API_KEY!,
       process.env.LIVEKIT_API_SECRET!,
       {
         identity: `viewer-${crypto.randomUUID()}`,
-        name: 'Viewer',
+        name: "Viewer",
         ttl: 10800, // 3 hours
       },
     );
