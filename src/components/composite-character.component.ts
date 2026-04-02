@@ -438,7 +438,7 @@ export class CompositeCharacter {
 
       // Enable head interaction for Turn Mode hover in Stage Mode
       const headSprite = this.partSprites.get("head");
-      if (headSprite) {
+      if (headSprite && canDrag) {
         headSprite.eventMode = "static";
         headSprite.on("pointerover", () => this.onHeadHover(true));
         headSprite.on("pointerout", () => this.onHeadHover(false));

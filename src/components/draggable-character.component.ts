@@ -153,6 +153,10 @@ export class PixiCharacter {
     });
   }
 
+  get canDrag() {
+    return this.props.canDrag;
+  }
+
   private onPointerDown(e: FederatedPointerEvent) {
     this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 

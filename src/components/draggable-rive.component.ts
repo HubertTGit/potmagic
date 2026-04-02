@@ -289,19 +289,23 @@ export class PixiRiveAnimation {
   // Pointer handlers
   // -------------------------------------------------------------------------
 
+  get canDrag() {
+    return this.props.canDrag;
+  }
+
   private onPointerDown(e: FederatedPointerEvent) {
     this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
     if (this.activePointers.size === 1) {
       if (this.props.canDrag) {
         this.props.onSelect?.(true);
+        this.bringToTop();
       }
       this.isDragging = true;
       this.dragOffset = {
         x: this.container.x - e.global.x,
         y: this.container.y - e.global.y,
       };
-      this.bringToTop();
     } else {
       this.isDragging = false;
     }

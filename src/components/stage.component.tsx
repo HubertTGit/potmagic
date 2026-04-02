@@ -201,9 +201,14 @@ export const StageComponent = React.forwardRef<
       const existing = propsRef.current;
       const nextIds = new Set(casts.map((c) => c.sceneCastId));
 
-      // Remove characters no longer in scene
+      // Remove characters no longer in scene OR with stale canDrag state
       for (const [id, prop] of existing) {
-        if (!nextIds.has(id)) {
+        const cast = casts.find((c) => c.sceneCastId === id);
+        const canDrag =
+          session?.user?.id === cast?.userId ||
+          session?.user?.role === "director";
+
+        if (!nextIds.has(id) || prop.canDrag !== canDrag) {
           prop.saveCurrentPosition();
           prop.destroy();
           app.stage.removeChild(prop.container);

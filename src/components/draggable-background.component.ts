@@ -141,6 +141,10 @@ export class PixiBackground {
     s.on("globalpointermove", this.onStagePointerMove.bind(this));
   }
 
+  get canDrag() {
+    return this.props.canDrag;
+  }
+
   private onPointerDown(e: FederatedPointerEvent) {
     if (this.animationSpeed > 0) return;
     this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
