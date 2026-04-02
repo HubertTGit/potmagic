@@ -28,6 +28,7 @@ import {
   ZoomIn,
   ZoomOut,
   Home,
+  Scan,
 } from "lucide-react";
 import { ConfirmModal } from "@/components/confirm-modal";
 import type { Application } from "pixi.js";
@@ -407,10 +408,10 @@ export function CharacterBuilderStudio() {
     // Reset torso to origin (composite container is at stage 400,400 = canvas center)
     compositeRef.current?.setPartPosition("torso", 0, 0);
     setZoom(1);
-    setPan({ x: 0, y: 0 });
+    setPan({ x: -120, y: 150 });
   };
 
-const handleCanvasPointerMove = (e: React.PointerEvent) => {
+  const handleCanvasPointerMove = (e: React.PointerEvent) => {
     if (!compositeRef.current || !canvasRef.current) return;
 
     // Only update pupils if explicitly enabled for preview
@@ -922,7 +923,7 @@ const handleCanvasPointerMove = (e: React.PointerEvent) => {
                   className="border-base-300 bg-base-100/80 hover:bg-base-200/80 flex size-7 items-center justify-center rounded-lg border backdrop-blur-sm transition-colors"
                   title="Reset view"
                 >
-                  <Home className="size-3.5" />
+                  <Scan className="size-3.5" />
                 </button>
                 <span className="text-base-content/40 text-center text-[9px] font-medium tabular-nums">
                   {Math.round(zoom * 100)}%

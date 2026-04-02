@@ -144,8 +144,16 @@ export class CompositeHumanCharacter {
   }
 
   private ikState: {
-    left: { enabled: boolean; flipped: boolean; target: { x: number; y: number } | null };
-    right: { enabled: boolean; flipped: boolean; target: { x: number; y: number } | null };
+    left: {
+      enabled: boolean;
+      flipped: boolean;
+      target: { x: number; y: number } | null;
+    };
+    right: {
+      enabled: boolean;
+      flipped: boolean;
+      target: { x: number; y: number } | null;
+    };
   } = {
     left: { enabled: false, flipped: true, target: null },
     right: { enabled: false, flipped: true, target: null },
@@ -198,6 +206,7 @@ export class CompositeHumanCharacter {
     "eye-brow-left",
     "eye-brow-right",
     "mouth",
+    "torso",
   ] as const;
 
   constructor(props: CompositeHumanCharacterProps) {
@@ -997,7 +1006,10 @@ export class CompositeHumanCharacter {
 
     // Apply visibility rules to each handle ref
     for (const ref of refs) {
-      if (this.bodyHeadRotationEnabled && (role === "head" || role === "body")) {
+      if (
+        this.bodyHeadRotationEnabled &&
+        (role === "head" || role === "body")
+      ) {
         if (ref.type === "rotate") {
           ref.handle.visible = false;
           continue;
@@ -1418,13 +1430,11 @@ export class CompositeHumanCharacter {
 
     // Left Arm (IK result)
     if (upperL) msg.rotationArmUpperL = upperL.rotation * (180 / Math.PI);
-    if (forearmL)
-      msg.rotationArmForearmL = forearmL.rotation * (180 / Math.PI);
+    if (forearmL) msg.rotationArmForearmL = forearmL.rotation * (180 / Math.PI);
 
     // Right Arm (IK result)
     if (upperR) msg.rotationArmUpperR = upperR.rotation * (180 / Math.PI);
-    if (forearmR)
-      msg.rotationArmForearmR = forearmR.rotation * (180 / Math.PI);
+    if (forearmR) msg.rotationArmForearmR = forearmR.rotation * (180 / Math.PI);
 
     // Include gaze if we have tracked it locally
     if (this.pupilNx !== 0 || this.pupilNy !== 0) {
@@ -1532,7 +1542,8 @@ export class CompositeHumanCharacter {
 
   getPartTextureSize(role: string): { width: number; height: number } | null {
     const sprite = this.partSprites.get(role);
-    if (!sprite || !sprite.texture || sprite.texture.source.width === 0) return null;
+    if (!sprite || !sprite.texture || sprite.texture.source.width === 0)
+      return null;
     return { width: sprite.texture.width, height: sprite.texture.height };
   }
 
