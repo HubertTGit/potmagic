@@ -153,6 +153,7 @@ export class CompositeCharacter {
   private bodyHeadRotationEnabled = false;
   private bhHandleGroup: Container | null = null;
   private bhHandle: Graphics | null = null;
+  private bhHitArea: Graphics | null = null;
   private bhValue = 0; // -1 to 1 normalized
   private bhInitialBodyRot = 0;
   private bhInitialHeadRot = 0;
@@ -398,6 +399,11 @@ export class CompositeCharacter {
         if (role === "head") {
           sprite.on("pointerover", () => this.onHeadHover(true));
           sprite.on("pointerout", () => this.onHeadHover(false));
+
+          if (this.bhHitArea) {
+            this.bhHitArea.on("pointerover", () => this.onHeadHover(true));
+            this.bhHitArea.on("pointerout", () => this.onHeadHover(false));
+          }
         }
       }
 
@@ -1421,12 +1427,21 @@ export class CompositeCharacter {
     const head = this.partContainers.get("head");
     if (!head || this.bhHandleGroup) return;
 
+    // Create a dedicated hit area for Turn Mode interaction
+    // (covers head + slider area above it)
+    this.bhHitArea = new Graphics();
+    this.bhHitArea.label = "bh-hit-area";
+    this.bhHitArea.eventMode = "none";
+    this.bhHitArea.cursor = "default";
+    const torso = this.partContainers.get("torso") ?? head;
+    torso.addChild(this.bhHitArea);
+
     // Control Handle Group (Slider)
     this.bhHandleGroup = new Container();
     this.bhHandleGroup.label = "bh-handle-group";
     this.bhHandleGroup.visible = false;
     this.bhHandleGroup.alpha = 0;
-    head.addChild(this.bhHandleGroup);
+    torso.addChild(this.bhHandleGroup);
 
     // Track for guide
     const track = new Graphics();
@@ -1449,18 +1464,29 @@ export class CompositeCharacter {
 
   private updateBHUIPlacement() {
     const headContainer = this.partContainers.get("head");
+    const torsoContainer = this.partContainers.get("torso");
     const headSprite = this.partSprites.get("head");
-    if (!headContainer || !headSprite || !this.bhHandleGroup) return;
+    if (
+      !headContainer ||
+      !torsoContainer ||
+      !headSprite ||
+      !this.bhHandleGroup
+    )
+      return;
 
-    const bounds = headSprite.getBounds();
-    // Use local texture dimensions for range to avoid scale issues
+    // Calculate head origin in torso-local coordinates
+    const headOriginInTorso = torsoContainer.toLocal(
+      new PIXI.Point(0, 0),
+      headContainer,
+    );
+
     const headWidth = headSprite.texture.width;
     this.bhHandleRange = headWidth * 0.5;
 
-    // Position handle group right above head sprite within headContainer
-    this.bhHandleGroup.x = 0;
+    // Position handle group above head within torsoContainer
+    this.bhHandleGroup.x = headOriginInTorso.x;
     const topOffset = headSprite.anchor.y * headSprite.texture.height;
-    this.bhHandleGroup.y = -topOffset - 25;
+    this.bhHandleGroup.y = headOriginInTorso.y - topOffset - 25;
 
     // Redraw track
     const track = this.bhHandleGroup.getChildAt(0) as Graphics;
@@ -1470,6 +1496,26 @@ export class CompositeCharacter {
         .moveTo(-this.bhHandleRange, 0)
         .lineTo(this.bhHandleRange, 0)
         .stroke({ color: 0x3b82f6, width: 2, alpha: 0.3 });
+    }
+
+    // Update broader hit area to cover head + slider
+    if (this.bhHitArea) {
+      this.bhHitArea.x = headOriginInTorso.x;
+      this.bhHitArea.y = headOriginInTorso.y;
+
+      const tw = headSprite.texture.width;
+      const th = headSprite.texture.height;
+      const ax = headSprite.anchor.x;
+      const ay = headSprite.anchor.y;
+
+      const hitTop = -topOffset - 75; // Coverage above slider
+      const hitBottom = (1 - ay) * th;
+      const hitHeight = hitBottom - hitTop;
+
+      this.bhHitArea
+        .clear()
+        .rect(-ax * tw, hitTop, tw, hitHeight)
+        .fill({ color: 0xffffff, alpha: 0.001 }); // Invisible hit area
     }
   }
 
@@ -1492,10 +1538,12 @@ export class CompositeCharacter {
       // (waiting for hover)
       if (!enabled) {
         this.bhHandleGroup.visible = false;
+        if (this.bhHitArea) this.bhHitArea.eventMode = "none";
         // Revert rotations if disabling
         this.bhValue = 0;
         this.applyBodyHeadRotation();
       } else {
+        if (this.bhHitArea) this.bhHitArea.eventMode = "static";
         // Capture initial rotations
         this.bhInitialBodyRot = this.partContainers.get("body")?.rotation ?? 0;
         this.bhInitialHeadRot = this.partContainers.get("head")?.rotation ?? 0;

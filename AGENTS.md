@@ -20,9 +20,13 @@ pnpm lint         # Run ESLint
 pnpm preview      # Preview production build
 ```
 
+## Development Rules
+
+- **DO NOT open URLs in the browser for testing** unless the user explicitly asks you to.
+
 ## Overview
 
-**potmagic** is an online collaborative theater platform for storytelling. Groups perform interactive stories together using animated Konva canvas characters, with a public LiveKit broadcast stream for audiences. See `.agents/specs/SPEC.md` for full product specification and `.agents/specs/SPEC_LIVEKIT.md` specifically for LiveKit implementation.
+**potmagic** is an online collaborative theater platform for storytelling. Groups perform interactive stories together using animated PixiJS canvas characters, with a public LiveKit broadcast stream for audiences. See `.agents/specs/SPEC.md` for full product specification and `.agents/specs/SPEC_LIVEKIT.md` specifically for LiveKit implementation.
 
 ## Tech Stack
 
@@ -108,8 +112,8 @@ Auth is still mounted at `/api/auth/*` via better-auth's handler in the server e
 
 ## Component Structure
 
-- `src/components/stage.component.tsx` — Konva `Stage` + `Layer`; renders `DraggableCharacter` per scene cast member
-- `src/components/draggable-character.component.tsx` — interactive Konva `Image`:
+- `src/components/stage.component.tsx` — PixiJS `Application`; renders `DraggableCharacter` per scene cast member
+- `src/components/draggable-character.component.tsx` — interactive PixiJS `Sprite` / `Container`:
   - Drag to move (only by assigned actor — per-user drag control)
   - Two-finger touch → rotate + pan
   - Double-click/tap → horizontal mirror (`scaleX` flip)
@@ -151,7 +155,7 @@ Auth is still mounted at `/api/auth/*` via better-auth's handler in the server e
 
 ## Key Patterns
 
-- Konva nodes manipulated imperatively via refs (not React state) for performance
+- PixiJS objects manipulated imperatively via refs (not React state) for performance
 - Multi-touch angles/midpoints computed manually from `TouchEvent` coordinates
 - `scaleX` sign flip for mirroring (preserves absolute scale magnitude)
 - Characters initially positioned at `x: 100 + index * 200, y: 100`
@@ -173,6 +177,9 @@ Available skills to invoke during development:
 - `react-best-practices` — Function components, Context API over prop drilling
 - `tailwind-dark-mode` — Dark/light mode with Tailwind v4, `data-theme` attribute
 - `rive-best-practices` — Rive animations: `@rive-app/react-webgl2`, CJS import workaround, `useRive` hook, state machines, layout/fit, asset loading, `RiveCanvas` wrapper pattern
+- `daisyui-themes` — Use when creating custom daisyUI themes, enabling or disabling built-in themes, switching between light and dark variants, configuring data-theme attributes, or setting CSS color tokens for a daisyUI v5 project.
+- `ik-pixijs` — Core implementation patterns for Inverse Kinematics (IK) in PixiJS, including 2-bone solvers, coordinate spaces, and interaction handles.
+- `pixijs-best-practice` — Best practices for using PixiJS v8 in a React application with LiveKit and Rive integrations.
 
 ### Agents (`.agents/reference/`)
 

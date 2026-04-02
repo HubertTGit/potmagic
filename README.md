@@ -6,7 +6,7 @@ See [SPEC.md](./SPEC.md) for full product specification.
 
 ## Features
 
-- **Interactive canvas stage** — drag, rotate, and mirror characters using Konva
+- **Interactive canvas stage** — drag, rotate, and mirror characters using PixiJS
 - **Real-time collaboration** — actors perform together via LiveKit multi-user sessions
 - **Public broadcast** — audiences watch a live stream at a unique URL, no login required
 - **Role-based access** — Directors manage stories and cast; Actors perform; Viewers watch
@@ -18,7 +18,7 @@ See [SPEC.md](./SPEC.md) for full product specification.
 | --- | --- |
 | Frontend | React 19 + TypeScript |
 | Routing | TanStack Router |
-| Canvas | Konva + react-konva |
+| Canvas | PixiJS |
 | Styling | Tailwind CSS v4 + Sass |
 | Auth | better-auth (email/password) |
 | Real-time | LiveKit |
@@ -45,7 +45,7 @@ pnpm preview    # Preview production build
 
 | Area | Status |
 | --- | --- |
-| Konva canvas (drag, rotate, mirror) | Done |
+| PixiJS canvas (drag, rotate, mirror) | Done |
 | TanStack Router + routes | Done |
 | better-auth config (email/password) | Done |
 | LiveKit dependencies | Installed |
