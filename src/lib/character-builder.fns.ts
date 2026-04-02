@@ -207,6 +207,13 @@ export const upsertCharacterPart = createServerFn({ method: "POST" })
           ...payload,
         },
       });
+
+    if (partRole === "head") {
+      await db
+        .update(characters)
+        .set({ imageUrl: prop?.url ?? null })
+        .where(eq(characters.id, characterId));
+    }
   });
 
 export const updateCharacter = createServerFn({ method: "POST" })
@@ -260,6 +267,13 @@ export const removeCharacterPart = createServerFn({ method: "POST" })
           eq(characterParts.partRole, data.partRole as any),
         ),
       );
+
+    if (data.partRole === "head") {
+      await db
+        .update(characters)
+        .set({ imageUrl: null })
+        .where(eq(characters.id, data.characterId));
+    }
   });
 
 export const publishCharacter = createServerFn({ method: "POST" })

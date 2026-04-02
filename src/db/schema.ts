@@ -290,6 +290,7 @@ export const characters = pgTable(
     compositePropId: text("composite_prop_id").references(() => props.id, {
       onDelete: "set null",
     }),
+    imageUrl: text("image_url"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()

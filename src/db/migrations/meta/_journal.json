@@ -218,6 +218,13 @@
       "when": 1775061069721,
       "tag": "0030_normal_shiva",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1775133958228,
+      "tag": "0031_panoramic_firebird",
+      "breakpoints": true
     }
   ]
 }
