@@ -5,8 +5,8 @@ import { Image, X, ChevronLeft, ChevronRight, Music } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { PropType } from "@/db/schema";
 import { useLanguage } from "@/hooks/useLanguage";
-import { RiveAnimation, type VMProperty } from "./rive-animation.component";
 import { riveApiAtom } from "@/lib/rive.atoms";
+import { MediaPreview } from "./media-preview.component";
 
 export interface LibraryItem {
   id: string;
@@ -14,62 +14,15 @@ export interface LibraryItem {
   imageUrl: string | null;
 }
 
-const MediaPreview = ({
-  src,
-  buffer,
-  name,
-  className,
-  isRive,
-  isSound,
-  isInteractive,
-}: {
-  src?: string | null;
-  buffer?: ArrayBuffer;
-  name?: string;
-  className?: string;
-  isRive?: boolean;
-  isSound?: boolean;
-  isInteractive?: boolean;
-}) => {
-  if (isSound) {
-    return (
-      <div
-        className={cn(
-          "bg-base-300 flex flex-col items-center justify-center gap-4 p-6",
-          className,
-        )}
-      >
-        <Music className="text-base-content/40 size-8" />
-        {/* audio preview — captions not required for a short preview clip */}
-        {src && (
-          <audio
-            controls
-            src={src}
-            className="w-50"
-            onClick={(e) => e.stopPropagation()}
-          />
-        )}
-      </div>
-    );
-  }
-
-  if (isRive) {
-    return (
-      <RiveAnimation
-        src={src}
-        buffer={buffer}
-        className={className}
-        isInteractive={isInteractive}
-      />
-    );
-  }
-
-  return src ? (
-    <img src={src} alt={name} className={className} />
-  ) : (
-    <div className={className} />
-  );
-};
+export interface LibrarySectionProps {
+  label: string;
+  type: PropType;
+  items: LibraryItem[];
+  isLoading: boolean;
+  onAdd: (file: File, name: string) => Promise<void>;
+  onRemove: (id: string) => Promise<void>;
+  readOnly?: boolean;
+}
 
 export function LibrarySection({
   label,
@@ -79,15 +32,7 @@ export function LibrarySection({
   onAdd,
   onRemove,
   readOnly = false,
-}: {
-  label: string;
-  type: PropType;
-  items: LibraryItem[];
-  isLoading: boolean;
-  onAdd: (file: File, name: string) => Promise<void>;
-  onRemove: (id: string) => Promise<void>;
-  readOnly?: boolean;
-}) {
+}: LibrarySectionProps) {
   const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<{

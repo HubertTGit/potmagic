@@ -9,10 +9,12 @@ import {
   Film,
   Plus,
   Drama,
+  PersonStanding,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { listAllProps, uploadProp, deleteProp } from "@/lib/props.fns";
-import { LibrarySection } from "@/components/library-section.component";
+import { LibrarySection } from "@/components/library/library-section.component";
+import { LibraryCard } from "@/components/library/library-card.component";
 import { requireDirector } from "@/lib/auth-guard";
 import { useLanguage } from "@/hooks/useLanguage";
 import { toast } from "@/lib/toast";
@@ -100,8 +102,8 @@ function LibraryPage() {
     },
     {
       id: "composite" as PropType,
-      title: "Published Characters",
-      icon: Drama,
+      title: t("director.library.publishedCharacters"),
+      icon: PersonStanding,
       count: allProps?.composite?.length ?? 0,
       color: "text-primary",
     },
@@ -129,35 +131,16 @@ function LibraryPage() {
 
       <div className="mb-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
         {sections.map((section) => (
-          <div
+          <LibraryCard
             key={section.id}
+            title={section.title}
+            icon={section.icon}
+            count={section.count}
+            color={section.color}
+            isActive={activeSection === section.id}
+            isLoading={isLoading}
             onClick={() => setActiveSection(section.id)}
-            className={cn(
-              "card bg-base-200 border-base-300 hover:border-primary/50 group cursor-pointer border transition-all",
-              activeSection === section.id &&
-                "border-primary bg-primary/5 ring-primary/20 ring-1",
-            )}
-          >
-            <div className="card-body p-6">
-              <div
-                className={cn(
-                  "bg-base-100 mb-4 w-fit rounded-lg p-3 transition-transform group-hover:scale-110",
-                  section.color,
-                )}
-              >
-                <section.icon className="size-6" />
-              </div>
-              <h2 className="card-title mb-1 text-xl">{section.title}</h2>
-              <p className="text-base-content/60 text-sm">
-                {isLoading ? (
-                  <span className="skeleton inline-block h-4 w-12 rounded" />
-                ) : (
-                  section.count
-                )}{" "}
-                items in collection
-              </p>
-            </div>
-          </div>
+          />
         ))}
       </div>
 
