@@ -4,13 +4,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { authClient } from "@/lib/auth-client";
 import { useLanguage } from "@/hooks/useLanguage";
 import type { SubscriptionType } from "@/db/schema";
-import { uploadProp, uploadPartFile, deleteProp } from "@/lib/props.fns";
+import { deleteProp } from "@/lib/props.fns";
 import {
   getCharacter,
   upsertCharacterPart,
-  removeCharacterPart,
   publishCharacter,
   updateCharacter,
+  uploadHumanPartFile,
+  removeCharacterPart,
 } from "@/lib/character-builder.fns";
 import { cn } from "@/lib/cn";
 import { toast } from "@/lib/toast";
@@ -20,15 +21,12 @@ import {
   Upload,
   Save,
   Drama,
-  Maximize2,
-  Target,
   Trash2,
   CheckCircle2,
   IterationCcw,
   IterationCw,
   ZoomIn,
   ZoomOut,
-  Home,
   Scan,
 } from "lucide-react";
 import { ConfirmModal } from "@/components/confirm-modal";
@@ -37,7 +35,6 @@ import {
   CompositeHumanCharacter,
   ALL_PART_ROLES,
 } from "@/components/character-builder/composite-human-character.component";
-
 
 export function CharacterBuilderStudio() {
   const { characterId } = useParams({ strict: false }) as {
@@ -53,7 +50,6 @@ export function CharacterBuilderStudio() {
   const [selectedRole, setSelectedRole] = useState<string>("body");
   const [isUploading, setIsUploading] = useState<"main" | "alt" | null>(null);
   const [localName, setLocalName] = useState("");
-  const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [gizmoEditMode, setGizmoEditMode] = useState(false);
   // Track live pivot values from Pixi for the selected part
   const [livePivots, setLivePivots] = useState<
@@ -174,7 +170,12 @@ export function CharacterBuilderStudio() {
         right: { ...prev.right, enabled: false },
       }));
     }
-  }, [hasLeftArmParts, hasRightArmParts, ikState.left.enabled, ikState.right.enabled]);
+  }, [
+    hasLeftArmParts,
+    hasRightArmParts,
+    ikState.left.enabled,
+    ikState.right.enabled,
+  ]);
 
   // Sync speaking state to composite character
   useEffect(() => {
@@ -262,95 +263,26 @@ export function CharacterBuilderStudio() {
     },
   });
 
-  const unplacePartMutation = useMutation({
+  const removePartMutation = useMutation({
     mutationFn: removeCharacterPart,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["character", characterId] });
-      queryClient.invalidateQueries({ queryKey: ["user-characters"] });
-      toast.success(
-        t("characterBuilder.unplaced") || "Part removed from canvas",
-      );
-    },
-    onError: () => {
-      toast.error("Failed to remove part from canvas");
     },
   });
-
-  const handleUnplacePart = async () => {
-    if (!characterId || !selectedRole || !currentCharacter) return;
-    const part = currentCharacter.parts.find(
-      (p) => p.partRole === selectedRole,
-    );
-    if (!part) return;
-
-    await unplacePartMutation.mutateAsync({
-      data: { characterId, partRole: selectedRole },
-    });
-  };
 
   const handleRemovePart = async () => {
     if (!characterId || !selectedRole || !currentCharacter) return;
 
-    const part = currentCharacter.parts.find(
-      (p) => p.partRole === selectedRole,
-    );
-    if (!part) return;
-
-    // Delete prop permanently from DB and Blob storage
     try {
-      if (part.altPropId) {
-        await deletePropMutation.mutateAsync({ data: { id: part.altPropId } });
-      }
-      if (part.propId) {
-        await deletePropMutation.mutateAsync({ data: { id: part.propId } });
-      }
+      await removePartMutation.mutateAsync({
+        data: { characterId, partRole: selectedRole },
+      });
       toast.success("Part photo deleted permanently");
+      setIsDeleteConfirmOpen(false);
     } catch (e) {
       console.error("Failed to remove part:", e);
       toast.error("Failed to delete part photo");
     }
-  };
-
-  // Drop from sidebar onto canvas — this is the ONLY way a part appears on canvas
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDraggingOver(false);
-    const role = e.dataTransfer.getData("partRole");
-    if (!role || !canvasRef.current || !characterId || !currentCharacter)
-      return;
-
-    const rect = canvasRef.current.getBoundingClientRect();
-    const rawX = ((e.clientX - rect.left) / rect.width) * 800;
-    const rawY = ((e.clientY - rect.top) / rect.height) * 800;
-    // Inverse-transform canvas pixel coords through current zoom/pan
-    const x = (rawX - pan.x) / zoom;
-    const y = (rawY - pan.y) / zoom;
-
-    let posX = Math.round(x - 400);
-    let posY = Math.round(y - 400);
-
-    const existingPart = currentCharacter.parts.find(
-      (p) => p.partRole === role,
-    );
-    if (!existingPart) return;
-
-    setSelectedRole(role);
-    upsertPartMutation.mutate(
-      {
-        data: {
-          characterId,
-          partRole: role as any,
-          propId: existingPart.propId,
-          altPropId: existingPart.altPropId,
-          x: posX,
-          y: posY,
-          pivotX: existingPart.pivotX,
-          pivotY: existingPart.pivotY,
-          rotation: existingPart.rotation,
-          zIndex: existingPart.zIndex,
-        },
-      },
-    );
   };
 
   const ZOOM_MIN = 0.25;
@@ -606,7 +538,7 @@ export function CharacterBuilderStudio() {
 
       const base64 = await base64Promise;
 
-      const result = await uploadPartFile({
+      const result = await uploadHumanPartFile({
         data: {
           fileName: file.name,
           contentType: file.type,
@@ -663,7 +595,7 @@ export function CharacterBuilderStudio() {
 
       const base64 = await base64Promise;
 
-      const result = await uploadPartFile({
+      const result = await uploadHumanPartFile({
         data: {
           fileName: file.name,
           contentType: file.type,
@@ -682,7 +614,9 @@ export function CharacterBuilderStudio() {
             altImageUrl: result.url,
             altPropId: null,
             propId: existingPart?.propId,
-            zIndex: existingPart?.zIndex ?? ALL_PART_ROLES.indexOf(selectedRole as any),
+            zIndex:
+              existingPart?.zIndex ??
+              ALL_PART_ROLES.indexOf(selectedRole as any),
             x: existingPart?.x ?? 0,
             y: existingPart?.y ?? 0,
             pivotX: existingPart?.pivotX ?? 0,
@@ -732,11 +666,14 @@ export function CharacterBuilderStudio() {
   saveRef.current = handleSaveAdjustments;
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      if (compositeRef.current && (currentCharacter?.parts.length ?? 0) > 0) {
-        saveRef.current();
-      }
-    }, 5 * 60 * 1000); // 5 minutes
+    const timer = setInterval(
+      () => {
+        if (compositeRef.current && (currentCharacter?.parts.length ?? 0) > 0) {
+          saveRef.current();
+        }
+      },
+      5 * 60 * 1000,
+    ); // 5 minutes
     return () => clearInterval(timer);
   }, [currentCharacter?.parts.length]);
 
@@ -826,13 +763,6 @@ export function CharacterBuilderStudio() {
                 <button
                   key={role}
                   onClick={() => setSelectedRole(role)}
-                  draggable={!!imageUrl}
-                  onDragStart={(e) => {
-                    if (imageUrl) {
-                      e.dataTransfer.setData("partRole", role);
-                      e.dataTransfer.effectAllowed = "move";
-                    }
-                  }}
                   className={cn(
                     "flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors",
                     selectedRole === role
@@ -878,17 +808,9 @@ export function CharacterBuilderStudio() {
             <div
               className={cn(
                 "bg-base-100 relative aspect-square w-full max-w-[600px] overflow-hidden rounded-xl border border-white/5 shadow-2xl transition-all duration-200",
-                isDraggingOver && "border-primary bg-primary/5 scale-[1.02]",
                 isSpaceHeld && !isPanningRef.current && "cursor-grab",
                 isSpaceHeld && isPanningRef.current && "cursor-grabbing",
               )}
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = "move";
-                setIsDraggingOver(true);
-              }}
-              onDragLeave={() => setIsDraggingOver(false)}
-              onDrop={handleDrop}
             >
               <canvas
                 ref={canvasRef}
@@ -1201,8 +1123,7 @@ export function CharacterBuilderStudio() {
                 </label>
               </div>
 
-              <div className="pointer-events-none absolute right-4 bottom-4 left-4 flex justify-between text-[10px] tracking-widest uppercase opacity-30">
-                <span>Drag parts from the sidebar to place them</span>
+              <div className="pointer-events-none absolute right-4 bottom-4 left-4 flex justify-end text-[10px] tracking-widest uppercase opacity-30">
                 <span>800x800 Preview</span>
               </div>
             </div>
@@ -1229,24 +1150,11 @@ export function CharacterBuilderStudio() {
                   <h2 className="truncate text-sm font-bold tracking-widest uppercase">
                     {selectedRole.replace(/-/g, " ")}
                   </h2>
-                  {hasPhoto &&
-                    (isPlaced ? (
-                      <button
-                        onClick={handleUnplacePart}
-                        disabled={unplacePartMutation.isPending}
-                        className="btn btn-xs btn-ghost border-base-300 h-6 min-h-0 text-[10px] font-bold tracking-wider uppercase"
-                      >
-                        {unplacePartMutation.isPending ? (
-                          <span className="loading loading-spinner loading-xs" />
-                        ) : (
-                          "unplace"
-                        )}
-                      </button>
-                    ) : (
-                      <div className="badge badge-warning badge-xs h-5 shrink-0 font-bold tracking-wider uppercase">
-                        Not placed
-                      </div>
-                    ))}
+                  {hasPhoto && !isPlaced && (
+                    <div className="badge badge-warning badge-xs h-5 shrink-0 font-bold tracking-wider uppercase">
+                      Not placed
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-6">
@@ -1282,16 +1190,6 @@ export function CharacterBuilderStudio() {
                                   ? "cursor-grab active:cursor-grabbing"
                                   : "cursor-pointer",
                               )}
-                              draggable={!isPlaced}
-                              onDragStart={(e) => {
-                                if (!isPlaced) {
-                                  e.dataTransfer.setData(
-                                    "partRole",
-                                    selectedRole,
-                                  );
-                                  e.dataTransfer.effectAllowed = "move";
-                                }
-                              }}
                             >
                               <img
                                 src={displayUrl}
@@ -1300,21 +1198,10 @@ export function CharacterBuilderStudio() {
                               />
                               <div className="bg-base-300/80 absolute inset-0 flex items-center justify-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
                                 <div className="flex flex-col items-center gap-1">
-                                  {isPlaced ? (
-                                    <>
-                                      <Upload className="size-5 text-white" />
-                                      <span className="text-[10px] font-bold tracking-widest uppercase">
-                                        Replace texture
-                                      </span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Maximize2 className="size-5 text-white" />
-                                      <span className="text-[10px] font-bold tracking-widest uppercase">
-                                        Drag to canvas
-                                      </span>
-                                    </>
-                                  )}
+                                  <Upload className="size-5 text-white" />
+                                  <span className="text-[10px] font-bold tracking-widest uppercase">
+                                    Replace texture
+                                  </span>
                                 </div>
                               </div>
                             </div>
@@ -1425,17 +1312,6 @@ export function CharacterBuilderStudio() {
                         );
                       })()}
                     </div>
-
-                    <div className="border-primary/20 bg-primary/5 rounded-lg border p-4">
-                      <div className="flex items-start gap-3">
-                        <Target className="text-primary mt-0.5 size-4" />
-                        <p className="text-xs leading-relaxed italic opacity-70">
-                          Upload a texture, then drag it from the sidebar or
-                          this panel onto the canvas to place it. Once placed,
-                          drag parts freely on the canvas to reposition.
-                        </p>
-                      </div>
-                    </div>
                   </div>
 
                   <div className="divider opacity-30" />
@@ -1443,9 +1319,7 @@ export function CharacterBuilderStudio() {
                   <div className="flex flex-col gap-2 pt-4">
                     <button
                       onClick={() => setIsDeleteConfirmOpen(true)}
-                      disabled={
-                        deletePropMutation.isPending || !part
-                      }
+                      disabled={deletePropMutation.isPending || !part}
                       className={cn(
                         "btn btn-ghost btn-xs text-error/40 hover:bg-error/10 hover:text-error w-full gap-2",
                         deletePropMutation.isPending && "loading",

@@ -421,7 +421,6 @@ export class CompositeHumanCharacter {
       for (const [role, sprite] of this.partSprites) {
         if (!this.textures.has(role)) continue; // skip unplaced parts
 
-        // All parts that have textures can be manually dragged
         sprite.eventMode = "static";
         sprite.cursor = "move";
         sprite.on("pointerdown", (e) => this.onPartPointerDown(e, role));

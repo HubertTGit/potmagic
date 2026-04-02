@@ -3,6 +3,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { eq, and, asc, isNotNull, sql } from "drizzle-orm";
 import { z } from "zod";
+import { put, del } from "@vercel/blob";
+import { ALLOWED_MIME_TYPES } from "@/lib/props.fns";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { charactersHuman, characterHumanParts, props } from "@/db/schema";
@@ -161,6 +163,22 @@ export const upsertCharacterPart = createServerFn({ method: "POST" })
     if (!char) throw new Error("Character not found");
     if (char.createdBy !== session.user.id) throw new Error("Forbidden");
 
+    // Fetch existing part to check for old images to clean up
+    const [existingPart] = await db
+      .select({
+        imageUrl: characterHumanParts.imageUrl,
+        altImageUrl: characterHumanParts.altImageUrl,
+        propId: characterHumanParts.propId,
+        altPropId: characterHumanParts.altPropId,
+      })
+      .from(characterHumanParts)
+      .where(
+        and(
+          eq(characterHumanParts.characterId, data.characterId),
+          eq(characterHumanParts.partRole, data.partRole),
+        ),
+      );
+
     const id = crypto.randomUUID();
     const {
       characterId,
@@ -172,32 +190,42 @@ export const upsertCharacterPart = createServerFn({ method: "POST" })
       ...values
     } = data;
 
-    // Fetch image URLs for denormalization if IDs are provided
-    let finalImageUrl = imageUrl ?? null;
-    if (propId && !finalImageUrl) {
-      const [prop] = await db
-        .select({ url: props.imageUrl })
-        .from(props)
-        .where(eq(props.id, propId));
-      finalImageUrl = prop?.url ?? null;
-    }
-
-    let finalAltImageUrl = altImageUrl ?? null;
-    if (altPropId && !finalAltImageUrl) {
-      const [altProp] = await db
-        .select({ url: props.imageUrl })
-        .from(props)
-        .where(eq(props.id, altPropId));
-      finalAltImageUrl = altProp?.url ?? null;
-    }
-
-    const payload = {
+    const payload: any = {
       ...values,
-      propId,
-      altPropId,
-      imageUrl: finalImageUrl,
-      altImageUrl: finalAltImageUrl,
+      propId: data.propId,
+      altPropId: data.altPropId,
     };
+
+    // Only update imageUrl if provided in input OR if a propId was sent (requiring derivation)
+    if (data.imageUrl !== undefined || data.propId !== undefined) {
+      let finalImageUrl = data.imageUrl ?? null;
+      if (data.propId && data.imageUrl === undefined) {
+        const [prop] = await db
+          .select({ url: props.imageUrl })
+          .from(props)
+          .where(eq(props.id, data.propId));
+        finalImageUrl = prop?.url ?? null;
+      }
+      // If we have a concrete value (including null), add it to payload
+      if (data.imageUrl !== undefined || (data.propId && finalImageUrl !== null)) {
+        payload.imageUrl = finalImageUrl;
+      }
+    }
+
+    // Only update altImageUrl if provided in input OR if an altPropId was sent (requiring derivation)
+    if (data.altImageUrl !== undefined || data.altPropId !== undefined) {
+      let finalAltImageUrl = data.altImageUrl ?? null;
+      if (data.altPropId && data.altImageUrl === undefined) {
+        const [altProp] = await db
+          .select({ url: props.imageUrl })
+          .from(props)
+          .where(eq(props.id, data.altPropId));
+        finalAltImageUrl = altProp?.url ?? null;
+      }
+      if (data.altImageUrl !== undefined || (data.altPropId && finalAltImageUrl !== null)) {
+        payload.altImageUrl = finalAltImageUrl;
+      }
+    }
 
     await db
       .insert(characterHumanParts)
@@ -214,22 +242,44 @@ export const upsertCharacterPart = createServerFn({ method: "POST" })
         },
       });
 
+    // Storage Cleanup: If image URLs changed, delete the old blobs
+    // We only delete blobs if they were direct uploads (no propId)
+    // because library props might be shared.
+    if (existingPart) {
+      if (
+        payload.imageUrl !== undefined &&
+        existingPart.imageUrl &&
+        existingPart.imageUrl !== payload.imageUrl &&
+        !existingPart.propId
+      ) {
+        await del(existingPart.imageUrl).catch(() => {});
+      }
+      if (
+        payload.altImageUrl !== undefined &&
+        existingPart.altImageUrl &&
+        existingPart.altImageUrl !== payload.altImageUrl &&
+        !existingPart.altPropId
+      ) {
+        await del(existingPart.altImageUrl).catch(() => {});
+      }
+    }
+
     // Always update character updatedAt
     await db
       .update(charactersHuman)
       .set({ updatedAt: new Date() })
       .where(eq(charactersHuman.id, characterId));
 
-    if (partRole === "head") {
+    if (partRole === "head" && payload.imageUrl !== undefined) {
       await db
         .update(charactersHuman)
-        .set({ imageUrl: finalImageUrl })
+        .set({ imageUrl: payload.imageUrl })
         .where(eq(charactersHuman.id, characterId));
 
       if (char.compositePropId) {
         await db
           .update(props)
-          .set({ imageUrl: finalImageUrl })
+          .set({ imageUrl: payload.imageUrl })
           .where(eq(props.id, char.compositePropId));
       }
     }
@@ -280,6 +330,53 @@ export const removeCharacterPart = createServerFn({ method: "POST" })
       .where(eq(charactersHuman.id, data.characterId));
     if (!char) throw new Error("Character not found");
     if (char.createdBy !== session.user.id) throw new Error("Forbidden");
+
+    const [part] = await db
+      .select({
+        propId: characterHumanParts.propId,
+        altPropId: characterHumanParts.altPropId,
+        imageUrl: characterHumanParts.imageUrl,
+        altImageUrl: characterHumanParts.altImageUrl,
+      })
+      .from(characterHumanParts)
+      .where(
+        and(
+          eq(characterHumanParts.characterId, data.characterId),
+          eq(characterHumanParts.partRole, data.partRole as any),
+        ),
+      );
+
+    if (part) {
+      // 1. Clean up library props if present
+      if (part.propId) {
+        const [prop] = await db
+          .select()
+          .from(props)
+          .where(eq(props.id, part.propId));
+        if (prop) {
+          await db.delete(props).where(eq(props.id, part.propId));
+          if (prop.imageUrl) await del(prop.imageUrl).catch(() => {});
+        }
+      }
+      if (part.altPropId) {
+        const [altProp] = await db
+          .select()
+          .from(props)
+          .where(eq(props.id, part.altPropId));
+        if (altProp) {
+          await db.delete(props).where(eq(props.id, part.altPropId));
+          if (altProp.imageUrl) await del(altProp.imageUrl).catch(() => {});
+        }
+      }
+
+      // 2. Clean up direct blobs if present (and not already cleaned up by prop deletion)
+      if (part.imageUrl && !part.propId) {
+        await del(part.imageUrl).catch(() => {});
+      }
+      if (part.altImageUrl && !part.altPropId) {
+        await del(part.altImageUrl).catch(() => {});
+      }
+    }
 
     await db
       .delete(characterHumanParts)
@@ -362,8 +459,57 @@ export const deleteCharacter = createServerFn({ method: "POST" })
     if (char.createdBy !== session.user.id) throw new Error("Forbidden");
 
     if (char.compositePropId) {
-      await db.delete(props).where(eq(props.id, char.compositePropId));
+      const [prop] = await db
+        .select()
+        .from(props)
+        .where(eq(props.id, char.compositePropId));
+      if (prop) {
+        await db.delete(props).where(eq(props.id, char.compositePropId));
+        if (prop.imageUrl) await del(prop.imageUrl).catch(() => {});
+      }
     }
+
+    // Clean up all character parts and their associated blobs/props
+    const charParts = await db
+      .select()
+      .from(characterHumanParts)
+      .where(eq(characterHumanParts.characterId, data.characterId));
+
+    for (const part of charParts) {
+      // Clean up library props
+      if (part.propId) {
+        const [prop] = await db
+          .select()
+          .from(props)
+          .where(eq(props.id, part.propId));
+        if (prop) {
+          await db.delete(props).where(eq(props.id, part.propId));
+          if (prop.imageUrl) await del(prop.imageUrl).catch(() => {});
+        }
+      }
+      if (part.altPropId) {
+        const [altProp] = await db
+          .select()
+          .from(props)
+          .where(eq(props.id, part.altPropId));
+        if (altProp) {
+          await db.delete(props).where(eq(props.id, part.altPropId));
+          if (altProp.imageUrl) await del(altProp.imageUrl).catch(() => {});
+        }
+      }
+
+      // Clean up direct blobs
+      if (part.imageUrl && !part.propId) {
+        await del(part.imageUrl).catch(() => {});
+      }
+      if (part.altImageUrl && !part.altPropId) {
+        await del(part.altImageUrl).catch(() => {});
+      }
+    }
+
+    await db
+      .delete(characterHumanParts)
+      .where(eq(characterHumanParts.characterId, data.characterId));
 
     await db
       .delete(charactersHuman)
@@ -387,3 +533,39 @@ export const countMyPublishedCharacters = createServerFn({
 
   return row?.count ?? 0;
 });
+
+// Upload a file to Vercel Blob and return only the URL (for one-off parts)
+export const uploadHumanPartFile = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    z
+      .object({
+        fileName: z.string().min(1).max(255),
+        contentType: z
+          .string()
+          .refine(
+            (ct) =>
+              ALLOWED_MIME_TYPES.includes(
+                ct as (typeof ALLOWED_MIME_TYPES)[number],
+              ),
+            { message: "File type not allowed" },
+          ),
+        base64: z.string(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    await getSessionOrThrow();
+
+    const ext = data.fileName.split(".").pop() ?? "bin";
+    const path = `human-parts/${crypto.randomUUID()}.${ext}`;
+
+    const buffer = Buffer.from(data.base64, "base64");
+
+    const blob = await put(path, buffer, {
+      access: "public",
+      contentType: data.contentType,
+      allowOverwrite: false,
+    });
+
+    return { url: blob.url };
+  });
