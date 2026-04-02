@@ -616,6 +616,7 @@
   "characterBuilder.uploadMain": "Hauptbild",
   "characterBuilder.uploadAlt": "Alternativ",
   "characterBuilder.publish": "Charakter veröffentlichen",
+  "characterBuilder.unpublish": "Veröffentlichung aufheben",
   "characterBuilder.published": "Charakter veröffentlicht!",
   "characterBuilder.publishError": "Fehler beim Veröffentlichen",
   "characterBuilder.bodyParts": "Körperteile",

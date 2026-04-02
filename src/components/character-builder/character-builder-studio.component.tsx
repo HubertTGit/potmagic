@@ -9,6 +9,7 @@ import {
   getCharacter,
   upsertCharacterPart,
   publishCharacter,
+  unpublishCharacter,
   updateCharacter,
   uploadHumanPartFile,
   removeCharacterPart,
@@ -28,6 +29,7 @@ import {
   ZoomIn,
   ZoomOut,
   Scan,
+  XCircle,
 } from "lucide-react";
 import { ConfirmModal } from "@/components/confirm-modal";
 import type { Application } from "pixi.js";
@@ -218,6 +220,19 @@ export function CharacterBuilderStudio() {
     },
     onError: () => {
       toast.error("Failed to publish character");
+    },
+  });
+
+  const unpublishMutation = useMutation({
+    mutationFn: unpublishCharacter,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-characters"] });
+      queryClient.invalidateQueries({ queryKey: ["all-props"] });
+      queryClient.invalidateQueries({ queryKey: ["character", characterId] });
+      toast.success("Character unpublished successfully");
+    },
+    onError: () => {
+      toast.error("Failed to unpublish character");
     },
   });
 
@@ -731,17 +746,32 @@ export function CharacterBuilderStudio() {
             )}
             {t("action.save")}
           </button>
-          <button
-            onClick={() => publishMutation.mutate({ data: { characterId } })}
-            disabled={
-              publishMutation.isPending ||
-              (currentCharacter?.parts.length ?? 0) === 0
-            }
-            className="btn btn-primary btn-sm gap-2"
-          >
-            <CheckCircle2 className="size-4" />
-            {t("characterBuilder.publish")}
-          </button>
+          {currentCharacter?.compositePropId ? (
+            <button
+              onClick={() =>
+                unpublishMutation.mutate({ data: { characterId: characterId! } })
+              }
+              disabled={unpublishMutation.isPending}
+              className="btn btn-ghost btn-sm gap-2"
+            >
+              <XCircle className="size-4" />
+              {t("characterBuilder.unpublish") || "Unpublish"}
+            </button>
+          ) : (
+            <button
+              onClick={() =>
+                publishMutation.mutate({ data: { characterId: characterId! } })
+              }
+              disabled={
+                publishMutation.isPending ||
+                (currentCharacter?.parts.length ?? 0) === 0
+              }
+              className="btn btn-primary btn-sm gap-2"
+            >
+              <CheckCircle2 className="size-4" />
+              {t("characterBuilder.publish")}
+            </button>
+          )}
         </div>
       </header>
 

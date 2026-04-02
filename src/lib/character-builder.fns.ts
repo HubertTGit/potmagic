@@ -436,14 +436,37 @@ export const publishCharacter = createServerFn({ method: "POST" })
         .update(charactersHuman)
         .set({ compositePropId: propId })
         .where(eq(charactersHuman.id, data.characterId));
-    } else {
-      await db
-        .update(props)
-        .set({ name: char.name, imageUrl: thumbnail })
-        .where(eq(props.id, propId));
     }
 
     return { propId };
+  });
+
+export const unpublishCharacter = createServerFn({ method: "POST" })
+  .inputValidator((input) => z.object({ characterId: z.string() }).parse(input))
+  .handler(async ({ data }) => {
+    const session = await getSessionOrThrow();
+
+    const [char] = await db
+      .select({
+        createdBy: charactersHuman.createdBy,
+        compositePropId: charactersHuman.compositePropId,
+      })
+      .from(charactersHuman)
+      .where(eq(charactersHuman.id, data.characterId));
+
+    if (!char) throw new Error("Character not found");
+    if (char.createdBy !== session.user.id) throw new Error("Forbidden");
+
+    if (char.compositePropId) {
+      await db.delete(props).where(eq(props.id, char.compositePropId));
+
+      await db
+        .update(charactersHuman)
+        .set({ compositePropId: null })
+        .where(eq(charactersHuman.id, data.characterId));
+    }
+
+    return { success: true };
   });
 
 export const deleteCharacter = createServerFn({ method: "POST" })

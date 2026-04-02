@@ -682,6 +682,7 @@
   "characterBuilder.uploadMain": "Main",
   "characterBuilder.uploadAlt": "Alt",
   "characterBuilder.publish": "Publish Character",
+  "characterBuilder.unpublish": "Unpublish",
   "characterBuilder.published": "Character published!",
   "characterBuilder.publishError": "Failed to publish character",
   "characterBuilder.bodyParts": "Body Parts",
