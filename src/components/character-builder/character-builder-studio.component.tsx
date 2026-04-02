@@ -485,7 +485,7 @@ export function CharacterBuilderStudio() {
       const prop = await uploadProp({
         data: {
           name: `${selectedRole}_${Date.now()}`,
-          type: "part",
+          type: "character",
           fileName: file.name,
           contentType: file.type,
           base64,
@@ -557,7 +557,7 @@ export function CharacterBuilderStudio() {
       const prop = await uploadProp({
         data: {
           name: `${selectedRole}_blink_${Date.now()}`,
-          type: "part",
+          type: "character",
           fileName: file.name,
           contentType: file.type,
           base64,

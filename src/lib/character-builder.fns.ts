@@ -168,7 +168,7 @@ export const upsertCharacterPart = createServerFn({ method: "POST" })
     const session = await getSessionOrThrow();
 
     const [char] = await db
-      .select({ createdBy: charactersHuman.createdBy })
+      .select({ createdBy: charactersHuman.createdBy, compositePropId: charactersHuman.compositePropId })
       .from(charactersHuman)
       .where(eq(charactersHuman.id, data.characterId));
     if (!char) throw new Error("Character not found");
@@ -213,6 +213,13 @@ export const upsertCharacterPart = createServerFn({ method: "POST" })
         .update(charactersHuman)
         .set({ imageUrl: prop?.url ?? null })
         .where(eq(charactersHuman.id, characterId));
+
+      if (char.compositePropId) {
+        await db
+          .update(props)
+          .set({ imageUrl: prop?.url ?? null })
+          .where(eq(props.id, char.compositePropId));
+      }
     }
   });
 
@@ -253,7 +260,7 @@ export const removeCharacterPart = createServerFn({ method: "POST" })
     const session = await getSessionOrThrow();
 
     const [char] = await db
-      .select({ createdBy: charactersHuman.createdBy })
+      .select({ createdBy: charactersHuman.createdBy, compositePropId: charactersHuman.compositePropId })
       .from(charactersHuman)
       .where(eq(charactersHuman.id, data.characterId));
     if (!char) throw new Error("Character not found");
