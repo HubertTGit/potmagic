@@ -159,6 +159,8 @@ export class CompositeCharacter {
   private bhInitialHeadRot = 0;
   private bhDragging = false;
   private bhHandleRange = 100; // Half-width of movement area
+  private bhSliderContainer: Container | null = null;
+  private bhSliderFixedPos: { x: number; y: number } | null = null;
 
   private isAnyIKActive() {
     return this.ikState.left.enabled || this.ikState.right.enabled;
@@ -425,6 +427,14 @@ export class CompositeCharacter {
         }
       }
 
+      // Enable head interaction for Turn Mode hover in Stage Mode
+      const headSprite = this.partSprites.get("head");
+      if (headSprite) {
+        headSprite.eventMode = "static";
+        headSprite.on("pointerover", () => this.onHeadHover(true));
+        headSprite.on("pointerout", () => this.onHeadHover(false));
+      }
+
       // Re-enable hand interactivity for posing (IK is on by default in constructor)
       const handRoles = ["arm-hand-left", "arm-hand-right"];
       for (const role of handRoles) {
@@ -523,6 +533,10 @@ export class CompositeCharacter {
 
   private onPartPointerDown(e: FederatedPointerEvent, role: string) {
     e.stopPropagation();
+    // Freeze head and body dragging while turn mode is active
+    if (this.bodyHeadRotationEnabled && (role === "head" || role === "body")) {
+      return;
+    }
     this.draggingRole = role;
     const container = this.partContainers.get(role)!;
     if (!container.parent) return;
@@ -632,6 +646,7 @@ export class CompositeCharacter {
       // Map to normalized value -1 to 1
       this.bhValue = newX / this.bhHandleRange;
       this.applyBodyHeadRotation();
+      this.publishMove();
       return;
     }
 
@@ -962,6 +977,13 @@ export class CompositeCharacter {
 
     // Apply visibility rules to each handle ref
     for (const ref of refs) {
+      if (this.bodyHeadRotationEnabled && (role === "head" || role === "body")) {
+        if (ref.type === "rotate") {
+          ref.handle.visible = false;
+          continue;
+        }
+      }
+
       if (ikEnabled) {
         if (isHand) {
           // In IK mode, hand ONLY shows translate (the IK handle)
@@ -1287,6 +1309,16 @@ export class CompositeCharacter {
     this.container.y = msg.y;
     this.container.rotation = msg.rotation * (Math.PI / 180);
     this.container.scale.x = msg.scaleX;
+
+    if (msg.bhValue !== undefined) {
+      this.bhValue = msg.bhValue;
+      // Capture rotations if they aren't captured yet (usually for stage viewers)
+      if (this.bhInitialBodyRot === 0 && this.bhInitialHeadRot === 0) {
+        this.bhInitialBodyRot = this.partContainers.get("body")?.rotation ?? 0;
+        this.bhInitialHeadRot = this.partContainers.get("head")?.rotation ?? 0;
+      }
+      this.applyBodyHeadRotation();
+    }
   }
 
   private publishMove(immediate = false) {
@@ -1304,6 +1336,7 @@ export class CompositeCharacter {
       rotation: this.container.rotation * (180 / Math.PI),
       scaleX: this.container.scale.x,
       indexZ: 0,
+      bhValue: this.bhValue,
     };
     room.localParticipant.publishData(encoder.encode(JSON.stringify(msg)), {
       reliable: false,
@@ -1436,28 +1469,39 @@ export class CompositeCharacter {
     const torso = this.partContainers.get("torso") ?? head;
     torso.addChild(this.bhHitArea);
 
-    // Control Handle Group (Slider)
+    // Control Handle Group (Outer container for positioning)
     this.bhHandleGroup = new Container();
     this.bhHandleGroup.label = "bh-handle-group";
     this.bhHandleGroup.visible = false;
     this.bhHandleGroup.alpha = 0;
     torso.addChild(this.bhHandleGroup);
 
+    // Slider Container (The interactive "unit" containing track + handle)
+    this.bhSliderContainer = new Container();
+    this.bhSliderContainer.label = "bh-slider-container";
+    this.bhSliderContainer.eventMode = "static";
+    this.bhSliderContainer.cursor = "default";
+    this.bhHandleGroup.addChild(this.bhSliderContainer);
+
     // Track for guide
     const track = new Graphics();
-    this.bhHandleGroup.addChild(track);
+    this.bhSliderContainer.addChild(track);
 
     const handle = this.makeTranslateHandle();
     handle.eventMode = "static";
     handle.cursor = "ew-resize";
     handle.scale.set(0.8);
-    this.bhHandleGroup.addChild(handle);
+    this.bhSliderContainer.addChild(handle);
     this.bhHandle = handle;
 
     handle.on("pointerdown", (e: FederatedPointerEvent) => {
       e.stopPropagation();
       this.bhDragging = true;
     });
+
+    // Hover listeners on the slider container itself to keep it visible
+    this.bhSliderContainer.on("pointerover", () => this.onHeadHover(true));
+    this.bhSliderContainer.on("pointerout", () => this.onHeadHover(false));
 
     this.updateBHUIPlacement();
   }
@@ -1470,26 +1514,53 @@ export class CompositeCharacter {
       !headContainer ||
       !torsoContainer ||
       !headSprite ||
-      !this.bhHandleGroup
+      !this.bhHandleGroup ||
+      !this.bhSliderContainer
     )
       return;
 
-    // Calculate head origin in torso-local coordinates
-    const headOriginInTorso = torsoContainer.toLocal(
-      new PIXI.Point(0, 0),
-      headContainer,
-    );
+    // IF we don't have a fixed position yet, calculate it now
+    // (This usually happens once per setTurnMode(true) or if first hover)
+    if (!this.bhSliderFixedPos) {
+      // Temporarily revert Turn Mode rotations to calculate "at rest" position
+      const currentVal = this.bhValue;
+      if (currentVal !== 0) {
+        this.bhValue = 0;
+        this.applyBodyHeadRotation();
+      }
 
-    const headWidth = headSprite.texture.width;
-    this.bhHandleRange = headWidth * 0.5;
+      // Calculate head origin in torso-local coordinates
+      const headOriginInTorso = torsoContainer.toLocal(
+        new PIXI.Point(0, 0),
+        headContainer,
+      );
 
-    // Position handle group above head within torsoContainer
-    this.bhHandleGroup.x = headOriginInTorso.x;
-    const topOffset = headSprite.anchor.y * headSprite.texture.height;
-    this.bhHandleGroup.y = headOriginInTorso.y - topOffset - 25;
+      const headWidth = headSprite.texture.width;
+      const headHeight = headSprite.texture.height;
+      const ay = headSprite.anchor.y;
+      const topOffset = ay * headHeight;
 
-    // Redraw track
-    const track = this.bhHandleGroup.getChildAt(0) as Graphics;
+      // Position handle group above head within torsoContainer
+      this.bhSliderFixedPos = {
+        x: headOriginInTorso.x,
+        y: headOriginInTorso.y - topOffset - 35, // Positioning above "header"
+      };
+
+      this.bhHandleRange = headWidth * 0.5;
+
+      // Restore rotations if we reverted them
+      if (currentVal !== 0) {
+        this.bhValue = currentVal;
+        this.applyBodyHeadRotation();
+      }
+    }
+
+    // Apply the fixed position
+    this.bhHandleGroup.x = this.bhSliderFixedPos.x;
+    this.bhHandleGroup.y = this.bhSliderFixedPos.y;
+
+    // Redraw track in the grouped container
+    const track = this.bhSliderContainer.getChildAt(0) as Graphics;
     if (track) {
       track
         .clear()
@@ -1498,8 +1569,22 @@ export class CompositeCharacter {
         .stroke({ color: 0x3b82f6, width: 2, alpha: 0.3 });
     }
 
+    // Update hitArea for the slider container based on its bounds
+    // We pad it slightly to make it easier to stay within the "slider area"
+    const PADDING = 20;
+    this.bhSliderContainer.hitArea = new PIXI.Rectangle(
+      -this.bhHandleRange - PADDING,
+      -PADDING,
+      this.bhHandleRange * 2 + PADDING * 2,
+      PADDING * 2,
+    );
+
     // Update broader hit area to cover head + slider
     if (this.bhHitArea) {
+      const headOriginInTorso = torsoContainer.toLocal(
+        new PIXI.Point(0, 0),
+        headContainer,
+      );
       this.bhHitArea.x = headOriginInTorso.x;
       this.bhHitArea.y = headOriginInTorso.y;
 
@@ -1508,7 +1593,7 @@ export class CompositeCharacter {
       const ax = headSprite.anchor.x;
       const ay = headSprite.anchor.y;
 
-      const hitTop = -topOffset - 75; // Coverage above slider
+      const hitTop = -(ay * th) - 85; // Coverage above slider
       const hitBottom = (1 - ay) * th;
       const hitHeight = hitBottom - hitTop;
 
@@ -1534,16 +1619,17 @@ export class CompositeCharacter {
     this.bodyHeadRotationEnabled = enabled;
 
     if (this.bhHandleGroup) {
-      // Hide immediately when disabled, but don't show immediately when enabled 
-      // (waiting for hover)
       if (!enabled) {
         this.bhHandleGroup.visible = false;
         if (this.bhHitArea) this.bhHitArea.eventMode = "none";
         // Revert rotations if disabling
         this.bhValue = 0;
         this.applyBodyHeadRotation();
+        this.bhSliderFixedPos = null;
       } else {
         if (this.bhHitArea) this.bhHitArea.eventMode = "static";
+        // Reset fixed position to trigger recalculation at rest
+        this.bhSliderFixedPos = null;
         // Capture initial rotations
         this.bhInitialBodyRot = this.partContainers.get("body")?.rotation ?? 0;
         this.bhInitialHeadRot = this.partContainers.get("head")?.rotation ?? 0;
@@ -1551,6 +1637,10 @@ export class CompositeCharacter {
         this.bhValue = 0;
         this.updateBHUIPlacement();
       }
+
+      // Re-sync gizmos for the impacted parts (head/body)
+      this.updateGizmoVisibilitiesForRole("head");
+      this.updateGizmoVisibilitiesForRole("body");
     }
   }
 

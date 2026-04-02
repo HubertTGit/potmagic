@@ -319,6 +319,11 @@ export const StageComponent = React.forwardRef<
         app.stage.addChild(prop.container);
         existing.set(cast.sceneCastId, prop);
         castIdMapRef.current.set(cast.castId, prop);
+
+        // Enable Turn Mode for interactive characters on stage
+        if (prop instanceof CompositeCharacter && canDrag) {
+          prop.setTurnMode(true);
+        }
       }
     };
 

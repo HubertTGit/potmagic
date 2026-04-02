@@ -798,21 +798,27 @@ export function CharacterBuilderStudio() {
                 <label
                   className={cn(
                     "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
-                    ikState.left.enabled || ikState.right.enabled
+                    ikState.left.enabled || ikState.right.enabled || previewTurnMode
                       ? "cursor-not-allowed opacity-40 grayscale"
                       : "hover:bg-base-200/80 cursor-pointer",
                   )}
                   title={
                     ikState.left.enabled || ikState.right.enabled
                       ? "Disable IK to edit gizmo anchors"
-                      : ""
+                      : previewTurnMode
+                        ? "Disable Turn Mode to edit gizmo anchors"
+                        : ""
                   }
                 >
                   <input
                     type="checkbox"
                     className="checkbox checkbox-xs checkbox-primary"
                     checked={gizmoEditMode}
-                    disabled={ikState.left.enabled || ikState.right.enabled}
+                    disabled={
+                      ikState.left.enabled ||
+                      ikState.right.enabled ||
+                      previewTurnMode
+                    }
                     onChange={(e) =>
                       handleGizmoEditModeChange(e.target.checked)
                     }

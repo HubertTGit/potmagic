@@ -6,6 +6,7 @@ export interface PropMoveMessage {
   rotation: number;
   scaleX: number;
   indexZ: number;
+  bhValue?: number;
 }
 
 export type BgDirection = 'left' | 'right' | null;
