@@ -60,7 +60,6 @@ export function CharacterBuilderStudio() {
   const [showBoundingBoxes, setShowBoundingBoxes] = useState(false);
   const [previewPupils, setPreviewPupils] = useState(false);
   const [previewSpeaking, setPreviewSpeaking] = useState(false);
-  const [previewBlinking, setPreviewBlinking] = useState(false);
   const [previewTurnMode, setPreviewTurnMode] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -116,18 +115,7 @@ export function CharacterBuilderStudio() {
     "arm-hand-right",
   ].every((role) => currentCharacter?.parts.some((p) => p.partRole === role));
 
-  const hasBlinkTexture = currentCharacter?.parts.some(
-    (p) =>
-      (p.partRole === "eye-left" || p.partRole === "eye-right") &&
-      !!p.altImageUrl,
-  );
 
-  // Sync auto-blink state to pixi
-  useEffect(() => {
-    if (compositeRef.current) {
-      compositeRef.current.setAutoBlink(previewBlinking);
-    }
-  }, [previewBlinking]);
 
   // Sync turn mode state to pixi
   useEffect(() => {
@@ -1073,28 +1061,6 @@ export function CharacterBuilderStudio() {
                   Test Speaking
                 </label>
 
-                <label
-                  className={cn(
-                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
-                    hasBlinkTexture
-                      ? "hover:bg-base-200/80 cursor-pointer"
-                      : "cursor-not-allowed opacity-50",
-                  )}
-                  title={
-                    !hasBlinkTexture
-                      ? "Upload a blink texture in an eye part's sidebar to test"
-                      : ""
-                  }
-                >
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-xs checkbox-accent"
-                    checked={previewBlinking}
-                    disabled={!hasBlinkTexture}
-                    onChange={(e) => setPreviewBlinking(e.target.checked)}
-                  />
-                  Auto Blink
-                </label>
 
                 <label
                   className={cn(

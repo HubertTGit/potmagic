@@ -67,7 +67,6 @@ export interface CompositeHumanCharacterProps {
   interactive?: boolean;
   onChange?: (role: string, data: Partial<CharacterPartAdjustments>) => void;
   showBoundingBoxes?: boolean;
-  autoBlink?: boolean;
 }
 
 export interface CharacterPartAdjustments {
@@ -100,7 +99,6 @@ export class CompositeHumanCharacter {
   private lastSendTime = 0;
   private isSpeaking = false;
   private speakingTimeline: gsap.core.Timeline | null = null;
-  private blinkTimeline: gsap.core.Timeline | null = null;
   private eyebrowOriginalYs: Map<string, number> = new Map();
   private eyebrowTweens: Map<string, gsap.core.Tween> = new Map();
 
@@ -223,17 +221,12 @@ export class CompositeHumanCharacter {
     this.loadAllTextures().then(() => {
       this.buildHierarchy();
 
-      // Theater-mode defaults
       if (!this.props.interactive) {
         this.ikState.left.enabled = true;
         this.ikState.right.enabled = true;
-        this.startAutoBlink();
       }
 
       this.setupInteraction();
-      if (this.props.autoBlink) {
-        this.startAutoBlink();
-      }
       this.props.onReady?.();
     });
 
@@ -1068,44 +1061,6 @@ export class CompositeHumanCharacter {
     }
   }
 
-  startAutoBlink() {
-    const BLINK_REPEAT = -1;
-    const BLINK_DURATION = 0.5;
-    const BLINK_REPEAT_DELAY = 4;
-
-    this.stopAutoBlink();
-
-    // Check if we have at least one blink texture
-    const hasBlinkTexture = Array.from(this.eyeTextures.values()).length > 0;
-    if (!hasBlinkTexture) return;
-
-    this.blinkTimeline = gsap.timeline({
-      repeat: BLINK_REPEAT,
-      repeatDelay: BLINK_REPEAT_DELAY,
-    });
-
-    this.blinkTimeline
-      .call(() => this.setBlinking(true))
-      .to({}, { duration: BLINK_DURATION })
-      .call(() => this.setBlinking(false));
-  }
-
-  setAutoBlink(enabled: boolean) {
-    if (enabled) {
-      this.startAutoBlink();
-    } else {
-      this.stopAutoBlink();
-      // Ensure eyes are open when stopping
-      this.setBlinking(false);
-    }
-  }
-
-  stopAutoBlink() {
-    if (this.blinkTimeline) {
-      this.blinkTimeline.kill();
-      this.blinkTimeline = null;
-    }
-  }
 
   setEyebrowsUp(up: boolean) {
     const roles = ["eye-brow-left", "eye-brow-right"] as const;
@@ -1502,7 +1457,6 @@ export class CompositeHumanCharacter {
   }
 
   destroy() {
-    this.stopAutoBlink();
     if (this.speakingTimeline) {
       this.speakingTimeline.kill();
     }
