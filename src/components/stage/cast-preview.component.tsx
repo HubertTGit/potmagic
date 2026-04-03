@@ -90,9 +90,9 @@ export function CastPreview() {
               >
                 <Cat className="text-base-content/50 size-4" />
               </div>
-            ) : cast.path ? (
+            ) : (cast.imageUrl || cast.path) ? (
             <img
-              src={cast.path}
+              src={cast.imageUrl || cast.path!}
               alt=""
               className={cn(
                 "bg-base-300 block size-8 rounded-full object-cover transition-all duration-300",

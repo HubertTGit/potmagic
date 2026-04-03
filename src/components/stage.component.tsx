@@ -24,6 +24,7 @@ export interface StageCast {
   castId: string;
   userId: string;
   path: string | null;
+  imageUrl: string | null;
   type: PropType | null;
   propName: string | null;
   posX: number | null;
@@ -282,6 +283,7 @@ export const StageComponent = React.forwardRef<
           sceneCastId: cast.sceneCastId,
           castId: cast.castId,
           src: cast.path,
+          imageUrl: cast.imageUrl,
           parts: charData?.parts, // Only for CompositeHumanCharacter
           userId: cast.userId,
           type: cast.type,
