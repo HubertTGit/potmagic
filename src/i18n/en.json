@@ -754,5 +754,6 @@
   "characterBuilder.role.arm-upper-right": "Upper Right Arm",
   "characterBuilder.role.arm-forearm-right": "Right Forearm",
   "characterBuilder.role.arm-hand-right": "Right Hand",
+  "characterBuilder.autoSaveNote": "auto save every 5 minutes",
   "prop.replace": "Replace"
 }

@@ -973,7 +973,10 @@ export function CharacterBuilderStudio() {
           )}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex items-center gap-4">
+          <span className="text-[10px] uppercase opacity-40 font-medium tracking-wider">
+            {t("characterBuilder.autoSaveNote")}
+          </span>
           <button
             onClick={handleSaveAdjustments}
             disabled={upsertPartMutation.isPending}
