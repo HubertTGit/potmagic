@@ -100,6 +100,7 @@ export class CompositeHumanCharacter {
   private isSpeaking = false;
   private isLaughing = false;
   private isSmiling = false;
+  private isMouthSad = false;
   private isGazing = false;
   private isBlinking = false;
   private isSmilingEye = false;
@@ -113,6 +114,7 @@ export class CompositeHumanCharacter {
   private mouthOriginalY: number | null = null;
   private laughTween: gsap.core.Tween | null = null;
   private smileTween: gsap.core.Tween | null = null;
+  private sadTimeline: gsap.core.Timeline | null = null;
 
   // Stored so they can be removed from the stage on destroy()
   private boundPartPointerMove: ((e: FederatedPointerEvent) => void) | null =
@@ -301,11 +303,13 @@ export class CompositeHumanCharacter {
       eyebrowsHappy: this.isEyebrowsHappy,
       eyebrowsAngry: this.isEyebrowsAngry,
       speaking: this.isSpeaking,
+      sad: this.isMouthSad,
     };
 
     // Reset flags to force re-evaluation in setters
     this.isLaughing = false;
     this.isSmiling = false;
+    this.isMouthSad = false;
     this.isGazing = false;
     this.isBlinking = false;
     this.isSmilingEye = false;
@@ -322,6 +326,7 @@ export class CompositeHumanCharacter {
     if (states.eyebrowsHappy) this.setEyebrowsHappy(true);
     if (states.eyebrowsAngry) this.setEyebrowsAngry(true);
     if (states.speaking) this.setSpeaking(true);
+    if (states.sad) this.setMouthSad(true);
   }
 
   private buildHierarchy() {
@@ -1319,8 +1324,14 @@ export class CompositeHumanCharacter {
     if (!mouthContainer || !mouthSprite || !mainTexture) return;
 
     this.speakingTimeline?.kill();
+    this.smileTween?.kill();
+    this.laughTween?.kill();
+    this.sadTimeline?.kill();
 
     if (isSpeaking && altTexture) {
+      this.isSmiling = false;
+      this.isLaughing = false;
+      this.isMouthSad = false;
       // 8 vertical variations: frame height = height of the mouth container's main texture
       const frameHeight = mainTexture.height;
       const frameWidth = mainTexture.width;
@@ -1362,7 +1373,9 @@ export class CompositeHumanCharacter {
       this.speakingTimeline = null;
 
       // Lower eyebrows when silent
-      this.setEyebrowsUp(false);
+      if (!this.isSmiling && !this.isLaughing && !this.isMouthSad) {
+        this.setEyebrowsUp(false);
+      }
     }
   }
 
@@ -1395,8 +1408,15 @@ export class CompositeHumanCharacter {
         this.mouthOriginalY = mouthContainer.y;
       }
 
-      // Kill any current laugh tween
+      // Kill conflicting mouth animations
       this.laughTween?.kill();
+      this.smileTween?.kill();
+      this.speakingTimeline?.kill();
+      this.sadTimeline?.kill();
+
+      this.isSmiling = false;
+      this.isSpeaking = false;
+      this.isMouthSad = false;
 
       // Animate upward by 1/4 of height with a bounce
       this.laughTween = gsap.to(mouthContainer, {
@@ -1424,6 +1444,89 @@ export class CompositeHumanCharacter {
         mouthContainer.visible = this.forceMouthVisible;
         this.setEyebrowsUp(false);
       }
+    }
+  }
+
+  setMouthSad(sad: boolean) {
+    if (this.isMouthSad === sad) return;
+    this.isMouthSad = sad;
+
+    const mouthContainer = this.partContainers.get("mouth");
+    const mouthSprite = this.partSprites.get("mouth");
+    const mainTexture = this.textures.get("mouth");
+    const altTexture = this.variationTextures.get("mouth");
+
+    if (!mouthContainer || !mouthSprite || !mainTexture) return;
+
+    this.sadTimeline?.kill();
+    this.smileTween?.kill();
+    this.laughTween?.kill();
+    this.speakingTimeline?.kill();
+
+    if (sad && altTexture) {
+      this.isSmiling = false;
+      this.isLaughing = false;
+      this.isSpeaking = false;
+      const frameHeight = mainTexture.height;
+      const frameWidth = mainTexture.width;
+
+      // Kill conflicting mouth animations
+      this.smileTween?.kill();
+      this.laughTween?.kill();
+      this.speakingTimeline?.kill();
+
+      // Store original position if not already animating
+      if (this.mouthOriginalY === null) {
+        this.mouthOriginalY = mouthContainer.y;
+      }
+
+      // Create textures for frame 10 and 11
+      const sadTexture1 = new PIXI.Texture({
+        source: altTexture.source,
+        frame: new PIXI.Rectangle(
+          0,
+          10 * frameHeight,
+          frameWidth,
+          frameHeight,
+        ),
+      });
+
+      const sadTexture2 = new PIXI.Texture({
+        source: altTexture.source,
+        frame: new PIXI.Rectangle(
+          0,
+          11 * frameHeight,
+          frameWidth,
+          frameHeight,
+        ),
+      });
+
+      // Animate between frames every 1 second
+      this.sadTimeline = gsap.timeline({ repeat: -1 });
+      this.sadTimeline
+        .set(mouthSprite, { pixi: { texture: sadTexture1 } }, 0)
+        .set(mouthSprite, { pixi: { texture: sadTexture2 } }, 1)
+        .set({}, {}, 2); // Hold last frame for 1s
+
+      // Slight downward displacement for sad expression
+      gsap.to(mouthContainer, {
+        pixi: { y: this.mouthOriginalY + frameHeight / 10 },
+        duration: 0.5,
+        ease: "power2.out",
+      });
+
+      mouthContainer.visible = true;
+    } else {
+      // Reset to neutral
+      mouthSprite.texture = mainTexture;
+      if (this.mouthOriginalY !== null) {
+        gsap.to(mouthContainer, {
+          pixi: { y: this.mouthOriginalY },
+          duration: 0.3,
+          ease: "power2.inOut",
+        });
+      }
+      this.sadTimeline = null;
     }
   }
 
@@ -1565,9 +1668,15 @@ export class CompositeHumanCharacter {
         this.mouthOriginalY = mouthContainer.y;
       }
 
-      // Kill any current smile/laugh tweens for the mouth
+      // Kill conflicting mouth animations
       this.smileTween?.kill();
       this.laughTween?.kill();
+      this.speakingTimeline?.kill();
+      this.sadTimeline?.kill();
+
+      this.isLaughing = false;
+      this.isSpeaking = false;
+      this.isMouthSad = false;
 
       // Animate upward once as requested
       this.smileTween = gsap.to(mouthContainer, {
@@ -1588,8 +1697,8 @@ export class CompositeHumanCharacter {
         this.mouthOriginalY = null;
       }
 
-      // Revert to stable mouth if not speaking/laughing
-      if (!this.isSpeaking && !this.isLaughing) {
+      // Revert to stable mouth if not speaking/laughing/sad
+      if (!this.isSpeaking && !this.isLaughing && !this.isMouthSad) {
         mouthSprite.texture = mainTexture;
         mouthContainer.visible = this.forceMouthVisible;
         this.setEyebrowsUp(false);

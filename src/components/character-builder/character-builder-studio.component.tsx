@@ -70,6 +70,7 @@ export function CharacterBuilderStudio() {
   const [previewSpeaking, setPreviewSpeaking] = useState(false);
   const [previewLaughing, setPreviewLaughing] = useState(false);
   const [previewSmiling, setPreviewSmiling] = useState(false);
+  const [previewMouthSad, setPreviewMouthSad] = useState(false);
   const [previewGazing, setPreviewGazing] = useState(false);
   const [previewBlinking, setPreviewBlinking] = useState(false);
   const [previewSmilingEye, setPreviewSmilingEye] = useState(false);
@@ -204,6 +205,23 @@ export function CharacterBuilderStudio() {
       setPreviewSmiling(false);
     }
   }, [currentCharacter?.parts, previewSmiling]);
+
+  // Sync sad mouth state to pixi
+  useEffect(() => {
+    if (compositeRef.current) {
+      compositeRef.current.setMouthSad(previewMouthSad);
+    }
+  }, [previewMouthSad]);
+
+  // Reset sad mouth preview if mouth is removed
+  useEffect(() => {
+    const hasMouth = currentCharacter?.parts.some(
+      (p) => p.partRole === "mouth",
+    );
+    if (!hasMouth && previewMouthSad) {
+      setPreviewMouthSad(false);
+    }
+  }, [currentCharacter?.parts, previewMouthSad]);
 
   // Sync gazing state to pixi
   useEffect(() => {
@@ -679,6 +697,9 @@ export function CharacterBuilderStudio() {
     compositeRef.current = composite;
     if (previewSpeaking) {
       composite.setSpeaking(true);
+    }
+    if (previewMouthSad) {
+      composite.setMouthSad(true);
     }
     if (ikState.left.enabled || ikState.right.enabled) {
       composite.setIKState(ikState);
@@ -1273,6 +1294,30 @@ export function CharacterBuilderStudio() {
                       onClick={() => setPreviewSmiling(!previewSmiling)}
                     >
                       <Smile className="size-4" />
+                    </button>
+                  </div>
+
+                  {/* Sad Mouth */}
+                  <div
+                    className={cn(
+                      "tooltip tooltip-top",
+                      !hasMouthAltTexture && "opacity-20 grayscale",
+                    )}
+                    data-tip={
+                      !hasMouthAltTexture
+                        ? "Requires Mouth Variation"
+                        : "Toggle Sad Mouth"
+                    }
+                  >
+                    <button
+                      className={cn(
+                        "btn btn-ghost btn-circle btn-sm h-8 w-8",
+                        previewMouthSad && "bg-primary/20 text-primary",
+                      )}
+                      disabled={!hasMouthAltTexture}
+                      onClick={() => setPreviewMouthSad(!previewMouthSad)}
+                    >
+                      <Frown className="size-4" />
                     </button>
                   </div>
 
