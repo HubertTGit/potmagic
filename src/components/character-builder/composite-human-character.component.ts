@@ -99,6 +99,9 @@ export class CompositeHumanCharacter {
   private lastSendTime = 0;
   private isSpeaking = false;
   private isLaughing = false;
+  private isGazing = false;
+  private isBlinking = false;
+  private isSmilingEye = false;
   private speakingTimeline: gsap.core.Timeline | null = null;
   private eyebrowOriginalYs: Map<string, number> = new Map();
   private eyebrowTweens: Map<string, gsap.core.Tween> = new Map();
@@ -1222,6 +1225,111 @@ export class CompositeHumanCharacter {
         mouthSprite.texture = mainTexture;
         mouthContainer.visible = this.forceMouthVisible;
         this.setEyebrowsUp(false);
+      }
+    }
+  }
+
+  setGaze(isGazing: boolean) {
+    if (this.isGazing === isGazing) return;
+    this.isGazing = isGazing;
+
+    const roles = ["eye-left", "eye-right"] as const;
+    for (const role of roles) {
+      const sprite = this.partSprites.get(role);
+      if (!sprite) continue;
+
+      const mainTexture = this.textures.get(role);
+      const altTexture = this.eyeTextures.get(role);
+
+      if (isGazing && altTexture && mainTexture) {
+        // Enforce same dimensions as main texture
+        const frameWidth = mainTexture.width;
+        const frameHeight = mainTexture.height;
+
+        const gazeTexture = new PIXI.Texture({
+          source: altTexture.source,
+          frame: new PIXI.Rectangle(0, 0, frameWidth, frameHeight),
+        });
+
+        sprite.texture = gazeTexture;
+      } else if (mainTexture) {
+        sprite.texture = mainTexture;
+      }
+
+    }
+
+    // Raise eyebrows while gazing
+    this.setEyebrowsUp(isGazing);
+  }
+
+  setBlink(isBlinking: boolean) {
+    if (this.isBlinking === isBlinking) return;
+    this.isBlinking = isBlinking;
+
+    const roles = ["eye-left", "eye-right"] as const;
+    for (const role of roles) {
+      const sprite = this.partSprites.get(role);
+      if (!sprite) continue;
+
+      const mainTexture = this.textures.get(role);
+      const altTexture = this.eyeTextures.get(role);
+
+      if (isBlinking && altTexture && mainTexture) {
+        // Blink is typically the second frame (index 1)
+        const frameWidth = mainTexture.width;
+        const frameHeight = mainTexture.height;
+
+        const blinkTexture = new PIXI.Texture({
+          source: altTexture.source,
+          frame: new PIXI.Rectangle(0, frameHeight, frameWidth, frameHeight),
+        });
+
+        sprite.texture = blinkTexture;
+      } else if (mainTexture) {
+        sprite.texture = mainTexture;
+      }
+
+      // Hide pupils when eyes are closed (blinking)
+      const pupilRole = role === "eye-left" ? "pupil-left" : "pupil-right";
+      const pupilContainer = this.partContainers.get(pupilRole);
+      if (pupilContainer) {
+        pupilContainer.visible = !isBlinking;
+      }
+    }
+  }
+
+  setSmileEye(isSmiling: boolean) {
+    if (this.isSmilingEye === isSmiling) return;
+    this.isSmilingEye = isSmiling;
+
+    const roles = ["eye-left", "eye-right"] as const;
+    for (const role of roles) {
+      const sprite = this.partSprites.get(role);
+      if (!sprite) continue;
+
+      const mainTexture = this.textures.get(role);
+      const altTexture = this.eyeTextures.get(role);
+
+      if (isSmiling && altTexture && mainTexture) {
+        // Smile eyes is frame index 2
+        const frameWidth = mainTexture.width;
+        const frameHeight = mainTexture.height;
+
+        const smileTexture = new PIXI.Texture({
+          source: altTexture.source,
+          frame: new PIXI.Rectangle(0, 2 * frameHeight, frameWidth, frameHeight),
+        });
+
+        sprite.texture = smileTexture;
+      } else if (mainTexture) {
+        sprite.texture = mainTexture;
+      }
+
+      // Hide pupils when eyes are smiling (squinting/closed)
+      const pupilRole = role === "eye-left" ? "pupil-left" : "pupil-right";
+      const pupilContainer = this.partContainers.get(pupilRole);
+      if (pupilContainer) {
+        pupilContainer.visible = !isSmiling;
       }
     }
   }

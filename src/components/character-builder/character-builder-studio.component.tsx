@@ -61,6 +61,9 @@ export function CharacterBuilderStudio() {
   const [previewPupils, setPreviewPupils] = useState(false);
   const [previewSpeaking, setPreviewSpeaking] = useState(false);
   const [previewLaughing, setPreviewLaughing] = useState(false);
+  const [previewGazing, setPreviewGazing] = useState(false);
+  const [previewBlinking, setPreviewBlinking] = useState(false);
+  const [previewSmilingEye, setPreviewSmilingEye] = useState(false);
   const [previewTurnMode, setPreviewTurnMode] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -116,6 +119,12 @@ export function CharacterBuilderStudio() {
     "arm-hand-right",
   ].every((role) => currentCharacter?.parts.some((p) => p.partRole === role));
 
+  const hasEyeAltTexture = currentCharacter?.parts.some(
+    (p) =>
+      (p.partRole === "eye-left" || p.partRole === "eye-right") &&
+      !!p.altImageUrl,
+  );
+
   const hasMouthAltTexture = currentCharacter?.parts.some(
     (p) => p.partRole === "mouth" && !!p.altImageUrl,
   );
@@ -157,6 +166,55 @@ export function CharacterBuilderStudio() {
       setPreviewLaughing(false);
     }
   }, [currentCharacter?.parts, previewLaughing]);
+
+  // Sync gazing state to pixi
+  useEffect(() => {
+    if (compositeRef.current) {
+      compositeRef.current.setGaze(previewGazing);
+    }
+  }, [previewGazing]);
+
+  // Reset gazing preview if mouth is removed
+  useEffect(() => {
+    const hasMouth = currentCharacter?.parts.some((p) => p.partRole === "mouth");
+    if (!hasMouth && previewGazing) {
+      setPreviewGazing(false);
+    }
+  }, [currentCharacter?.parts, previewGazing]);
+
+  // Sync blinking state to pixi
+  useEffect(() => {
+    if (compositeRef.current) {
+      compositeRef.current.setBlink(previewBlinking);
+    }
+  }, [previewBlinking]);
+
+  // Reset blinking preview if eyes are removed
+  useEffect(() => {
+    const hasEyes = currentCharacter?.parts.some(
+      (p) => p.partRole === "eye-left" || p.partRole === "eye-right",
+    );
+    if (!hasEyes && previewBlinking) {
+      setPreviewBlinking(false);
+    }
+  }, [currentCharacter?.parts, previewBlinking]);
+
+  // Sync eye-smile state to pixi
+  useEffect(() => {
+    if (compositeRef.current) {
+      compositeRef.current.setSmileEye(previewSmilingEye);
+    }
+  }, [previewSmilingEye]);
+
+  // Reset eye-smile preview if eyes are removed
+  useEffect(() => {
+    const hasEyes = currentCharacter?.parts.some(
+      (p) => p.partRole === "eye-left" || p.partRole === "eye-right",
+    );
+    if (!hasEyes && previewSmilingEye) {
+      setPreviewSmilingEye(false);
+    }
+  }, [currentCharacter?.parts, previewSmilingEye]);
 
   // Reset turn mode if required parts are removed
   useEffect(() => {
@@ -948,6 +1006,75 @@ export function CharacterBuilderStudio() {
                     onChange={(e) => setPreviewLaughing(e.target.checked)}
                   />
                   😆 Laugh
+                </label>
+
+                <label
+                  className={cn(
+                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
+                    hasEyeAltTexture
+                      ? "hover:bg-base-200/80 cursor-pointer"
+                      : "cursor-not-allowed opacity-40 grayscale",
+                  )}
+                  title={
+                    !hasEyeAltTexture
+                      ? "Upload a variation texture for an eye part to test"
+                      : ""
+                  }
+                >
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-xs checkbox-info"
+                    checked={previewGazing}
+                    disabled={!hasEyeAltTexture}
+                    onChange={(e) => setPreviewGazing(e.target.checked)}
+                  />
+                  👁️ Gaze
+                </label>
+
+                <label
+                  className={cn(
+                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
+                    hasEyeAltTexture
+                      ? "hover:bg-base-200/80 cursor-pointer"
+                      : "cursor-not-allowed opacity-40 grayscale",
+                  )}
+                  title={
+                    !hasEyeAltTexture
+                      ? "Upload a variation texture for an eye part to test"
+                      : ""
+                  }
+                >
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-xs checkbox-info"
+                    checked={previewBlinking}
+                    disabled={!hasEyeAltTexture}
+                    onChange={(e) => setPreviewBlinking(e.target.checked)}
+                  />
+                  👁️ Blink
+                </label>
+
+                <label
+                  className={cn(
+                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
+                    hasEyeAltTexture
+                      ? "hover:bg-base-200/80 cursor-pointer"
+                      : "cursor-not-allowed opacity-40 grayscale",
+                  )}
+                  title={
+                    !hasEyeAltTexture
+                      ? "Upload a variation texture for an eye part to test"
+                      : ""
+                  }
+                >
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-xs checkbox-info"
+                    checked={previewSmilingEye}
+                    disabled={!hasEyeAltTexture}
+                    onChange={(e) => setPreviewSmilingEye(e.target.checked)}
+                  />
+                  😊 Eye Smile
                 </label>
 
                 <div className="flex flex-col gap-1.5 p-1">
