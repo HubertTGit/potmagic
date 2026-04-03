@@ -65,6 +65,9 @@ export function CharacterBuilderStudio() {
   const [previewGazing, setPreviewGazing] = useState(false);
   const [previewBlinking, setPreviewBlinking] = useState(false);
   const [previewSmilingEye, setPreviewSmilingEye] = useState(false);
+  const [previewEyebrowsUp, setPreviewEyebrowsUp] = useState(false);
+  const [previewEyebrowsHappy, setPreviewEyebrowsHappy] = useState(false);
+  const [previewEyebrowsAngry, setPreviewEyebrowsAngry] = useState(false);
   const [previewTurnMode, setPreviewTurnMode] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -119,6 +122,10 @@ export function CharacterBuilderStudio() {
     "arm-forearm-right",
     "arm-hand-right",
   ].every((role) => currentCharacter?.parts.some((p) => p.partRole === role));
+
+  const hasEyebrowParts = ["eye-brow-left", "eye-brow-right"].every((role) =>
+    currentCharacter?.parts.some((p) => p.partRole === role),
+  );
 
   const hasEyeAltTexture = currentCharacter?.parts.some(
     (p) =>
@@ -222,7 +229,6 @@ export function CharacterBuilderStudio() {
     }
   }, [previewSmilingEye]);
 
-  // Reset eye-smile preview if eyes are removed
   useEffect(() => {
     const hasEyes = currentCharacter?.parts.some(
       (p) => p.partRole === "eye-left" || p.partRole === "eye-right",
@@ -231,6 +237,48 @@ export function CharacterBuilderStudio() {
       setPreviewSmilingEye(false);
     }
   }, [currentCharacter?.parts, previewSmilingEye]);
+
+  // Sync eyebrows state to pixi
+  useEffect(() => {
+    if (compositeRef.current) {
+      compositeRef.current.setEyebrowsUp(previewEyebrowsUp);
+    }
+  }, [previewEyebrowsUp]);
+
+  // Reset eyebrows preview if eyebrows are removed
+  useEffect(() => {
+    if (!hasEyebrowParts && previewEyebrowsUp) {
+      setPreviewEyebrowsUp(false);
+    }
+  }, [hasEyebrowParts, previewEyebrowsUp]);
+
+  // Sync eyebrows happy state to pixi
+  useEffect(() => {
+    if (compositeRef.current) {
+      compositeRef.current.setEyebrowsHappy(previewEyebrowsHappy);
+    }
+  }, [previewEyebrowsHappy]);
+
+  // Reset eyebrows happy preview if eyebrows are removed
+  useEffect(() => {
+    if (!hasEyebrowParts && previewEyebrowsHappy) {
+      setPreviewEyebrowsHappy(false);
+    }
+  }, [hasEyebrowParts, previewEyebrowsHappy]);
+
+  // Sync eyebrows angry state to pixi
+  useEffect(() => {
+    if (compositeRef.current) {
+      compositeRef.current.setEyebrowsAngry(previewEyebrowsAngry);
+    }
+  }, [previewEyebrowsAngry]);
+
+  // Reset eyebrows angry preview if eyebrows are removed
+  useEffect(() => {
+    if (!hasEyebrowParts && previewEyebrowsAngry) {
+      setPreviewEyebrowsAngry(false);
+    }
+  }, [hasEyebrowParts, previewEyebrowsAngry]);
 
   // Reset turn mode if required parts are removed
   useEffect(() => {
@@ -1114,6 +1162,69 @@ export function CharacterBuilderStudio() {
                     onChange={(e) => setPreviewSmilingEye(e.target.checked)}
                   />
                   😊 Eye Smile
+                </label>
+
+                <label
+                  className={cn(
+                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
+                    hasEyebrowParts
+                      ? "hover:bg-base-200/80 cursor-pointer"
+                      : "cursor-not-allowed opacity-40 grayscale",
+                  )}
+                  title={
+                    !hasEyebrowParts ? "Add eyebrows to test this control" : ""
+                  }
+                >
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-xs checkbox-info"
+                    checked={previewEyebrowsUp}
+                    disabled={!hasEyebrowParts}
+                    onChange={(e) => setPreviewEyebrowsUp(e.target.checked)}
+                  />
+                  🤨 Raised Brows
+                </label>
+
+                <label
+                  className={cn(
+                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
+                    hasEyebrowParts
+                      ? "hover:bg-base-200/80 cursor-pointer"
+                      : "cursor-not-allowed opacity-40 grayscale",
+                  )}
+                  title={
+                    !hasEyebrowParts ? "Add eyebrows to test this control" : ""
+                  }
+                >
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-xs checkbox-info"
+                    checked={previewEyebrowsHappy}
+                    disabled={!hasEyebrowParts}
+                    onChange={(e) => setPreviewEyebrowsHappy(e.target.checked)}
+                  />
+                  😊 Happy Brows
+                </label>
+
+                <label
+                  className={cn(
+                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
+                    hasEyebrowParts
+                      ? "hover:bg-base-200/80 cursor-pointer"
+                      : "cursor-not-allowed opacity-40 grayscale",
+                  )}
+                  title={
+                    !hasEyebrowParts ? "Add eyebrows to test this control" : ""
+                  }
+                >
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-xs checkbox-info"
+                    checked={previewEyebrowsAngry}
+                    disabled={!hasEyebrowParts}
+                    onChange={(e) => setPreviewEyebrowsAngry(e.target.checked)}
+                  />
+                  😠 Angry Brows
                 </label>
 
                 <div className="flex flex-col gap-1.5 p-1">

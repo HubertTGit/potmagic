@@ -103,8 +103,12 @@ export class CompositeHumanCharacter {
   private isGazing = false;
   private isBlinking = false;
   private isSmilingEye = false;
+  private isEyebrowsHappy = false;
+  private isEyebrowsAngry = false;
   private speakingTimeline: gsap.core.Timeline | null = null;
+  private eyebrowOriginalXs: Map<string, number> = new Map();
   private eyebrowOriginalYs: Map<string, number> = new Map();
+  private eyebrowOriginalRots: Map<string, number> = new Map();
   private eyebrowTweens: Map<string, gsap.core.Tween> = new Map();
   private mouthOriginalY: number | null = null;
   private laughTween: gsap.core.Tween | null = null;
@@ -1112,6 +1116,129 @@ export class CompositeHumanCharacter {
     }
   }
 
+  setEyebrowsAngry(angry: boolean) {
+    if (this.isEyebrowsAngry === angry) return;
+    this.isEyebrowsAngry = angry;
+
+    const roles = ["eye-brow-left", "eye-brow-right"] as const;
+    for (const role of roles) {
+      const container = this.partContainers.get(role);
+      const sprite = this.partSprites.get(role);
+      if (!container || !sprite) continue;
+
+      // Clear any existing animation
+      this.eyebrowTweens.get(role)?.kill();
+
+      // Store initial state
+      if (!this.eyebrowOriginalXs.has(role)) {
+        this.eyebrowOriginalXs.set(role, container.x);
+      }
+      if (!this.eyebrowOriginalYs.has(role)) {
+        this.eyebrowOriginalYs.set(role, container.y);
+      }
+      if (!this.eyebrowOriginalRots.has(role)) {
+        this.eyebrowOriginalRots.set(role, container.angle);
+      }
+
+      if (angry) {
+        // Calculate displacement
+        const bounds = sprite.getBounds();
+        const targetY = this.eyebrowOriginalYs.get(role)! - 0.2 * bounds.height;
+        // Move towards center: left moves right (+), right moves left (-)
+        const xOffset = 0.2 * bounds.width;
+        const targetX =
+          role === "eye-brow-left"
+            ? this.eyebrowOriginalXs.get(role)! - xOffset
+            : this.eyebrowOriginalXs.get(role)! + xOffset;
+
+        // Negated angles compared to happy
+        const targetAngle = role === "eye-brow-left" ? -25 : 25;
+
+        const tween = gsap.to(container, {
+          duration: 0.3,
+          pixi: { x: targetX, y: targetY, angle: targetAngle },
+          ease: "power2.out",
+        });
+        this.eyebrowTweens.set(role, tween);
+      } else {
+        const originalX = this.eyebrowOriginalXs.get(role)!;
+        const originalY = this.eyebrowOriginalYs.get(role)!;
+        const originalRot = this.eyebrowOriginalRots.get(role)!;
+
+        // Reset to original pose
+        const tween = gsap.to(container, {
+          duration: 0.3,
+          pixi: { x: originalX, y: originalY, angle: originalRot },
+          ease: "power2.inOut",
+          onComplete: () => {
+            // Only cleanup if no other eyebrow animation is active
+            if (!this.isEyebrowsAngry && !this.isEyebrowsHappy) {
+              this.eyebrowOriginalXs.delete(role);
+              this.eyebrowOriginalYs.delete(role);
+              this.eyebrowOriginalRots.delete(role);
+            }
+          },
+        });
+        this.eyebrowTweens.set(role, tween);
+      }
+    }
+  }
+
+  setEyebrowsHappy(happy: boolean) {
+    if (this.isEyebrowsHappy === happy) return;
+    this.isEyebrowsHappy = happy;
+
+    const roles = ["eye-brow-left", "eye-brow-right"] as const;
+    for (const role of roles) {
+      const container = this.partContainers.get(role);
+      const sprite = this.partSprites.get(role);
+      if (!container || !sprite) continue;
+
+      // Clear any existing animation
+      this.eyebrowTweens.get(role)?.kill();
+
+      // Store initial state
+      if (!this.eyebrowOriginalYs.has(role)) {
+        this.eyebrowOriginalYs.set(role, container.y);
+      }
+      if (!this.eyebrowOriginalRots.has(role)) {
+        this.eyebrowOriginalRots.set(role, container.angle);
+      }
+
+      if (happy) {
+        // Calculate displacement: 0.3 * height of the bounding box
+        const bounds = sprite.getBounds();
+        const targetY = this.eyebrowOriginalYs.get(role)! - 0.3 * bounds.height;
+        const targetAngle = role === "eye-brow-left" ? 10 : -10;
+
+        const tween = gsap.to(container, {
+          duration: 0.3,
+          pixi: { y: targetY, angle: targetAngle },
+          ease: "power2.out",
+        });
+        this.eyebrowTweens.set(role, tween);
+      } else {
+        const originalY = this.eyebrowOriginalYs.get(role)!;
+        const originalRot = this.eyebrowOriginalRots.get(role)!;
+
+        // Reset to original pose
+        const tween = gsap.to(container, {
+          duration: 0.3,
+          pixi: { y: originalY, angle: originalRot },
+          ease: "power2.inOut",
+          onComplete: () => {
+            // Only cleanup if no other eyebrow animation is active
+            if (!this.isEyebrowsHappy) {
+              this.eyebrowOriginalYs.delete(role);
+              this.eyebrowOriginalRots.delete(role);
+            }
+          },
+        });
+        this.eyebrowTweens.set(role, tween);
+      }
+    }
+  }
+
   setSpeaking(isSpeaking: boolean) {
     if (this.isSpeaking === isSpeaking) return;
     this.isSpeaking = isSpeaking;
@@ -1257,7 +1384,6 @@ export class CompositeHumanCharacter {
       } else if (mainTexture) {
         sprite.texture = mainTexture;
       }
-
     }
 
     // Raise eyebrows while gazing
@@ -1319,7 +1445,12 @@ export class CompositeHumanCharacter {
 
         const smileTexture = new PIXI.Texture({
           source: altTexture.source,
-          frame: new PIXI.Rectangle(0, 2 * frameHeight, frameWidth, frameHeight),
+          frame: new PIXI.Rectangle(
+            0,
+            2 * frameHeight,
+            frameWidth,
+            frameHeight,
+          ),
         });
 
         sprite.texture = smileTexture;
