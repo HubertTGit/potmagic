@@ -61,6 +61,7 @@ export function CharacterBuilderStudio() {
   const [previewPupils, setPreviewPupils] = useState(false);
   const [previewSpeaking, setPreviewSpeaking] = useState(false);
   const [previewLaughing, setPreviewLaughing] = useState(false);
+  const [previewSmiling, setPreviewSmiling] = useState(false);
   const [previewGazing, setPreviewGazing] = useState(false);
   const [previewBlinking, setPreviewBlinking] = useState(false);
   const [previewSmilingEye, setPreviewSmilingEye] = useState(false);
@@ -166,6 +167,21 @@ export function CharacterBuilderStudio() {
       setPreviewLaughing(false);
     }
   }, [currentCharacter?.parts, previewLaughing]);
+
+  // Sync smiling state to pixi
+  useEffect(() => {
+    if (compositeRef.current) {
+      compositeRef.current.setSmile(previewSmiling);
+    }
+  }, [previewSmiling]);
+
+  // Reset smiling preview if mouth is removed
+  useEffect(() => {
+    const hasMouth = currentCharacter?.parts.some((p) => p.partRole === "mouth");
+    if (!hasMouth && previewSmiling) {
+      setPreviewSmiling(false);
+    }
+  }, [currentCharacter?.parts, previewSmiling]);
 
   // Sync gazing state to pixi
   useEffect(() => {
@@ -1006,6 +1022,29 @@ export function CharacterBuilderStudio() {
                     onChange={(e) => setPreviewLaughing(e.target.checked)}
                   />
                   😆 Laugh
+                </label>
+
+                <label
+                  className={cn(
+                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
+                    hasMouthAltTexture
+                      ? "hover:bg-base-200/80 cursor-pointer"
+                      : "cursor-not-allowed opacity-40 grayscale",
+                  )}
+                  title={
+                    !hasMouthAltTexture
+                      ? "Add a mouth and upload its Variation Texture to test"
+                      : ""
+                  }
+                >
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-xs checkbox-info"
+                    checked={previewSmiling}
+                    disabled={!hasMouthAltTexture}
+                    onChange={(e) => setPreviewSmiling(e.target.checked)}
+                  />
+                  👄 Smile
                 </label>
 
                 <label

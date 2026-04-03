@@ -99,6 +99,7 @@ export class CompositeHumanCharacter {
   private lastSendTime = 0;
   private isSpeaking = false;
   private isLaughing = false;
+  private isSmiling = false;
   private isGazing = false;
   private isBlinking = false;
   private isSmilingEye = false;
@@ -107,6 +108,7 @@ export class CompositeHumanCharacter {
   private eyebrowTweens: Map<string, gsap.core.Tween> = new Map();
   private mouthOriginalY: number | null = null;
   private laughTween: gsap.core.Tween | null = null;
+  private smileTween: gsap.core.Tween | null = null;
 
   // Stored so they can be removed from the stage on destroy()
   private boundPartPointerMove: ((e: FederatedPointerEvent) => void) | null =
@@ -1330,6 +1332,67 @@ export class CompositeHumanCharacter {
       const pupilContainer = this.partContainers.get(pupilRole);
       if (pupilContainer) {
         pupilContainer.visible = !isSmiling;
+      }
+    }
+  }
+
+  setSmile(isSmiling: boolean) {
+    if (this.isSmiling === isSmiling) return;
+    this.isSmiling = isSmiling;
+
+    const mouthContainer = this.partContainers.get("mouth");
+    const mouthSprite = this.partSprites.get("mouth");
+    const mainTexture = this.textures.get("mouth");
+    const altTexture = this.eyeTextures.get("mouth");
+
+    if (!mouthContainer || !mouthSprite || !mainTexture) return;
+
+    if (isSmiling && altTexture) {
+      // Mouth variation frame index 8
+      const frameHeight = mainTexture.height;
+      const frameWidth = mainTexture.width;
+
+      const smileTexture = new PIXI.Texture({
+        source: altTexture.source,
+        frame: new PIXI.Rectangle(0, 8 * frameHeight, frameWidth, frameHeight),
+      });
+
+      mouthSprite.texture = smileTexture;
+      mouthContainer.visible = true;
+
+      // Position logic: store original position if not already animating
+      if (this.mouthOriginalY === null) {
+        this.mouthOriginalY = mouthContainer.y;
+      }
+
+      // Kill any current smile/laugh tweens for the mouth
+      this.smileTween?.kill();
+      this.laughTween?.kill();
+
+      // Animate upward once as requested
+      this.smileTween = gsap.to(mouthContainer, {
+        pixi: { y: this.mouthOriginalY - frameHeight / 8 },
+        duration: 0.3,
+        ease: "back.out(2)",
+      });
+
+      // Raise eyebrows while smiling
+      this.setEyebrowsUp(true);
+    } else {
+      // Cleanup smile-specific animation
+      this.smileTween?.kill();
+      this.smileTween = null;
+
+      if (this.mouthOriginalY !== null && !this.isLaughing) {
+        mouthContainer.y = this.mouthOriginalY;
+        this.mouthOriginalY = null;
+      }
+
+      // Revert to stable mouth if not speaking/laughing
+      if (!this.isSpeaking && !this.isLaughing) {
+        mouthSprite.texture = mainTexture;
+        mouthContainer.visible = this.forceMouthVisible;
+        this.setEyebrowsUp(false);
       }
     }
   }
