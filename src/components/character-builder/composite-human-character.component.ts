@@ -90,7 +90,7 @@ export class CompositeHumanCharacter {
   private partContainers: Map<string, Container> = new Map();
   private partSprites: Map<string, Sprite> = new Map();
   private textures: Map<string, Texture> = new Map();
-  private blinkTextures: Map<string, Texture> = new Map();
+  private eyeTextures: Map<string, Texture> = new Map();
 
   private isDragging = false;
   private dragOffset = { x: 0, y: 0 };
@@ -185,7 +185,7 @@ export class CompositeHumanCharacter {
 
   private boundingBoxGraphics: Map<string, Graphics> = new Map();
   private showBoundingBoxes = false;
-  private forceMouthVisible = false;
+  private forceMouthVisible = true;
 
   private static readonly ROTATABLE_ROLES = [
     "body",
@@ -277,7 +277,7 @@ export class CompositeHumanCharacter {
       if (p.altImageUrl) {
         promises.push(
           Assets.load(p.altImageUrl).then((tex) =>
-            this.blinkTextures.set(p.partRole, tex),
+            this.eyeTextures.set(p.partRole, tex),
           ),
         );
       }
@@ -344,10 +344,6 @@ export class CompositeHumanCharacter {
       }
 
       container.pivot.set(px, py);
-
-      if (role === "mouth") {
-        container.visible = false;
-      }
 
       container.addChild(sprite);
       parent.addChild(container);
@@ -1055,7 +1051,7 @@ export class CompositeHumanCharacter {
       if (!sprite) continue;
 
       const mainTexture = this.textures.get(role);
-      const blinkTexture = this.blinkTextures.get(role);
+      const blinkTexture = this.eyeTextures.get(role);
 
       if (isBlinking && blinkTexture) {
         sprite.texture = blinkTexture;
@@ -1080,7 +1076,7 @@ export class CompositeHumanCharacter {
     this.stopAutoBlink();
 
     // Check if we have at least one blink texture
-    const hasBlinkTexture = Array.from(this.blinkTextures.values()).length > 0;
+    const hasBlinkTexture = Array.from(this.eyeTextures.values()).length > 0;
     if (!hasBlinkTexture) return;
 
     this.blinkTimeline = gsap.timeline({
