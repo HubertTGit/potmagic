@@ -38,6 +38,7 @@ import {
   Angry,
   ScanEye,
   MicVocal,
+  RefreshCcwDot,
 } from "lucide-react";
 import { ConfirmModal } from "@/components/confirm-modal";
 import type { Application } from "pixi.js";
@@ -1212,31 +1213,6 @@ export function CharacterBuilderStudio() {
                     )}
                   </div>
                 </div>
-
-                {/* Interaction controls like Turn Mode and IK stay in the primary overlay for now */}
-
-                <label
-                  className={cn(
-                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
-                    hasRequiredTurnModeParts
-                      ? "hover:bg-base-200/80 cursor-pointer"
-                      : "cursor-not-allowed opacity-40 grayscale",
-                  )}
-                  title={
-                    !hasRequiredTurnModeParts
-                      ? "Requires Head and Body to test turn mode"
-                      : ""
-                  }
-                >
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-xs checkbox-accent"
-                    checked={previewTurnMode}
-                    disabled={!hasRequiredTurnModeParts}
-                    onChange={(e) => setPreviewTurnMode(e.target.checked)}
-                  />
-                  Turn Mode
-                </label>
               </div>
 
               <div className="pointer-events-none absolute top-4 left-1/2 flex -translate-x-1/2 justify-center text-[10px] tracking-widest uppercase opacity-30">
@@ -1490,7 +1466,7 @@ export function CharacterBuilderStudio() {
                     data-tip={
                       !hasRequiredPupilParts
                         ? "Requires Head, Eyes & Pupils"
-                        : "Pupils Tracking"
+                        : "Eyes Tracking"
                     }
                   >
                     <button
@@ -1514,7 +1490,7 @@ export function CharacterBuilderStudio() {
                     data-tip={
                       !hasRequiredSpeakingParts
                         ? "Requires Head & Mouth"
-                        : "Test Speaking"
+                        : "Speaking"
                     }
                   >
                     <button
@@ -1526,6 +1502,32 @@ export function CharacterBuilderStudio() {
                       onClick={() => setPreviewSpeaking(!previewSpeaking)}
                     >
                       <MicVocal className="size-4" />
+                    </button>
+                  </div>
+
+                  <div className="bg-base-300 mx-1 h-4 w-px opacity-30" />
+
+                  {/* Turn Mode */}
+                  <div
+                    className={cn(
+                      "tooltip tooltip-top",
+                      !hasRequiredTurnModeParts && "opacity-20 grayscale",
+                    )}
+                    data-tip={
+                      !hasRequiredTurnModeParts
+                        ? "Requires Head and Body"
+                        : "Body Bending"
+                    }
+                  >
+                    <button
+                      className={cn(
+                        "btn btn-ghost btn-circle btn-sm h-8 w-8",
+                        previewTurnMode && "bg-primary/20 text-primary",
+                      )}
+                      disabled={!hasRequiredTurnModeParts}
+                      onClick={() => setPreviewTurnMode(!previewTurnMode)}
+                    >
+                      <RefreshCcwDot className="size-4" />
                     </button>
                   </div>
                 </div>
