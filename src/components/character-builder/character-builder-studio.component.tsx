@@ -593,7 +593,7 @@ export function CharacterBuilderStudio() {
     }
   };
 
-  const handleUploadBlink = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUploadAltTexture = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !characterId) return;
 
@@ -641,7 +641,7 @@ export function CharacterBuilderStudio() {
         });
       }
     } catch (err: any) {
-      toast.error(`Blink upload failed: ${err.message}`);
+      toast.error(`Upload failed: ${err.message}`);
     } finally {
       setIsUploading(null);
       e.target.value = "";
@@ -1172,7 +1172,9 @@ export function CharacterBuilderStudio() {
 
             const isEye =
               selectedRole === "eye-left" || selectedRole === "eye-right";
-            const blinkUrl = part?.altImageUrl ?? null;
+            const isMouth = selectedRole === "mouth";
+            const hasAltTexture = isEye || isMouth;
+            const altTextureUrl = part?.altImageUrl ?? null;
 
             return (
               <>
@@ -1247,20 +1249,22 @@ export function CharacterBuilderStudio() {
                       </div>
                     </div>
 
-                    {/* Blink Texture — only for eyes */}
-                    {isEye && (
+                    {/* Variation Texture — for eyes or mouth */}
+                    {hasAltTexture && (
                       <div className="space-y-2">
                         <label className="text-xs font-medium tracking-wide uppercase opacity-60">
-                          Blink Texture
+                          Variation Texture
                         </label>
-                        <div className="relative">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => handleUploadBlink(e)}
-                            className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
-                            disabled={!!isUploading}
-                          />
+                        <div className="relative group">
+                          {!altTextureUrl && (
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleUploadAltTexture(e)}
+                              className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                              disabled={!!isUploading}
+                            />
+                          )}
                           <div
                             className={cn(
                               "border-base-300 flex min-h-32 flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed transition-colors",
@@ -1271,27 +1275,52 @@ export function CharacterBuilderStudio() {
                           >
                             {isUploading === "alt" ? (
                               <span className="loading loading-spinner loading-md text-primary" />
-                            ) : blinkUrl ? (
-                              <div className="group relative h-full w-full cursor-pointer">
+                            ) : altTextureUrl ? (
+                              <div className="relative h-full w-full">
                                 <img
-                                  src={blinkUrl}
-                                  alt="blink preview"
+                                  src={altTextureUrl}
+                                  alt="alt preview"
                                   className="max-h-48 w-full object-contain p-2"
                                 />
-                                <div className="bg-base-300/80 absolute inset-0 flex items-center justify-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-                                  <div className="flex flex-col items-center gap-1">
+                                <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 transition-opacity group-hover:opacity-100 bg-base-300/80">
+                                  <label className="flex flex-col items-center gap-1 cursor-pointer">
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      onChange={(e) => handleUploadAltTexture(e)}
+                                      className="hidden"
+                                    />
                                     <Upload className="size-5 text-white" />
-                                    <span className="text-[10px] font-bold tracking-widest uppercase">
-                                      Replace blink
+                                    <span className="text-[10px] font-bold tracking-widest uppercase text-white">
+                                      Replace
                                     </span>
-                                  </div>
+                                  </label>
+                                  <div className="h-6 w-px bg-white/20" />
+                                  <button
+                                    onClick={() => {
+                                      upsertPartMutation.mutate({
+                                        data: {
+                                          characterId: characterId!,
+                                          partRole: selectedRole as any,
+                                          altImageUrl: null,
+                                          altPropId: null,
+                                        },
+                                      });
+                                    }}
+                                    className="flex flex-col items-center gap-1"
+                                  >
+                                    <Trash2 className="size-5 text-error" />
+                                    <span className="text-[10px] font-bold tracking-widest uppercase text-error">
+                                      Remove
+                                    </span>
+                                  </button>
                                 </div>
                               </div>
                             ) : (
                               <>
                                 <Upload className="size-6 opacity-30" />
                                 <span className="text-xs opacity-50">
-                                  Upload blink asset
+                                  Upload variation asset
                                 </span>
                               </>
                             )}
