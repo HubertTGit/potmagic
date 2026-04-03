@@ -242,6 +242,8 @@ export const props = pgTable(
   },
   (table) => [
     index("props_story_id_idx").on(table.storyId),
+    index("props_created_by_idx").on(table.createdBy),
+    index("props_type_idx").on(table.type),
     check("props_size_limit", sql`${table.size} <= 5242880`),
   ],
 );
@@ -325,7 +327,11 @@ export const charactersHuman = pgTable(
       .$onUpdate(() => new Date())
       .notNull(),
   },
-  (table) => [index("characters_human_story_id_idx").on(table.storyId)],
+  (table) => [
+    index("characters_human_story_id_idx").on(table.storyId),
+    index("characters_human_created_by_idx").on(table.createdBy),
+    index("characters_human_composite_prop_id_idx").on(table.compositePropId),
+  ],
 );
 
 export const charactersAnimal = pgTable(
@@ -349,7 +355,11 @@ export const charactersAnimal = pgTable(
       .$onUpdate(() => new Date())
       .notNull(),
   },
-  (table) => [index("characters_animal_story_id_idx").on(table.storyId)],
+  (table) => [
+    index("characters_animal_story_id_idx").on(table.storyId),
+    index("characters_animal_created_by_idx").on(table.createdBy),
+    index("characters_animal_composite_prop_id_idx").on(table.compositePropId),
+  ],
 );
 
 export const characterHumanParts = pgTable(
