@@ -353,7 +353,7 @@ export class CompositeHumanCharacter {
     if (states.eyebrowsHappy) this.setEyebrowsHappy(true);
     if (states.eyebrowsAngry) this.setEyebrowsAngry(true);
     if (states.speaking) this.setSpeaking(true);
-    if (states.sad) this.setMouthSad(true);
+    if (states.sad) this.setSad(true);
   }
 
   private buildHierarchy() {
@@ -1454,8 +1454,10 @@ export class CompositeHumanCharacter {
         yoyo: true,
       });
 
-      // Raise eyebrows while laughing
+      // Raise eyebrows and eyes while laughing
       this.setEyebrowsUp(true);
+      this.setSmileEye(true);
+      this.setEyebrowsHappy(true);
     } else {
       // Cleanup laugh-specific animation
       this.laughTween?.kill();
@@ -1470,11 +1472,13 @@ export class CompositeHumanCharacter {
         mouthSprite.texture = mainTexture;
         mouthContainer.visible = this.forceMouthVisible;
         this.setEyebrowsUp(false);
+        this.setSmileEye(false);
+        this.setEyebrowsHappy(false);
       }
     }
   }
 
-  setMouthSad(sad: boolean) {
+  setSad(sad: boolean) {
     if (this.isMouthSad === sad) return;
     this.isMouthSad = sad;
 
@@ -1510,22 +1514,12 @@ export class CompositeHumanCharacter {
       // Create textures for frame 10 and 11
       const sadTexture1 = new PIXI.Texture({
         source: altTexture.source,
-        frame: new PIXI.Rectangle(
-          0,
-          10 * frameHeight,
-          frameWidth,
-          frameHeight,
-        ),
+        frame: new PIXI.Rectangle(0, 10 * frameHeight, frameWidth, frameHeight),
       });
 
       const sadTexture2 = new PIXI.Texture({
         source: altTexture.source,
-        frame: new PIXI.Rectangle(
-          0,
-          11 * frameHeight,
-          frameWidth,
-          frameHeight,
-        ),
+        frame: new PIXI.Rectangle(0, 11 * frameHeight, frameWidth, frameHeight),
       });
 
       // Animate between frames every 1 second
@@ -1712,8 +1706,10 @@ export class CompositeHumanCharacter {
         ease: "back.out(2)",
       });
 
-      // Raise eyebrows while smiling
+      // Raise eyebrows and eyes while smiling
       this.setEyebrowsUp(true);
+      this.setSmileEye(true);
+      this.setEyebrowsHappy(true);
     } else {
       // Cleanup smile-specific animation
       this.smileTween?.kill();
@@ -1729,6 +1725,8 @@ export class CompositeHumanCharacter {
         mouthSprite.texture = mainTexture;
         mouthContainer.visible = this.forceMouthVisible;
         this.setEyebrowsUp(false);
+        this.setSmileEye(false);
+        this.setEyebrowsHappy(false);
       }
     }
   }

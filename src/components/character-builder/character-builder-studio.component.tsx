@@ -211,7 +211,7 @@ export function CharacterBuilderStudio() {
   // Sync sad mouth state to pixi
   useEffect(() => {
     if (compositeRef.current) {
-      compositeRef.current.setMouthSad(previewMouthSad);
+      compositeRef.current.setSad(previewMouthSad);
     }
   }, [previewMouthSad]);
 
@@ -749,7 +749,7 @@ export function CharacterBuilderStudio() {
       composite.setSpeaking(true);
     }
     if (previewMouthSad) {
-      composite.setMouthSad(true);
+      composite.setSad(true);
     }
     if (ikState.left.enabled || ikState.right.enabled) {
       composite.setIKState(ikState);
