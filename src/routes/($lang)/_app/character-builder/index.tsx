@@ -7,6 +7,10 @@ import {
   createCharacter,
   deleteCharacter,
 } from "@/lib/character-builder.fns";
+import {
+  requireAuth,
+  requireSubscription,
+} from "@/lib/auth-guard";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Drama } from "lucide-react";
 import { toast } from "@/lib/toast";
@@ -15,6 +19,7 @@ import { ConfirmModal } from "@/components/confirm-modal";
 import { CharacterCard } from "@/components/character-builder/character-card.component";
 
 export const Route = createFileRoute("/($lang)/_app/character-builder/")({
+  beforeLoad: () => requireSubscription(),
   component: CharacterBuilderPage,
 });
 
@@ -24,11 +29,8 @@ function CharacterBuilderPage() {
   const { data: session } = authClient.useSession();
   const queryClient = useQueryClient();
 
-  const isDirector = session?.user?.role === "director";
-  const isActor = session?.user?.role === "actor";
   const sub = session?.user?.subscription as SubscriptionType | undefined;
-  const showSubDot = sub === "pro" || sub === "affiliate";
-  const canAccess = isActor || (isDirector && showSubDot);
+  const canAccess = sub === "pro" || sub === "affiliate";
 
   const [newName, setNewName] = useState("");
   const [adding, setAdding] = useState(false);

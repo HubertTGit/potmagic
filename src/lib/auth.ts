@@ -26,7 +26,7 @@ export const auth = betterAuth({
       },
       subscription: {
         type: 'string',
-        defaultValue: 'standard',
+        defaultValue: 'free',
       },
     },
   },

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
+import { requireSubscription } from "@/lib/auth-guard";
 
 const CharacterBuilderStudio = lazy(() =>
   import("@/components/character-builder/character-builder-studio.component").then(m => ({
@@ -8,6 +9,7 @@ const CharacterBuilderStudio = lazy(() =>
 );
 
 export const Route = createFileRoute("/($lang)/_app/character-builder/$characterId")({
+  beforeLoad: () => requireSubscription(),
   component: () => (
     <Suspense fallback={
       <div className="flex h-screen items-center justify-center bg-base-100">

@@ -15,3 +15,11 @@ export const requireDirector = createServerFn().handler(async () => {
   if (session.user.role !== 'director') throw redirect({ to: '/' as any });
   return session;
 });
+export const requireSubscription = createServerFn().handler(async () => {
+  const session = await auth.api.getSession({ headers: getRequest().headers });
+  if (!session) throw redirect({ to: '/' as any });
+  if (session.user.subscription !== 'pro' && session.user.subscription !== 'affiliate') {
+    throw redirect({ to: '/' as any });
+  }
+  return session;
+});

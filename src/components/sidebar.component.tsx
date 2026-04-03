@@ -69,8 +69,8 @@ export function Sidebar() {
   };
 
   const sub = session?.user.subscription as SubscriptionType | undefined;
-  const showSubDot = sub === "pro" || sub === "advance";
-  const showCharacterBuilder = (isDirector && showSubDot) || isActor;
+  const isSubscribed = sub === "pro" || sub === "affiliate";
+  const showCharacterBuilder = isSubscribed;
 
   const { data: charCount = 0 } = useQuery({
     queryKey: ["cb-count"],
@@ -207,7 +207,7 @@ export function Sidebar() {
           }
         >
           <div className="indicator shrink-0">
-            {showSubDot && (
+            {isSubscribed && (
               <span className="indicator-item badge badge-accent badge-xs capitalize">
                 {sub}
               </span>

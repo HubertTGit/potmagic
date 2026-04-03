@@ -12,6 +12,12 @@ import { charactersHuman, characterHumanParts, props } from "@/db/schema";
 async function getSessionOrThrow() {
   const session = await auth.api.getSession({ headers: getRequest().headers });
   if (!session) throw new Error("Unauthorized");
+  if (
+    session.user.subscription !== "pro" &&
+    session.user.subscription !== "affiliate"
+  ) {
+    throw new Error("Forbidden: Subscription required");
+  }
   return session;
 }
 
