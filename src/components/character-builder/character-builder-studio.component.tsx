@@ -144,6 +144,11 @@ export function CharacterBuilderStudio() {
   const hasMouthAltTexture = currentCharacter?.parts.some(
     (p) => p.partRole === "mouth" && !!p.altImageUrl,
   );
+  const hasEyebrowAltTexture = currentCharacter?.parts.some(
+    (p) =>
+      (p.partRole === "eye-brow-left" || p.partRole === "eye-brow-right") &&
+      !!p.altImageUrl,
+  );
 
   // Sync turn mode state to pixi
   useEffect(() => {
@@ -284,6 +289,20 @@ export function CharacterBuilderStudio() {
       compositeRef.current.setEyebrowsAngry(previewEyebrowsAngry);
     }
   }, [previewEyebrowsAngry]);
+
+  // Reset eyebrows happy preview if eyebrow alt texture is removed
+  useEffect(() => {
+    if (!hasEyebrowAltTexture && previewEyebrowsHappy) {
+      setPreviewEyebrowsHappy(false);
+    }
+  }, [hasEyebrowAltTexture, previewEyebrowsHappy]);
+
+  // Reset eyebrows angry preview if eyebrow alt texture is removed
+  useEffect(() => {
+    if (!hasEyebrowAltTexture && previewEyebrowsAngry) {
+      setPreviewEyebrowsAngry(false);
+    }
+  }, [hasEyebrowAltTexture, previewEyebrowsAngry]);
 
   // Reset eyebrows angry preview if eyebrows are removed
   useEffect(() => {
@@ -1361,12 +1380,15 @@ export function CharacterBuilderStudio() {
                   <div
                     className={cn(
                       "tooltip tooltip-top",
-                      !hasEyebrowParts && "opacity-20 grayscale",
+                      (!hasEyebrowParts || !hasEyebrowAltTexture) &&
+                        "opacity-20 grayscale",
                     )}
                     data-tip={
                       !hasEyebrowParts
                         ? "Requires Eyebrows"
-                        : "Toggle Happy Brows"
+                        : !hasEyebrowAltTexture
+                          ? "Requires Eyebrow Variation"
+                          : "Toggle Happy Brows"
                     }
                   >
                     <button
@@ -1374,7 +1396,7 @@ export function CharacterBuilderStudio() {
                         "btn btn-ghost btn-circle btn-sm h-8 w-8",
                         previewEyebrowsHappy && "bg-primary/20 text-primary",
                       )}
-                      disabled={!hasEyebrowParts}
+                      disabled={!hasEyebrowParts || !hasEyebrowAltTexture}
                       onClick={() =>
                         setPreviewEyebrowsHappy(!previewEyebrowsHappy)
                       }
@@ -1387,12 +1409,15 @@ export function CharacterBuilderStudio() {
                   <div
                     className={cn(
                       "tooltip tooltip-top",
-                      !hasEyebrowParts && "opacity-20 grayscale",
+                      (!hasEyebrowParts || !hasEyebrowAltTexture) &&
+                        "opacity-20 grayscale",
                     )}
                     data-tip={
                       !hasEyebrowParts
                         ? "Requires Eyebrows"
-                        : "Toggle Angry Brows"
+                        : !hasEyebrowAltTexture
+                          ? "Requires Eyebrow Variation"
+                          : "Toggle Angry Brows"
                     }
                   >
                     <button
@@ -1400,7 +1425,7 @@ export function CharacterBuilderStudio() {
                         "btn btn-ghost btn-circle btn-sm h-8 w-8",
                         previewEyebrowsAngry && "bg-primary/20 text-primary",
                       )}
-                      disabled={!hasEyebrowParts}
+                      disabled={!hasEyebrowParts || !hasEyebrowAltTexture}
                       onClick={() =>
                         setPreviewEyebrowsAngry(!previewEyebrowsAngry)
                       }

@@ -89,7 +89,7 @@ export class CompositeHumanCharacter {
   private partContainers: Map<string, Container> = new Map();
   private partSprites: Map<string, Sprite> = new Map();
   private textures: Map<string, Texture> = new Map();
-  private eyeTextures: Map<string, Texture> = new Map();
+  private variationTextures: Map<string, Texture> = new Map();
 
   private isDragging = false;
   private dragOffset = { x: 0, y: 0 };
@@ -282,13 +282,46 @@ export class CompositeHumanCharacter {
       if (p.altImageUrl) {
         promises.push(
           Assets.load(p.altImageUrl).then((tex) =>
-            this.eyeTextures.set(p.partRole, tex),
+            this.variationTextures.set(p.partRole, tex),
           ),
         );
       }
       return promises;
     });
+
     await Promise.all(loadPromises);
+
+    // Capture current expression states
+    const states = {
+      laughing: this.isLaughing,
+      smiling: this.isSmiling,
+      gazing: this.isGazing,
+      blinking: this.isBlinking,
+      smilingEye: this.isSmilingEye,
+      eyebrowsHappy: this.isEyebrowsHappy,
+      eyebrowsAngry: this.isEyebrowsAngry,
+      speaking: this.isSpeaking,
+    };
+
+    // Reset flags to force re-evaluation in setters
+    this.isLaughing = false;
+    this.isSmiling = false;
+    this.isGazing = false;
+    this.isBlinking = false;
+    this.isSmilingEye = false;
+    this.isEyebrowsHappy = false;
+    this.isEyebrowsAngry = false;
+    this.isSpeaking = false;
+
+    // Re-evaluate expressions now that textures are loaded
+    if (states.laughing) this.setLaughing(true);
+    if (states.smiling) this.setSmile(true);
+    if (states.gazing) this.setGaze(true);
+    if (states.blinking) this.setBlink(true);
+    if (states.smilingEye) this.setSmileEye(true);
+    if (states.eyebrowsHappy) this.setEyebrowsHappy(true);
+    if (states.eyebrowsAngry) this.setEyebrowsAngry(true);
+    if (states.speaking) this.setSpeaking(true);
   }
 
   private buildHierarchy() {
@@ -1056,7 +1089,7 @@ export class CompositeHumanCharacter {
       if (!sprite) continue;
 
       const mainTexture = this.textures.get(role);
-      const blinkTexture = this.eyeTextures.get(role);
+      const blinkTexture = this.variationTextures.get(role);
 
       if (isBlinking && blinkTexture) {
         sprite.texture = blinkTexture;
@@ -1129,6 +1162,24 @@ export class CompositeHumanCharacter {
       // Clear any existing animation
       this.eyebrowTweens.get(role)?.kill();
 
+      const mainTexture = this.textures.get(role);
+      const altTexture = this.variationTextures.get(role);
+
+      if (angry && altTexture && mainTexture) {
+        // Angry brows uses frame index 2 of the alt texture/sprite sheet
+        sprite.texture = new PIXI.Texture({
+          source: altTexture.source,
+          frame: new PIXI.Rectangle(
+            0,
+            2 * mainTexture.height,
+            mainTexture.width,
+            mainTexture.height,
+          ),
+        });
+      } else if (!angry && mainTexture) {
+        sprite.texture = mainTexture;
+      }
+
       // Store initial state
       if (!this.eyebrowOriginalXs.has(role)) {
         this.eyebrowOriginalXs.set(role, container.x);
@@ -1197,6 +1248,24 @@ export class CompositeHumanCharacter {
       // Clear any existing animation
       this.eyebrowTweens.get(role)?.kill();
 
+      const mainTexture = this.textures.get(role);
+      const altTexture = this.variationTextures.get(role);
+
+      if (happy && altTexture && mainTexture) {
+        // Happy brows uses frame index 1 of the alt texture/sprite sheet
+        sprite.texture = new PIXI.Texture({
+          source: altTexture.source,
+          frame: new PIXI.Rectangle(
+            0,
+            mainTexture.height,
+            mainTexture.width,
+            mainTexture.height,
+          ),
+        });
+      } else if (!happy && mainTexture) {
+        sprite.texture = mainTexture;
+      }
+
       // Store initial state
       if (!this.eyebrowOriginalYs.has(role)) {
         this.eyebrowOriginalYs.set(role, container.y);
@@ -1228,7 +1297,7 @@ export class CompositeHumanCharacter {
           ease: "power2.inOut",
           onComplete: () => {
             // Only cleanup if no other eyebrow animation is active
-            if (!this.isEyebrowsHappy) {
+            if (!this.isEyebrowsHappy && !this.isEyebrowsAngry) {
               this.eyebrowOriginalYs.delete(role);
               this.eyebrowOriginalRots.delete(role);
             }
@@ -1246,7 +1315,7 @@ export class CompositeHumanCharacter {
     const mouthContainer = this.partContainers.get("mouth");
     const mouthSprite = this.partSprites.get("mouth");
     const mainTexture = this.textures.get("mouth");
-    const altTexture = this.eyeTextures.get("mouth");
+    const altTexture = this.variationTextures.get("mouth");
     if (!mouthContainer || !mouthSprite || !mainTexture) return;
 
     this.speakingTimeline?.kill();
@@ -1304,7 +1373,7 @@ export class CompositeHumanCharacter {
     const mouthContainer = this.partContainers.get("mouth");
     const mouthSprite = this.partSprites.get("mouth");
     const mainTexture = this.textures.get("mouth");
-    const altTexture = this.eyeTextures.get("mouth");
+    const altTexture = this.variationTextures.get("mouth");
 
     if (!mouthContainer || !mouthSprite || !mainTexture) return;
 
@@ -1368,7 +1437,7 @@ export class CompositeHumanCharacter {
       if (!sprite) continue;
 
       const mainTexture = this.textures.get(role);
-      const altTexture = this.eyeTextures.get(role);
+      const altTexture = this.variationTextures.get(role);
 
       if (isGazing && altTexture && mainTexture) {
         // Enforce same dimensions as main texture
@@ -1400,7 +1469,7 @@ export class CompositeHumanCharacter {
       if (!sprite) continue;
 
       const mainTexture = this.textures.get(role);
-      const altTexture = this.eyeTextures.get(role);
+      const altTexture = this.variationTextures.get(role);
 
       if (isBlinking && altTexture && mainTexture) {
         // Blink is typically the second frame (index 1)
@@ -1436,7 +1505,7 @@ export class CompositeHumanCharacter {
       if (!sprite) continue;
 
       const mainTexture = this.textures.get(role);
-      const altTexture = this.eyeTextures.get(role);
+      const altTexture = this.variationTextures.get(role);
 
       if (isSmiling && altTexture && mainTexture) {
         // Smile eyes is frame index 2
@@ -1474,7 +1543,7 @@ export class CompositeHumanCharacter {
     const mouthContainer = this.partContainers.get("mouth");
     const mouthSprite = this.partSprites.get("mouth");
     const mainTexture = this.textures.get("mouth");
-    const altTexture = this.eyeTextures.get("mouth");
+    const altTexture = this.variationTextures.get("mouth");
 
     if (!mouthContainer || !mouthSprite || !mainTexture) return;
 
