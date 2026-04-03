@@ -2,19 +2,16 @@ import { useNavigate } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 import type { charactersHuman } from "@/db/schema";
 import type { InferSelectModel } from "drizzle-orm";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export interface CharacterCardProps {
   character: InferSelectModel<typeof charactersHuman>;
-  langPrefix: string;
   onDelete: (id: string) => void;
 }
 
-export function CharacterCard({
-  character,
-  langPrefix,
-  onDelete,
-}: CharacterCardProps) {
+export function CharacterCard({ character, onDelete }: CharacterCardProps) {
   const navigate = useNavigate();
+  const { t, langPrefix } = useLanguage();
 
   return (
     <div
@@ -40,7 +37,7 @@ export function CharacterCard({
             <div className="bg-base-300 border-base-300 flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border">
               <img
                 src={character.imageUrl}
-                alt={character.name}
+                alt={character.name || ""}
                 className="size-full object-contain"
               />
             </div>
@@ -49,7 +46,7 @@ export function CharacterCard({
             <div className="flex items-center gap-2">
               {character.compositePropId && (
                 <span className="badge badge-success badge-sm shrink-0 font-medium tracking-wider uppercase">
-                  Published
+                  {t("characterBuilder.published")}
                 </span>
               )}
               <button
@@ -58,7 +55,7 @@ export function CharacterCard({
                   onDelete(character.id);
                 }}
                 className="text-error/60 hover:text-error text-xs transition-colors"
-                aria-label="Delete character"
+                aria-label={t("characterBuilder.deleteCharacter")}
               >
                 <Trash2 className="size-3.5" />
               </button>

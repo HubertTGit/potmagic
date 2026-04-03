@@ -72,11 +72,10 @@ function CharacterBuilderPage() {
       <div className="flex h-screen items-center justify-center p-8 text-center">
         <div>
           <p className="text-base-content/60 mb-2 text-lg font-semibold">
-            Character Builder
+            {t("nav.characterBuilder")}
           </p>
           <p className="text-base-content/40 text-sm">
-            Available for directors with a Pro or Advance subscription, and all
-            actors.
+            {t("characterBuilder.unauthorized")}
           </p>
         </div>
       </div>
@@ -161,7 +160,7 @@ function CharacterBuilderPage() {
             <Drama className="text-primary/40 size-10" />
           </div>
           <p className="text-base-content/40 text-sm">
-            No characters yet. Create your first one!
+            {t("stories.empty")}
           </p>
         </div>
       ) : (
@@ -170,7 +169,6 @@ function CharacterBuilderPage() {
             <CharacterCard
               key={char.id}
               character={char}
-              langPrefix={langPrefix}
               onDelete={setDeleteTarget}
             />
           ))}
@@ -180,9 +178,9 @@ function CharacterBuilderPage() {
       {/* Delete confirmation modal */}
       <ConfirmModal
         isOpen={!!deleteTarget}
-        title="Delete Character?"
-        message="This will permanently delete the character and its published prop. This cannot be undone."
-        confirmText="Delete"
+        title={t("modal.confirmDeletion")}
+        message={t("characterBuilder.deleteImageConfirm")}
+        confirmText={t("action.delete")}
         confirmButtonClass="btn-error"
         onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget)}
         onCancel={() => setDeleteTarget(null)}

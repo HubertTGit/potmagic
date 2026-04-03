@@ -418,13 +418,10 @@ export function CharacterBuilderStudio() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-characters"] });
       queryClient.invalidateQueries({ queryKey: ["all-props"] });
-      queryClient.invalidateQueries({ queryKey: ["character", characterId] });
-      toast.success(
-        t("characterBuilder.published") || "Character published successfully!",
-      );
+      toast.success(t("characterBuilder.publishSuccess"));
     },
     onError: () => {
-      toast.error("Failed to publish character");
+      toast.error(t("characterBuilder.publishError"));
     },
   });
 
@@ -434,10 +431,10 @@ export function CharacterBuilderStudio() {
       queryClient.invalidateQueries({ queryKey: ["user-characters"] });
       queryClient.invalidateQueries({ queryKey: ["all-props"] });
       queryClient.invalidateQueries({ queryKey: ["character", characterId] });
-      toast.success("Character unpublished successfully");
+      toast.success(t("characterBuilder.unpublishSuccess"));
     },
     onError: () => {
-      toast.error("Failed to unpublish character");
+      toast.error(t("characterBuilder.unpublishError"));
     },
   });
 
@@ -460,7 +457,7 @@ export function CharacterBuilderStudio() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["character", characterId] });
-      toast.success("IK direction saved");
+      toast.success(t("characterBuilder.ikDirectionSaved"));
     },
   });
 
@@ -512,11 +509,11 @@ export function CharacterBuilderStudio() {
       await removePartMutation.mutateAsync({
         data: { characterId, partRole: selectedRole },
       });
-      toast.success("Part photo deleted permanently");
+      toast.success(t("characterBuilder.partPhotoDeleted"));
       setIsDeleteConfirmOpen(false);
     } catch (e) {
       console.error("Failed to remove part:", e);
-      toast.error("Failed to delete part photo");
+      toast.error(t("characterBuilder.partPhotoDeleteError"));
     }
   };
 
@@ -868,7 +865,7 @@ export function CharacterBuilderStudio() {
         });
       }
     } catch (err: any) {
-      toast.error(`Upload failed: ${err.message}`);
+      toast.error(`${t("characterBuilder.uploadFailed")}: ${err.message}`);
     } finally {
       setIsUploading(null);
       e.target.value = "";
@@ -938,7 +935,7 @@ export function CharacterBuilderStudio() {
   if (!canAccess) {
     return (
       <div className="text-error flex h-screen items-center justify-center p-8 text-center">
-        Unauthorized
+        {t("characterBuilder.unauthorized")}
       </div>
     );
   }
@@ -971,7 +968,7 @@ export function CharacterBuilderStudio() {
           />
           {currentCharacter?.compositePropId && (
             <span className="badge badge-success badge-sm font-semibold tracking-widest uppercase">
-              Published
+              {t("characterBuilder.published")}
             </span>
           )}
         </div>
@@ -1065,7 +1062,7 @@ export function CharacterBuilderStudio() {
                       )}
                     </div>
                     <span className="capitalize">
-                      {role.replace(/-/g, " ")}
+                      {t(`characterBuilder.role.${role}` as any)}
                     </span>
                   </div>
                   {isPlaced && (
@@ -1103,21 +1100,21 @@ export function CharacterBuilderStudio() {
                 <button
                   onClick={handleZoomIn}
                   className="border-base-300 bg-base-100/80 hover:bg-base-200/80 flex size-7 items-center justify-center rounded-lg border backdrop-blur-sm transition-colors"
-                  title="Zoom in"
+                  title={t("characterBuilder.zoomIn")}
                 >
                   <ZoomIn className="size-3.5" />
                 </button>
                 <button
                   onClick={handleZoomOut}
                   className="border-base-300 bg-base-100/80 hover:bg-base-200/80 flex size-7 items-center justify-center rounded-lg border backdrop-blur-sm transition-colors"
-                  title="Zoom out"
+                  title={t("characterBuilder.zoomOut")}
                 >
                   <ZoomOut className="size-3.5" />
                 </button>
                 <button
                   onClick={handleResetView}
                   className="border-base-300 bg-base-100/80 hover:bg-base-200/80 flex size-7 items-center justify-center rounded-lg border backdrop-blur-sm transition-colors"
-                  title="Reset view"
+                  title={t("characterBuilder.resetView")}
                 >
                   <Scan className="size-3.5" />
                 </button>
@@ -1139,9 +1136,9 @@ export function CharacterBuilderStudio() {
                   )}
                   title={
                     ikState.left.enabled || ikState.right.enabled
-                      ? "Disable IK to edit gizmo anchors"
+                      ? t("characterBuilder.requiresArmParts")
                       : previewTurnMode
-                        ? "Disable Turn Mode to edit gizmo anchors"
+                        ? t("characterBuilder.requiresHeadBody")
                         : ""
                   }
                 >
@@ -1158,7 +1155,7 @@ export function CharacterBuilderStudio() {
                       handleGizmoEditModeChange(e.target.checked)
                     }
                   />
-                  Edit gizmos
+                  {t("characterBuilder.editGizmos")}
                 </label>
 
                 <label className="border-base-300 bg-base-100/80 hover:bg-base-200/80 flex min-w-[124px] cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors">
@@ -1168,7 +1165,7 @@ export function CharacterBuilderStudio() {
                     checked={showBoundingBoxes}
                     onChange={(e) => handleBoundingBoxToggle(e.target.checked)}
                   />
-                  Show bounds
+                  {t("characterBuilder.showBounds")}
                 </label>
 
                 {/* This section previously held expression checkboxes. They are now in the floating toolbar below. */}
@@ -1200,7 +1197,7 @@ export function CharacterBuilderStudio() {
                         }
                       />
                       <span className="text-[10px] font-bold tracking-tight uppercase">
-                        IK Left
+                        {t("characterBuilder.ikLeft")}
                       </span>
                     </div>
                     {ikState.left.enabled && (
@@ -1256,7 +1253,7 @@ export function CharacterBuilderStudio() {
                         }
                       />
                       <span className="text-[10px] font-bold tracking-tight uppercase">
-                        IK Right
+                        {t("characterBuilder.ikRight")}
                       </span>
                     </div>
                     {ikState.right.enabled && (
@@ -1292,13 +1289,13 @@ export function CharacterBuilderStudio() {
               </div>
 
               <div className="pointer-events-none absolute top-4 left-1/2 flex -translate-x-1/2 justify-center text-[10px] tracking-widest uppercase opacity-30">
-                <span>800x800 Preview</span>
+                <span>{t("characterBuilder.previewResolution")}</span>
               </div>
 
               {/* Expression Toolbar (Floating Bottom Center) */}
               <div className="absolute right-0 bottom-4 left-0 flex flex-col items-center gap-1.5">
                 <span className="text-[10px] font-bold tracking-widest uppercase opacity-40">
-                  Expressions
+                  {t("characterBuilder.expressions")}
                 </span>
                 <div className="bg-base-100/90 border-base-300 flex items-center gap-1 rounded-full border px-2 py-1 shadow-lg backdrop-blur-md">
                   {/* Laugh */}
@@ -1309,8 +1306,8 @@ export function CharacterBuilderStudio() {
                     )}
                     data-tip={
                       !hasMouthAltTexture
-                        ? "Requires Mouth Variation"
-                        : "Laughing"
+                        ? t("characterBuilder.requiresMouthVariation")
+                        : t("characterBuilder.laughing")
                     }
                   >
                     <button
@@ -1333,8 +1330,8 @@ export function CharacterBuilderStudio() {
                     )}
                     data-tip={
                       !hasMouthAltTexture
-                        ? "Requires Mouth Variation"
-                        : "Smiling"
+                        ? t("characterBuilder.requiresMouthVariation")
+                        : t("characterBuilder.smiling")
                     }
                   >
                     <button
@@ -1356,7 +1353,7 @@ export function CharacterBuilderStudio() {
                       !hasMouthAltTexture && "opacity-20 grayscale",
                     )}
                     data-tip={
-                      !hasMouthAltTexture ? "Requires Mouth Variation" : "Sad"
+                      !hasMouthAltTexture ? t("characterBuilder.requiresMouthVariation") : t("characterBuilder.sad")
                     }
                   >
                     <button
@@ -1380,7 +1377,7 @@ export function CharacterBuilderStudio() {
                       !hasEyeAltTexture && "opacity-20 grayscale",
                     )}
                     data-tip={
-                      !hasEyeAltTexture ? "Requires Eye Variation" : "Alert"
+                      !hasEyeAltTexture ? t("characterBuilder.requiresEyeVariation") : t("characterBuilder.alert")
                     }
                   >
                     <button
@@ -1402,7 +1399,7 @@ export function CharacterBuilderStudio() {
                       !hasEyeAltTexture && "opacity-20 grayscale",
                     )}
                     data-tip={
-                      !hasEyeAltTexture ? "Requires Eye Variation" : "Blink"
+                      !hasEyeAltTexture ? t("characterBuilder.requiresEyeVariation") : t("characterBuilder.blink")
                     }
                   >
                     <button
@@ -1424,7 +1421,7 @@ export function CharacterBuilderStudio() {
                       !hasEyeAltTexture && "opacity-20 grayscale",
                     )}
                     data-tip={
-                      !hasEyeAltTexture ? "Requires Eye Variation" : "Squint"
+                      !hasEyeAltTexture ? t("characterBuilder.requiresEyeVariation") : t("characterBuilder.squint")
                     }
                   >
                     <button
@@ -1448,7 +1445,7 @@ export function CharacterBuilderStudio() {
                       !hasEyebrowParts && "opacity-20 grayscale",
                     )}
                     data-tip={
-                      !hasEyebrowParts ? "Requires Eyebrows" : "Raised Brows"
+                      !hasEyebrowParts ? t("characterBuilder.requiresEyebrows") : t("characterBuilder.raisedBrows")
                     }
                   >
                     <button
@@ -1472,10 +1469,10 @@ export function CharacterBuilderStudio() {
                     )}
                     data-tip={
                       !hasEyebrowParts
-                        ? "Requires Eyebrows"
+                        ? t("characterBuilder.requiresEyebrows")
                         : !hasEyebrowAltTexture
-                          ? "Requires Eyebrow Variation"
-                          : "Happy Brows"
+                          ? t("characterBuilder.requiresEyebrowVariation")
+                          : t("characterBuilder.happyBrows")
                     }
                   >
                     <button
@@ -1501,10 +1498,10 @@ export function CharacterBuilderStudio() {
                     )}
                     data-tip={
                       !hasEyebrowParts
-                        ? "Requires Eyebrows"
+                        ? t("characterBuilder.requiresEyebrows")
                         : !hasEyebrowAltTexture
-                          ? "Requires Eyebrow Variation"
-                          : "Angry Brows"
+                          ? t("characterBuilder.requiresEyebrowVariation")
+                          : t("characterBuilder.angryBrows")
                     }
                   >
                     <button
@@ -1531,8 +1528,8 @@ export function CharacterBuilderStudio() {
                     )}
                     data-tip={
                       !hasRequiredPupilParts
-                        ? "Requires Head, Eyes & Pupils"
-                        : "Eyes Tracking"
+                        ? t("characterBuilder.requiresHeadEyesPupils")
+                        : t("characterBuilder.eyesTracking")
                     }
                   >
                     <button
@@ -1555,8 +1552,8 @@ export function CharacterBuilderStudio() {
                     )}
                     data-tip={
                       !hasRequiredSpeakingParts
-                        ? "Requires Head & Mouth"
-                        : "Speaking"
+                        ? t("characterBuilder.requiresHeadMouth")
+                        : t("characterBuilder.speaking")
                     }
                   >
                     <button
@@ -1581,8 +1578,8 @@ export function CharacterBuilderStudio() {
                     )}
                     data-tip={
                       !hasRequiredTurnModeParts
-                        ? "Requires Head and Body"
-                        : "Body Bending"
+                        ? t("characterBuilder.requiresHeadBody")
+                        : t("characterBuilder.bodyBending")
                     }
                   >
                     <button
@@ -1625,11 +1622,11 @@ export function CharacterBuilderStudio() {
               <>
                 <div className="mb-6 flex items-center justify-between gap-4">
                   <h2 className="truncate text-sm font-bold tracking-widest uppercase">
-                    {selectedRole.replace(/-/g, " ")}
+                    {t(`characterBuilder.role.${selectedRole}` as any)}
                   </h2>
                   {hasPhoto && !isPlaced && (
                     <div className="badge badge-warning badge-xs h-5 shrink-0 font-bold tracking-wider uppercase">
-                      Not placed
+                      {t("characterBuilder.notPlaced")}
                     </div>
                   )}
                 </div>
@@ -1639,7 +1636,7 @@ export function CharacterBuilderStudio() {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <label className="text-xs font-medium tracking-wide uppercase opacity-60">
-                        Texture
+                        {t("characterBuilder.texture")}
                       </label>
                       <div className="relative">
                         <input
@@ -1677,7 +1674,7 @@ export function CharacterBuilderStudio() {
                                 <div className="flex flex-col items-center gap-1">
                                   <Upload className="size-5 text-white" />
                                   <span className="text-[10px] font-bold tracking-widest uppercase">
-                                    Replace texture
+                                    {t("characterBuilder.replaceTexture")}
                                   </span>
                                 </div>
                               </div>
@@ -1698,7 +1695,7 @@ export function CharacterBuilderStudio() {
                     {hasAltTexture && (
                       <div className="space-y-2">
                         <label className="text-xs font-medium tracking-wide uppercase opacity-60">
-                          Variation Texture
+                          {t("characterBuilder.variationTexture")}
                         </label>
                         <div className="group relative">
                           {!altTextureUrl && (
@@ -1739,7 +1736,7 @@ export function CharacterBuilderStudio() {
                                     />
                                     <Upload className="size-5 text-white" />
                                     <span className="text-[10px] font-bold tracking-widest text-white uppercase">
-                                      Replace
+                                      {t("prop.replace")}
                                     </span>
                                   </label>
                                   <div className="h-6 w-px bg-white/20" />
@@ -1758,7 +1755,7 @@ export function CharacterBuilderStudio() {
                                   >
                                     <Trash2 className="text-error size-5" />
                                     <span className="text-error text-[10px] font-bold tracking-widest uppercase">
-                                      Remove
+                                      {t("action.remove")}
                                     </span>
                                   </button>
                                 </div>
@@ -1767,7 +1764,7 @@ export function CharacterBuilderStudio() {
                               <>
                                 <Upload className="size-6 opacity-30" />
                                 <span className="text-xs opacity-50">
-                                  Upload variation asset
+                                  {t("characterBuilder.uploadVariation")}
                                 </span>
                               </>
                             )}
@@ -1780,7 +1777,7 @@ export function CharacterBuilderStudio() {
                   {/* Transform Controls */}
                   <div className="space-y-4">
                     <h3 className="text-xs font-medium tracking-wide uppercase opacity-60">
-                      Transform
+                      {t("characterBuilder.transform")}
                     </h3>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -1794,7 +1791,7 @@ export function CharacterBuilderStudio() {
                           <>
                             <div className="space-y-1">
                               <label className="text-[10px] uppercase opacity-40">
-                                Pivot X (px)
+                                {t("characterBuilder.pivotX")}
                               </label>
                               <input
                                 type="number"
@@ -1805,7 +1802,7 @@ export function CharacterBuilderStudio() {
                             </div>
                             <div className="space-y-1">
                               <label className="text-[10px] uppercase opacity-40">
-                                Pivot Y (px)
+                                {t("characterBuilder.pivotY")}
                               </label>
                               <input
                                 type="number"
