@@ -7,11 +7,11 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { emailSchema } from "@/lib/schemas";
 
 export function DirectorLogin({ token = "" }: { token?: string }) {
-  const { t } = useLanguage();
+  const { t, langPrefix } = useLanguage();
 
   const callbackURL = token
-    ? `/auth/director-setup?token=${encodeURIComponent(token)}`
-    : "/";
+    ? `${langPrefix}/auth/director-setup?token=${encodeURIComponent(token)}`
+    : `${langPrefix}/stories`;
 
   const form = useForm({
     defaultValues: { email: "" },

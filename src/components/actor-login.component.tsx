@@ -20,7 +20,7 @@ export function ActorLogin() {
         await actorSignIn({ data: { email: value.email } });
         // Hydrate the shared session atom so _app.tsx sees a non-null session
         await refetch();
-        await router.navigate({ to: `${langPrefix}/` as any });
+        await router.navigate({ to: `${langPrefix}/stories` as any });
       } catch (err: unknown) {
         throw new Error(
           (err as { message?: string })?.message ?? t("auth.error.loginFailed"),
