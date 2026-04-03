@@ -1155,23 +1155,51 @@ export class CompositeHumanCharacter {
     this.isSpeaking = isSpeaking;
 
     const mouthContainer = this.partContainers.get("mouth");
-    if (!mouthContainer) return;
+    const mouthSprite = this.partSprites.get("mouth");
+    const mainTexture = this.textures.get("mouth");
+    const altTexture = this.eyeTextures.get("mouth");
+    if (!mouthContainer || !mouthSprite || !mainTexture) return;
 
     this.speakingTimeline?.kill();
 
-    if (isSpeaking) {
-      // Create a 500ms show/hide cycle
+    if (isSpeaking && altTexture) {
+      // 8 vertical variations: frame height = height of the mouth container's main texture
+      const frameHeight = mainTexture.height;
+      const frameWidth = mainTexture.width;
+
+      // Cache the 8 textures for performance
+      const frames: PIXI.Texture[] = [];
+      for (let i = 0; i < 8; i++) {
+        frames.push(
+          new PIXI.Texture({
+            source: altTexture.source,
+            frame: new PIXI.Rectangle(
+              0,
+              i * frameHeight,
+              frameWidth,
+              frameHeight,
+            ),
+          }),
+        );
+      }
+
       this.speakingTimeline = gsap.timeline({ repeat: -1 });
+      mouthContainer.visible = true;
+
+      const frameDuration = 0.15;
+
       this.speakingTimeline
-        .set(mouthContainer, { visible: true })
-        .to({}, { duration: 0.25 })
-        .set(mouthContainer, { visible: false })
-        .to({}, { duration: 0.25 });
+        .call(() => {
+          const randomIndex = Math.floor(Math.random() * frames.length);
+          mouthSprite.texture = frames[randomIndex];
+        })
+        .to({}, { duration: frameDuration });
 
       // Raise eyebrows while speaking
       this.setEyebrowsUp(true);
     } else {
-      // Revert to manual visibility override when not speaking
+      // Revert to stable mouth when not speaking
+      mouthSprite.texture = mainTexture;
       mouthContainer.visible = this.forceMouthVisible;
       this.speakingTimeline = null;
 
