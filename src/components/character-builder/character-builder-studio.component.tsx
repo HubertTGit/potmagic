@@ -887,16 +887,32 @@ export function CharacterBuilderStudio() {
     for (const part of parts) {
       const state = liveState[part.partRole];
       if (state) {
+        const nextX = Math.round(state.x);
+        const nextY = Math.round(state.y);
+        const nextRotation = Math.round(state.rotation);
+        const nextPivotX = state.pivotX;
+        const nextPivotY = state.pivotY;
+
+        // Skip upsert if part has not changed
+        const isModified =
+          nextX !== part.x ||
+          nextY !== part.y ||
+          nextRotation !== part.rotation ||
+          nextPivotX !== part.pivotX ||
+          nextPivotY !== part.pivotY;
+
+        if (!isModified) continue;
+
         await upsertPartMutation.mutateAsync({
           data: {
             characterId,
             partRole: part.partRole,
             propId: part.propId,
-            x: Math.round(state.x),
-            y: Math.round(state.y),
-            rotation: Math.round(state.rotation),
-            pivotX: state.pivotX,
-            pivotY: state.pivotY,
+            x: nextX,
+            y: nextY,
+            rotation: nextRotation,
+            pivotX: nextPivotX,
+            pivotY: nextPivotY,
             zIndex: part.zIndex,
           },
         });
