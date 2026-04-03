@@ -30,6 +30,14 @@ import {
   ZoomOut,
   Scan,
   XCircle,
+  Laugh,
+  Smile,
+  Eye,
+  EyeClosed,
+  Frown,
+  Angry,
+  ScanEye,
+  MicVocal,
 } from "lucide-react";
 import { ConfirmModal } from "@/components/confirm-modal";
 import type { Application } from "pixi.js";
@@ -137,8 +145,6 @@ export function CharacterBuilderStudio() {
     (p) => p.partRole === "mouth" && !!p.altImageUrl,
   );
 
-
-
   // Sync turn mode state to pixi
   useEffect(() => {
     if (compositeRef.current) {
@@ -169,7 +175,9 @@ export function CharacterBuilderStudio() {
 
   // Reset laughing preview if mouth is removed
   useEffect(() => {
-    const hasMouth = currentCharacter?.parts.some((p) => p.partRole === "mouth");
+    const hasMouth = currentCharacter?.parts.some(
+      (p) => p.partRole === "mouth",
+    );
     if (!hasMouth && previewLaughing) {
       setPreviewLaughing(false);
     }
@@ -184,7 +192,9 @@ export function CharacterBuilderStudio() {
 
   // Reset smiling preview if mouth is removed
   useEffect(() => {
-    const hasMouth = currentCharacter?.parts.some((p) => p.partRole === "mouth");
+    const hasMouth = currentCharacter?.parts.some(
+      (p) => p.partRole === "mouth",
+    );
     if (!hasMouth && previewSmiling) {
       setPreviewSmiling(false);
     }
@@ -199,7 +209,9 @@ export function CharacterBuilderStudio() {
 
   // Reset gazing preview if mouth is removed
   useEffect(() => {
-    const hasMouth = currentCharacter?.parts.some((p) => p.partRole === "mouth");
+    const hasMouth = currentCharacter?.parts.some(
+      (p) => p.partRole === "mouth",
+    );
     if (!hasMouth && previewGazing) {
       setPreviewGazing(false);
     }
@@ -314,7 +326,6 @@ export function CharacterBuilderStudio() {
       compositeRef.current.setSpeaking(previewSpeaking);
     }
   }, [previewSpeaking]);
-
 
   // Sync IK state to pixi
   useEffect(() => {
@@ -716,7 +727,9 @@ export function CharacterBuilderStudio() {
     }
   };
 
-  const handleUploadAltTexture = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUploadAltTexture = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0];
     if (!file || !characterId) return;
 
@@ -872,7 +885,9 @@ export function CharacterBuilderStudio() {
           {currentCharacter?.compositePropId ? (
             <button
               onClick={() =>
-                unpublishMutation.mutate({ data: { characterId: characterId! } })
+                unpublishMutation.mutate({
+                  data: { characterId: characterId! },
+                })
               }
               disabled={unpublishMutation.isPending}
               className="btn btn-ghost btn-sm gap-2"
@@ -1049,183 +1064,7 @@ export function CharacterBuilderStudio() {
                   Show bounds
                 </label>
 
-                <label
-                  className={cn(
-                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
-                    hasMouthAltTexture
-                      ? "hover:bg-base-200/80 cursor-pointer"
-                      : "cursor-not-allowed opacity-40 grayscale",
-                  )}
-                  title={
-                    !hasMouthAltTexture
-                      ? "Add a mouth and upload its Variation Texture to test"
-                      : ""
-                  }
-                >
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-xs checkbox-info"
-                    checked={previewLaughing}
-                    disabled={!hasMouthAltTexture}
-                    onChange={(e) => setPreviewLaughing(e.target.checked)}
-                  />
-                  😆 Laugh
-                </label>
-
-                <label
-                  className={cn(
-                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
-                    hasMouthAltTexture
-                      ? "hover:bg-base-200/80 cursor-pointer"
-                      : "cursor-not-allowed opacity-40 grayscale",
-                  )}
-                  title={
-                    !hasMouthAltTexture
-                      ? "Add a mouth and upload its Variation Texture to test"
-                      : ""
-                  }
-                >
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-xs checkbox-info"
-                    checked={previewSmiling}
-                    disabled={!hasMouthAltTexture}
-                    onChange={(e) => setPreviewSmiling(e.target.checked)}
-                  />
-                  👄 Smile
-                </label>
-
-                <label
-                  className={cn(
-                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
-                    hasEyeAltTexture
-                      ? "hover:bg-base-200/80 cursor-pointer"
-                      : "cursor-not-allowed opacity-40 grayscale",
-                  )}
-                  title={
-                    !hasEyeAltTexture
-                      ? "Upload a variation texture for an eye part to test"
-                      : ""
-                  }
-                >
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-xs checkbox-info"
-                    checked={previewGazing}
-                    disabled={!hasEyeAltTexture}
-                    onChange={(e) => setPreviewGazing(e.target.checked)}
-                  />
-                  👁️ Gaze
-                </label>
-
-                <label
-                  className={cn(
-                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
-                    hasEyeAltTexture
-                      ? "hover:bg-base-200/80 cursor-pointer"
-                      : "cursor-not-allowed opacity-40 grayscale",
-                  )}
-                  title={
-                    !hasEyeAltTexture
-                      ? "Upload a variation texture for an eye part to test"
-                      : ""
-                  }
-                >
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-xs checkbox-info"
-                    checked={previewBlinking}
-                    disabled={!hasEyeAltTexture}
-                    onChange={(e) => setPreviewBlinking(e.target.checked)}
-                  />
-                  👁️ Blink
-                </label>
-
-                <label
-                  className={cn(
-                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
-                    hasEyeAltTexture
-                      ? "hover:bg-base-200/80 cursor-pointer"
-                      : "cursor-not-allowed opacity-40 grayscale",
-                  )}
-                  title={
-                    !hasEyeAltTexture
-                      ? "Upload a variation texture for an eye part to test"
-                      : ""
-                  }
-                >
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-xs checkbox-info"
-                    checked={previewSmilingEye}
-                    disabled={!hasEyeAltTexture}
-                    onChange={(e) => setPreviewSmilingEye(e.target.checked)}
-                  />
-                  😊 Eye Smile
-                </label>
-
-                <label
-                  className={cn(
-                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
-                    hasEyebrowParts
-                      ? "hover:bg-base-200/80 cursor-pointer"
-                      : "cursor-not-allowed opacity-40 grayscale",
-                  )}
-                  title={
-                    !hasEyebrowParts ? "Add eyebrows to test this control" : ""
-                  }
-                >
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-xs checkbox-info"
-                    checked={previewEyebrowsUp}
-                    disabled={!hasEyebrowParts}
-                    onChange={(e) => setPreviewEyebrowsUp(e.target.checked)}
-                  />
-                  🤨 Raised Brows
-                </label>
-
-                <label
-                  className={cn(
-                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
-                    hasEyebrowParts
-                      ? "hover:bg-base-200/80 cursor-pointer"
-                      : "cursor-not-allowed opacity-40 grayscale",
-                  )}
-                  title={
-                    !hasEyebrowParts ? "Add eyebrows to test this control" : ""
-                  }
-                >
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-xs checkbox-info"
-                    checked={previewEyebrowsHappy}
-                    disabled={!hasEyebrowParts}
-                    onChange={(e) => setPreviewEyebrowsHappy(e.target.checked)}
-                  />
-                  😊 Happy Brows
-                </label>
-
-                <label
-                  className={cn(
-                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
-                    hasEyebrowParts
-                      ? "hover:bg-base-200/80 cursor-pointer"
-                      : "cursor-not-allowed opacity-40 grayscale",
-                  )}
-                  title={
-                    !hasEyebrowParts ? "Add eyebrows to test this control" : ""
-                  }
-                >
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-xs checkbox-info"
-                    checked={previewEyebrowsAngry}
-                    disabled={!hasEyebrowParts}
-                    onChange={(e) => setPreviewEyebrowsAngry(e.target.checked)}
-                  />
-                  😠 Angry Brows
-                </label>
+                {/* This section previously held expression checkboxes. They are now in the floating toolbar below. */}
 
                 <div className="flex flex-col gap-1.5 p-1">
                   {/* Left Arm IK */}
@@ -1334,53 +1173,7 @@ export function CharacterBuilderStudio() {
                   </div>
                 </div>
 
-                <label
-                  className={cn(
-                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
-                    hasRequiredPupilParts
-                      ? "hover:bg-base-200/80 cursor-pointer"
-                      : "cursor-not-allowed opacity-40 grayscale",
-                  )}
-                  title={
-                    !hasRequiredPupilParts
-                      ? "Requires Head, Eyes, and Pupils"
-                      : ""
-                  }
-                >
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-xs checkbox-info"
-                    checked={previewPupils}
-                    disabled={!hasRequiredPupilParts}
-                    onChange={(e) => setPreviewPupils(e.target.checked)}
-                  />
-                  Test Pupils
-                </label>
-
-
-                <label
-                  className={cn(
-                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
-                    hasRequiredSpeakingParts
-                      ? "hover:bg-base-200/80 cursor-pointer"
-                      : "cursor-not-allowed opacity-50",
-                  )}
-                  title={
-                    !hasRequiredSpeakingParts
-                      ? "Place head and mouth to test speaking"
-                      : ""
-                  }
-                >
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-xs checkbox-accent"
-                    checked={previewSpeaking}
-                    disabled={!hasRequiredSpeakingParts}
-                    onChange={(e) => setPreviewSpeaking(e.target.checked)}
-                  />
-                  Test Speaking
-                </label>
-
+                {/* Interaction controls like Turn Mode and IK stay in the primary overlay for now */}
 
                 <label
                   className={cn(
@@ -1406,8 +1199,266 @@ export function CharacterBuilderStudio() {
                 </label>
               </div>
 
-              <div className="pointer-events-none absolute right-4 bottom-4 left-4 flex justify-end text-[10px] tracking-widest uppercase opacity-30">
+              <div className="pointer-events-none absolute top-4 left-1/2 flex -translate-x-1/2 justify-center text-[10px] tracking-widest uppercase opacity-30">
                 <span>800x800 Preview</span>
+              </div>
+
+              {/* Expression Toolbar (Floating Bottom Center) */}
+              <div className="absolute right-0 bottom-4 left-0 flex flex-col items-center gap-1.5">
+                <span className="text-[10px] font-bold tracking-widest uppercase opacity-40">
+                  Expressions
+                </span>
+                <div className="bg-base-100/90 border-base-300 flex items-center gap-1 rounded-full border px-2 py-1 shadow-lg backdrop-blur-md">
+                  {/* Laugh */}
+                  <div
+                    className={cn(
+                      "tooltip tooltip-top",
+                      !hasMouthAltTexture && "opacity-20 grayscale",
+                    )}
+                    data-tip={
+                      !hasMouthAltTexture
+                        ? "Requires Mouth Variation"
+                        : "Toggle Laughing"
+                    }
+                  >
+                    <button
+                      className={cn(
+                        "btn btn-ghost btn-circle btn-sm h-8 w-8",
+                        previewLaughing && "bg-primary/20 text-primary",
+                      )}
+                      disabled={!hasMouthAltTexture}
+                      onClick={() => setPreviewLaughing(!previewLaughing)}
+                    >
+                      <Laugh className="size-4" />
+                    </button>
+                  </div>
+
+                  {/* Smile */}
+                  <div
+                    className={cn(
+                      "tooltip tooltip-top",
+                      !hasMouthAltTexture && "opacity-20 grayscale",
+                    )}
+                    data-tip={
+                      !hasMouthAltTexture
+                        ? "Requires Mouth Variation"
+                        : "Toggle Smile"
+                    }
+                  >
+                    <button
+                      className={cn(
+                        "btn btn-ghost btn-circle btn-sm h-8 w-8",
+                        previewSmiling && "bg-primary/20 text-primary",
+                      )}
+                      disabled={!hasMouthAltTexture}
+                      onClick={() => setPreviewSmiling(!previewSmiling)}
+                    >
+                      <Smile className="size-4" />
+                    </button>
+                  </div>
+
+                  <div className="bg-base-300 mx-1 h-4 w-px opacity-30" />
+
+                  {/* Gaze */}
+                  <div
+                    className={cn(
+                      "tooltip tooltip-top",
+                      !hasEyeAltTexture && "opacity-20 grayscale",
+                    )}
+                    data-tip={
+                      !hasEyeAltTexture
+                        ? "Requires Eye Variation"
+                        : "Toggle Gaze"
+                    }
+                  >
+                    <button
+                      className={cn(
+                        "btn btn-ghost btn-circle btn-sm h-8 w-8",
+                        previewGazing && "bg-primary/20 text-primary",
+                      )}
+                      disabled={!hasEyeAltTexture}
+                      onClick={() => setPreviewGazing(!previewGazing)}
+                    >
+                      <Eye className="size-4" />
+                    </button>
+                  </div>
+
+                  {/* Blink */}
+                  <div
+                    className={cn(
+                      "tooltip tooltip-top",
+                      !hasEyeAltTexture && "opacity-20 grayscale",
+                    )}
+                    data-tip={
+                      !hasEyeAltTexture
+                        ? "Requires Eye Variation"
+                        : "Toggle Blink"
+                    }
+                  >
+                    <button
+                      className={cn(
+                        "btn btn-ghost btn-circle btn-sm h-8 w-8",
+                        previewBlinking && "bg-primary/20 text-primary",
+                      )}
+                      disabled={!hasEyeAltTexture}
+                      onClick={() => setPreviewBlinking(!previewBlinking)}
+                    >
+                      <EyeClosed className="size-4" />
+                    </button>
+                  </div>
+
+                  {/* Eye Smile (Happy) */}
+                  <div
+                    className={cn(
+                      "tooltip tooltip-top",
+                      !hasEyeAltTexture && "opacity-20 grayscale",
+                    )}
+                    data-tip={
+                      !hasEyeAltTexture
+                        ? "Requires Eye Variation"
+                        : "Toggle Eye Smile"
+                    }
+                  >
+                    <button
+                      className={cn(
+                        "btn btn-ghost btn-circle btn-sm h-8 w-8",
+                        previewSmilingEye && "bg-primary/20 text-primary",
+                      )}
+                      disabled={!hasEyeAltTexture}
+                      onClick={() => setPreviewSmilingEye(!previewSmilingEye)}
+                    >
+                      <Smile className="size-4" />
+                    </button>
+                  </div>
+
+                  <div className="bg-base-300 mx-1 h-4 w-px opacity-30" />
+
+                  {/* Raised Brow */}
+                  <div
+                    className={cn(
+                      "tooltip tooltip-top",
+                      !hasEyebrowParts && "opacity-20 grayscale",
+                    )}
+                    data-tip={
+                      !hasEyebrowParts
+                        ? "Requires Eyebrows"
+                        : "Toggle Raised Brows"
+                    }
+                  >
+                    <button
+                      className={cn(
+                        "btn btn-ghost btn-circle btn-sm h-8 w-8",
+                        previewEyebrowsUp && "bg-primary/20 text-primary",
+                      )}
+                      disabled={!hasEyebrowParts}
+                      onClick={() => setPreviewEyebrowsUp(!previewEyebrowsUp)}
+                    >
+                      <Frown className="size-4" />
+                    </button>
+                  </div>
+
+                  {/* Happy Brow */}
+                  <div
+                    className={cn(
+                      "tooltip tooltip-top",
+                      !hasEyebrowParts && "opacity-20 grayscale",
+                    )}
+                    data-tip={
+                      !hasEyebrowParts
+                        ? "Requires Eyebrows"
+                        : "Toggle Happy Brows"
+                    }
+                  >
+                    <button
+                      className={cn(
+                        "btn btn-ghost btn-circle btn-sm h-8 w-8",
+                        previewEyebrowsHappy && "bg-primary/20 text-primary",
+                      )}
+                      disabled={!hasEyebrowParts}
+                      onClick={() =>
+                        setPreviewEyebrowsHappy(!previewEyebrowsHappy)
+                      }
+                    >
+                      <Smile className="size-4" />
+                    </button>
+                  </div>
+
+                  {/* Angry Brow */}
+                  <div
+                    className={cn(
+                      "tooltip tooltip-top",
+                      !hasEyebrowParts && "opacity-20 grayscale",
+                    )}
+                    data-tip={
+                      !hasEyebrowParts
+                        ? "Requires Eyebrows"
+                        : "Toggle Angry Brows"
+                    }
+                  >
+                    <button
+                      className={cn(
+                        "btn btn-ghost btn-circle btn-sm h-8 w-8",
+                        previewEyebrowsAngry && "bg-primary/20 text-primary",
+                      )}
+                      disabled={!hasEyebrowParts}
+                      onClick={() =>
+                        setPreviewEyebrowsAngry(!previewEyebrowsAngry)
+                      }
+                    >
+                      <Angry className="size-4" />
+                    </button>
+                  </div>
+
+                  <div className="bg-base-300 mx-1 h-4 w-px opacity-30" />
+
+                  {/* Test Pupils */}
+                  <div
+                    className={cn(
+                      "tooltip tooltip-top",
+                      !hasRequiredPupilParts && "opacity-20 grayscale",
+                    )}
+                    data-tip={
+                      !hasRequiredPupilParts
+                        ? "Requires Head, Eyes & Pupils"
+                        : "Pupils Tracking"
+                    }
+                  >
+                    <button
+                      className={cn(
+                        "btn btn-ghost btn-circle btn-sm h-8 w-8",
+                        previewPupils && "bg-primary/20 text-primary",
+                      )}
+                      disabled={!hasRequiredPupilParts}
+                      onClick={() => setPreviewPupils(!previewPupils)}
+                    >
+                      <ScanEye className="size-4" />
+                    </button>
+                  </div>
+
+                  {/* Test Speaking */}
+                  <div
+                    className={cn(
+                      "tooltip tooltip-top",
+                      !hasRequiredSpeakingParts && "opacity-20 grayscale",
+                    )}
+                    data-tip={
+                      !hasRequiredSpeakingParts
+                        ? "Requires Head & Mouth"
+                        : "Test Speaking"
+                    }
+                  >
+                    <button
+                      className={cn(
+                        "btn btn-ghost btn-circle btn-sm h-8 w-8",
+                        previewSpeaking && "bg-primary/20 text-primary",
+                      )}
+                      disabled={!hasRequiredSpeakingParts}
+                      onClick={() => setPreviewSpeaking(!previewSpeaking)}
+                    >
+                      <MicVocal className="size-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1511,7 +1562,7 @@ export function CharacterBuilderStudio() {
                         <label className="text-xs font-medium tracking-wide uppercase opacity-60">
                           Variation Texture
                         </label>
-                        <div className="relative group">
+                        <div className="group relative">
                           {!altTextureUrl && (
                             <input
                               type="file"
@@ -1538,16 +1589,18 @@ export function CharacterBuilderStudio() {
                                   alt="alt preview"
                                   className="max-h-48 w-full object-contain p-2"
                                 />
-                                <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 transition-opacity group-hover:opacity-100 bg-base-300/80">
-                                  <label className="flex flex-col items-center gap-1 cursor-pointer">
+                                <div className="bg-base-300/80 absolute inset-0 flex items-center justify-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                                  <label className="flex cursor-pointer flex-col items-center gap-1">
                                     <input
                                       type="file"
                                       accept="image/*"
-                                      onChange={(e) => handleUploadAltTexture(e)}
+                                      onChange={(e) =>
+                                        handleUploadAltTexture(e)
+                                      }
                                       className="hidden"
                                     />
                                     <Upload className="size-5 text-white" />
-                                    <span className="text-[10px] font-bold tracking-widest uppercase text-white">
+                                    <span className="text-[10px] font-bold tracking-widest text-white uppercase">
                                       Replace
                                     </span>
                                   </label>
@@ -1565,8 +1618,8 @@ export function CharacterBuilderStudio() {
                                     }}
                                     className="flex flex-col items-center gap-1"
                                   >
-                                    <Trash2 className="size-5 text-error" />
-                                    <span className="text-[10px] font-bold tracking-widest uppercase text-error">
+                                    <Trash2 className="text-error size-5" />
+                                    <span className="text-error text-[10px] font-bold tracking-widest uppercase">
                                       Remove
                                     </span>
                                   </button>
