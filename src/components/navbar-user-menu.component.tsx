@@ -19,8 +19,8 @@ export function NavbarUserMenu() {
 
   if (session) {
     const sub = session.user.subscription as SubscriptionType;
-    const showBadge = sub === "pro" || sub === "advance";
-    const showUpgrade = sub === "standard" || sub === "pro";
+    const showBadge = sub === "pro" || sub === "affiliate";
+    const showUpgrade = sub === "free" || sub === "pro";
 
     return (
       <div className="dropdown dropdown-hover dropdown-start flex flex-col">
@@ -38,7 +38,7 @@ export function NavbarUserMenu() {
               session.user.role === "director"
                 ? "btn-primary"
                 : "btn-secondary",
-              sub === "advance" &&
+              sub === "affiliate" &&
                 "ring-primary ring-offset-base-100 ring-2 ring-offset-2",
             )}
           >
