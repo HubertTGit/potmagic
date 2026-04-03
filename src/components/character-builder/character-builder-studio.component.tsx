@@ -1426,7 +1426,10 @@ export function CharacterBuilderStudio() {
             const isEye =
               selectedRole === "eye-left" || selectedRole === "eye-right";
             const isMouth = selectedRole === "mouth";
-            const hasAltTexture = isEye || isMouth;
+            const isEyebrow =
+              selectedRole === "eye-brow-left" ||
+              selectedRole === "eye-brow-right";
+            const hasAltTexture = isEye || isMouth || isEyebrow;
             const altTextureUrl = part?.altImageUrl ?? null;
 
             return (
