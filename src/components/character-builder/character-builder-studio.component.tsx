@@ -60,6 +60,7 @@ export function CharacterBuilderStudio() {
   const [showBoundingBoxes, setShowBoundingBoxes] = useState(false);
   const [previewPupils, setPreviewPupils] = useState(false);
   const [previewSpeaking, setPreviewSpeaking] = useState(false);
+  const [previewLaughing, setPreviewLaughing] = useState(false);
   const [previewTurnMode, setPreviewTurnMode] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -115,6 +116,10 @@ export function CharacterBuilderStudio() {
     "arm-hand-right",
   ].every((role) => currentCharacter?.parts.some((p) => p.partRole === role));
 
+  const hasMouthAltTexture = currentCharacter?.parts.some(
+    (p) => p.partRole === "mouth" && !!p.altImageUrl,
+  );
+
 
 
   // Sync turn mode state to pixi
@@ -137,6 +142,21 @@ export function CharacterBuilderStudio() {
       setPreviewSpeaking(false);
     }
   }, [hasRequiredSpeakingParts, previewSpeaking]);
+
+  // Sync laughing state to pixi
+  useEffect(() => {
+    if (compositeRef.current) {
+      compositeRef.current.setLaughing(previewLaughing);
+    }
+  }, [previewLaughing]);
+
+  // Reset laughing preview if mouth is removed
+  useEffect(() => {
+    const hasMouth = currentCharacter?.parts.some((p) => p.partRole === "mouth");
+    if (!hasMouth && previewLaughing) {
+      setPreviewLaughing(false);
+    }
+  }, [currentCharacter?.parts, previewLaughing]);
 
   // Reset turn mode if required parts are removed
   useEffect(() => {
@@ -900,11 +920,34 @@ export function CharacterBuilderStudio() {
                 <label className="border-base-300 bg-base-100/80 hover:bg-base-200/80 flex min-w-[124px] cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors">
                   <input
                     type="checkbox"
-                    className="checkbox checkbox-xs checkbox-secondary"
+                    className="checkbox checkbox-xs checkbox-accent"
                     checked={showBoundingBoxes}
                     onChange={(e) => handleBoundingBoxToggle(e.target.checked)}
                   />
                   Show bounds
+                </label>
+
+                <label
+                  className={cn(
+                    "border-base-300 bg-base-100/80 flex min-w-[124px] items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-medium tracking-wider uppercase backdrop-blur-sm transition-colors",
+                    hasMouthAltTexture
+                      ? "hover:bg-base-200/80 cursor-pointer"
+                      : "cursor-not-allowed opacity-40 grayscale",
+                  )}
+                  title={
+                    !hasMouthAltTexture
+                      ? "Add a mouth and upload its Variation Texture to test"
+                      : ""
+                  }
+                >
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-xs checkbox-info"
+                    checked={previewLaughing}
+                    disabled={!hasMouthAltTexture}
+                    onChange={(e) => setPreviewLaughing(e.target.checked)}
+                  />
+                  😆 Laugh
                 </label>
 
                 <div className="flex flex-col gap-1.5 p-1">

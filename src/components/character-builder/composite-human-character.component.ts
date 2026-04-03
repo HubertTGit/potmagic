@@ -98,9 +98,12 @@ export class CompositeHumanCharacter {
   private lastMultiTouchAngle = 0;
   private lastSendTime = 0;
   private isSpeaking = false;
+  private isLaughing = false;
   private speakingTimeline: gsap.core.Timeline | null = null;
   private eyebrowOriginalYs: Map<string, number> = new Map();
   private eyebrowTweens: Map<string, gsap.core.Tween> = new Map();
+  private mouthOriginalY: number | null = null;
+  private laughTween: gsap.core.Tween | null = null;
 
   // Stored so they can be removed from the stage on destroy()
   private boundPartPointerMove: ((e: FederatedPointerEvent) => void) | null =
@@ -1061,7 +1064,6 @@ export class CompositeHumanCharacter {
     }
   }
 
-
   setEyebrowsUp(up: boolean) {
     const roles = ["eye-brow-left", "eye-brow-right"] as const;
     for (const role of roles) {
@@ -1160,6 +1162,67 @@ export class CompositeHumanCharacter {
 
       // Lower eyebrows when silent
       this.setEyebrowsUp(false);
+    }
+  }
+
+  setLaughing(isLaughing: boolean) {
+    if (this.isLaughing === isLaughing) return;
+    this.isLaughing = isLaughing;
+
+    const mouthContainer = this.partContainers.get("mouth");
+    const mouthSprite = this.partSprites.get("mouth");
+    const mainTexture = this.textures.get("mouth");
+    const altTexture = this.eyeTextures.get("mouth");
+
+    if (!mouthContainer || !mouthSprite || !mainTexture) return;
+
+    if (isLaughing && altTexture) {
+      // 10th frame (index 9 as per user manual edit)
+      const frameHeight = mainTexture.height;
+      const frameWidth = mainTexture.width;
+
+      const laughTexture = new PIXI.Texture({
+        source: altTexture.source,
+        frame: new PIXI.Rectangle(0, 9 * frameHeight, frameWidth, frameHeight),
+      });
+
+      mouthSprite.texture = laughTexture;
+      mouthContainer.visible = true;
+
+      // Position logic: store original skip if already animating
+      if (this.mouthOriginalY === null) {
+        this.mouthOriginalY = mouthContainer.y;
+      }
+
+      // Kill any current laugh tween
+      this.laughTween?.kill();
+
+      // Animate upward by 1/4 of height with a bounce
+      this.laughTween = gsap.to(mouthContainer, {
+        pixi: { y: this.mouthOriginalY - frameHeight / 7 },
+        duration: 0.2,
+        ease: "circle.out",
+        repeat: -1,
+        yoyo: true,
+      });
+
+      // Raise eyebrows while laughing
+      this.setEyebrowsUp(true);
+    } else {
+      // Cleanup laugh-specific animation
+      this.laughTween?.kill();
+      this.laughTween = null;
+      if (this.mouthOriginalY !== null) {
+        mouthContainer.y = this.mouthOriginalY;
+        this.mouthOriginalY = null;
+      }
+
+      // Revert to stable mouth when not laughing (if not speaking)
+      if (!this.isSpeaking) {
+        mouthSprite.texture = mainTexture;
+        mouthContainer.visible = this.forceMouthVisible;
+        this.setEyebrowsUp(false);
+      }
     }
   }
 
