@@ -54,6 +54,7 @@ export interface CompositeHumanCharacterProps {
   parts: CharacterPartData[];
   userId: string;
   type: PropType;
+  imageUrl?: string | null;
   initialX?: number;
   initialY?: number;
   initialRotation?: number;
