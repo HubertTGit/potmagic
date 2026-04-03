@@ -40,6 +40,7 @@ import {
   ScanEye,
   MicVocal,
   RefreshCcwDot,
+  Meh,
 } from "lucide-react";
 import { ConfirmModal } from "@/components/confirm-modal";
 import type { Application } from "pixi.js";
@@ -1293,7 +1294,7 @@ export function CharacterBuilderStudio() {
                     data-tip={
                       !hasMouthAltTexture
                         ? "Requires Mouth Variation"
-                        : "Toggle Laughing"
+                        : "Laughing"
                     }
                   >
                     <button
@@ -1317,7 +1318,7 @@ export function CharacterBuilderStudio() {
                     data-tip={
                       !hasMouthAltTexture
                         ? "Requires Mouth Variation"
-                        : "Toggle Smile"
+                        : "Smiling"
                     }
                   >
                     <button
@@ -1339,9 +1340,7 @@ export function CharacterBuilderStudio() {
                       !hasMouthAltTexture && "opacity-20 grayscale",
                     )}
                     data-tip={
-                      !hasMouthAltTexture
-                        ? "Requires Mouth Variation"
-                        : "Toggle Sad Mouth"
+                      !hasMouthAltTexture ? "Requires Mouth Variation" : "Sad"
                     }
                   >
                     <button
@@ -1365,9 +1364,7 @@ export function CharacterBuilderStudio() {
                       !hasEyeAltTexture && "opacity-20 grayscale",
                     )}
                     data-tip={
-                      !hasEyeAltTexture
-                        ? "Requires Eye Variation"
-                        : "Toggle Gaze"
+                      !hasEyeAltTexture ? "Requires Eye Variation" : "Alert"
                     }
                   >
                     <button
@@ -1389,9 +1386,7 @@ export function CharacterBuilderStudio() {
                       !hasEyeAltTexture && "opacity-20 grayscale",
                     )}
                     data-tip={
-                      !hasEyeAltTexture
-                        ? "Requires Eye Variation"
-                        : "Toggle Blink"
+                      !hasEyeAltTexture ? "Requires Eye Variation" : "Blink"
                     }
                   >
                     <button
@@ -1413,9 +1408,7 @@ export function CharacterBuilderStudio() {
                       !hasEyeAltTexture && "opacity-20 grayscale",
                     )}
                     data-tip={
-                      !hasEyeAltTexture
-                        ? "Requires Eye Variation"
-                        : "Toggle Eye Smile"
+                      !hasEyeAltTexture ? "Requires Eye Variation" : "Squint"
                     }
                   >
                     <button
@@ -1426,7 +1419,7 @@ export function CharacterBuilderStudio() {
                       disabled={!hasEyeAltTexture}
                       onClick={() => setPreviewSmilingEye(!previewSmilingEye)}
                     >
-                      <Smile className="size-4" />
+                      <EyeClosed className="size-4 rotate-180" />
                     </button>
                   </div>
 
@@ -1439,9 +1432,7 @@ export function CharacterBuilderStudio() {
                       !hasEyebrowParts && "opacity-20 grayscale",
                     )}
                     data-tip={
-                      !hasEyebrowParts
-                        ? "Requires Eyebrows"
-                        : "Toggle Raised Brows"
+                      !hasEyebrowParts ? "Requires Eyebrows" : "Raised Brows"
                     }
                   >
                     <button
@@ -1452,7 +1443,7 @@ export function CharacterBuilderStudio() {
                       disabled={!hasEyebrowParts}
                       onClick={() => setPreviewEyebrowsUp(!previewEyebrowsUp)}
                     >
-                      <Frown className="size-4" />
+                      <Meh className="size-4" />
                     </button>
                   </div>
 
@@ -1468,7 +1459,7 @@ export function CharacterBuilderStudio() {
                         ? "Requires Eyebrows"
                         : !hasEyebrowAltTexture
                           ? "Requires Eyebrow Variation"
-                          : "Toggle Happy Brows"
+                          : "Happy Brows"
                     }
                   >
                     <button
@@ -1497,7 +1488,7 @@ export function CharacterBuilderStudio() {
                         ? "Requires Eyebrows"
                         : !hasEyebrowAltTexture
                           ? "Requires Eyebrow Variation"
-                          : "Toggle Angry Brows"
+                          : "Angry Brows"
                     }
                   >
                     <button
