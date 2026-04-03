@@ -1171,7 +1171,7 @@ export class CompositeHumanCharacter {
           source: altTexture.source,
           frame: new PIXI.Rectangle(
             0,
-            2 * mainTexture.height,
+            0,
             mainTexture.width,
             mainTexture.height,
           ),
@@ -1252,12 +1252,12 @@ export class CompositeHumanCharacter {
       const altTexture = this.variationTextures.get(role);
 
       if (happy && altTexture && mainTexture) {
-        // Happy brows uses frame index 1 of the alt texture/sprite sheet
+        // Happy brows uses the alt texture directly (no vertical offset)
         sprite.texture = new PIXI.Texture({
           source: altTexture.source,
           frame: new PIXI.Rectangle(
             0,
-            mainTexture.height,
+            0,
             mainTexture.width,
             mainTexture.height,
           ),
