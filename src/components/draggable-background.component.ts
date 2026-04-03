@@ -145,6 +145,10 @@ export class PixiBackground {
     return this.props.canDrag;
   }
 
+  get hasRoom() {
+    return !!this.props.room;
+  }
+
   private onPointerDown(e: FederatedPointerEvent) {
     if (this.animationSpeed > 0) return;
     this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });

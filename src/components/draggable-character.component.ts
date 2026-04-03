@@ -157,6 +157,10 @@ export class PixiCharacter {
     return this.props.canDrag;
   }
 
+  get hasRoom() {
+    return !!this.props.room;
+  }
+
   private onPointerDown(e: FederatedPointerEvent) {
     this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 

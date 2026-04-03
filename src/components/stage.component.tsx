@@ -254,7 +254,9 @@ export const StageComponent = React.forwardRef<
         const cast = casts.find((c) => c.sceneCastId === id);
         const canDrag = session?.user?.id === cast?.userId || isDirectorPresence;
 
-        if (!nextIds.has(id) || prop.canDrag !== canDrag) {
+        const isRoomStale = !!room !== (prop as any).hasRoom;
+
+        if (!nextIds.has(id) || prop.canDrag !== canDrag || isRoomStale) {
           prop.saveCurrentPosition();
           prop.destroy();
           app.stage.removeChild(prop.container);

@@ -158,6 +158,10 @@ export class CompositeHumanCharacter {
     return this.props.canDrag;
   }
 
+  get hasRoom() {
+    return !!this.props.room;
+  }
+
   private ikState: {
     left: {
       enabled: boolean;
