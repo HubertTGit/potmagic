@@ -4,6 +4,7 @@ import { SceneNavigator } from "@/components/stage/scene-navigator.component";
 import { CastPreview } from "@/components/stage/cast-preview.component";
 import { BgPanningTool } from "@/components/stage/bg-panning-tool.component";
 import { SoundControlBar } from "@/components/stage/sound-control-bar.component";
+import { CompositeCastList } from "@/components/stage/composite-cast-list.component";
 import { useLanguage } from "@/hooks/useLanguage";
 import { LocalVideoTrack, Track } from "livekit-client";
 import { useStage, useStagePresence } from "./stage.context";
@@ -15,12 +16,7 @@ const StageComponent = lazy(() =>
 );
 
 export function StageShell() {
-  const {
-    isSwitching,
-    casts,
-    soundName,
-    backgroundRepeat,
-  } = useStage();
+  const { isSwitching, casts, soundName, backgroundRepeat } = useStage();
   const { room, isDirector, speakingIds } = useStagePresence();
   const { t } = useLanguage();
   const stageWrapperRef = useRef<HTMLDivElement>(null);
@@ -82,7 +78,7 @@ export function StageShell() {
       </div>
       <div
         ref={stageWrapperRef}
-        className="border-base-300 overflow-hidden rounded-xl border-2 shadow-xl"
+        className="border-base-300 relative overflow-hidden rounded-xl border-2 shadow-xl"
       >
         <Suspense
           fallback={
@@ -100,7 +96,7 @@ export function StageShell() {
         </Suspense>
       </div>
       <div className="flex w-7xl items-center justify-between">
-        <div>&nbsp;</div>
+        <CompositeCastList />
         <BgPanningTool />
         {isDirector && soundName && <SoundControlBar />}
       </div>
