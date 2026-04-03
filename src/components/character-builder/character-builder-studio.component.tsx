@@ -13,6 +13,7 @@ import {
   updateCharacter,
   uploadHumanPartFile,
   removeCharacterPart,
+  updateCharacterIKDirections,
 } from "@/lib/character-builder.fns";
 import { cn } from "@/lib/cn";
 import { toast } from "@/lib/toast";
@@ -330,6 +331,37 @@ export function CharacterBuilderStudio() {
     }
   }, [hasEyebrowParts, previewEyebrowsAngry]);
 
+  // Initialize IK state from character data
+  useEffect(() => {
+    if (currentCharacter) {
+      setIkState((prev) => ({
+        ...prev,
+        left: {
+          ...prev.left,
+          flipped: currentCharacter.ikLeftDirection === "ccw",
+        },
+        right: {
+          ...prev.right,
+          flipped: currentCharacter.ikRightDirection === "ccw",
+        },
+      }));
+    }
+  }, [currentCharacter]);
+
+  // Sync IK direction (flip) to pixi
+  useEffect(() => {
+    if (compositeRef.current) {
+      compositeRef.current.setIKDirection(
+        "left",
+        ikState.left.flipped ? "ccw" : "cw",
+      );
+      compositeRef.current.setIKDirection(
+        "right",
+        ikState.right.flipped ? "ccw" : "cw",
+      );
+    }
+  }, [ikState.left.flipped, ikState.right.flipped]);
+
   // Reset turn mode if required parts are removed
   useEffect(() => {
     if (!hasRequiredTurnModeParts && previewTurnMode) {
@@ -413,6 +445,21 @@ export function CharacterBuilderStudio() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["character", characterId] });
       queryClient.invalidateQueries({ queryKey: ["user-characters"] });
+    },
+  });
+
+  const updateIKDirectionMutation = useMutation({
+    mutationFn: (vars: { side: "left" | "right"; direction: "cw" | "ccw" }) =>
+      updateCharacterIKDirections({
+        data: {
+          characterId: characterId!,
+          side: vars.side,
+          direction: vars.direction,
+        },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["character", characterId] });
+      toast.success("IK direction saved");
     },
   });
 
@@ -685,6 +732,8 @@ export function CharacterBuilderStudio() {
       interactive: true,
       app: appRef.current,
       showBoundingBoxes,
+      ikLeftDirection: ikState.left.flipped ? "ccw" : "cw",
+      ikRightDirection: ikState.right.flipped ? "ccw" : "cw",
       onChange: (role, data) => {
         if (data.pivotX !== undefined && data.pivotY !== undefined) {
           setLivePivots((prev) => ({
@@ -1144,10 +1193,15 @@ export function CharacterBuilderStudio() {
                         onClick={(e) => {
                           e.stopPropagation();
                           e.preventDefault();
+                          const newFlipped = !ikState.left.flipped;
                           setIkState((prev) => ({
                             ...prev,
-                            left: { ...prev.left, flipped: !prev.left.flipped },
+                            left: { ...prev.left, flipped: newFlipped },
                           }));
+                          updateIKDirectionMutation.mutate({
+                            side: "left",
+                            direction: newFlipped ? "ccw" : "cw",
+                          });
                         }}
                       >
                         {ikState.left.flipped ? (
@@ -1195,13 +1249,18 @@ export function CharacterBuilderStudio() {
                         onClick={(e) => {
                           e.stopPropagation();
                           e.preventDefault();
+                          const newFlipped = !ikState.right.flipped;
                           setIkState((prev) => ({
                             ...prev,
                             right: {
                               ...prev.right,
-                              flipped: !prev.right.flipped,
+                              flipped: newFlipped,
                             },
                           }));
+                          updateIKDirectionMutation.mutate({
+                            side: "right",
+                            direction: newFlipped ? "ccw" : "cw",
+                          });
                         }}
                       >
                         {ikState.right.flipped ? (

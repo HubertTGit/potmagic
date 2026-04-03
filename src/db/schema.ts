@@ -32,6 +32,7 @@ export const subscriptionEnum = pgEnum("subscription", [
   "pro",
   "affiliate",
 ]);
+export const ikDirectionEnum = pgEnum("ik_direction", ["cw", "ccw"]);
 export type SubscriptionType = "free" | "pro" | "affiliate";
 export type PropType =
   | "character"
@@ -316,6 +317,8 @@ export const charactersHuman = pgTable(
       onDelete: "set null",
     }),
     imageUrl: text("image_url"),
+    ikLeftDirection: ikDirectionEnum("ik_left_direction").default("ccw").notNull(),
+    ikRightDirection: ikDirectionEnum("ik_right_direction").default("cw").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()

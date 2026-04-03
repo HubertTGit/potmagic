@@ -60,7 +60,12 @@ export const getCharacter = createServerFn({ method: "GET" })
       .where(eq(characterHumanParts.characterId, data.characterId))
       .orderBy(asc(characterHumanParts.zIndex));
 
-    return { ...char, parts };
+    return {
+      ...char,
+      ikLeftDirection: char.ikLeftDirection as "cw" | "ccw",
+      ikRightDirection: char.ikRightDirection as "cw" | "ccw",
+      parts,
+    };
   });
 
 export const getCharacterByParts = createServerFn({ method: "GET" })
@@ -93,7 +98,12 @@ export const getCharacterByParts = createServerFn({ method: "GET" })
       .where(eq(characterHumanParts.characterId, char.id))
       .orderBy(asc(characterHumanParts.zIndex));
 
-    return { ...char, parts };
+    return {
+      ...char,
+      ikLeftDirection: char.ikLeftDirection as "cw" | "ccw",
+      ikRightDirection: char.ikRightDirection as "cw" | "ccw",
+      parts,
+    };
   });
 
 export const createCharacter = createServerFn({ method: "POST" })
@@ -439,6 +449,38 @@ export const publishCharacter = createServerFn({ method: "POST" })
     }
 
     return { propId };
+  });
+
+export const updateCharacterIKDirections = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    z
+      .object({
+        characterId: z.string(),
+        side: z.enum(["left", "right"]),
+        direction: z.enum(["cw", "ccw"]),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const session = await getSessionOrThrow();
+
+    const [char] = await db
+      .select({ createdBy: charactersHuman.createdBy })
+      .from(charactersHuman)
+      .where(eq(charactersHuman.id, data.characterId));
+
+    if (!char) throw new Error("Character not found");
+    if (char.createdBy !== session.user.id) throw new Error("Forbidden");
+
+    const column =
+      data.side === "left" ? "ikLeftDirection" : "ikRightDirection";
+
+    await db
+      .update(charactersHuman)
+      .set({ [column]: data.direction })
+      .where(eq(charactersHuman.id, data.characterId));
+
+    return { success: true };
   });
 
 export const unpublishCharacter = createServerFn({ method: "POST" })

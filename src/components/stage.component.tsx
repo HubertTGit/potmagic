@@ -294,6 +294,8 @@ export const StageComponent = React.forwardRef<
           stageWidth,
           stageHeight,
           app,
+          ikLeftDirection: (charData as any)?.ikLeftDirection,
+          ikRightDirection: (charData as any)?.ikRightDirection,
           onReady: () => {
             remaining -= 1;
             if (remaining === 0) setAllLoaded(true);

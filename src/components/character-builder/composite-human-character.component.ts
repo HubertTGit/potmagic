@@ -67,6 +67,8 @@ export interface CompositeHumanCharacterProps {
   interactive?: boolean;
   onChange?: (role: string, data: Partial<CharacterPartAdjustments>) => void;
   showBoundingBoxes?: boolean;
+  ikLeftDirection?: "cw" | "ccw";
+  ikRightDirection?: "cw" | "ccw";
 }
 
 export interface CharacterPartAdjustments {
@@ -170,6 +172,23 @@ export class CompositeHumanCharacter {
     left: { enabled: false, flipped: true, target: null },
     right: { enabled: false, flipped: true, target: null },
   };
+
+  /**
+   * Updates the IK bend direction for a specific side.
+   * Internal 'flipped' state is mapped from 'cw'/'ccw'.
+   */
+  setIKDirection(side: "left" | "right", direction: "cw" | "ccw") {
+    // Current solver logic:
+    // Left flipped: true -> ccw (ish), flipped: false -> cw (ish)
+    // mapping is consistent across sides due to symmetry adjustment in solveIK:
+    // const flip = (sideState.flipped ? 1 : -1) * (side === "right" ? -1 : 1);
+    this.ikState[side].flipped = direction === "ccw";
+
+    // If IK is active, re-solve immediately
+    if (this.ikState[side].enabled && this.ikState[side].target) {
+      this.solveIK(side, this.ikState[side].target);
+    }
+  }
   private static readonly ARM_CHAINS = {
     left: ["arm-upper-left", "arm-forearm-left", "arm-hand-left"],
     right: ["arm-upper-right", "arm-forearm-right", "arm-hand-right"],
@@ -231,6 +250,14 @@ export class CompositeHumanCharacter {
     this.container.zIndex = 1;
     this.container.x = props.initialX ?? 100;
     this.container.y = props.initialY ?? 100;
+
+    // Initialize IK directions from props
+    if (props.ikLeftDirection) {
+      this.ikState.left.flipped = props.ikLeftDirection === "ccw";
+    }
+    if (props.ikRightDirection) {
+      this.ikState.right.flipped = props.ikRightDirection === "ccw";
+    }
 
     this.loadAllTextures().then(() => {
       this.buildHierarchy();
