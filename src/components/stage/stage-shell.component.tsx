@@ -88,6 +88,7 @@ export function StageShell() {
           }
         >
           <StageComponent
+            ref={stageWrapperRef}
             casts={casts}
             room={room}
             speakingIds={speakingIds}

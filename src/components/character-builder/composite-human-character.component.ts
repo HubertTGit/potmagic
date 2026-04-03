@@ -1115,6 +1115,58 @@ export class CompositeHumanCharacter {
 
   // --- Logic ---
 
+  setExpression(type: string, value: boolean, fromRemote = false) {
+    if (!fromRemote && this.props.room && this.props.canDrag) {
+      this.publishExpression(type, value);
+    }
+
+    switch (type) {
+      case "laughing":
+        this.setLaughing(value);
+        break;
+      case "smiling":
+        this.setSmile(value);
+        break;
+      case "sad":
+        this.setSad(value);
+        break;
+      case "alert":
+        this.setGaze(value);
+        break;
+      case "blink":
+        this.setBlink(value);
+        break;
+      case "squint":
+        this.setSmileEye(value);
+        break;
+      case "raisedBrows":
+        this.setEyebrowsUp(value);
+        break;
+      case "happyBrows":
+        this.setEyebrowsHappy(value);
+        break;
+      case "angryBrows":
+        this.setEyebrowsAngry(value);
+        break;
+    }
+  }
+
+  private publishExpression(type: string, value: boolean) {
+    if (!this.props.room) return;
+    const msg = {
+      type: "prop:expression",
+      castId: this.props.castId,
+      expression: type,
+      value,
+    };
+    this.props.room.localParticipant.publishData(
+      encoder.encode(JSON.stringify(msg)),
+      {
+        reliable: true,
+      },
+    );
+  }
+
   setBlinking(isBlinking: boolean) {
     const roles = ["eye-left", "eye-right"] as const;
     for (const role of roles) {

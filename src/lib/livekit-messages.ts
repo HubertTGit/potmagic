@@ -24,10 +24,17 @@ export interface BgAnimateMessage {
   speed: BgSpeed;
 }
 
+export interface PropExpressionMessage {
+  type: 'prop:expression';
+  castId: string;
+  expression: string;
+  value: boolean;
+}
+
 export interface PropTriggerMessage {
   type: 'prop:trigger';
   castId: string;
   triggerName: string;
 }
 
-export type LiveKitMessage = PropMoveMessage | BgAnimateMessage | PropTriggerMessage;
+export type LiveKitMessage = PropMoveMessage | BgAnimateMessage | PropTriggerMessage | PropExpressionMessage;

@@ -2,19 +2,21 @@ import React, { useEffect, useRef, useState } from "react";
 import { Application } from "pixi.js";
 import { RoomEvent } from "livekit-client";
 import type { Room } from "livekit-client";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { PixiCharacter } from "@/components/draggable-character.component";
 import { PixiBackground } from "@/components/draggable-background.component";
 import { PixiRiveAnimation } from "@/components/draggable-rive.component";
 import { authClient } from "@/lib/auth-client";
 import type { PropType } from "@/db/schema";
 import { bgPanningAtom, bgProgressAtom } from "@/lib/bg-panning.atoms";
+import { characterExpressionsAtom } from "@/lib/character-expressions.atoms";
 import type { LiveKitMessage } from "@/lib/livekit-messages";
 import { Maximize, Minimize } from "lucide-react";
 import { CompositeHumanCharacter } from "@/components/character-builder/composite-human-character.component";
 import { getCharacterByParts } from "@/lib/character-builder.fns";
 import { getAnimalByProp } from "@/lib/character-animal-builder.fns";
 import { useQueries } from "@tanstack/react-query";
+import { useStagePresence } from "@/components/stage/stage.context";
 
 const decoder = new TextDecoder();
 const encoder = new TextEncoder();
@@ -59,6 +61,7 @@ export const StageComponent = React.forwardRef<
   },
   ref,
 ) {
+  const { isDirector: isDirectorPresence } = useStagePresence();
   const { data: session } = authClient.useSession();
   const containerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<Application | null>(null);
@@ -94,6 +97,8 @@ export const StageComponent = React.forwardRef<
   const setBgPanning = useSetAtom(bgPanningAtom);
   const setBgProgress = useSetAtom(bgProgressAtom);
 
+  const [expressions, setExpressions] = useAtom(characterExpressionsAtom);
+
   // Fetch character details for any composite props
   const compositeCasts = casts.filter(
     (c) =>
@@ -117,7 +122,7 @@ export const StageComponent = React.forwardRef<
       .map((q) => [q.data?.compositePropId, q.data]),
   );
 
-  // Expose the container div via forwardRef
+  // Sync div ref
   useEffect(() => {
     if (!ref) return;
     if (typeof ref === "function") {
@@ -127,6 +132,29 @@ export const StageComponent = React.forwardRef<
         containerRef.current;
     }
   });
+
+  // Sync expressions from Jotai atom to PIXI characters
+  useEffect(() => {
+    for (const [sceneCastId, charExps] of Object.entries(
+      expressions as Record<string, Record<string, boolean>>,
+    )) {
+      const prop = propsRef.current.get(sceneCastId);
+      if (!(prop instanceof CompositeHumanCharacter)) continue;
+
+      for (const [type, value] of Object.entries(charExps)) {
+        // Internal state field naming convention: isLaughing, isSmiling, isBlinking, etc.
+        // We use a safe mapping to check current state and apply only if different
+        const stateKey = `is${type.charAt(0).toUpperCase()}${type.slice(1)}`;
+        const currentVal = (prop as any)[stateKey];
+
+        if (currentVal !== value) {
+          // If the state is different, it means the atom changed (likely from local UI)
+          // We apply the change and allow it to broadcast if this is the controller
+          prop.setExpression(type, value, false);
+        }
+      }
+    }
+  }, [expressions]);
 
   // Initialize PixiJS app once on mount
   useEffect(() => {
@@ -224,9 +252,7 @@ export const StageComponent = React.forwardRef<
       // Remove characters no longer in scene OR with stale canDrag state
       for (const [id, prop] of existing) {
         const cast = casts.find((c) => c.sceneCastId === id);
-        const canDrag =
-          session?.user?.id === cast?.userId ||
-          session?.user?.role === "director";
+        const canDrag = session?.user?.id === cast?.userId || isDirectorPresence;
 
         if (!nextIds.has(id) || prop.canDrag !== canDrag) {
           prop.saveCurrentPosition();
@@ -261,9 +287,7 @@ export const StageComponent = React.forwardRef<
         if (!cast.path || !cast.type) continue;
         if (existing.has(cast.sceneCastId)) continue;
 
-        const canDrag =
-          session?.user?.id === cast.userId ||
-          session?.user?.role === "director";
+        const canDrag = session?.user?.id === cast.userId || isDirectorPresence;
 
         const isComposite =
           cast.type === "composite-human" || cast.type === "composite-animal";
@@ -355,6 +379,16 @@ export const StageComponent = React.forwardRef<
         if (prop instanceof CompositeHumanCharacter && canDrag) {
           prop.setTurnMode(true);
         }
+
+        // Apply initial facial expression state if available from global atom
+        if (prop instanceof CompositeHumanCharacter) {
+          const charExps = expressions[cast.sceneCastId];
+          if (charExps) {
+            for (const [type, value] of Object.entries(charExps)) {
+              prop.setExpression(type, value, true);
+            }
+          }
+        }
       }
     };
 
@@ -362,7 +396,7 @@ export const StageComponent = React.forwardRef<
     if (typeof rafId === "number") {
       return () => cancelAnimationFrame(rafId);
     }
-  }, [casts, room, session, stageWidth, stageHeight, allCharactersLoaded]);
+  }, [casts, room, session, stageWidth, stageHeight, allCharactersLoaded, isDirectorPresence, expressions]);
 
   // Single centralized LiveKit DataReceived handler — parse once, dispatch by castId
   useEffect(() => {
@@ -382,6 +416,22 @@ export const StageComponent = React.forwardRef<
         const prop = castIdMapRef.current.get(msg.castId);
         if (prop instanceof PixiRiveAnimation) {
           prop.applyRemoteTrigger(msg.triggerName);
+        }
+      } else if (msg.type === "prop:expression") {
+        const prop = castIdMapRef.current.get(msg.castId);
+        if (prop instanceof CompositeHumanCharacter) {
+          const sceneCastId = prop.container.label;
+          // Apply to PIXI directly (with fromRemote=true to suppress echo)
+          prop.setExpression(msg.expression, msg.value, true);
+
+          // Also sync to global atom so UI is updated
+          setExpressions((prev: Record<string, Record<string, boolean>>) => ({
+            ...prev,
+            [sceneCastId]: {
+              ...(prev[sceneCastId] || {}),
+              [msg.expression]: msg.value,
+            },
+          }));
         }
       }
     };

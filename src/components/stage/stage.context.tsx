@@ -88,10 +88,15 @@ export interface StagePresenceProviderProps extends StagePresence {
   children: ReactNode;
 }
 
-export function StagePresenceProvider({ children, ...props }: StagePresenceProviderProps) {
+export function StagePresenceProvider({
+  children,
+  ...props
+}: StagePresenceProviderProps) {
   return (
     <StagePresenceContext.Provider value={props}>
       {children}
     </StagePresenceContext.Provider>
   );
 }
+
+
