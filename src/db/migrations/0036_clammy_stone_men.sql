@@ -1,0 +1,1 @@
+DROP TABLE "human_mouth_variation" CASCADE;

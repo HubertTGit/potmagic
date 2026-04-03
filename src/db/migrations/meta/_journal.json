@@ -253,6 +253,13 @@
       "when": 1775165777038,
       "tag": "0035_curvy_the_twelve",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1775201201554,
+      "tag": "0036_clammy_stone_men",
+      "breakpoints": true
     }
   ]
 }

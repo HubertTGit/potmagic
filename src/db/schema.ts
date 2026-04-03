@@ -403,44 +403,5 @@ export const characterAnimalParts = pgTable(
   ],
 );
 
-export const humanMouthVariations = pgTable(
-  "human_mouth_variation",
-  {
-    id: text("id").primaryKey(),
-    propId: text("prop_id")
-      .notNull()
-      .references(() => props.id, { onDelete: "cascade" }),
-    variationPropId: text("variation_prop_id")
-      .notNull()
-      .references(() => props.id, { onDelete: "cascade" }),
-    label: text("label").notNull(),
-    imageUrl: text("image_url").notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-  },
-  (table) => [index("human_mouth_variation_prop_id_idx").on(table.propId)],
-);
 
-export const characterHumanPartsRelations = relations(
-  characterHumanParts,
-  ({ many }) => ({
-    mouthVariations: many(humanMouthVariations),
-  }),
-);
 
-export const humanMouthVariationsRelations = relations(
-  humanMouthVariations,
-  ({ one }) => ({
-    part: one(characterHumanParts, {
-      fields: [humanMouthVariations.propId],
-      references: [characterHumanParts.propId],
-    }),
-    baseProp: one(props, {
-      fields: [humanMouthVariations.propId],
-      references: [props.id],
-    }),
-    variationProp: one(props, {
-      fields: [humanMouthVariations.variationPropId],
-      references: [props.id],
-    }),
-  }),
-);
