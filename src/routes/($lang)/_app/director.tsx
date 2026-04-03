@@ -159,6 +159,7 @@ function DirectorPage() {
                 <div key={i} className="flex items-center gap-4 py-2">
                   <div className="skeleton h-4 flex-1 rounded" />
                   <div className="skeleton h-4 w-8 rounded" />
+                  <div className="skeleton h-4 w-16 rounded font-mono" />
                   <div className="skeleton h-5 w-16 rounded-full" />
                   <div className="skeleton h-7 w-24 rounded" />
                 </div>
@@ -171,6 +172,7 @@ function DirectorPage() {
                   <tr className="text-base-content/50 text-xs tracking-wider uppercase">
                     <th>{t("director.table.story")}</th>
                     <th>{t("director.table.cast")}</th>
+                    <th>{t("director.table.pin")}</th>
                     <th>{t("table.status")}</th>
                     <th>{t("director.table.session")}</th>
                   </tr>
@@ -191,6 +193,11 @@ function DirectorPage() {
                       </td>
                       <td className="text-base-content/50">
                         {story.castCount}
+                      </td>
+                      <td>
+                        <code className="bg-base-300 rounded px-1.5 py-0.5 text-xs font-mono">
+                          {story.accessPin}
+                        </code>
                       </td>
                       <td>
                         <StatusBadge status={story.status} />

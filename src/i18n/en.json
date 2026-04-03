@@ -310,6 +310,7 @@
   "director.stat.active": "Active",
   "director.table.story": "Story",
   "director.table.cast": "Cast",
+  "director.table.pin": "PIN",
   "director.table.session": "Session",
   "director.library.description": "Upload characters, backgrounds, and sounds available across stories.",
   "director.library.characters": "Static Characters",

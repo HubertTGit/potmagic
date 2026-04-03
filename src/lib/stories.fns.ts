@@ -36,6 +36,7 @@ export const listStories = createServerFn({ method: 'GET' }).handler(async () =>
       sceneCount: sql<number>`(select count(*) from "scenes" where "scenes".story_id = stories.id)::int`,
       selectedSceneId: stories.selectedSceneId,
       livekitRoomName: stories.livekitRoomName,
+      accessPin: stories.accessPin,
     })
     .from(stories)
     .where(
@@ -85,7 +86,7 @@ export const createStory = createServerFn({ method: 'POST' })
     const [row] = await db
       .insert(stories)
       .values({ id, title: data.title, directorId: session.user.id, status: 'draft', accessPin })
-      .returning({ id: stories.id, title: stories.title, directorId: stories.directorId, status: stories.status, createdAt: stories.createdAt })
+      .returning({ id: stories.id, title: stories.title, directorId: stories.directorId, status: stories.status, accessPin: stories.accessPin, createdAt: stories.createdAt })
 
     return { ...row, castCount: 0, sceneCount: 0 }
   })
