@@ -248,6 +248,12 @@ export class CompositeHumanCharacter {
 
   constructor(props: CompositeHumanCharacterProps) {
     this.props = props;
+    console.log(`[CompositeCharacter] Constructor: ${props.sceneCastId}`, {
+      canDrag: props.canDrag,
+      hasRoom: !!props.room,
+      castId: props.castId,
+      userId: props.userId,
+    });
     this.showBoundingBoxes = props.showBoundingBoxes ?? false;
 
     this.container = new Container();
@@ -2011,7 +2017,13 @@ export class CompositeHumanCharacter {
 
   private publishMove(immediate = false) {
     const { room, canDrag, castId } = this.props;
-    if (!room || !canDrag) return;
+    if (!room || !canDrag) {
+      console.warn(`[CompositeCharacter] publishMove blocked: ${this.props.sceneCastId}`, {
+        hasRoom: !!room,
+        canDrag,
+      });
+      return;
+    }
     const now = Date.now();
     if (!immediate && now - this.lastSendTime < 30) return;
     this.lastSendTime = now;

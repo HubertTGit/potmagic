@@ -254,6 +254,14 @@ export const StageComponent = React.forwardRef<
         const cast = casts.find((c) => c.sceneCastId === id);
         const canDrag = session?.user?.id === cast?.userId || isDirectorPresence;
 
+        console.log(`[StageSync] Processing existing prop: ${id}`, {
+          castUserId: cast?.userId,
+          sessionUserId: session?.user?.id,
+          isDirectorPresence,
+          canDrag,
+          propCanDrag: prop.canDrag,
+        });
+
         const isRoomStale = !!room !== (prop as any).hasRoom;
         const isRepeatStale =
           cast?.type === "background" &&
@@ -298,6 +306,12 @@ export const StageComponent = React.forwardRef<
         if (existing.has(cast.sceneCastId)) continue;
 
         const canDrag = session?.user?.id === cast.userId || isDirectorPresence;
+        console.log(`[StageSync] Creating new prop: ${cast.sceneCastId}`, {
+          castUserId: cast.userId,
+          sessionUserId: session?.user?.id,
+          isDirectorPresence,
+          canDrag,
+        });
 
         const isComposite =
           cast.type === "composite-human" || cast.type === "composite-animal";

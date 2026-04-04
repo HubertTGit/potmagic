@@ -70,6 +70,11 @@ export class PixiCharacter {
     this.container.x = props.initialX ?? 100;
     this.container.y = props.initialY ?? 100;
 
+    console.log(`[PixiCharacter] Constructor: ${props.sceneCastId}`, {
+      canDrag: props.canDrag,
+      hasRoom: !!props.room,
+    });
+
     this.glowFilter = new GlowFilter({
       color: 0xa855f7,
       outerStrength: 4,
@@ -257,7 +262,13 @@ export class PixiCharacter {
 
   private publishMove(immediate = false) {
     const { room, canDrag, castId } = this.props;
-    if (!room || !canDrag) return;
+    if (!room || !canDrag) {
+      console.warn(`[PixiCharacter] publishMove blocked: ${this.props.sceneCastId}`, {
+        hasRoom: !!room,
+        canDrag,
+      });
+      return;
+    }
     const now = Date.now();
     if (!immediate && now - this.lastSendTime < 30) return;
     this.lastSendTime = now;

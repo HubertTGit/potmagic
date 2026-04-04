@@ -98,6 +98,11 @@ export class PixiRiveAnimation {
     this.container.zIndex = 1;
     this.container.x = props.initialX ?? 100;
     this.container.y = props.initialY ?? 100;
+
+    console.log(`[PixiRive] Constructor: ${props.sceneCastId}`, {
+      canDrag: props.canDrag,
+      hasRoom: !!props.room,
+    });
     this.container.rotation = (props.initialRotation ?? 0) * (Math.PI / 180);
 
     this.sprite = new Sprite();
@@ -391,7 +396,13 @@ export class PixiRiveAnimation {
 
   private publishMove(immediate = false) {
     const { room, canDrag, castId } = this.props;
-    if (!room || !canDrag) return;
+    if (!room || !canDrag) {
+      console.warn(`[PixiRive] publishMove blocked: ${this.props.sceneCastId}`, {
+        hasRoom: !!room,
+        canDrag,
+      });
+      return;
+    }
     const now = Date.now();
     if (!immediate && now - this.lastSendTime < 30) return;
     this.lastSendTime = now;
