@@ -600,11 +600,11 @@ export class CompositeHumanCharacter {
 
         // Scaling (Uniform)
         // Keep scaleX sign to preserve mirroring
-        const currentScaleSign = Math.sign(torso.scale.x);
-        const scaleFactor = distance / this.lastMultiTouchDistance;
-        const newAbsScaleX = Math.abs(torso.scale.x) * scaleFactor;
-        torso.scale.x = newAbsScaleX * currentScaleSign;
-        torso.scale.y = newAbsScaleX;
+        // const currentScaleSign = Math.sign(torso.scale.x);
+        // const scaleFactor = distance / this.lastMultiTouchDistance;
+        // const newAbsScaleX = Math.abs(torso.scale.x) * scaleFactor;
+        // torso.scale.x = newAbsScaleX * currentScaleSign;
+        // torso.scale.y = newAbsScaleX;
       }
 
       this.lastMultiTouchDistance = distance;
