@@ -37,7 +37,6 @@ export interface CharacterPartData {
   id: string;
   partRole: string;
   propId: string;
-  altPropId: string | null;
   pivotX: number; // Used as Pivot X (pixels)
   pivotY: number; // Used as Pivot Y (pixels)
   x: number;
@@ -46,6 +45,7 @@ export interface CharacterPartData {
   rotation: number;
   imageUrl: string | null;
   altImageUrl: string | null;
+  altImageUrl2: string | null;
 }
 
 export interface CompositeHumanCharacterProps {
@@ -93,6 +93,7 @@ export class CompositeHumanCharacter {
   private partSprites: Map<string, Sprite> = new Map();
   private textures: Map<string, Texture> = new Map();
   private variationTextures: Map<string, Texture> = new Map();
+  private variationTextures2: Map<string, Texture> = new Map();
 
   private isDragging = false;
   private dragOffset = { x: 0, y: 0 };
@@ -313,6 +314,13 @@ export class CompositeHumanCharacter {
         promises.push(
           Assets.load(p.altImageUrl).then((tex) =>
             this.variationTextures.set(p.partRole, tex),
+          ),
+        );
+      }
+      if (p.altImageUrl2) {
+        promises.push(
+          Assets.load(p.altImageUrl2).then((tex) =>
+            this.variationTextures2.set(p.partRole, tex),
           ),
         );
       }

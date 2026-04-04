@@ -762,7 +762,6 @@ export function CharacterBuilderStudio() {
             partRole: selectedRole as any,
             imageUrl: result.url,
             propId: null,
-            altPropId: existingPart?.altPropId,
             zIndex:
               existingPart?.zIndex ??
               ALL_PART_ROLES.indexOf(selectedRole as any),
@@ -819,7 +818,6 @@ export function CharacterBuilderStudio() {
             characterId: characterId!,
             partRole: selectedRole as any,
             altImageUrl: result.url,
-            altPropId: null,
             propId: existingPart?.propId,
             zIndex:
               existingPart?.zIndex ??

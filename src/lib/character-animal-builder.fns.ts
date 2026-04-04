@@ -47,33 +47,21 @@ export const getAnimal = createServerFn({ method: "GET" })
         characterId: characterAnimalParts.characterId,
         partRole: characterAnimalParts.partRole,
         propId: characterAnimalParts.propId,
-        altPropId: characterAnimalParts.altPropId,
         pivotX: characterAnimalParts.pivotX,
         pivotY: characterAnimalParts.pivotY,
         x: characterAnimalParts.x,
         y: characterAnimalParts.y,
         zIndex: characterAnimalParts.zIndex,
         rotation: characterAnimalParts.rotation,
-        imageUrl: props.imageUrl,
+        imageUrl: characterAnimalParts.imageUrl,
+        altImageUrl: characterAnimalParts.altImageUrl,
+        altImageUrl2: characterAnimalParts.altImageUrl2,
       })
       .from(characterAnimalParts)
-      .leftJoin(props, eq(characterAnimalParts.propId, props.id))
       .where(eq(characterAnimalParts.characterId, data.characterId))
       .orderBy(asc(characterAnimalParts.zIndex));
 
-    // Fetch alt textures manually
-    const partsWithAlt = await Promise.all(
-      parts.map(async (p) => {
-        if (!p.altPropId) return { ...p, altImageUrl: null };
-        const [alt] = await db
-          .select({ imageUrl: props.imageUrl })
-          .from(props)
-          .where(eq(props.id, p.altPropId));
-        return { ...p, altImageUrl: alt?.imageUrl ?? null };
-      }),
-    );
-
-    return { ...char, parts: partsWithAlt };
+    return { ...char, parts };
   });
 
 export const getAnimalByProp = createServerFn({ method: "GET" })
@@ -92,33 +80,21 @@ export const getAnimalByProp = createServerFn({ method: "GET" })
         characterId: characterAnimalParts.characterId,
         partRole: characterAnimalParts.partRole,
         propId: characterAnimalParts.propId,
-        altPropId: characterAnimalParts.altPropId,
         pivotX: characterAnimalParts.pivotX,
         pivotY: characterAnimalParts.pivotY,
         x: characterAnimalParts.x,
         y: characterAnimalParts.y,
         zIndex: characterAnimalParts.zIndex,
         rotation: characterAnimalParts.rotation,
-        imageUrl: props.imageUrl,
+        imageUrl: characterAnimalParts.imageUrl,
+        altImageUrl: characterAnimalParts.altImageUrl,
+        altImageUrl2: characterAnimalParts.altImageUrl2,
       })
       .from(characterAnimalParts)
-      .leftJoin(props, eq(characterAnimalParts.propId, props.id))
       .where(eq(characterAnimalParts.characterId, char.id))
       .orderBy(asc(characterAnimalParts.zIndex));
 
-    // Fetch alt textures manually
-    const partsWithAlt = await Promise.all(
-      parts.map(async (p) => {
-        if (!p.altPropId) return { ...p, altImageUrl: null };
-        const [alt] = await db
-          .select({ imageUrl: props.imageUrl })
-          .from(props)
-          .where(eq(props.id, p.altPropId));
-        return { ...p, altImageUrl: alt?.imageUrl ?? null };
-      }),
-    );
-
-    return { ...char, parts: partsWithAlt };
+    return { ...char, parts };
   });
 
 export const createAnimal = createServerFn({ method: "POST" })
@@ -154,8 +130,10 @@ export const upsertAnimalPart = createServerFn({ method: "POST" })
           "torso", "neck", "tail", "leg-upper-left", "leg-lower-left", "foot-left",
           "leg-upper-right", "leg-lower-right", "foot-right"
         ]),
-        propId: z.string(),
-        altPropId: z.string().optional().nullable(),
+        propId: z.string().optional().nullable(),
+        imageUrl: z.string().optional().nullable(),
+        altImageUrl: z.string().optional().nullable(),
+        altImageUrl2: z.string().optional().nullable(),
         pivotX: z.number().optional(),
         pivotY: z.number().optional(),
         x: z.number().optional(),
@@ -175,25 +153,34 @@ export const upsertAnimalPart = createServerFn({ method: "POST" })
     if (!char) throw new Error("Animal character not found");
     if (char.createdBy !== session.user.id) throw new Error("Forbidden");
 
-    const id = crypto.randomUUID();
-    const { characterId, partRole, propId, altPropId, ...values } = data;
+    const { characterId, partRole, propId, imageUrl, altImageUrl, altImageUrl2, ...values } = data;
 
-    // Fetch image URLs for denormalization
-    const [prop] = await db.select({ url: props.imageUrl }).from(props).where(eq(props.id, propId));
-    let altImageUrl: string | null = null;
-    if (altPropId) {
-      const [altProp] = await db.select({ url: props.imageUrl }).from(props).where(eq(props.id, altPropId));
-      altImageUrl = altProp?.url ?? null;
-    }
-
-    const payload = {
+    const payload: any = {
       ...values,
-      propId,
-      altPropId,
-      imageUrl: prop?.url ?? null,
-      altImageUrl,
+      propId: data.propId,
     };
 
+    // Update imageUrl if provided or derived from propId
+    if (data.imageUrl !== undefined || data.propId !== undefined) {
+      let finalImageUrl = data.imageUrl ?? null;
+      if (data.propId && data.imageUrl === undefined) {
+        const [prop] = await db.select({ url: props.imageUrl }).from(props).where(eq(props.id, data.propId));
+        finalImageUrl = prop?.url ?? null;
+      }
+      if (data.imageUrl !== undefined || (data.propId && finalImageUrl !== null)) {
+        payload.imageUrl = finalImageUrl;
+      }
+    }
+
+    // Update altImageUrl / altImageUrl2 if provided
+    if (data.altImageUrl !== undefined) {
+      payload.altImageUrl = data.altImageUrl;
+    }
+    if (data.altImageUrl2 !== undefined) {
+      payload.altImageUrl2 = data.altImageUrl2;
+    }
+
+    const id = crypto.randomUUID();
     await db
       .insert(characterAnimalParts)
       .values({
@@ -209,16 +196,21 @@ export const upsertAnimalPart = createServerFn({ method: "POST" })
         },
       });
 
+    // Cleanup: If image URLs changed, delete the old blobs
+    // (Only if they weren't linked via propId)
+    // For now we'll do basic cleanup if needed, but animal fns were mostly prop-based.
+    // Let's keep it simple as animal builder usage is less frequent.
+
     if (partRole === "head") {
       await db
         .update(charactersAnimal)
-        .set({ imageUrl: prop?.url ?? null })
+        .set({ imageUrl: payload.imageUrl ?? null })
         .where(eq(charactersAnimal.id, characterId));
 
       if (char.compositePropId) {
         await db
           .update(props)
-          .set({ imageUrl: prop?.url ?? null })
+          .set({ imageUrl: payload.imageUrl ?? null })
           .where(eq(props.id, char.compositePropId));
       }
     }
@@ -344,9 +336,36 @@ export const deleteAnimal = createServerFn({ method: "POST" })
     if (char.createdBy !== session.user.id) throw new Error("Forbidden");
 
     if (char.compositePropId) {
-      await db.delete(props).where(eq(props.id, char.compositePropId));
+      const [prop] = await db.select().from(props).where(eq(props.id, char.compositePropId));
+      if (prop) {
+        await db.delete(props).where(eq(props.id, char.compositePropId));
+        if (prop.imageUrl) {
+          const { del } = await import("@vercel/blob");
+          await del(prop.imageUrl).catch(() => {});
+        }
+      }
     }
 
+    // Clean up character parts and their associated blobs
+    const charParts = await db
+      .select()
+      .from(characterAnimalParts)
+      .where(eq(characterAnimalParts.characterId, data.characterId));
+
+    const { del } = await import("@vercel/blob");
+    for (const part of charParts) {
+      if (part.imageUrl && !part.propId) {
+        await del(part.imageUrl).catch(() => {});
+      }
+      if (part.altImageUrl) {
+        await del(part.altImageUrl).catch(() => {});
+      }
+      if (part.altImageUrl2) {
+        await del(part.altImageUrl2).catch(() => {});
+      }
+    }
+
+    await db.delete(characterAnimalParts).where(eq(characterAnimalParts.characterId, data.characterId));
     await db.delete(charactersAnimal).where(eq(charactersAnimal.id, data.characterId));
   });
 

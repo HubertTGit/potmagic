@@ -52,7 +52,6 @@ export const getCharacter = createServerFn({ method: "GET" })
         characterId: characterHumanParts.characterId,
         partRole: characterHumanParts.partRole,
         propId: characterHumanParts.propId,
-        altPropId: characterHumanParts.altPropId,
         pivotX: characterHumanParts.pivotX,
         pivotY: characterHumanParts.pivotY,
         x: characterHumanParts.x,
@@ -61,6 +60,7 @@ export const getCharacter = createServerFn({ method: "GET" })
         rotation: characterHumanParts.rotation,
         imageUrl: characterHumanParts.imageUrl,
         altImageUrl: characterHumanParts.altImageUrl,
+        altImageUrl2: characterHumanParts.altImageUrl2,
       })
       .from(characterHumanParts)
       .where(eq(characterHumanParts.characterId, data.characterId))
@@ -90,7 +90,6 @@ export const getCharacterByParts = createServerFn({ method: "GET" })
         characterId: characterHumanParts.characterId,
         partRole: characterHumanParts.partRole,
         propId: characterHumanParts.propId,
-        altPropId: characterHumanParts.altPropId,
         pivotX: characterHumanParts.pivotX,
         pivotY: characterHumanParts.pivotY,
         x: characterHumanParts.x,
@@ -99,6 +98,7 @@ export const getCharacterByParts = createServerFn({ method: "GET" })
         rotation: characterHumanParts.rotation,
         imageUrl: characterHumanParts.imageUrl,
         altImageUrl: characterHumanParts.altImageUrl,
+        altImageUrl2: characterHumanParts.altImageUrl2,
       })
       .from(characterHumanParts)
       .where(eq(characterHumanParts.characterId, char.id))
@@ -154,9 +154,9 @@ export const upsertCharacterPart = createServerFn({ method: "POST" })
           "torso",
         ]),
         propId: z.string().optional().nullable(),
-        altPropId: z.string().optional().nullable(),
         imageUrl: z.string().optional().nullable(),
         altImageUrl: z.string().optional().nullable(),
+        altImageUrl2: z.string().optional().nullable(),
         pivotX: z.number().optional(),
         pivotY: z.number().optional(),
         x: z.number().optional(),
@@ -184,8 +184,8 @@ export const upsertCharacterPart = createServerFn({ method: "POST" })
       .select({
         imageUrl: characterHumanParts.imageUrl,
         altImageUrl: characterHumanParts.altImageUrl,
+        altImageUrl2: characterHumanParts.altImageUrl2,
         propId: characterHumanParts.propId,
-        altPropId: characterHumanParts.altPropId,
       })
       .from(characterHumanParts)
       .where(
@@ -200,16 +200,15 @@ export const upsertCharacterPart = createServerFn({ method: "POST" })
       characterId,
       partRole,
       propId,
-      altPropId,
       imageUrl,
       altImageUrl,
+      altImageUrl2,
       ...values
     } = data;
 
     const payload: any = {
       ...values,
       propId: data.propId,
-      altPropId: data.altPropId,
     };
 
     // Only update imageUrl if provided in input OR if a propId was sent (requiring derivation)
@@ -228,19 +227,12 @@ export const upsertCharacterPart = createServerFn({ method: "POST" })
       }
     }
 
-    // Only update altImageUrl if provided in input OR if an altPropId was sent (requiring derivation)
-    if (data.altImageUrl !== undefined || data.altPropId !== undefined) {
-      let finalAltImageUrl = data.altImageUrl ?? null;
-      if (data.altPropId && data.altImageUrl === undefined) {
-        const [altProp] = await db
-          .select({ url: props.imageUrl })
-          .from(props)
-          .where(eq(props.id, data.altPropId));
-        finalAltImageUrl = altProp?.url ?? null;
-      }
-      if (data.altImageUrl !== undefined || (data.altPropId && finalAltImageUrl !== null)) {
-        payload.altImageUrl = finalAltImageUrl;
-      }
+    // Update altImageUrl / altImageUrl2 if provided
+    if (data.altImageUrl !== undefined) {
+      payload.altImageUrl = data.altImageUrl;
+    }
+    if (data.altImageUrl2 !== undefined) {
+      payload.altImageUrl2 = data.altImageUrl2;
     }
 
     await db
@@ -273,10 +265,16 @@ export const upsertCharacterPart = createServerFn({ method: "POST" })
       if (
         payload.altImageUrl !== undefined &&
         existingPart.altImageUrl &&
-        existingPart.altImageUrl !== payload.altImageUrl &&
-        !existingPart.altPropId
+        existingPart.altImageUrl !== payload.altImageUrl
       ) {
         await del(existingPart.altImageUrl).catch(() => {});
+      }
+      if (
+        payload.altImageUrl2 !== undefined &&
+        existingPart.altImageUrl2 &&
+        existingPart.altImageUrl2 !== payload.altImageUrl2
+      ) {
+        await del(existingPart.altImageUrl2).catch(() => {});
       }
     }
 
@@ -350,9 +348,9 @@ export const removeCharacterPart = createServerFn({ method: "POST" })
     const [part] = await db
       .select({
         propId: characterHumanParts.propId,
-        altPropId: characterHumanParts.altPropId,
         imageUrl: characterHumanParts.imageUrl,
         altImageUrl: characterHumanParts.altImageUrl,
+        altImageUrl2: characterHumanParts.altImageUrl2,
       })
       .from(characterHumanParts)
       .where(
@@ -374,23 +372,15 @@ export const removeCharacterPart = createServerFn({ method: "POST" })
           if (prop.imageUrl) await del(prop.imageUrl).catch(() => {});
         }
       }
-      if (part.altPropId) {
-        const [altProp] = await db
-          .select()
-          .from(props)
-          .where(eq(props.id, part.altPropId));
-        if (altProp) {
-          await db.delete(props).where(eq(props.id, part.altPropId));
-          if (altProp.imageUrl) await del(altProp.imageUrl).catch(() => {});
-        }
-      }
-
-      // 2. Clean up direct blobs if present (and not already cleaned up by prop deletion)
+      // 2. Clean up direct blobs if present
       if (part.imageUrl && !part.propId) {
         await del(part.imageUrl).catch(() => {});
       }
-      if (part.altImageUrl && !part.altPropId) {
+      if (part.altImageUrl) {
         await del(part.altImageUrl).catch(() => {});
+      }
+      if (part.altImageUrl2) {
+        await del(part.altImageUrl2).catch(() => {});
       }
     }
 
@@ -547,34 +537,15 @@ export const deleteCharacter = createServerFn({ method: "POST" })
       .where(eq(characterHumanParts.characterId, data.characterId));
 
     for (const part of charParts) {
-      // Clean up library props
-      if (part.propId) {
-        const [prop] = await db
-          .select()
-          .from(props)
-          .where(eq(props.id, part.propId));
-        if (prop) {
-          await db.delete(props).where(eq(props.id, part.propId));
-          if (prop.imageUrl) await del(prop.imageUrl).catch(() => {});
-        }
-      }
-      if (part.altPropId) {
-        const [altProp] = await db
-          .select()
-          .from(props)
-          .where(eq(props.id, part.altPropId));
-        if (altProp) {
-          await db.delete(props).where(eq(props.id, part.altPropId));
-          if (altProp.imageUrl) await del(altProp.imageUrl).catch(() => {});
-        }
-      }
-
       // Clean up direct blobs
       if (part.imageUrl && !part.propId) {
         await del(part.imageUrl).catch(() => {});
       }
-      if (part.altImageUrl && !part.altPropId) {
+      if (part.altImageUrl) {
         await del(part.altImageUrl).catch(() => {});
+      }
+      if (part.altImageUrl2) {
+        await del(part.altImageUrl2).catch(() => {});
       }
     }
 

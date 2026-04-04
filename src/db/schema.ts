@@ -372,9 +372,6 @@ export const characterHumanParts = pgTable(
     partRole: partHumanEnum("part_role").notNull(),
     propId: text("prop_id")
       .references(() => props.id, { onDelete: "cascade" }),
-    altPropId: text("alt_prop_id").references(() => props.id, {
-      onDelete: "set null",
-    }),
     pivotX: real("pivot_x").default(0).notNull(),
     pivotY: real("pivot_y").default(0).notNull(),
     x: real("pos_x").default(0).notNull(),
@@ -383,6 +380,7 @@ export const characterHumanParts = pgTable(
     rotation: real("rotation").default(0).notNull(),
     imageUrl: text("image_url"),
     altImageUrl: text("alt_image_url"),
+    altImageUrl2: text("alt_image_url_2"),
   },
   (table) => [
     unique("character_human_parts_unique").on(table.characterId, table.partRole),
@@ -399,9 +397,6 @@ export const characterAnimalParts = pgTable(
     partRole: partAnimalEnum("part_role").notNull(),
     propId: text("prop_id")
       .references(() => props.id, { onDelete: "cascade" }),
-    altPropId: text("alt_prop_id").references(() => props.id, {
-      onDelete: "set null",
-    }),
     pivotX: real("pivot_x").default(0).notNull(),
     pivotY: real("pivot_y").default(0).notNull(),
     x: real("pos_x").default(0).notNull(),
@@ -410,6 +405,7 @@ export const characterAnimalParts = pgTable(
     rotation: real("rotation").default(0).notNull(),
     imageUrl: text("image_url"),
     altImageUrl: text("alt_image_url"),
+    altImageUrl2: text("alt_image_url_2"),
   },
   (table) => [
     unique("character_animal_parts_unique").on(table.characterId, table.partRole),
