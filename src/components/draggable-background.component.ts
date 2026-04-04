@@ -146,6 +146,10 @@ export class PixiBackground {
     return !!this.props.room;
   }
 
+  get backgroundRepeat() {
+    return !!this.props.backgroundRepeat;
+  }
+
   private onPointerDown(e: FederatedPointerEvent) {
     if (this.animationSpeed > 0) return;
     this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });

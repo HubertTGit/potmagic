@@ -255,8 +255,16 @@ export const StageComponent = React.forwardRef<
         const canDrag = session?.user?.id === cast?.userId || isDirectorPresence;
 
         const isRoomStale = !!room !== (prop as any).hasRoom;
+        const isRepeatStale =
+          cast?.type === "background" &&
+          (prop as PixiBackground).backgroundRepeat !== backgroundRepeat;
 
-        if (!nextIds.has(id) || prop.canDrag !== canDrag || isRoomStale) {
+        if (
+          !nextIds.has(id) ||
+          prop.canDrag !== canDrag ||
+          isRoomStale ||
+          isRepeatStale
+        ) {
           prop.saveCurrentPosition();
           prop.destroy();
           app.stage.removeChild(prop.container);
@@ -398,7 +406,7 @@ export const StageComponent = React.forwardRef<
     if (typeof rafId === "number") {
       return () => cancelAnimationFrame(rafId);
     }
-  }, [casts, room, session, stageWidth, stageHeight, allCharactersLoaded, isDirectorPresence, expressions]);
+  }, [casts, room, session, stageWidth, stageHeight, allCharactersLoaded, isDirectorPresence, expressions, backgroundRepeat]);
 
   // Single centralized LiveKit DataReceived handler — parse once, dispatch by castId
   useEffect(() => {
