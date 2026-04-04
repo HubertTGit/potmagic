@@ -2411,8 +2411,8 @@ export class CompositeHumanCharacter {
 
     // Simultaneous rotation logic
     // We apply normalized bhValue * max rotation angle
-    const maxBodyRot = 12 * (Math.PI / 180); // 12 degrees max for body
-    const maxHeadRot = 20 * (Math.PI / 180); // 20 degrees max for head
+    const maxBodyRot = 24 * (Math.PI / 180); // 24 degrees max for body
+    const maxHeadRot = 40 * (Math.PI / 180); // 40 degrees max for head
 
     const bodyRotOffset = this.bhValue * maxBodyRot;
     const headRotOffset = this.bhValue * maxHeadRot;
