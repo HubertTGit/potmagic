@@ -60,7 +60,9 @@ export function CharacterBuilderStudio() {
   const compositeRef = useRef<CompositeHumanCharacter | null>(null);
 
   const [selectedRole, setSelectedRole] = useState<string>("body");
-  const [isUploading, setIsUploading] = useState<"main" | "alt" | null>(null);
+  const [isUploading, setIsUploading] = useState<"main" | "alt" | "alt2" | null>(
+    null,
+  );
   const [localName, setLocalName] = useState("");
   const [gizmoEditMode, setGizmoEditMode] = useState(false);
   // Track live pivot values from Pixi for the selected part
