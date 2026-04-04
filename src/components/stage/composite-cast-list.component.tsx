@@ -11,15 +11,12 @@ export function CompositeCastList() {
   const currentUserId = session?.user?.id;
   const [activeCastId, setActiveCastId] = useState<string | null>(null);
 
-  const compositeCasts = casts.filter(
+  if (!isDirector) return null;
+
+  const visibleCompositeCasts = casts.filter(
     (c) =>
       (c.type === "composite-human" || c.type === "composite-animal") && c.path,
   );
-
-  const visibleCompositeCasts = compositeCasts.filter((c) => {
-    if (isDirector) return true;
-    return c.userId === currentUserId;
-  });
 
   if (visibleCompositeCasts.length === 0) return null;
 

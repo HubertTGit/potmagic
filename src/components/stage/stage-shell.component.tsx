@@ -97,7 +97,7 @@ export function StageShell() {
         </Suspense>
       </div>
       <div className="flex w-7xl items-center justify-between">
-        <CompositeCastList />
+        {isDirector && <CompositeCastList />}
         <BgPanningTool />
         {isDirector && soundName && <SoundControlBar />}
       </div>
