@@ -97,8 +97,6 @@ export class CompositeHumanCharacter {
   private isDragging = false;
   private dragOffset = { x: 0, y: 0 };
   private activePointers = new Map<number, { x: number; y: number }>();
-  private lastMultiTouchDistance = 0;
-  private lastMultiTouchAngle = 0;
   private lastSendTime = 0;
   private isSpeaking = false;
   private isLaughing = false;
@@ -567,10 +565,6 @@ export class CompositeHumanCharacter {
 
   private onPointerUp(e: FederatedPointerEvent) {
     this.activePointers.delete(e.pointerId);
-    if (this.activePointers.size < 2) {
-      this.lastMultiTouchDistance = 0;
-      this.lastMultiTouchAngle = 0;
-    }
     if (this.activePointers.size === 0) {
       this.isDragging = false;
       this.persistPosition();
@@ -581,28 +575,7 @@ export class CompositeHumanCharacter {
     if (!this.props.canDrag) return;
     this.activePointers.set(e.pointerId, { x: e.global.x, y: e.global.y });
 
-    if (this.activePointers.size === 2) {
-      // Multi-touch rotation
-      const points = Array.from(this.activePointers.values());
-      const p1 = points[0];
-      const p2 = points[1];
-
-      const dx = p2.x - p1.x;
-      const dy = p2.y - p1.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      const angle = Math.atan2(dy, dx);
-
-      const torso = this.partContainers.get("torso");
-      if (torso && this.lastMultiTouchDistance > 0) {
-        // Rotation
-        const deltaAngle = angle - this.lastMultiTouchAngle;
-        torso.rotation += deltaAngle;
-      }
-
-      this.lastMultiTouchDistance = distance;
-      this.lastMultiTouchAngle = angle;
-      this.publishMove();
-    } else if (this.isDragging && this.activePointers.size === 1) {
+    if (this.isDragging && this.activePointers.size === 1) {
       // Single-touch translation
       const rawX = e.global.x + this.dragOffset.x;
       const rawY = e.global.y + this.dragOffset.y;
