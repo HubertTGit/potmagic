@@ -1812,24 +1812,25 @@ export class CompositeHumanCharacter {
     // Using sprite bounds is more accurate than container bounds which might include
     // parts that poke out (like eyes or hair).
     const headBounds = headSprite.getBounds();
-    const isInsideHead =
-      stageX >= headBounds.x &&
-      stageX <= headBounds.x + headBounds.width &&
-      stageY >= headBounds.y &&
-      stageY <= headBounds.y + headBounds.height;
+    const centerX = headBounds.x + headBounds.width / 2;
+    const centerY = headBounds.y + headBounds.height / 2;
+    // Double the tracking area: use full width/height as the half-extents
+    const halfWidth = headBounds.width;
+    const halfHeight = headBounds.height;
 
-    // 2. Normalized Mouse Position (-1 to 1) relative to head center
-    // If outside, tracking stops and we reset to original relative position (nx/ny = 0)
+    const isInsideTrackingArea =
+      stageX >= centerX - halfWidth &&
+      stageX <= centerX + halfWidth &&
+      stageY >= centerY - halfHeight &&
+      stageY <= centerY + halfHeight;
+
+    // 2. Normalized Mouse Position (-1 to 1) relative to area center
     let nx = 0;
     let ny = 0;
 
-    if (isInsideHead) {
-      nx =
-        (stageX - (headBounds.x + headBounds.width / 2)) /
-        (headBounds.width / 2);
-      ny =
-        (stageY - (headBounds.y + headBounds.height / 2)) /
-        (headBounds.height / 2);
+    if (isInsideTrackingArea) {
+      nx = (stageX - centerX) / halfWidth;
+      ny = (stageY - centerY) / halfHeight;
     }
 
     this.applyPupilMovement(nx, ny);
