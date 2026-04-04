@@ -83,6 +83,8 @@ export function CharacterBuilderStudio() {
   const [previewEyebrowsAngry, setPreviewEyebrowsAngry] = useState(false);
   const [previewAutoBlinking, setPreviewAutoBlinking] = useState(false);
   const [previewTurnMode, setPreviewTurnMode] = useState(false);
+  const isAnyExpressionActive =
+    previewLaughing || previewSmiling || previewMouthSad || previewAngry;
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -183,6 +185,18 @@ export function CharacterBuilderStudio() {
       compositeRef.current.setLaughing(previewLaughing);
     }
   }, [previewLaughing]);
+
+  // Sync speaking state to pixi
+  useEffect(() => {
+    if (compositeRef.current) {
+      // Suspend speaking if any other expression is active
+      if (isAnyExpressionActive) {
+        compositeRef.current.setSpeaking(false);
+      } else {
+        compositeRef.current.setSpeaking(previewSpeaking);
+      }
+    }
+  }, [previewSpeaking, isAnyExpressionActive]);
 
   // Reset laughing preview if mouth is removed
   useEffect(() => {
@@ -321,9 +335,14 @@ export function CharacterBuilderStudio() {
   // Sync auto blinking state to pixi
   useEffect(() => {
     if (compositeRef.current) {
-      compositeRef.current.setAutoBlinking(previewAutoBlinking);
+      // Suspend auto blinking if any other expression is active
+      if (isAnyExpressionActive) {
+        compositeRef.current.setAutoBlinking(false);
+      } else {
+        compositeRef.current.setAutoBlinking(previewAutoBlinking);
+      }
     }
-  }, [previewAutoBlinking]);
+  }, [previewAutoBlinking, isAnyExpressionActive]);
 
   // Reset auto blinking preview if eyes are removed
   useEffect(() => {
@@ -753,8 +772,14 @@ export function CharacterBuilderStudio() {
     if (previewAngry) {
       composite.setAngry(true);
     }
-    if (previewAutoBlinking) {
-      composite.setAutoBlinking(true);
+
+    if (!isAnyExpressionActive) {
+      if (previewAutoBlinking) {
+        composite.setAutoBlinking(true);
+      }
+      if (previewSpeaking) {
+        composite.setSpeaking(true);
+      }
     }
     if (ikState.left.enabled || ikState.right.enabled) {
       composite.setIKState(ikState);
@@ -1380,7 +1405,15 @@ export function CharacterBuilderStudio() {
                         previewLaughing && "bg-primary/20 text-primary",
                       )}
                       disabled={!hasMouthAltTexture}
-                      onClick={() => setPreviewLaughing(!previewLaughing)}
+                      onClick={() => {
+                        const next = !previewLaughing;
+                        setPreviewLaughing(next);
+                        if (next) {
+                          setPreviewSmiling(false);
+                          setPreviewMouthSad(false);
+                          setPreviewAngry(false);
+                        }
+                      }}
                     >
                       <Laugh className="size-4" />
                     </button>
@@ -1404,7 +1437,15 @@ export function CharacterBuilderStudio() {
                         previewSmiling && "bg-primary/20 text-primary",
                       )}
                       disabled={!hasMouthAltTexture}
-                      onClick={() => setPreviewSmiling(!previewSmiling)}
+                      onClick={() => {
+                        const next = !previewSmiling;
+                        setPreviewSmiling(next);
+                        if (next) {
+                          setPreviewLaughing(false);
+                          setPreviewMouthSad(false);
+                          setPreviewAngry(false);
+                        }
+                      }}
                     >
                       <Smile className="size-4" />
                     </button>
@@ -1428,7 +1469,15 @@ export function CharacterBuilderStudio() {
                         previewMouthSad && "bg-primary/20 text-primary",
                       )}
                       disabled={!hasMouthAltTexture}
-                      onClick={() => setPreviewMouthSad(!previewMouthSad)}
+                      onClick={() => {
+                        const next = !previewMouthSad;
+                        setPreviewMouthSad(next);
+                        if (next) {
+                          setPreviewLaughing(false);
+                          setPreviewSmiling(false);
+                          setPreviewAngry(false);
+                        }
+                      }}
                     >
                       <Frown className="size-4" />
                     </button>
@@ -1452,7 +1501,15 @@ export function CharacterBuilderStudio() {
                         previewAngry && "bg-primary/20 text-primary",
                       )}
                       disabled={!hasMouthAltTexture}
-                      onClick={() => setPreviewAngry(!previewAngry)}
+                      onClick={() => {
+                        const next = !previewAngry;
+                        setPreviewAngry(next);
+                        if (next) {
+                          setPreviewLaughing(false);
+                          setPreviewSmiling(false);
+                          setPreviewMouthSad(false);
+                        }
+                      }}
                     >
                       <Angry className="size-4" />
                     </button>
