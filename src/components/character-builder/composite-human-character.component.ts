@@ -573,7 +573,9 @@ export class CompositeHumanCharacter {
 
   private onStagePointerMove(e: FederatedPointerEvent) {
     if (!this.props.canDrag) return;
-    this.activePointers.set(e.pointerId, { x: e.global.x, y: e.global.y });
+    if (this.activePointers.has(e.pointerId)) {
+      this.activePointers.set(e.pointerId, { x: e.global.x, y: e.global.y });
+    }
 
     if (this.isDragging && this.activePointers.size === 1) {
       // Single-touch translation
