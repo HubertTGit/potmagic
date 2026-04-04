@@ -475,17 +475,26 @@ export const StageComponent = React.forwardRef<
     const props = propsRef.current;
     const castUserMap = new Map(casts.map((c) => [c.sceneCastId, c.userId]));
     for (const [, prop] of props) {
-      const userId = castUserMap.get(prop.container.label);
+      const sceneCastId = prop.container.label;
+      const userId = castUserMap.get(sceneCastId);
       if (userId) {
         const isSpeaking = speakingIds.has(userId);
         if (prop instanceof CompositeHumanCharacter) {
-          prop.setSpeaking(isSpeaking);
+          const charExps = expressions[sceneCastId] || {};
+          const isAnyExpressionActive =
+            charExps.laughing ||
+            charExps.smiling ||
+            charExps.sad ||
+            charExps.angry;
+
+          // Suspend speaking if any mouth expression is active
+          prop.setSpeaking(isSpeaking && !isAnyExpressionActive);
         } else {
           (prop as any).updateSpeaking(isSpeaking);
         }
       }
     }
-  }, [speakingIds, casts]);
+  }, [speakingIds, casts, expressions]);
 
   // Eye tracking for CompositeHumanCharacters
   useEffect(() => {
