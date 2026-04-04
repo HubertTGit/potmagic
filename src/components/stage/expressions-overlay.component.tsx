@@ -23,17 +23,7 @@ const EXPRESSIONS = [
   { id: "laughing", icon: Laugh, key: "characterBuilder.laughing" as const },
   { id: "smiling", icon: Smile, key: "characterBuilder.smiling" as const },
   { id: "sad", icon: Frown, key: "characterBuilder.sad" as const },
-  { id: "alert", icon: Eye, key: "characterBuilder.alert" as const },
-  { id: "blink", icon: EyeClosed, key: "characterBuilder.blink" as const },
-  {
-    id: "squint",
-    icon: EyeClosed,
-    key: "characterBuilder.squint" as const,
-    className: "rotate-180",
-  },
-  { id: "raisedBrows", icon: Meh, key: "characterBuilder.raisedBrows" as const },
-  { id: "happyBrows", icon: Smile, key: "characterBuilder.happyBrows" as const },
-  { id: "angryBrows", icon: Angry, key: "characterBuilder.angryBrows" as const },
+  { id: "angry", icon: Angry, key: "characterBuilder.angry" as const },
 ] as const;
 
 export function ExpressionsOverlay({
@@ -47,13 +37,24 @@ export function ExpressionsOverlay({
 
   const handleToggle = (id: string) => {
     const newValue = !characterExps[id];
-    setExpressions((prev) => ({
-      ...prev,
-      [sceneCastId]: {
-        ...(prev[sceneCastId] || {}),
-        [id]: newValue,
-      },
-    }));
+    setExpressions((prev) => {
+      const current = prev[sceneCastId] || {};
+      const next = { ...current, [id]: newValue };
+
+      // Mutual exclusion: if turning one ON, turn others OFF
+      if (newValue) {
+        EXPRESSIONS.forEach((exp) => {
+          if (exp.id !== id) {
+            next[exp.id] = false;
+          }
+        });
+      }
+
+      return {
+        ...prev,
+        [sceneCastId]: next,
+      };
+    });
   };
 
   return (
@@ -64,13 +65,13 @@ export function ExpressionsOverlay({
         </h3>
         <button
           onClick={onClose}
-          className="btn btn-ghost btn-circle btn-xs h-5 w-5 min-h-0"
+          className="btn btn-ghost btn-circle btn-xs h-5 min-h-0 w-5"
         >
           <X className="size-2.5 opacity-40" />
         </button>
       </div>
 
-      <div className="bg-base-200/50 border-base-300 grid grid-cols-3 gap-1 rounded-2xl border p-1 shadow-inner">
+      <div className="bg-base-200/50 border-base-300 flex gap-1 rounded-2xl border p-1 shadow-inner">
         {EXPRESSIONS.map((exp) => (
           <div
             key={exp.id}
@@ -85,12 +86,7 @@ export function ExpressionsOverlay({
                   "btn-primary bg-primary/20 text-primary shadow-sm",
               )}
             >
-              <exp.icon
-                className={cn(
-                  "size-4",
-                  "className" in exp ? exp.className : "",
-                )}
-              />
+              <exp.icon className="size-4" />
             </button>
           </div>
         ))}

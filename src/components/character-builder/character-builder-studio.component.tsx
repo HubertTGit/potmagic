@@ -1451,7 +1451,7 @@ export function CharacterBuilderStudio() {
                     </button>
                   </div>
 
-                  {/* Sad Mouth */}
+                  {/* Sad */}
                   <div
                     className={cn(
                       "tooltip tooltip-top",

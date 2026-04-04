@@ -1121,6 +1121,9 @@ export class CompositeHumanCharacter {
       case "angryBrows":
         this.setEyebrowsAngry(value);
         break;
+      case "angry":
+        this.setAngry(value);
+        break;
     }
   }
 
