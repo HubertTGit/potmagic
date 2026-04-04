@@ -731,6 +731,8 @@
   "characterBuilder.texture": "Texture",
   "characterBuilder.replaceTexture": "Replace texture",
   "characterBuilder.variationTexture": "Variation Texture",
+  "characterBuilder.lipSyncTexture": "Lip sync texture",
+  "characterBuilder.mouthExpressionTexture": "Mouth expression texture",
   "characterBuilder.uploadVariation": "Upload variation asset",
   "characterBuilder.transform": "Transform",
   "characterBuilder.pivotX": "Pivot X (px)",

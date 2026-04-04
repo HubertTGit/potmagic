@@ -838,6 +838,62 @@ export function CharacterBuilderStudio() {
     }
   };
 
+  const handleUploadAltTexture2 = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file || !characterId) return;
+
+    setIsUploading("alt2");
+    try {
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve) => {
+        reader.onload = () => {
+          const base64 = (reader.result as string).split(",")[1];
+          resolve(base64);
+        };
+        reader.readAsDataURL(file);
+      });
+
+      const base64 = await base64Promise;
+
+      const result = await uploadHumanPartFile({
+        data: {
+          fileName: file.name,
+          contentType: file.type,
+          base64,
+        },
+      });
+
+      if (result?.url) {
+        const existingPart = currentCharacter?.parts.find(
+          (p) => p.partRole === selectedRole,
+        );
+        await upsertPartMutation.mutateAsync({
+          data: {
+            characterId: characterId!,
+            partRole: selectedRole as any,
+            altImageUrl2: result.url,
+            propId: existingPart?.propId,
+            zIndex:
+              existingPart?.zIndex ??
+              ALL_PART_ROLES.indexOf(selectedRole as any),
+            x: existingPart?.x ?? 0,
+            y: existingPart?.y ?? 0,
+            pivotX: existingPart?.pivotX ?? 0,
+            pivotY: existingPart?.pivotY ?? 0,
+            rotation: existingPart?.rotation ?? 0,
+          },
+        });
+      }
+    } catch (err: any) {
+      toast.error(`${t("characterBuilder.uploadFailed")}: ${err.message}`);
+    } finally {
+      setIsUploading(null);
+      e.target.value = "";
+    }
+  };
+
   const handleSaveAdjustments = async () => {
     if (!compositeRef.current || !characterId) return;
 
@@ -1545,7 +1601,9 @@ export function CharacterBuilderStudio() {
               selectedRole === "eye-brow-left" ||
               selectedRole === "eye-brow-right";
             const hasAltTexture = isEye || isMouth || isEyebrow;
+            const hasAltTexture2 = isMouth;
             const altTextureUrl = part?.altImageUrl ?? null;
+            const altTextureUrl2 = part?.altImageUrl2 ?? null;
 
             return (
               <>
@@ -1624,7 +1682,9 @@ export function CharacterBuilderStudio() {
                     {hasAltTexture && (
                       <div className="space-y-2">
                         <label className="text-xs font-medium tracking-wide uppercase opacity-60">
-                          {t("characterBuilder.variationTexture")}
+                          {isMouth
+                            ? t("characterBuilder.lipSyncTexture")
+                            : t("characterBuilder.variationTexture")}
                         </label>
                         <div className="group relative">
                           {!altTextureUrl && (
@@ -1677,6 +1737,87 @@ export function CharacterBuilderStudio() {
                                           partRole: selectedRole as any,
                                           altImageUrl: null,
                                           altPropId: null,
+                                        },
+                                      });
+                                    }}
+                                    className="flex flex-col items-center gap-1"
+                                  >
+                                    <Trash2 className="text-error size-5" />
+                                    <span className="text-error text-[10px] font-bold tracking-widest uppercase">
+                                      {t("action.remove")}
+                                    </span>
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                <Upload className="size-6 opacity-30" />
+                                <span className="text-xs opacity-50">
+                                  {t("characterBuilder.uploadVariation")}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Second Variation Texture — specifically for mouth expression */}
+                    {hasAltTexture2 && (
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium tracking-wide uppercase opacity-60">
+                          {t("characterBuilder.mouthExpressionTexture")}
+                        </label>
+                        <div className="group relative">
+                          {!altTextureUrl2 && (
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleUploadAltTexture2(e)}
+                              className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                              disabled={!!isUploading}
+                            />
+                          )}
+                          <div
+                            className={cn(
+                              "border-base-300 flex min-h-32 flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed transition-colors",
+                              isUploading === "alt2"
+                                ? "bg-base-300"
+                                : "hover:bg-base-200",
+                            )}
+                          >
+                            {isUploading === "alt2" ? (
+                              <span className="loading loading-spinner loading-md text-primary" />
+                            ) : altTextureUrl2 ? (
+                              <div className="relative h-full w-full">
+                                <img
+                                  src={altTextureUrl2}
+                                  alt="alt2 preview"
+                                  className="max-h-48 w-full object-contain p-2"
+                                />
+                                <div className="bg-base-300/80 absolute inset-0 flex items-center justify-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                                  <label className="flex cursor-pointer flex-col items-center gap-1">
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      onChange={(e) =>
+                                        handleUploadAltTexture2(e)
+                                      }
+                                      className="hidden"
+                                    />
+                                    <Upload className="size-5 text-white" />
+                                    <span className="text-[10px] font-bold tracking-widest text-white uppercase">
+                                      {t("prop.replace")}
+                                    </span>
+                                  </label>
+                                  <div className="h-6 w-px bg-white/20" />
+                                  <button
+                                    onClick={() => {
+                                      upsertPartMutation.mutate({
+                                        data: {
+                                          characterId: characterId!,
+                                          partRole: selectedRole as any,
+                                          altImageUrl2: null,
                                         },
                                       });
                                     }}

@@ -665,6 +665,8 @@
   "characterBuilder.texture": "Textur",
   "characterBuilder.replaceTexture": "Textur ersetzen",
   "characterBuilder.variationTexture": "Variations-Textur",
+  "characterBuilder.lipSyncTexture": "Lipsynchronisations-Textur",
+  "characterBuilder.mouthExpressionTexture": "Mund-Ausdrucks-Textur",
   "characterBuilder.uploadVariation": "Variations-Asset hochladen",
   "characterBuilder.transform": "Transformation",
   "characterBuilder.pivotX": "Anker X (px)",
