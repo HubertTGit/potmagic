@@ -643,6 +643,7 @@
   "characterBuilder.sad": "Traurig",
   "characterBuilder.angry": "Wütend",
   "characterBuilder.blink": "Blinzeln",
+  "characterBuilder.autoBlink": "Autom. Blinzeln",
   "characterBuilder.requiresEyeVariation": "Benötigt Augen-Variation",
   "characterBuilder.requiresEyebrows": "Benötigt Augenbrauen",
   "characterBuilder.raisedBrows": "Gezogene Brauen",

@@ -709,6 +709,7 @@
   "characterBuilder.sad": "Sad",
   "characterBuilder.angry": "Angry",
   "characterBuilder.blink": "Blink",
+  "characterBuilder.autoBlink": "Auto Blink",
   "characterBuilder.requiresEyeVariation": "Requires Eye Variation",
   "characterBuilder.requiresEyebrows": "Requires Eyebrows",
   "characterBuilder.raisedBrows": "Raised Brows",

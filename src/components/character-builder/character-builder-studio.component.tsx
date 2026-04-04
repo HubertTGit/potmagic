@@ -40,6 +40,7 @@ import {
   MicVocal,
   RefreshCcwDot,
   Meh,
+  Eye,
 } from "lucide-react";
 import { ConfirmModal } from "@/components/confirm-modal";
 import type { Application } from "pixi.js";
@@ -60,9 +61,9 @@ export function CharacterBuilderStudio() {
   const compositeRef = useRef<CompositeHumanCharacter | null>(null);
 
   const [selectedRole, setSelectedRole] = useState<string>("body");
-  const [isUploading, setIsUploading] = useState<"main" | "alt" | "alt2" | null>(
-    null,
-  );
+  const [isUploading, setIsUploading] = useState<
+    "main" | "alt" | "alt2" | null
+  >(null);
   const [localName, setLocalName] = useState("");
   const [gizmoEditMode, setGizmoEditMode] = useState(false);
   // Track live pivot values from Pixi for the selected part
@@ -80,6 +81,7 @@ export function CharacterBuilderStudio() {
   const [previewEyebrowsUp, setPreviewEyebrowsUp] = useState(false);
   const [previewEyebrowsHappy, setPreviewEyebrowsHappy] = useState(false);
   const [previewEyebrowsAngry, setPreviewEyebrowsAngry] = useState(false);
+  const [previewAutoBlinking, setPreviewAutoBlinking] = useState(false);
   const [previewTurnMode, setPreviewTurnMode] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -243,8 +245,6 @@ export function CharacterBuilderStudio() {
     }
   }, [currentCharacter?.parts, previewAngry]);
 
-
-
   // Sync blinking state to pixi
   useEffect(() => {
     if (compositeRef.current) {
@@ -261,8 +261,6 @@ export function CharacterBuilderStudio() {
       setPreviewBlinking(false);
     }
   }, [currentCharacter?.parts, previewBlinking]);
-
-
 
   // Sync eyebrows state to pixi
   useEffect(() => {
@@ -313,12 +311,26 @@ export function CharacterBuilderStudio() {
     }
   }, [hasEyebrowAltTexture, previewEyebrowsAngry]);
 
-  // Reset eyebrows angry preview if eyebrows are removed
+  // Sync eyebrows angry preview if eyebrows are removed
   useEffect(() => {
     if (!hasEyebrowParts && previewEyebrowsAngry) {
       setPreviewEyebrowsAngry(false);
     }
   }, [hasEyebrowParts, previewEyebrowsAngry]);
+
+  // Sync auto blinking state to pixi
+  useEffect(() => {
+    if (compositeRef.current) {
+      compositeRef.current.setAutoBlinking(previewAutoBlinking);
+    }
+  }, [previewAutoBlinking]);
+
+  // Reset auto blinking preview if eyes are removed
+  useEffect(() => {
+    if (!hasEyeAltTexture && previewAutoBlinking) {
+      setPreviewAutoBlinking(false);
+    }
+  }, [hasEyeAltTexture, previewAutoBlinking]);
 
   // Initialize IK state from character data
   useEffect(() => {
@@ -741,6 +753,9 @@ export function CharacterBuilderStudio() {
     if (previewAngry) {
       composite.setAngry(true);
     }
+    if (previewAutoBlinking) {
+      composite.setAutoBlinking(true);
+    }
     if (ikState.left.enabled || ikState.right.enabled) {
       composite.setIKState(ikState);
     }
@@ -1020,7 +1035,7 @@ export function CharacterBuilderStudio() {
         </div>
 
         <div className="flex items-center gap-4">
-          <span className="text-[10px] uppercase opacity-40 font-medium tracking-wider">
+          <span className="text-[10px] font-medium tracking-wider uppercase opacity-40">
             {t("characterBuilder.autoSaveNote")}
           </span>
           <button
@@ -1402,7 +1417,9 @@ export function CharacterBuilderStudio() {
                       !hasMouthAltTexture && "opacity-20 grayscale",
                     )}
                     data-tip={
-                      !hasMouthAltTexture ? t("characterBuilder.requiresMouthVariation") : t("characterBuilder.sad")
+                      !hasMouthAltTexture
+                        ? t("characterBuilder.requiresMouthVariation")
+                        : t("characterBuilder.sad")
                     }
                   >
                     <button
@@ -1443,8 +1460,6 @@ export function CharacterBuilderStudio() {
 
                   <div className="bg-base-300 mx-1 h-4 w-px opacity-30" />
 
-
-
                   {/* Blink */}
                   <div
                     className={cn(
@@ -1452,7 +1467,9 @@ export function CharacterBuilderStudio() {
                       !hasEyeAltTexture && "opacity-20 grayscale",
                     )}
                     data-tip={
-                      !hasEyeAltTexture ? t("characterBuilder.requiresEyeVariation") : t("characterBuilder.blink")
+                      !hasEyeAltTexture
+                        ? t("characterBuilder.requiresEyeVariation")
+                        : t("characterBuilder.blink")
                     }
                   >
                     <button
@@ -1467,8 +1484,6 @@ export function CharacterBuilderStudio() {
                     </button>
                   </div>
 
-
-
                   <div className="bg-base-300 mx-1 h-4 w-px opacity-30" />
 
                   {/* Raised Brow */}
@@ -1478,7 +1493,9 @@ export function CharacterBuilderStudio() {
                       !hasEyebrowParts && "opacity-20 grayscale",
                     )}
                     data-tip={
-                      !hasEyebrowParts ? t("characterBuilder.requiresEyebrows") : t("characterBuilder.raisedBrows")
+                      !hasEyebrowParts
+                        ? t("characterBuilder.requiresEyebrows")
+                        : t("characterBuilder.raisedBrows")
                     }
                   >
                     <button
@@ -1577,6 +1594,32 @@ export function CharacterBuilderStudio() {
                     </button>
                   </div>
 
+                  {/* Auto Blink */}
+                  <div
+                    className={cn(
+                      "tooltip tooltip-top",
+                      !hasEyeAltTexture && "opacity-20 grayscale",
+                    )}
+                    data-tip={
+                      !hasEyeAltTexture
+                        ? t("characterBuilder.requiresEyeVariation")
+                        : t("characterBuilder.autoBlink")
+                    }
+                  >
+                    <button
+                      className={cn(
+                        "btn btn-ghost btn-circle btn-sm h-8 w-8",
+                        previewAutoBlinking && "bg-primary/20 text-primary",
+                      )}
+                      disabled={!hasEyeAltTexture}
+                      onClick={() =>
+                        setPreviewAutoBlinking(!previewAutoBlinking)
+                      }
+                    >
+                      <Eye className="size-4" />
+                    </button>
+                  </div>
+
                   {/* Test Speaking */}
                   <div
                     className={cn(
@@ -1600,8 +1643,6 @@ export function CharacterBuilderStudio() {
                       <MicVocal className="size-4" />
                     </button>
                   </div>
-
-                  <div className="bg-base-300 mx-1 h-4 w-px opacity-30" />
 
                   {/* Turn Mode */}
                   <div

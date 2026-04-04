@@ -107,6 +107,8 @@ export class CompositeHumanCharacter {
   private isBlinking = false;
   private isEyebrowsHappy = false;
   private isEyebrowsAngry = false;
+  private isAutoBlinking = false;
+  private autoBlinkTimeline: gsap.core.Timeline | null = null;
   private speakingTimeline: gsap.core.Timeline | null = null;
   private eyebrowOriginalXs: Map<string, number> = new Map();
   private eyebrowOriginalYs: Map<string, number> = new Map();
@@ -340,6 +342,7 @@ export class CompositeHumanCharacter {
       speaking: this.isSpeaking,
       sad: this.isMouthSad,
       angry: this.isAngry,
+      autoBlinking: this.isAutoBlinking,
     };
 
     // Reset flags to force re-evaluation in setters
@@ -347,6 +350,7 @@ export class CompositeHumanCharacter {
     this.isSmiling = false;
     this.isMouthSad = false;
     this.isAngry = false;
+    this.isAutoBlinking = false;
     this.isBlinking = false;
     this.isEyebrowsHappy = false;
     this.isEyebrowsAngry = false;
@@ -360,6 +364,7 @@ export class CompositeHumanCharacter {
     if (states.speaking) this.setSpeaking(true);
     if (states.sad) this.setSad(true);
     if (states.angry) this.setAngry(true);
+    if (states.autoBlinking) this.setAutoBlinking(true);
   }
 
   private buildHierarchy() {
@@ -1649,6 +1654,32 @@ export class CompositeHumanCharacter {
     }
   }
 
+  setAutoBlinking(enabled: boolean) {
+    if (this.isAutoBlinking === enabled) return;
+    this.isAutoBlinking = enabled;
+
+    if (this.autoBlinkTimeline) {
+      this.autoBlinkTimeline.kill();
+      this.autoBlinkTimeline = null;
+    }
+
+    if (!enabled) {
+      this.setBlink(false);
+      return;
+    }
+
+    // Create a repeating GSAP timeline for auto-blinking
+    // Cycle: 4s gap -> 0.3s blink (close eyes) -> repeat
+    const tl = gsap.timeline({ repeat: -1 });
+
+    tl.to({}, { duration: 4 }); // Initial 4s gap
+    tl.call(() => this.setBlink(true)); // Close eyes
+    tl.to({}, { duration: 0.3 }); // Keep closed for 300ms
+    tl.call(() => this.setBlink(false)); // Open eyes
+
+    this.autoBlinkTimeline = tl;
+  }
+
   setBlink(isBlinking: boolean) {
     if (this.isBlinking === isBlinking) return;
     this.isBlinking = isBlinking;
@@ -1684,7 +1715,6 @@ export class CompositeHumanCharacter {
       }
     }
   }
-
 
   setSmile(isSmiling: boolean) {
     if (this.isSmiling === isSmiling) return;
@@ -2050,6 +2080,11 @@ export class CompositeHumanCharacter {
   }
 
   destroy() {
+    if (this.autoBlinkTimeline) {
+      this.autoBlinkTimeline.kill();
+      this.autoBlinkTimeline = null;
+    }
+
     if (this.speakingTimeline) {
       this.speakingTimeline.kill();
     }
