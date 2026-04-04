@@ -404,6 +404,11 @@ export const StageComponent = React.forwardRef<
           prop.setTurnMode(true);
         }
 
+        // Enable auto-blinking for composite characters by default on stage
+        if (prop instanceof CompositeHumanCharacter) {
+          prop.setAutoBlinking(true);
+        }
+
         // Apply initial facial expression state if available from global atom
         if (prop instanceof CompositeHumanCharacter) {
           const charExps = expressions[cast.sceneCastId];
