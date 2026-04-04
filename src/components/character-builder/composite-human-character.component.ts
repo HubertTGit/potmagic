@@ -102,9 +102,7 @@ export class CompositeHumanCharacter {
   private isLaughing = false;
   private isSmiling = false;
   private isMouthSad = false;
-  private isGazing = false;
   private isBlinking = false;
-  private isSmilingEye = false;
   private isEyebrowsHappy = false;
   private isEyebrowsAngry = false;
   private speakingTimeline: gsap.core.Timeline | null = null;
@@ -327,9 +325,7 @@ export class CompositeHumanCharacter {
     const states = {
       laughing: this.isLaughing,
       smiling: this.isSmiling,
-      gazing: this.isGazing,
       blinking: this.isBlinking,
-      smilingEye: this.isSmilingEye,
       eyebrowsHappy: this.isEyebrowsHappy,
       eyebrowsAngry: this.isEyebrowsAngry,
       speaking: this.isSpeaking,
@@ -340,19 +336,14 @@ export class CompositeHumanCharacter {
     this.isLaughing = false;
     this.isSmiling = false;
     this.isMouthSad = false;
-    this.isGazing = false;
     this.isBlinking = false;
-    this.isSmilingEye = false;
     this.isEyebrowsHappy = false;
     this.isEyebrowsAngry = false;
     this.isSpeaking = false;
 
     // Re-evaluate expressions now that textures are loaded
-    if (states.laughing) this.setLaughing(true);
     if (states.smiling) this.setSmile(true);
-    if (states.gazing) this.setGaze(true);
     if (states.blinking) this.setBlink(true);
-    if (states.smilingEye) this.setSmileEye(true);
     if (states.eyebrowsHappy) this.setEyebrowsHappy(true);
     if (states.eyebrowsAngry) this.setEyebrowsAngry(true);
     if (states.speaking) this.setSpeaking(true);
@@ -1101,14 +1092,8 @@ export class CompositeHumanCharacter {
       case "sad":
         this.setSad(value);
         break;
-      case "alert":
-        this.setGaze(value);
-        break;
       case "blink":
         this.setBlink(value);
-        break;
-      case "squint":
-        this.setSmileEye(value);
         break;
       case "raisedBrows":
         this.setEyebrowsUp(value);
@@ -1383,13 +1368,13 @@ export class CompositeHumanCharacter {
       this.isSmiling = false;
       this.isLaughing = false;
       this.isMouthSad = false;
-      // 8 vertical variations: frame height = height of the mouth container's main texture
+      // 4 vertical variations: frame height = height of the mouth container's main texture
       const frameHeight = mainTexture.height;
       const frameWidth = mainTexture.width;
 
-      // Cache the 8 textures for performance
+      // Cache the 4 textures for performance
       const frames: PIXI.Texture[] = [];
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0; i < 4; i++) {
         frames.push(
           new PIXI.Texture({
             source: altTexture.source,
@@ -1480,7 +1465,7 @@ export class CompositeHumanCharacter {
 
       // Raise eyebrows and eyes while laughing
       this.setEyebrowsUp(true);
-      this.setSmileEye(true);
+      this.applySmileEye(true);
       this.setEyebrowsHappy(true);
     } else {
       // Cleanup laugh-specific animation
@@ -1496,7 +1481,7 @@ export class CompositeHumanCharacter {
         mouthSprite.texture = mainTexture;
         mouthContainer.visible = this.forceMouthVisible;
         this.setEyebrowsUp(false);
-        this.setSmileEye(false);
+        this.applySmileEye(false);
         this.setEyebrowsHappy(false);
       }
     }
@@ -1575,38 +1560,6 @@ export class CompositeHumanCharacter {
     }
   }
 
-  setGaze(isGazing: boolean) {
-    if (this.isGazing === isGazing) return;
-    this.isGazing = isGazing;
-
-    const roles = ["eye-left", "eye-right"] as const;
-    for (const role of roles) {
-      const sprite = this.partSprites.get(role);
-      if (!sprite) continue;
-
-      const mainTexture = this.textures.get(role);
-      const altTexture = this.variationTextures.get(role);
-
-      if (isGazing && altTexture && mainTexture) {
-        // Enforce same dimensions as main texture
-        const frameWidth = mainTexture.width;
-        const frameHeight = mainTexture.height;
-
-        const gazeTexture = new PIXI.Texture({
-          source: altTexture.source,
-          frame: new PIXI.Rectangle(0, 0, frameWidth, frameHeight),
-        });
-
-        sprite.texture = gazeTexture;
-      } else if (mainTexture) {
-        sprite.texture = mainTexture;
-      }
-    }
-
-    // Raise eyebrows while gazing
-    this.setEyebrowsUp(isGazing);
-  }
-
   setBlink(isBlinking: boolean) {
     if (this.isBlinking === isBlinking) return;
     this.isBlinking = isBlinking;
@@ -1626,7 +1579,7 @@ export class CompositeHumanCharacter {
 
         const blinkTexture = new PIXI.Texture({
           source: altTexture.source,
-          frame: new PIXI.Rectangle(0, frameHeight, frameWidth, frameHeight),
+          frame: new PIXI.Rectangle(0, 0, frameWidth, frameHeight),
         });
 
         sprite.texture = blinkTexture;
@@ -1643,10 +1596,7 @@ export class CompositeHumanCharacter {
     }
   }
 
-  setSmileEye(isSmiling: boolean) {
-    if (this.isSmilingEye === isSmiling) return;
-    this.isSmilingEye = isSmiling;
-
+  private applySmileEye(isSmiling: boolean) {
     const roles = ["eye-left", "eye-right"] as const;
     for (const role of roles) {
       const sprite = this.partSprites.get(role);
@@ -1732,7 +1682,7 @@ export class CompositeHumanCharacter {
 
       // Raise eyebrows and eyes while smiling
       this.setEyebrowsUp(true);
-      this.setSmileEye(true);
+      this.applySmileEye(true);
       this.setEyebrowsHappy(true);
     } else {
       // Cleanup smile-specific animation
@@ -1749,7 +1699,7 @@ export class CompositeHumanCharacter {
         mouthSprite.texture = mainTexture;
         mouthContainer.visible = this.forceMouthVisible;
         this.setEyebrowsUp(false);
-        this.setSmileEye(false);
+        this.applySmileEye(false);
         this.setEyebrowsHappy(false);
       }
     }

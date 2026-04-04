@@ -33,7 +33,6 @@ import {
   XCircle,
   Laugh,
   Smile,
-  Eye,
   EyeClosed,
   Frown,
   Angry,
@@ -74,9 +73,7 @@ export function CharacterBuilderStudio() {
   const [previewLaughing, setPreviewLaughing] = useState(false);
   const [previewSmiling, setPreviewSmiling] = useState(false);
   const [previewMouthSad, setPreviewMouthSad] = useState(false);
-  const [previewGazing, setPreviewGazing] = useState(false);
   const [previewBlinking, setPreviewBlinking] = useState(false);
-  const [previewSmilingEye, setPreviewSmilingEye] = useState(false);
   const [previewEyebrowsUp, setPreviewEyebrowsUp] = useState(false);
   const [previewEyebrowsHappy, setPreviewEyebrowsHappy] = useState(false);
   const [previewEyebrowsAngry, setPreviewEyebrowsAngry] = useState(false);
@@ -106,13 +103,14 @@ export function CharacterBuilderStudio() {
     enabled: !!characterId,
   });
 
-  const hasRequiredPupilParts = [
-    "head",
-    "eye-left",
-    "eye-right",
-    "pupil-left",
-    "pupil-right",
-  ].every((role) => currentCharacter?.parts.some((p) => p.partRole === role));
+  const hasHead = currentCharacter?.parts.some((p) => p.partRole === "head");
+  const hasLeftPair = ["eye-left", "pupil-left"].every((role) =>
+    currentCharacter?.parts.some((p) => p.partRole === role),
+  );
+  const hasRightPair = ["eye-right", "pupil-right"].every((role) =>
+    currentCharacter?.parts.some((p) => p.partRole === role),
+  );
+  const hasRequiredPupilParts = hasHead && (hasLeftPair || hasRightPair);
 
   const hasRequiredSpeakingParts = ["head", "mouth"].every((role) =>
     currentCharacter?.parts.some((p) => p.partRole === role),
@@ -225,22 +223,7 @@ export function CharacterBuilderStudio() {
     }
   }, [currentCharacter?.parts, previewMouthSad]);
 
-  // Sync gazing state to pixi
-  useEffect(() => {
-    if (compositeRef.current) {
-      compositeRef.current.setGaze(previewGazing);
-    }
-  }, [previewGazing]);
 
-  // Reset gazing preview if mouth is removed
-  useEffect(() => {
-    const hasMouth = currentCharacter?.parts.some(
-      (p) => p.partRole === "mouth",
-    );
-    if (!hasMouth && previewGazing) {
-      setPreviewGazing(false);
-    }
-  }, [currentCharacter?.parts, previewGazing]);
 
   // Sync blinking state to pixi
   useEffect(() => {
@@ -259,21 +242,7 @@ export function CharacterBuilderStudio() {
     }
   }, [currentCharacter?.parts, previewBlinking]);
 
-  // Sync eye-smile state to pixi
-  useEffect(() => {
-    if (compositeRef.current) {
-      compositeRef.current.setSmileEye(previewSmilingEye);
-    }
-  }, [previewSmilingEye]);
 
-  useEffect(() => {
-    const hasEyes = currentCharacter?.parts.some(
-      (p) => p.partRole === "eye-left" || p.partRole === "eye-right",
-    );
-    if (!hasEyes && previewSmilingEye) {
-      setPreviewSmilingEye(false);
-    }
-  }, [currentCharacter?.parts, previewSmilingEye]);
 
   // Sync eyebrows state to pixi
   useEffect(() => {
@@ -1372,27 +1341,7 @@ export function CharacterBuilderStudio() {
 
                   <div className="bg-base-300 mx-1 h-4 w-px opacity-30" />
 
-                  {/* Gaze */}
-                  <div
-                    className={cn(
-                      "tooltip tooltip-top",
-                      !hasEyeAltTexture && "opacity-20 grayscale",
-                    )}
-                    data-tip={
-                      !hasEyeAltTexture ? t("characterBuilder.requiresEyeVariation") : t("characterBuilder.alert")
-                    }
-                  >
-                    <button
-                      className={cn(
-                        "btn btn-ghost btn-circle btn-sm h-8 w-8",
-                        previewGazing && "bg-primary/20 text-primary",
-                      )}
-                      disabled={!hasEyeAltTexture}
-                      onClick={() => setPreviewGazing(!previewGazing)}
-                    >
-                      <Eye className="size-4" />
-                    </button>
-                  </div>
+
 
                   {/* Blink */}
                   <div
@@ -1416,27 +1365,7 @@ export function CharacterBuilderStudio() {
                     </button>
                   </div>
 
-                  {/* Eye Smile (Happy) */}
-                  <div
-                    className={cn(
-                      "tooltip tooltip-top",
-                      !hasEyeAltTexture && "opacity-20 grayscale",
-                    )}
-                    data-tip={
-                      !hasEyeAltTexture ? t("characterBuilder.requiresEyeVariation") : t("characterBuilder.squint")
-                    }
-                  >
-                    <button
-                      className={cn(
-                        "btn btn-ghost btn-circle btn-sm h-8 w-8",
-                        previewSmilingEye && "bg-primary/20 text-primary",
-                      )}
-                      disabled={!hasEyeAltTexture}
-                      onClick={() => setPreviewSmilingEye(!previewSmilingEye)}
-                    >
-                      <EyeClosed className="size-4 rotate-180" />
-                    </button>
-                  </div>
+
 
                   <div className="bg-base-300 mx-1 h-4 w-px opacity-30" />
 
