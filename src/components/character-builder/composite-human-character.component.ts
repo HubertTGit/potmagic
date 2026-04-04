@@ -582,7 +582,7 @@ export class CompositeHumanCharacter {
     this.activePointers.set(e.pointerId, { x: e.global.x, y: e.global.y });
 
     if (this.activePointers.size === 2) {
-      // Multi-touch rotation + scaling
+      // Multi-touch rotation
       const points = Array.from(this.activePointers.values());
       const p1 = points[0];
       const p2 = points[1];
@@ -597,14 +597,6 @@ export class CompositeHumanCharacter {
         // Rotation
         const deltaAngle = angle - this.lastMultiTouchAngle;
         torso.rotation += deltaAngle;
-
-        // Scaling (Uniform)
-        // Keep scaleX sign to preserve mirroring
-        // const currentScaleSign = Math.sign(torso.scale.x);
-        // const scaleFactor = distance / this.lastMultiTouchDistance;
-        // const newAbsScaleX = Math.abs(torso.scale.x) * scaleFactor;
-        // torso.scale.x = newAbsScaleX * currentScaleSign;
-        // torso.scale.y = newAbsScaleX;
       }
 
       this.lastMultiTouchDistance = distance;

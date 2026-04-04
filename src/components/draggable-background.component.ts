@@ -31,9 +31,6 @@ const BG_BLUR_STRENGTH: Record<1 | 2 | 3, number> = {
 
 const DRAG_BLUR_STRENGTH = 10;
 
-function getMidpoint(a: { x: number; y: number }, b: { x: number; y: number }) {
-  return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
-}
 
 export class PixiBackground {
   readonly container: Container;
@@ -182,24 +179,8 @@ export class PixiBackground {
     if (this.animationSpeed > 0) return;
     if (!this.activePointers.has(e.pointerId)) return;
 
-    const prevStateMap = new Map(this.activePointers);
     this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-
-    if (this.activePointers.size === 2) {
-      const currPointers = Array.from(this.activePointers.values());
-      const prevPointers = Array.from(prevStateMap.values());
-      if (prevPointers.length < 2) return;
-      const newMid = getMidpoint(currPointers[0], currPointers[1]);
-      const oldMid = getMidpoint(prevPointers[0], prevPointers[1]);
-      const panDelta = newMid.x - oldMid.x;
-
-      if (this.props.backgroundRepeat && this.tilingSprite) {
-        this.tilingSprite.tilePosition.x += panDelta;
-      } else {
-        this.container.x += panDelta;
-      }
-      this.publishMove();
-    } else if (this.isDragging && this.activePointers.size <= 1) {
+    if (this.isDragging && this.activePointers.size <= 1) {
       const dx = e.global.x - this.lastDragX;
       this.lastDragX = e.global.x;
 
