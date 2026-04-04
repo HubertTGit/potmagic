@@ -103,6 +103,7 @@ export class CompositeHumanCharacter {
   private isLaughing = false;
   private isSmiling = false;
   private isMouthSad = false;
+  private isAngry = false;
   private isBlinking = false;
   private isEyebrowsHappy = false;
   private isEyebrowsAngry = false;
@@ -338,12 +339,14 @@ export class CompositeHumanCharacter {
       eyebrowsAngry: this.isEyebrowsAngry,
       speaking: this.isSpeaking,
       sad: this.isMouthSad,
+      angry: this.isAngry,
     };
 
     // Reset flags to force re-evaluation in setters
     this.isLaughing = false;
     this.isSmiling = false;
     this.isMouthSad = false;
+    this.isAngry = false;
     this.isBlinking = false;
     this.isEyebrowsHappy = false;
     this.isEyebrowsAngry = false;
@@ -356,6 +359,7 @@ export class CompositeHumanCharacter {
     if (states.eyebrowsAngry) this.setEyebrowsAngry(true);
     if (states.speaking) this.setSpeaking(true);
     if (states.sad) this.setSad(true);
+    if (states.angry) this.setAngry(true);
   }
 
   private buildHierarchy() {
@@ -1430,18 +1434,21 @@ export class CompositeHumanCharacter {
     const mouthContainer = this.partContainers.get("mouth");
     const mouthSprite = this.partSprites.get("mouth");
     const mainTexture = this.textures.get("mouth");
-    const altTexture = this.variationTextures.get("mouth");
+    // Favor variationTextures2 (Mouth Expression Texture)
+    const altTexture =
+      this.variationTextures2.get("mouth") ??
+      this.variationTextures.get("mouth");
 
     if (!mouthContainer || !mouthSprite || !mainTexture) return;
 
     if (isLaughing && altTexture) {
-      // 10th frame (index 9 as per user manual edit)
+      // 3rd frame (index 2 as per user manual edit)
       const frameHeight = mainTexture.height;
       const frameWidth = mainTexture.width;
 
       const laughTexture = new PIXI.Texture({
         source: altTexture.source,
-        frame: new PIXI.Rectangle(0, 9 * frameHeight, frameWidth, frameHeight),
+        frame: new PIXI.Rectangle(0, 1 * frameHeight, frameWidth, frameHeight),
       });
 
       mouthSprite.texture = laughTexture;
@@ -1471,10 +1478,10 @@ export class CompositeHumanCharacter {
         yoyo: true,
       });
 
-      // Raise eyebrows and eyes while laughing
+      // Raise eyebrows and blink while laughing
       this.setEyebrowsUp(true);
-      this.applySmileEye(true);
       this.setEyebrowsHappy(true);
+      this.setBlinking(true);
     } else {
       // Cleanup laugh-specific animation
       this.laughTween?.kill();
@@ -1489,8 +1496,8 @@ export class CompositeHumanCharacter {
         mouthSprite.texture = mainTexture;
         mouthContainer.visible = this.forceMouthVisible;
         this.setEyebrowsUp(false);
-        this.applySmileEye(false);
         this.setEyebrowsHappy(false);
+        this.setBlinking(false);
       }
     }
   }
@@ -1502,7 +1509,10 @@ export class CompositeHumanCharacter {
     const mouthContainer = this.partContainers.get("mouth");
     const mouthSprite = this.partSprites.get("mouth");
     const mainTexture = this.textures.get("mouth");
-    const altTexture = this.variationTextures.get("mouth");
+    // Favor variationTextures2 (Mouth Expression Texture)
+    const altTexture =
+      this.variationTextures2.get("mouth") ??
+      this.variationTextures.get("mouth");
 
     if (!mouthContainer || !mouthSprite || !mainTexture) return;
 
@@ -1515,6 +1525,7 @@ export class CompositeHumanCharacter {
       this.isSmiling = false;
       this.isLaughing = false;
       this.isSpeaking = false;
+      this.isAngry = false;
       const frameHeight = mainTexture.height;
       const frameWidth = mainTexture.width;
 
@@ -1528,23 +1539,14 @@ export class CompositeHumanCharacter {
         this.mouthOriginalY = mouthContainer.y;
       }
 
-      // Create textures for frame 10 and 11
-      const sadTexture1 = new PIXI.Texture({
+      // Create texture for frame index 2
+      const sadTexture = new PIXI.Texture({
         source: altTexture.source,
-        frame: new PIXI.Rectangle(0, 10 * frameHeight, frameWidth, frameHeight),
+        frame: new PIXI.Rectangle(0, 2 * frameHeight, frameWidth, frameHeight),
       });
 
-      const sadTexture2 = new PIXI.Texture({
-        source: altTexture.source,
-        frame: new PIXI.Rectangle(0, 11 * frameHeight, frameWidth, frameHeight),
-      });
-
-      // Animate between frames every 1 second
-      this.sadTimeline = gsap.timeline({ repeat: -1 });
-      this.sadTimeline
-        .set(mouthSprite, { pixi: { texture: sadTexture1 } }, 0)
-        .set(mouthSprite, { pixi: { texture: sadTexture2 } }, 1)
-        .set({}, {}, 2); // Hold last frame for 1s
+      mouthSprite.texture = sadTexture;
+      this.sadTimeline = null;
 
       // Slight downward displacement for sad expression
       gsap.to(mouthContainer, {
@@ -1554,6 +1556,10 @@ export class CompositeHumanCharacter {
       });
 
       mouthContainer.visible = true;
+
+      // Raise eyebrows while sad
+      this.setEyebrowsUp(true);
+      this.setEyebrowsHappy(true);
     } else {
       // Reset to neutral
       mouthSprite.texture = mainTexture;
@@ -1565,6 +1571,81 @@ export class CompositeHumanCharacter {
         });
       }
       this.sadTimeline = null;
+
+      // Reset eyebrows
+      this.setEyebrowsUp(false);
+      this.setEyebrowsHappy(false);
+    }
+  }
+
+  setAngry(angry: boolean) {
+    if (this.isAngry === angry) return;
+    this.isAngry = angry;
+
+    const role = "mouth";
+    const mouthContainer = this.partContainers.get(role);
+    const mouthSprite = this.partSprites.get(role);
+    const mainTexture = this.textures.get(role);
+    // Favor variationTextures2 (Mouth Expression Texture)
+    const altTexture =
+      this.variationTextures2.get(role) ?? this.variationTextures.get(role);
+
+    if (!mouthContainer || !mouthSprite || !mainTexture) return;
+
+    if (angry && altTexture) {
+      this.isSmiling = false;
+      this.isLaughing = false;
+      this.isMouthSad = false;
+      this.isSpeaking = false;
+
+      // Kill conflicting mouth animations
+      this.smileTween?.kill();
+      this.laughTween?.kill();
+      this.speakingTimeline?.kill();
+      this.sadTimeline?.kill();
+
+      // Store original position if not already animating
+      if (this.mouthOriginalY === null) {
+        this.mouthOriginalY = mouthContainer.y;
+      }
+
+      const frameWidth = mainTexture.width;
+      const frameHeight = mainTexture.height;
+
+      // Create texture for frame index 2 (similar to sad mouth shape)
+      const angryMouthTexture = new PIXI.Texture({
+        source: altTexture.source,
+        frame: new PIXI.Rectangle(0, 2 * frameHeight, frameWidth, frameHeight),
+      });
+
+      mouthSprite.texture = angryMouthTexture;
+
+      // Slight downward displacement
+      gsap.to(mouthContainer, {
+        pixi: { y: this.mouthOriginalY + frameHeight / 10 },
+        duration: 0.5,
+        ease: "power2.out",
+      });
+
+      mouthContainer.visible = true;
+
+      // Angry brows logic
+      this.setEyebrowsUp(true);
+      this.setEyebrowsAngry(true);
+    } else {
+      // Reset to neutral
+      mouthSprite.texture = mainTexture;
+      if (this.mouthOriginalY !== null) {
+        gsap.to(mouthContainer, {
+          pixi: { y: this.mouthOriginalY },
+          duration: 0.3,
+          ease: "power2.inOut",
+        });
+      }
+
+      // Reset eyebrows
+      this.setEyebrowsUp(false);
+      this.setEyebrowsAngry(false);
     }
   }
 
@@ -1604,43 +1685,6 @@ export class CompositeHumanCharacter {
     }
   }
 
-  private applySmileEye(isSmiling: boolean) {
-    const roles = ["eye-left", "eye-right"] as const;
-    for (const role of roles) {
-      const sprite = this.partSprites.get(role);
-      if (!sprite) continue;
-
-      const mainTexture = this.textures.get(role);
-      const altTexture = this.variationTextures.get(role);
-
-      if (isSmiling && altTexture && mainTexture) {
-        // Smile eyes is frame index 2
-        const frameWidth = mainTexture.width;
-        const frameHeight = mainTexture.height;
-
-        const smileTexture = new PIXI.Texture({
-          source: altTexture.source,
-          frame: new PIXI.Rectangle(
-            0,
-            2 * frameHeight,
-            frameWidth,
-            frameHeight,
-          ),
-        });
-
-        sprite.texture = smileTexture;
-      } else if (mainTexture) {
-        sprite.texture = mainTexture;
-      }
-
-      // Hide pupils when eyes are smiling (squinting/closed)
-      const pupilRole = role === "eye-left" ? "pupil-left" : "pupil-right";
-      const pupilContainer = this.partContainers.get(pupilRole);
-      if (pupilContainer) {
-        pupilContainer.visible = !isSmiling;
-      }
-    }
-  }
 
   setSmile(isSmiling: boolean) {
     if (this.isSmiling === isSmiling) return;
@@ -1649,18 +1693,21 @@ export class CompositeHumanCharacter {
     const mouthContainer = this.partContainers.get("mouth");
     const mouthSprite = this.partSprites.get("mouth");
     const mainTexture = this.textures.get("mouth");
-    const altTexture = this.variationTextures.get("mouth");
+    // Favor variationTextures2 (Mouth Expression Texture)
+    const altTexture =
+      this.variationTextures2.get("mouth") ??
+      this.variationTextures.get("mouth");
 
     if (!mouthContainer || !mouthSprite || !mainTexture) return;
 
     if (isSmiling && altTexture) {
-      // Mouth variation frame index 8
+      // Mouth variation frame index 0
       const frameHeight = mainTexture.height;
       const frameWidth = mainTexture.width;
 
       const smileTexture = new PIXI.Texture({
         source: altTexture.source,
-        frame: new PIXI.Rectangle(0, 8 * frameHeight, frameWidth, frameHeight),
+        frame: new PIXI.Rectangle(0, 0 * frameHeight, frameWidth, frameHeight),
       });
 
       mouthSprite.texture = smileTexture;
@@ -1688,10 +1735,8 @@ export class CompositeHumanCharacter {
         ease: "back.out(2)",
       });
 
-      // Raise eyebrows and eyes while smiling
+      // Raise eyebrows while smiling
       this.setEyebrowsUp(true);
-      this.applySmileEye(true);
-      this.setEyebrowsHappy(true);
     } else {
       // Cleanup smile-specific animation
       this.smileTween?.kill();
@@ -1707,8 +1752,6 @@ export class CompositeHumanCharacter {
         mouthSprite.texture = mainTexture;
         mouthContainer.visible = this.forceMouthVisible;
         this.setEyebrowsUp(false);
-        this.applySmileEye(false);
-        this.setEyebrowsHappy(false);
       }
     }
   }

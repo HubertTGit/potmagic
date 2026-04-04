@@ -75,6 +75,7 @@ export function CharacterBuilderStudio() {
   const [previewLaughing, setPreviewLaughing] = useState(false);
   const [previewSmiling, setPreviewSmiling] = useState(false);
   const [previewMouthSad, setPreviewMouthSad] = useState(false);
+  const [previewAngry, setPreviewAngry] = useState(false);
   const [previewBlinking, setPreviewBlinking] = useState(false);
   const [previewEyebrowsUp, setPreviewEyebrowsUp] = useState(false);
   const [previewEyebrowsHappy, setPreviewEyebrowsHappy] = useState(false);
@@ -145,7 +146,7 @@ export function CharacterBuilderStudio() {
   );
 
   const hasMouthAltTexture = currentCharacter?.parts.some(
-    (p) => p.partRole === "mouth" && !!p.altImageUrl,
+    (p) => p.partRole === "mouth" && (p.altImageUrl || (p as any).altImageUrl2),
   );
   const hasEyebrowAltTexture = currentCharacter?.parts.some(
     (p) =>
@@ -224,6 +225,23 @@ export function CharacterBuilderStudio() {
       setPreviewMouthSad(false);
     }
   }, [currentCharacter?.parts, previewMouthSad]);
+
+  // Sync angry state to pixi
+  useEffect(() => {
+    if (compositeRef.current) {
+      compositeRef.current.setAngry(previewAngry);
+    }
+  }, [previewAngry]);
+
+  // Reset angry preview if mouth is removed
+  useEffect(() => {
+    const hasMouth = currentCharacter?.parts.some(
+      (p) => p.partRole === "mouth",
+    );
+    if (!hasMouth && previewAngry) {
+      setPreviewAngry(false);
+    }
+  }, [currentCharacter?.parts, previewAngry]);
 
 
 
@@ -680,6 +698,7 @@ export function CharacterBuilderStudio() {
       const state = liveState[p.partRole];
       return {
         ...p,
+        altImageUrl2: (p as any).altImageUrl2,
         x: state?.x ?? p.x,
         y: state?.y ?? p.y,
         pivotX: state?.pivotX ?? p.pivotX,
@@ -718,6 +737,9 @@ export function CharacterBuilderStudio() {
     }
     if (previewMouthSad) {
       composite.setSad(true);
+    }
+    if (previewAngry) {
+      composite.setAngry(true);
     }
     if (ikState.left.enabled || ikState.right.enabled) {
       composite.setIKState(ikState);
@@ -1395,6 +1417,30 @@ export function CharacterBuilderStudio() {
                     </button>
                   </div>
 
+                  {/* Angry */}
+                  <div
+                    className={cn(
+                      "tooltip tooltip-top",
+                      !hasMouthAltTexture && "opacity-20 grayscale",
+                    )}
+                    data-tip={
+                      !hasMouthAltTexture
+                        ? t("characterBuilder.requiresMouthVariation")
+                        : t("characterBuilder.angry")
+                    }
+                  >
+                    <button
+                      className={cn(
+                        "btn btn-ghost btn-circle btn-sm h-8 w-8",
+                        previewAngry && "bg-primary/20 text-primary",
+                      )}
+                      disabled={!hasMouthAltTexture}
+                      onClick={() => setPreviewAngry(!previewAngry)}
+                    >
+                      <Angry className="size-4" />
+                    </button>
+                  </div>
+
                   <div className="bg-base-300 mx-1 h-4 w-px opacity-30" />
 
 
@@ -1820,7 +1866,7 @@ export function CharacterBuilderStudio() {
                                           characterId: characterId!,
                                           partRole: selectedRole as any,
                                           altImageUrl2: null,
-                                        },
+                                        } as any,
                                       });
                                     }}
                                     className="flex flex-col items-center gap-1"
